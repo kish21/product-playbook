@@ -105,7 +105,7 @@ ANYTIME          /drift-check (detects scope creep or code-docs drift)
 | Group | Skill | What it does | Output produced | Use it when |
 |---|---|---|---|---|
 | **Start** | `/playbook` | Guided entry-point that orchestrates phases | Routes only | You are starting fresh or unsure of the next step |
-| **Product** | `/vision` | Sharpens target user, problem, and JTBD vs market | `PRODUCT.md` → **Vision** | Starting a brand-new project |
+| **Product** | `/vision` | Sharpens who it's for, the problem, and the job they need done — vs the market | `PRODUCT.md` → **Vision** | Starting a brand-new project |
 | **Product** | `/scope` | Locks down **one** core feature; lists Deferred & Non-goals | `PRODUCT.md` → **Scope** | Defining MVP / fighting feature creep |
 | **Product** | `/plan` | Core-first milestones + concern-area checklists | `PRODUCT.md` → **Plan** | Creating the roadmap |
 | **Dev** | `/architect` | Chooses stack, records ADRs, wraps externals in adapters | `PRODUCT.md` → **Architecture** | Before writing any code |
