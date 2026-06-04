@@ -62,6 +62,29 @@ Top 10 for AI); honest docs that match reality; **measure before fixing**; gener
 It also encodes lessons learned the hard way — dead config, swallowed errors, "tests pass but it's
 dead in the live path", unit/scale mismatches, multi-tenant leaks, false doc claims.
 
+## How the principle-gate works (the hybrid)
+
+Quality isn't a checklist bolted on at the end — it's **coordinated** so the principles are actually
+*verified*, not just intended:
+
+1. **Principles are inherent** — they live once in [`PRINCIPLES.md`](PRINCIPLES.md). Each skill *names*
+   the subset that matters for its phase and *applies* it in its guided steps. (No duplicated rule text.)
+2. **Each skill's gate is small** — its "Exit criteria" only ask *"is this phase's `PRODUCT.md` section
+   complete?"* — never a giant engineering checklist (that keeps skills lean and newcomer-friendly).
+3. **The gate verifies, it doesn't rubber-stamp** — at completion, a skill walks its named principles and
+   **confirms each is actually implemented, with evidence**, by *composing the existing checkers*:
+   `/security-review`, `/code-review`, `/verify`, `/run`, `/doc-audit`. If a principle is only *claimed*,
+   it **STOPs** — not done. The *how-verified* is recorded in `PRODUCT.md`.
+4. **Deterministic checks run automatically** — secret-scan, lint, tests, and dependency-vuln scan are
+   wired into **pre-commit + CI** by `/foundation`, so they run on every commit/PR and block bad ones
+   *even if you forget*. (That's the real automation; the skill gate is the judgment layer on top.)
+5. **Run the check on demand** — `/dev-check` is the explicit phase-level "verify the principles really
+   hold" gate before Testing; `/drift-check` re-checks scope/vision/docs anytime.
+
+Two kinds of "definition of done", kept distinct: the **feature's** DoD (what `/build` and `/plan`
+make *you* define for your product) vs the **skill's** gate (is this phase's output complete). They are
+not the same thing.
+
 ## Install
 
 ```bash

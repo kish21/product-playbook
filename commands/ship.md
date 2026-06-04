@@ -25,8 +25,9 @@ description: >
   - [ ] **Docs reconciled to reality** (`/doc-audit`) — no false capability/security claims.
   - [ ] **Confidence score (0–100%)** reported (solid / risky-untested / to-raise-it).
   - [ ] PR opened (`github-pr-flow`); a smooth **handoff** written; user told to start a fresh session.
-  - [ ] A **CHANGELOG / release note** entry.
+  - [ ] A **CHANGELOG / release note** entry (+ a **semver** bump where versioned).
   - [ ] Security checklist cleared: dependency-vuln scan, CORS prod domain, cookie-based auth (not localStorage), and data-deletion/GDPR for data products.
+  - [ ] **Rollout safety:** a stated **rollback path** (revert PR / migration-down / flag-off); risky changes behind a **flag / staged rollout**; the **post-deploy signal to watch** named.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Eval` and the diff. If quality wasn't evaluated, warn and offer `/eval` first (allow override for small changes).
@@ -40,11 +41,12 @@ description: >
 1. **Deep review:** compose **`/code-review`**; fix real findings; verify each against the code before acting.
 2. **Security:** compose **`/security-review`** on auth/data; for AI, run the OWASP LLM Top 10 / prompt-injection checklist.
 3. **Reconcile docs:** compose **`/doc-audit`**; update `PRODUCT.md`, `docs/features/*`, README so they match reality (no false claims). Gate the PR on this.
-4. **Confidence score:** report 0–100% with solid / risky-untested / to-raise-it.
-5. **PR + handoff:** compose **`github-pr-flow`** to open the PR; write a short handoff (done / next / how to resume / blockers).
+4. **Rollout safety:** state the **rollback path** (revert PR / migration-down / flag-off); put risky/irreversible changes behind a **flag or staged rollout**; name the **post-deploy signal to watch** (the bridge to `/learn`); bump **semver** where versioned.
+5. **Confidence score:** report 0–100% with solid / risky-untested / to-raise-it.
+6. **PR + handoff:** compose **`github-pr-flow`** to open the PR + a **CHANGELOG** entry; write a short handoff (done / next / how to resume / blockers).
 
 ## Step 3 — Write back to `PRODUCT.md`
-Append a `#Ship log` row: date · what shipped · review+security result · docs reconciled? · PR link.
+Append a `#Ship log` row: date · what shipped · review+security · docs reconciled? · CHANGELOG · rollback/flag · PR link.
 
 ## Step 3b — Self-verify (completeness gate)
 Check the boxes. **If review/security/docs aren't actually done, or a doc claim doesn't match the

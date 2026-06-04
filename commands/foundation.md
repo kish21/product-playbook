@@ -40,16 +40,20 @@ description: >
 ## Step 2 — Build the skeleton
 1. Dependency manifest + a runnable entrypoint with a **health/hello path** (the walking skeleton).
 2. **Config loader** reading `.env`/config; add a **startup guard** (fail-loud on misconfig, fail-closed on security).
-3. **Structured logging** (no prints); wire base infra behind the adapters from `/architect` (DB/LLM/queue) — even if stubbed.
-4. Dev tooling: lint + format + pre-commit; **secret-scan** (e.g. gitleaks). 
-5. **CI** that installs, bootstraps from the real schema/migrations, and runs the skeleton + tooling — green.
+3. **Structured logging** (no prints) **+ a tracing / error-reporter hook** (even a stub behind an adapter) — wire base infra behind the adapters from `/architect` (DB/LLM/queue), even if stubbed.
+4. **The auto-layer:** dev tooling lint + format + **pre-commit** running **secret-scan + dependency-vuln scan**; this is what enforces the deterministic checks on every commit so the later skills don't rely on memory.
+5. **CI** that installs, bootstraps from the real schema/migrations, runs lint/secret-scan/dep-scan/tests, **builds + runs in the container prod uses**, and **blocks merge on red** — green. CI creates throwaway creds at runtime (no secret in repo).
 
 ## Step 3 — Write back to `PRODUCT.md`
-Fill `#Foundation`: runs end-to-end? · config-flow verified (note how) · guards + secret-scan + CI status.
+Fill `#Foundation`: runs end-to-end? · config-flow verified (how) · guards · secret-scan + dep-vuln · pre-commit + CI (auto-layer) · container · observability hook.
 
-## Step 3b — Self-verify (completeness gate)
-Check the boxes. **If you didn't actually run it, or didn't verify a config value flows, STOP and do
-so** — "should run" is not "runs". Record HOW you verified.
+## Step 3b — Principle-gate: verify it RUNS and the guards are real (evidence)
+Walk this phase's principles and prove each — don't assume:
+- runs end-to-end → actually start it / hit the health path (compose `/run`); evidence.
+- config flows / no dead config → read a value back at runtime; evidence.
+- **pre-commit + CI actually run** the deterministic checks (lint/format/secret-scan + dependency-vuln/tests) and **block on red** → show a green run; this is the auto-layer the later skills rely on.
+- fail-loud/fail-closed guard → trigger it with a missing secret and confirm it refuses to boot.
+**If any is "should" not "shown", STOP and make it real.** Record HOW in `#Foundation`.
 
 ## Step 4 — Handoff
 "Skeleton runs and CI is green. Next run **`/contracts`** to define typed models/schemas/migrations

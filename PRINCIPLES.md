@@ -26,7 +26,9 @@
 - **Layered & decoupled** — API ↔ service/domain ↔ data; dependencies point *inward*; cross-boundary payloads are **typed contracts**, never raw dict/text.
 - **Provider/adapter for every external** — wrap each external (LLM, DB, vendor SDK, queue) behind a **config-selected interface**; never import a vendor SDK in business logic.
 - **Intention-revealing naming**; **testable by construction** (inject dependencies; prefer pure functions).
-- **Change safely** — DB via **migrations** (never hand-edit schema); keep contracts backward-compatible or version them; **structured logging, no stray prints**.
+- **Change safely** — DB via **migrations** (never hand-edit schema); **version public contracts** (`/v1`, additive-only schema evolution) and keep them backward-compatible; **structured logging, no stray prints**.
+- **Robust data paths** — write/ingest paths have an **idempotency / natural key**; **public or expensive endpoints are rate-limited**; every persisted entity carries its **tenant/owner key**.
+- **Accessibility (UI)** — keyboard, focus, contrast, semantic markup are part of the definition-of-done for any user-facing feature.
 
 ## Production safeguards
 
@@ -35,7 +37,11 @@
 - **AI-specific security (when the product uses LLMs)** — defend against **prompt injection**, jailbreaks, data exfiltration via outputs, secret/PII leakage, tool/over-agency abuse. Benchmark to the **OWASP LLM Top 10**.
 - **Observability & audit** — structured logging; trace every external/LLM/agent step; an audit record for state changes.
 - **Fail-safe errors** — graceful fallbacks; never silently swallow errors; retry only *transient* failures.
-- **Perf & cost budgets** — set a latency + cost target where relevant. Defer paid infra until a real need (record the trigger).
+- **Resilience by design** — for every external: timeouts, retry-transient-only, and a fallback / circuit-breaker. Decide this at architecture time, not after an outage.
+- **Perf & cost budgets** — set a latency + cost target where relevant (the stack choice locks it in). Defer paid infra until a real need (record the trigger).
+- **AI architecture (AI products)** — decide prompt-versioning, an eval harness, and LLM tracing/observability as first-class architecture decisions, not emergent ones.
+- **Rollout safety** — risky/irreversible changes ship behind a **feature flag / staged rollout** with a stated **rollback path** (revert PR, migration-down, flag-off) and a named **post-deploy signal to watch**.
+- **Measure for real** — quality is compared to a **recorded baseline** (a regression below threshold fails); the success metric is **actually instrumented** (events/analytics), never guessed; tests are **deterministic** (seeded, no races) with the **critical path covered**.
 
 ## Documentation-driven
 
@@ -69,7 +75,7 @@ A serious product consciously covers — or *deliberately defers with a trigger*
 - **testing** — unit + integration + regression + adversarial + a golden/eval dataset.
 - **infra** — CI (mirrors prod), migrations (not raw schema), containerization, backup/restore.
 - **documentation** — ADRs, architecture, ops runbook, the PRODUCT.md/STRUCTURE.md/feature-docs surface.
-- **product** — scope discipline, roadmap, success metrics.
+- **product** — a sharp vision (named customer + **job-to-be-done**, why-now), a **north-star success metric**, the **riskiest assumption** named, business-model awareness (free/paid/internal), scope discipline, roadmap. A vague vision is the root of later drift.
 
 Not all are P0 — but each should be a conscious choice, never an accident.
 

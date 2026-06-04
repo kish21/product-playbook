@@ -23,7 +23,10 @@ description: >
   - [ ] A short retro: what worked · what to change.
   - [ ] A **next step decided from evidence**, re-checked against the vision (and against OUT-OF-SCOPE).
   - [ ] Any deferred item carries the **trigger** that would activate it.
-  - [ ] Ongoing **observability** in place (dashboards/alerting) + **cost** monitored — the post-launch watch, not a one-off.
+  - [ ] The success metric is **actually instrumented** (events/analytics/dashboard), not back-of-envelope.
+  - [ ] At least one **real user/usage signal** incorporated (support, interview, usage data).
+  - [ ] **Kill/deprecate** is an allowed outcome — if the evidence says a feature isn't working, record the decision + trigger.
+  - [ ] Ongoing **observability** (dashboards/alerting) + **cost** monitored — the post-launch watch, not a one-off.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Vision/#Scope/#Eval/#Ship log`. If nothing has shipped yet, this is premature — say so.
@@ -32,13 +35,14 @@ description: >
 - **Measure, then decide:** base the next move on the metric, not enthusiasm. **Re-check the vision:** does the evidence still support the direction? **Defer:** don't pull OUT-OF-SCOPE items in without a real signal.
 
 ## Step 2 — Learn
-1. **Metric:** what does success look like, and what did it actually do? For ongoing tracking, compose **`/loop`** or **`/schedule`** to re-measure on a cadence.
-2. **Retro:** what worked, what to change (process + product). Keep it short and honest.
-3. **Doc drift:** compose **`/doc-audit`** to confirm the docs still reflect reality.
-4. **Decide next from evidence:** the highest-value next move; re-check it against the vision and the OUT-OF-SCOPE list. Record the trigger for anything deferred.
+1. **Metric (instrumented, not guessed):** confirm the north-star metric is actually measured (events/analytics/dashboard); report what it did. For ongoing tracking, compose **`/loop`** or **`/schedule`** to re-measure on a cadence.
+2. **User signal:** incorporate at least one real user/usage signal (support, interview, usage data) — not just internal opinion.
+3. **Retro:** what worked, what to change (process + product). Keep it short and honest.
+4. **Doc drift:** compose **`/doc-audit`** to confirm the docs still reflect reality.
+5. **Decide next from evidence:** the highest-value next move — **build / iterate / KILL** (deprecating a feature the evidence says isn't working is a valid, healthy outcome). Re-check against the vision + Non-goals; record the trigger for anything deferred.
 
 ## Step 3 — Write back to `PRODUCT.md`
-Fill `#Learnings`: success metric + result · retro · decided-next (with the evidence and the trigger for deferrals).
+Fill `#Learnings`: metric + result (instrumented) · user signal · retro · decided-next (build/iterate/kill, with evidence + triggers) · observability+cost watch.
 
 ## Step 3b — Self-verify (completeness gate)
 Check the boxes. **If the next step isn't backed by evidence, or it quietly pulls in an OUT-OF-SCOPE

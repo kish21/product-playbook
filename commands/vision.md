@@ -23,6 +23,7 @@ description: >
   - [ ] Named target user + the concrete problem they have, and **why now**.
   - [ ] A value proposition stating how this is better/different.
   - [ ] A current-year market/competitor read with at least one sharpening insight.
+  - [ ] A **north-star success metric**, the **job-to-be-done**, the **riskiest assumption**, and the **business model** (free/paid/internal) captured.
   - [ ] Recorded whether this is an **AI product** (uses LLMs) — flags the AI-security layer downstream.
 
 ## Step 0 — Context + prior-gate check
@@ -39,20 +40,24 @@ Ask these one block at a time; wait for answers. Keep it short — a newcomer sh
 1. **In one line, what is this product and who is it for?**
 2. **What painful problem does it solve, and why is now the right time?** (regulation, tech shift, cost, new behaviour)
 3. **How do people solve this today, and why is that not good enough?**
-4. **Will it use AI / LLMs?** (yes flags the AI-security layer in later phases)
+4. **How will you know it's working?** — one **north-star metric** (plain: "the one number that means it's succeeding").
+5. **What's the riskiest assumption** this depends on? And is it **free, paid, or internal**?
+6. **Will it use AI / LLMs?** (yes flags the AI-security layer in later phases)
 
-Then **benchmark to the current year** — compose `/doc-create` if a deeper artifact is wanted:
-- How do leading products solve this *now*? Name 2–3 comparables and the current best-practice approach.
-- Surface **one sharpening insight**: a sharper wedge, a segment, or a differentiator the user hadn't stated.
-- Give **one clear recommendation** on the crispest framing of the vision; get a yes/no.
+Then **benchmark to the current year** — and actually check, don't guess (compose a web search and/or `/doc-create`):
+- How do leading products solve this *now*? Name 2–3 **real** comparables and the current best-practice approach.
+- Frame the problem as a **job-to-be-done** ("when <situation>, I want to <motivation>, so I can <outcome>").
+- Surface **one sharpening insight**: a sharper angle, segment, or differentiator the user hadn't stated.
+- Give **one clear recommendation** on the crispest framing; get a yes/no. Keep it plain — no jargon.
 
 ## Step 3 — Write back to `PRODUCT.md`
-Fill `#Vision`: who it's for · problem (why now) · value proposition · 2026 market/competitor read.
-Set the header `AI product? <yes/no>`.
+Fill `#Vision`: who · problem (why now) · value proposition · verified market/competitor read · north-star
+metric · job-to-be-done · riskiest assumption · business model. Set the header `AI product? <yes/no>`.
 
-## Step 3b — Self-verify (completeness gate)
-Check every Exit-criteria box against what you wrote. **If any field is empty or vague, STOP and
-fill it with the user — do not hand off a fuzzy vision** (a fuzzy vision is the root of later drift).
+## Step 3b — Principle-gate: verify it's sharp, not fuzzy
+Walk the exit criteria and confirm each is **concrete with evidence** — the competitor read cites *real*
+named products (not from memory), the metric is a measurable number, the JTBD/risk are specific. **If any
+field is empty or vague, STOP and fill it with the user** — a fuzzy vision is the root of later drift.
 
 ## Step 4 — Handoff
 "Vision captured in `PRODUCT.md`. Next run **`/scope`** to lock the ONE core feature and what's

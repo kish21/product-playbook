@@ -19,22 +19,30 @@ _Last updated: <date> · Stage: <phase> · AI product? <yes/no>_
 - **Who it's for:**
 - **Problem (why now):**
 - **Value proposition:**
-- **2026 market / competitor read:**
+- **2026 market / competitor read (verified, not from memory):**
+- **North-star success metric (how we'll know it works):**
+- **Job-to-be-done (when <situation>, I want to <motivation>, so I can <outcome>):**
+- **Riskiest assumption this depends on:**
+- **Business model (free / paid / internal):**
 
 ## Scope             <!-- /scope -->
 - **THE core feature (the one thing):**
 - **In scope (now):**
-- **OUT OF SCOPE (and the trigger that would change that):**
+- **Deferred (out for now + the trigger that would bring it in):**
+- **Non-goals (deliberately never building):**
 
 ## Plan              <!-- /plan -->
 - **Phases / milestones (core first):**
 - **Timeline:**
 - **Exit criteria per milestone:**
+- **Concern-area coverage (security · ai · observability · DX · testing · infra · docs · product → now/next/later/N-A + trigger):**
 
 ## Architecture      <!-- /architect -->
 - **Stack + tools (and why, 2026 OSS-first):**
-- **Key decisions / ADRs:**
-- **Externals behind provider/adapter interfaces:**
+- **Key decisions / ADRs (patterns applied · anti-patterns avoided):**
+- **Externals behind provider/adapter interfaces (+ resilience strategy each):**
+- **Resilience · perf/cost budget · migrations approach:**
+- **(AI) prompt-versioning · eval harness · tracing:**
 
 ## Structure         <!-- /structure --> (see STRUCTURE.md for the full folder map)
 - **Folder → purpose map (summary):**
@@ -43,11 +51,15 @@ _Last updated: <date> · Stage: <phase> · AI product? <yes/no>_
 ## Foundation        <!-- /foundation -->
 - **Runs end-to-end (walking skeleton):**
 - **Config flows verified (no dead config):**
-- **Fail-loud/fail-closed guards · secret-scan · CI mirrors prod:**
+- **Fail-loud/fail-closed guards · secret-scan + dependency-vuln scan · CI mirrors prod:**
+- **pre-commit + CI auto-run (lint/format/secret-scan/tests) · runs in its container · async-safe:**
+- **Observability wired (tracing / error-reporter, even a stub):**
 
 ## Contracts         <!-- /contracts -->
 - **Typed models / schemas / migrations:**
 - **Boundary units/scale agreed:**
+- **Contract versioning / back-compat approach:**
+- **PII/sensitive fields classified · tenant-owner key · idempotency/natural key:**
 
 ## Build log         <!-- /build --> (one entry per feature; see docs/features/*)
 | Feature | DoD (incl. security) met? | How verified | Doc |
@@ -60,19 +72,28 @@ _Last updated: <date> · Stage: <phase> · AI product? <yes/no>_
 - [ ] Scope re-check — nothing crept in
 
 ## Tests             <!-- /test -->
-- **Unit / integration / regression coverage:**
+- **Unit / integration / regression coverage (critical path accounted for):**
 - **Adversarial/security (prompt-injection, authz) cases:**
 - **Live-path verified (not just isolated units):**
+- **Golden/eval dataset location · tests deterministic · run in CI (red blocks merge):**
 
 ## Evaluation        <!-- /eval -->
-- **Is it good? (measured, not assumed):**
+- **Is it good? (measured vs a recorded baseline; regression fails):**
 - **Metrics + confidence score:**
+- **Cost-per-run · (AI) scoring-bias:**
+- **Operational failures (separated from quality):**
 
 ## Ship log          <!-- /ship -->
-| Date | What shipped | Review/security | Docs reconciled | PR |
-|---|---|---|---|---|
+| Date | What shipped | Review + /security-review | Docs reconciled | CHANGELOG | Rollback / flag | PR |
+|---|---|---|---|---|---|---|
 
 ## Learnings         <!-- /learn -->
-- **Success metric + result:**
+- **Success metric + result (instrumented, not guessed):**
+- **User/usage signal incorporated:**
 - **Retro (what worked / what to change):**
-- **Decided next (from evidence):**
+- **Decided next — build / iterate / KILL (from evidence):**
+- **Observability + cost watch in place:**
+
+## Drift log         <!-- /drift-check (run anytime) -->
+| Date | Drift found (scope/vision/plan/docs) | Recommendation (cut / re-scope+trigger / fix) |
+|---|---|---|
