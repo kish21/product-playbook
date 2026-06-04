@@ -1,0 +1,53 @@
+---
+name: ship
+description: >
+  Phase 5 (Ship) of product-builder. Ship a piece of work the right way — a deep fresh-eyes review,
+  a security review, reconcile docs to reality, a confidence score, open the PR, write the handoff,
+  and tell the user to start a fresh session. Use when a feature/subtask is done, or run /ship "ship
+  it", "open a PR", "release", "wrap up". Writes the Ship log of PRODUCT.md. Composes /code-review,
+  /security-review, /doc-audit, github-pr-flow. Run /learn after a release lands.
+---
+
+# `/ship` — Phase 5 · Ship · run as a **release reviewer**
+
+> Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
+> Apply `PRINCIPLES.md` — load-bearing: **reviews are DEEP not skims**, **fresh-eyes caller/cross-file
+> tracing (works-in-tests-dead-in-prod)**, **security/fail-closed on auth/data**, **docs match
+> reality**, **one-subtask→PR+handoff**, **confidence score**, **verify findings against real code**.
+
+## Contract
+- **Purpose:** release one subtask safely, with review + security + honest docs, and hand off cleanly.
+- **Reads:** `PRODUCT.md` (all relevant sections), the diff.
+- **Writes:** `PRODUCT.md#Ship log` — what shipped · review/security · docs reconciled · PR.
+- **Exit criteria:**
+  - [ ] **Deep review** done (`/code-review`) — findings traced to real callers/cross-file impact, not a skim.
+  - [ ] **Security review** on auth/data changes (`/security-review`); for AI, the OWASP LLM Top 10 checklist (esp. prompt injection).
+  - [ ] **Docs reconciled to reality** (`/doc-audit`) — no false capability/security claims.
+  - [ ] **Confidence score (0–100%)** reported (solid / risky-untested / to-raise-it).
+  - [ ] PR opened (`github-pr-flow`); a smooth **handoff** written; user told to start a fresh session.
+
+## Step 0 — Context + prior-gate check
+- Read `#Eval` and the diff. If quality wasn't evaluated, warn and offer `/eval` first (allow override for small changes).
+
+## Step 1 — Apply principles (this phase)
+- **Reviews are DEEP:** trace the change to its real callers; hunt the "green tests, dead in the live path" bug. **Verify any review/audit finding against the real code** — don't rubber-stamp; some findings are already done or misdiagnosed.
+- **Security fail-closed** on auth/data; **docs must match reality** (a false claim is a diligence liability).
+- **One subtask per session:** ship this, then hand off — don't roll into the next subtask.
+
+## Step 2 — Ship
+1. **Deep review:** compose **`/code-review`**; fix real findings; verify each against the code before acting.
+2. **Security:** compose **`/security-review`** on auth/data; for AI, run the OWASP LLM Top 10 / prompt-injection checklist.
+3. **Reconcile docs:** compose **`/doc-audit`**; update `PRODUCT.md`, `docs/features/*`, README so they match reality (no false claims). Gate the PR on this.
+4. **Confidence score:** report 0–100% with solid / risky-untested / to-raise-it.
+5. **PR + handoff:** compose **`github-pr-flow`** to open the PR; write a short handoff (done / next / how to resume / blockers).
+
+## Step 3 — Write back to `PRODUCT.md`
+Append a `#Ship log` row: date · what shipped · review+security result · docs reconciled? · PR link.
+
+## Step 3b — Self-verify (completeness gate)
+Check the boxes. **If review/security/docs aren't actually done, or a doc claim doesn't match the
+code, STOP — do not open the PR.** Shipping a false claim is the exact failure to avoid.
+
+## Step 4 — Handoff
+"Shipped: reviewed, security-checked, docs reconciled, PR open, confidence recorded. **Start a fresh
+session** for the next subtask. After it lands, run **`/learn`** to capture metrics + decide what's next."
