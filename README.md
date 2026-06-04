@@ -4,27 +4,28 @@
 
 ## Why this exists
 
-I built a real product. It worked — and then I watched it slowly go wrong in the ways products
-quietly do:
+I built a real product. It worked — then I watched it go wrong in the quiet ways products do. None of
+these were dumb mistakes; they're the normal entropy of building. **Each scar became a rule** — and
+those rules are **[`PRINCIPLES.md`](PRINCIPLES.md): the working rulebook every skill enforces** (and
+*verifies with evidence*, not just intends). Don't take the story on faith — here's the scar, and the
+exact rule it became:
 
-- features crept in that nobody actually needed;
-- a config setting silently did **nothing** (it was overridden upstream — "dead config");
-- the tests were green while the feature was **dead in the real path** in production;
-- a doc claimed a security guarantee that **wasn't actually true**;
-- a number on a 0–1 scale got read as 0–10, and everything looked broken for a day.
+| The scar (real, on my own build) | The rule it's now → in `PRINCIPLES.md` |
+|---|---|
+| Features kept creeping in that nobody needed | One core feature + an explicit **OUT-OF-SCOPE** list; `/drift-check` catches creep |
+| A config setting silently did **nothing** (overridden upstream) | **Dead config** — prove the value actually *flows* end-to-end |
+| Tests were green while the feature was **dead in production** | **Tests passing ≠ it works** — verify the path the product actually runs |
+| A doc claimed a security guarantee that **wasn't true** | **Docs must match reality** — reconcile code ↔ docs, or it's a liability |
+| Two parts disagreed on a score's scale (0–1 vs 0–10), so **good results looked like failures** and the product seemed broken for a day | **Agree units/scale on both sides of every boundary** |
+| Secrets nearly slipped into source | **No secret in code** — `.env` + secret-scan; tests use fake keys |
 
-None of these were dumb mistakes — they're the normal entropy of building. Each one cost time and
-taught a lesson. **`product-playbook` is those lessons turned into a guided, step-by-step path** — so
-you (or a teammate, or someone who's never shipped before) gets senior-level discipline *by default*,
-and doesn't have to collect the same scars first.
+`product-playbook` turns those rules into a **guided, step-by-step path** — so you (or a teammate, or
+someone who's never shipped) get this discipline *by default*, without collecting the scars first.
 
-Two ideas make that work, and they're the two files you'll see in this repo:
-
-- **`PRINCIPLES.md` — the rulebook.** Every lesson, written down once. Each skill references it and
-  *enforces* the part that matters for its phase, so the discipline can't drift skill-to-skill.
-- **`PRODUCT.md` — the living spine.** One file at the root of *your* project that every phase reads
-  and appends to. It's how the product's story and decisions stay in one place and carry from vision
-  all the way to shipped — without it, the steps would be disconnected one-offs.
+**The other file you'll see — `PRODUCT.md` — is the living spine.** One file at the root of *your*
+project that every phase reads and appends to, so the product's story and decisions carry from vision
+all the way to shipped. Without it the steps would be disconnected one-offs; with it, anyone can read
+the whole product top-to-bottom.
 
 It's **guided and step-by-step — not a one-shot generator.** `/vision` does the vision phase only; you
 move one phase at a time, each asking a few questions and ending with a check, so nothing drifts.
