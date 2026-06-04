@@ -30,6 +30,7 @@ description: >
   - [ ] A folder tree matching the chosen shape (**backend / frontend / full-stack**), layered, no god-files.
   - [ ] `STRUCTURE.md` explains **what each folder is for and why**, in plain language.
   - [ ] Root scaffolding present: `README.md` · `.gitignore` · `.env.example` · `.gitleaks.toml` · `.pre-commit-config.yaml` · task runner (`Makefile`/npm scripts) · dependency manifest (dev/prod split).
+  - [ ] **The config-layering files are actually scaffolded** (not just an empty `config/`): `config/loader.py` (typed) + `config/platform.yaml` (engine knobs) + `config/product.yaml` (product knobs) reading `.env` — the no-hardcoding engine.
   - [ ] `.gitignore` ignores `.env` **and its variants/backups** (`.env.bak`, `*.env.local`); only `.env.example` is committed. **No secret in any code file.**
   - [ ] For AI products: a **`prompts/` YAML folder**; prompts never inline in code.
 
@@ -61,9 +62,11 @@ app/
 └── main.py      # entrypoint
 # AI/agentic ONLY (when PRODUCT.md says AI): agents/ · pipeline/ (orchestration) · prompts/ (YAML) · retrieval/
 ```
-**`config/` layered pattern (the no-hardcoding engine):** `loader.py` (typed) + `platform.yaml`
-(engine/technical knobs) + `product.yaml` (product/business knobs, change without code) + `.env`
-(secrets only). This is *how* you keep secrets and tunables out of code.
+**`config/` layered pattern (the no-hardcoding engine) — ACTUALLY CREATE THESE FILES, don't leave
+`config/` empty:** `loader.py` (typed loader that reads the YAML + `.env`) + `platform.yaml`
+(engine/technical knobs) + `product.yaml` (product/business knobs, change without code) + a root
+`.env.example` (secret *names* only). This is *how* you keep secrets and tunables out of code — it is a
+deliverable of this skill, not just a description.
 
 **Frontend** (Next.js App Router shown — adapt to the framework):
 ```
