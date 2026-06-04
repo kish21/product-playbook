@@ -23,6 +23,8 @@ Here is exactly how it happened:
 
 To cut short the time of my next project and stay laser-focused, I needed a playbook. Not just a document, but **executable skills with evidence-based gates and checks** that force both me and the AI to maintain engineering discipline.
 
+> 👉 *Short on time? **[Skip the story — jump straight to the 15 skills →](#skill-reference)***
+
 `product-playbook` was born from my scars. It turns those lessons into a single, shared rulebook (`PRINCIPLES.md`) and maps them to **15 step-by-step commands (skills)**. It forces you to move one phase at a time, checking gates with evidence before writing code, so you get senior-level discipline by default.
 
 ---
