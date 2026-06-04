@@ -16,7 +16,8 @@ exact rule it became:
 | A config setting silently did **nothing** (overridden upstream) | **Dead config** — prove the value actually *flows* end-to-end |
 | Tests were green while the feature was **dead in production** | **Tests passing ≠ it works** — verify the path the product actually runs |
 | A doc claimed a security guarantee that **wasn't true** | **Docs must match reality** — reconcile code ↔ docs, or it's a liability |
-| Two parts disagreed on a score's scale (0–1 vs 0–10), so **good results looked like failures** and the product seemed broken for a day | **Agree units/scale on both sides of every boundary** |
+| We wired the code straight to one vendor's API — swapping it later meant touching half the app | **Wrap every external (LLM, DB, vendor) behind a swap-by-config adapter** |
+| One missing filter could let a user see **another customer's data** | **Tenant isolation on every data path** (defense-in-depth, fail-closed) |
 | Secrets nearly slipped into source | **No secret in code** — `.env` + secret-scan; tests use fake keys |
 
 `product-playbook` turns those rules into a **guided, step-by-step path** — so you (or a teammate, or
