@@ -23,17 +23,17 @@ This is distinct from `product-toolkit` (a grab-bag of individual dev/quality sk
 |---|---|---|---|
 | 1 Product | `/vision` | Vision, customer, problem, value; benchmark to the 2026 market | `PRODUCT.md#Vision` has who/problem/value/market read, all non-empty |
 | 1 Product | `/scope` | The ONE core feature + explicit OUT-OF-SCOPE (anti-creep) | `#Scope` names a single core feature **and** a non-empty OUT-OF-SCOPE list with triggers |
-| 1 Product | `/plan` | Phases, milestones, timeline, per-milestone exit criteria | `#Plan` has core-first phases + timeline + a testable exit criterion per milestone |
+| 1 Product | `/plan` | Phases, milestones, timeline, per-milestone exit criteria + concern-area coverage | `#Plan` has core-first phases + timeline + a testable exit criterion per milestone + a concern-area checklist (security/observability/testing/docs/DX/…) marked now/next/later |
 | 2 Dev | `/architect` | Decide stack + tools + key decisions (2026 OSS-first); ADRs | `#Architecture` records stack+tools+why, key decisions, externals behind adapters |
-| 2 Dev | `/structure` | Clean folder layout + what each folder does; `prompts/` for AI | `STRUCTURE.md` exists with a folder→purpose map; `#Structure` summary filled |
-| 2 Dev | `/foundation` | Walking skeleton that RUNS: config, logging, infra, tooling, CI | `#Foundation` shows app runs end-to-end; config-flow verified; guards + secret-scan + CI present |
-| 2 Dev | `/contracts` | Typed models/schemas/migrations BEFORE logic | `#Contracts` lists typed models/migrations; boundary units/scale agreed |
-| 2 Dev | `/build` | Per-feature loop with security-in-DoD + per-feature doc | each feature in `#Build log` has DoD-met + how-verified + a `docs/features/*` doc |
-| 2 Dev | `/dev-check` | Checkpoint: verify every feature's exit criteria + security DoD | all `#Dev-complete` boxes checked, with evidence |
-| 3 Test | `/test` | Unit/integration/regression + adversarial (injection/authz) | `#Tests` shows coverage incl. live-path + security cases |
-| 4 Eval | `/eval` | Is it good? measure-first; confidence score | `#Evaluation` has measured result + confidence; operational-failures separated |
-| 5 Ship | `/ship` | Deep review + security review + reconcile docs + PR + handoff | `#Ship log` entry with review+security+docs-reconciled+PR; confidence reported |
-| 6 Learn | `/learn` | Success metric, retro, decide next from evidence | `#Learnings` has metric result + retro + evidence-based next step |
+| 2 Dev | `/structure` | Stack-aware clean layout (backend/frontend/full-stack) + what each folder does + root scaffolding + `prompts/` for AI | `STRUCTURE.md` folder→purpose map; root files (`.gitignore` ignoring `.env*`, `.gitleaks.toml`, pre-commit, `.env.example`, Makefile, dep manifest); no secret in code; `#Structure` filled |
+| 2 Dev | `/foundation` | Walking skeleton that RUNS: config, logging, infra, tooling, CI | `#Foundation` shows app runs end-to-end; config-flow verified; guards; CI (mirrors prod) with secret-scan + dependency-vuln scan; async-safe |
+| 2 Dev | `/contracts` | Typed models/schemas/migrations BEFORE logic | `#Contracts` lists typed models/migrations; boundary units/scale agreed; API contracts documented |
+| 2 Dev | `/build` | Per-feature loop with security-in-DoD + per-feature doc | each feature in `#Build log` has DoD-met + how-verified + a `docs/features/*` doc; no secret in code; single-responsibility (no god-files) |
+| 2 Dev | `/dev-check` | Checkpoint: verify every feature's exit criteria + security DoD | all `#Dev-complete` boxes checked, with evidence; no god-files; scans clean |
+| 3 Test | `/test` | Unit/integration/regression + adversarial (injection/authz) + golden dataset | `#Tests` shows coverage incl. live-path + security cases + a golden/eval dataset; fake keys only |
+| 4 Eval | `/eval` | Is it good? measure-first; confidence score | `#Evaluation` has measured result + confidence; operational-failures separated; cost-per-run (+ AI bias) |
+| 5 Ship | `/ship` | Deep review + security review + reconcile docs + PR + handoff | `#Ship log` entry with review+security+docs-reconciled+PR + CHANGELOG + security checklist; confidence reported |
+| 6 Learn | `/learn` | Success metric, retro, decide next from evidence | `#Learnings` has metric result + retro + evidence-based next step; observability + cost watch in place |
 | anytime | `/drift-check` | Are we still building the vision, or creeping? + code↔docs drift | reports scope/vision/doc drift against `PRODUCT.md` |
 
 ## Completeness guarantee

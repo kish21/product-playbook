@@ -23,6 +23,8 @@ description: >
   - [ ] Every external dependency (LLM, DB, vendor SDK, queue) named with the **adapter interface** it sits behind.
   - [ ] Key decisions recorded as short ADRs (decision · why · rejected alternative).
   - [ ] Decisions trace to the scope/plan (not gold-plating for out-of-scope items).
+  - [ ] A **migrations** approach chosen for any datastore (never hand-edited schema).
+  - [ ] The **concern areas to design for** named (security, observability, testing, docs, DX, + AI-specific if AI) — what the architecture must accommodate; **no secret in code** (secrets→`.env`).
 
 ## Step 0 — Context + prior-gate check
 - Read `#Vision/#Scope/#Plan`. If `#Scope`/`#Plan` are empty, warn and offer to run them first (allow override).

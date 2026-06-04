@@ -22,7 +22,8 @@ description: >
   - [ ] Core domain entities defined as **typed models** (not raw dicts/free text).
   - [ ] Persistence via a **migration** (never hand-edited schema); **schema matches what code reads/writes**.
   - [ ] Every cross-boundary payload (API in/out, agent in/out) is a typed contract.
-  - [ ] **Units/scale/shape agreed on both sides** of each boundary (the classic "0–1 vs 0–10" trap).
+  - [ ] **Units/scale/shape agreed on both sides** of each boundary (the classic "0–1 vs 0–10" trap); a unit captured at the source (e.g. currency) is used everywhere, not re-derived.
+  - [ ] Public API/agent contracts are documented (e.g. an OpenAPI/schema export), not just in code.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Scope/#Architecture/#Structure`. If `#Foundation` isn't done, warn (you need a place to run migrations) but allow override.

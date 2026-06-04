@@ -21,6 +21,7 @@ description: >
 - **Exit criteria:**
   - [ ] Every **core-scope** feature has a `#Build log` row, **runs**, and met its DoD (incl. security) — verified.
   - [ ] No hardcoding · prompts externalized · contracts typed · schema↔code consistent · builds/CI green.
+  - [ ] No oversized god-files (single-responsibility held); secret-scan + dependency-vuln scan clean.
   - [ ] **Scope re-check:** nothing built that's in OUT-OF-SCOPE (no creep).
   - [ ] Every "done" has **HOW it was verified** recorded (evidence, not "done").
 

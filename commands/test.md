@@ -25,6 +25,8 @@ description: >
   - [ ] **Live-path check:** the path the product actually runs is exercised end-to-end (not just isolated units).
   - [ ] **Adversarial/security** cases: authz/tenant-isolation; for AI, prompt-injection & jailbreak (OWASP LLM Top 10).
   - [ ] A regression case for any bug fixed.
+  - [ ] A **golden / eval dataset** for quality-critical or AI behaviour (known inputs → expected outputs), so quality is measurable and regressions are caught.
+  - [ ] Tests use **fake placeholder keys**, never real secrets.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Dev-complete`. If the dev checkpoint hasn't passed, warn ("development isn't verified complete")

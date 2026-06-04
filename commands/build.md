@@ -27,6 +27,8 @@ description: >
   - [ ] Code **runs and the LIVE path is verified** (not just an isolated unit) — traced to its real callers.
   - [ ] Diff self-reviewed (`/code-review`); no swallowed errors; prompts in `prompts/` YAML, not inline.
   - [ ] **`docs/features/<feature>.md` written and matches the code** (what · contract · exit criteria · how verified · code links).
+  - [ ] **No secret in any code file** (secrets→`.env`; tests use fake placeholder keys).
+  - [ ] **Single-responsibility kept** — a file growing large/multi-concern is split into modules (don't let god-files form); long/blocking work stays off the async event loop.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Scope/#Plan/#Contracts`. **Confirm the feature is IN scope** — if it's in OUT-OF-SCOPE, stop and
