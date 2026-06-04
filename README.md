@@ -1,55 +1,42 @@
 # product-playbook
 
-A phased, principle-driven **product-building skill set** for Claude Code. It walks anyone —
-a newcomer (technical or not) *or* an experienced builder dropping into one phase — through the
-**full product lifecycle**, with hard-won engineering principles **baked into each phase** so good
-results are the default. It is **anti-scope-creep by design**.
+**A guided path from idea → shipped that bakes in the discipline most teams learn the hard way.**
 
-> An opinionated, end-to-end product-building **journey** — sequential phases with a shared
-> `PRODUCT.md` spine and verified gates (not a grab-bag of à-la-carte skills).
+## Why this exists
 
-## How you actually use it (read this first)
+I built a real product. It worked — and then I watched it slowly go wrong in the ways products
+quietly do:
 
-**It is a guided, step-by-step process — not a one-shot generator.** Running `/vision` does the
-*vision* phase only; it does **not** build your whole app. You move through the phases one at a time,
-and each one asks you a few questions and ends with a quick check before moving on — so you stay in
-control and nothing drifts.
+- features crept in that nobody actually needed;
+- a config setting silently did **nothing** (it was overridden upstream — "dead config");
+- the tests were green while the feature was **dead in the real path** in production;
+- a doc claimed a security guarantee that **wasn't actually true**;
+- a number on a 0–1 scale got read as 0–10, and everything looked broken for a day.
 
-Two ways to drive it:
+None of these were dumb mistakes — they're the normal entropy of building. Each one cost time and
+taught a lesson. **`product-playbook` is those lessons turned into a guided, step-by-step path** — so
+you (or a teammate, or someone who's never shipped before) gets senior-level discipline *by default*,
+and doesn't have to collect the same scars first.
 
-- **Be guided (easiest):** run **`/playbook`**. It looks at how far you've got, explains the next
-  phase, runs it, pauses at the gate for your OK, then moves on. One command, one phase at a time.
-- **Drive it yourself:** run the phases in order, following each skill's *"next: run /X"* handoff:
-  `/vision → /scope → /plan → /architect → /structure → /foundation → /contracts → /build →
-  /dev-check → /test → /eval → /ship → /learn`. Run **`/drift-check`** anytime.
+Two ideas make that work, and they're the two files you'll see in this repo:
 
-Either way: everything accumulates in a single **`PRODUCT.md`** at your project root (the shared spine),
-and you can **jump into any single skill** on an existing project (e.g. just `/structure` or `/test`).
+- **`PRINCIPLES.md` — the rulebook.** Every lesson, written down once. Each skill references it and
+  *enforces* the part that matters for its phase, so the discipline can't drift skill-to-skill.
+- **`PRODUCT.md` — the living spine.** One file at the root of *your* project that every phase reads
+  and appends to. It's how the product's story and decisions stay in one place and carry from vision
+  all the way to shipped — without it, the steps would be disconnected one-offs.
 
-## How it works (three ideas)
+It's **guided and step-by-step — not a one-shot generator.** `/vision` does the vision phase only; you
+move one phase at a time, each asking a few questions and ending with a check, so nothing drifts.
 
-1. **One shared file is the memory.** Every skill reads + appends to **`PRODUCT.md`** — so the build
-   step knows the vision, the test step knows the features, and a newcomer can read the whole story
-   top-to-bottom. (A file, not Claude memory: shareable, versioned, travels with the repo.)
-2. **Principles are baked in, once.** Every skill references **`PRINCIPLES.md`** (single source) and
-   enforces the subset that matters for its phase — so even a non-techie gets senior-level discipline.
-3. **Sequential but standalone.** Run the phases in order, or jump into any skill — each bootstraps
-   from `PRODUCT.md` or the existing codebase. Skills **compose existing Claude Code skills**
-   (`/code-review`, `/security-review`, `/verify`, `/run`, `/doc-create`, `/doc-audit`, `/loop`,
-   `github-pr-flow`) rather than reinventing them.
+## Start here
 
-Each skill ends by **self-verifying its exit criteria** — it won't hand off a half-done phase.
-
-## Start here: `/playbook`
-
-**New or unsure? Run `/playbook` — it's the only command you need to remember.** It reads how far
-you've got, tells you the next phase in plain language, runs it, and **checks with you before moving
-on**. It doesn't build anything itself — it *drives* the skills in the table below, one at a time, and
-never skips a gate. (Prefer to drive yourself? Run the skills in order instead — each one tells you the
-next.)
+**Run `/playbook`** — the one command to remember. It reads how far you've got, tells you the next
+phase in plain language, runs it, and **checks with you before moving on** (it never auto-builds or
+skips a gate). Prefer to drive yourself? Run the phases in order — each one tells you the next.
 
 ```
-START → /playbook  (guides you through ↓, one phase at a time)
+START → /playbook   (guides you through ↓, one phase at a time)
 
 1 PRODUCT      /vision → /scope → /plan
 2 DEVELOPMENT  /architect → /structure → /foundation → /contracts → /build → /dev-check
@@ -60,7 +47,7 @@ START → /playbook  (guides you through ↓, one phase at a time)
 ANYTIME        /drift-check
 ```
 
-## The skills — what each does, what it produces, when to use it
+## The skills
 
 | Group | Skill | What it does | Output it produces | Use it when |
 |---|---|---|---|---|
@@ -80,74 +67,69 @@ ANYTIME        /drift-check
 | **Learn** | `/learn` | Metric (instrumented) · user signal · decide next / **kill** | `PRODUCT.md` → **Learnings** | After a release lands |
 | **Anytime** | `/drift-check` | Detect scope / vision / code↔docs drift | report + `PRODUCT.md` → **Drift log** | Whenever you suspect creep |
 
-Everything a skill produces lands in **your project** — `PRODUCT.md` (the spine), `STRUCTURE.md`, the
-scaffolded code, `docs/features/*` — so the output becomes part of your repo and gets committed.
+## What's in this repo (and why each file matters)
 
-## Three ways to include it — you choose
+| File | Why it exists |
+|---|---|
+| `PRINCIPLES.md` | The **single rulebook** — the lessons above, written once; every skill enforces the part for its phase (so quality can't drift). |
+| `templates/PRODUCT.md` | The template for the **living spine** each project gets. Every phase reads it + appends its section, so the whole product (vision → learnings) lives in one file that travels with the repo. |
+| `commands/` | The **15 skills** (the phases) — one `.md` each, with YAML frontmatter. |
+| `VISION.md` | The toolkit's own **completeness contract** — what every skill must cover. For maintainers, so nothing is missed. |
+| `manifest.json` · `install.sh` · `.claude-plugin/` | Packaging + the three install modes (below). |
+| `evals/evals.json` | A behaviour check per skill (catches drift when a skill changes). |
+
+*Produced in **your** project when you run the skills:* `PRODUCT.md` (the spine), `STRUCTURE.md` (what
+each folder is for), `docs/features/*` (one doc per feature) — all committed with your code.
+
+## Install — three ways, you choose
 
 | Way | Command | Who gets it | Command names |
 |---|---|---|---|
 | **Global (per machine)** | `./install.sh` | you, in every project on your machine | `/vision` |
 | **Project-level (committed)** | `./install.sh --project /path/to/project` | anyone who clones *that* repo | `/vision` |
-| **Plugin (one-command + updates)** | `/plugin marketplace add kish21/product-playbook` then `/plugin install product-playbook@product-playbook` | anyone, via Claude Code | `/product-playbook:vision` (namespaced) |
+| **Plugin (one-command + updates)** | `/plugin marketplace add kish21/product-playbook` → `/plugin install product-playbook@product-playbook` | anyone, via Claude Code | `/product-playbook:vision` (namespaced) |
 
 ```bash
-# Global (one-liner)
-curl -fsSL https://raw.githubusercontent.com/kish21/product-playbook/master/install.sh | bash
-
 # Global (local clone)
 git clone https://github.com/kish21/product-playbook ~/product-playbook
 cd ~/product-playbook && ./install.sh
 
-# Project-level (commit .claude/ so your team gets it on clone)
+# Project-level — commit the project's .claude/ so teammates get it on clone
 cd ~/product-playbook && ./install.sh --project /path/to/your/project
-
-# Plugin (inside Claude Code)
-/plugin marketplace add kish21/product-playbook
-/plugin install product-playbook@product-playbook
 ```
 
-- **Global** copies the skills to `~/.claude/commands/` + companions to `~/.claude/product-playbook/`.
-- **Project-level** puts them in `<project>/.claude/commands/` + `<project>/.claude/product-playbook/` — commit that folder and teammates get the skills with nothing installed globally.
-- **Plugin** auto-discovers `commands/` from the repo; note commands are **namespaced** (`/product-playbook:vision`), and the bundled `PRINCIPLES.md`/`PRODUCT.md` resolve under the plugin root.
+*Pick:* your own toolkit everywhere → **global**; one project's team on clone → **project-level**;
+widest distribution + updates → **plugin**.
 
-*Which to pick:* your own toolkit everywhere → **global**; give one project's team the skills on clone → **project-level**; widest distribution + updates → **plugin**.
+## Under the hood (for the curious)
 
-## What's baked in (the principles)
+<details>
+<summary>How the discipline is actually enforced (not just intended)</summary>
 
-The discipline lives in [`PRINCIPLES.md`](PRINCIPLES.md): architect → verify → no-hardcoding →
-benchmark-to-the-current-year → self-review; per-feature contracts with **testable, evidenced exit
-criteria**; provider/adapter for every external; **security in the build** (fail-closed; OWASP LLM
-Top 10 for AI); resilience + perf/cost budgets; honest docs that match reality; **measure before
-fixing**; generic-not-domain-specific. It also encodes lessons learned the hard way — dead config,
-swallowed errors, "tests pass but it's dead in the live path", unit/scale mismatches, multi-tenant
-leaks, false doc claims.
+- **Principles live once** in `PRINCIPLES.md`; each skill *names* the subset for its phase and applies
+  it — no duplicated rule text to drift.
+- **Each skill's gate is small** — it only asks "is this phase's `PRODUCT.md` section complete?" — so
+  skills stay lean and newcomer-friendly.
+- **The gate verifies, it doesn't rubber-stamp.** At completion a skill walks its named principles and
+  confirms each is *actually implemented, with evidence*, by composing existing Claude Code skills
+  (`/code-review`, `/security-review`, `/verify`, `/run`, `/doc-audit`). Only claimed → it **stops**.
+- **Deterministic checks run automatically** — secret-scan, lint, tests, dependency-vuln are wired into
+  **pre-commit + CI** by `/foundation`, so they run on every commit/PR even if you forget. The skill
+  gate is the judgment layer on top.
+- **Sequential but standalone** — follow the chain, or jump into any single skill on an existing
+  project (it bootstraps context from `PRODUCT.md` or the codebase).
 
-## How the principle-gate works (the hybrid)
+What's baked in (from `PRINCIPLES.md`): architect → verify → no-hardcoding → benchmark-to-the-current-
+year → self-review; per-feature contracts with testable, evidenced exit criteria; provider/adapter for
+every external; security in the build (fail-closed; OWASP LLM Top 10 for AI); resilience + perf/cost
+budgets; honest docs; measure before fixing; generic-not-domain-specific.
 
-Quality isn't a checklist bolted on at the end — it's **coordinated** so the principles are actually
-*verified*, not just intended:
+</details>
 
-1. **Principles are inherent** — they live once in `PRINCIPLES.md`. Each skill *names* the subset for
-   its phase and *applies* it in its guided steps. (No duplicated rule text.)
-2. **Each skill's gate is small** — "is this phase's `PRODUCT.md` section complete?" — never a giant
-   engineering checklist (keeps skills lean and newcomer-friendly).
-3. **The gate verifies, it doesn't rubber-stamp** — at completion, a skill walks its named principles
-   and **confirms each is actually implemented, with evidence**, by composing the existing checkers
-   (`/security-review`, `/code-review`, `/verify`, `/run`, `/doc-audit`). Only claimed → **STOP**.
-4. **Deterministic checks run automatically** — secret-scan, lint, tests, dependency-vuln are wired
-   into **pre-commit + CI** by `/foundation`, so they run on every commit/PR *even if you forget*.
-5. **On demand** — `/dev-check` verifies the phase before Testing; `/drift-check` checks drift anytime.
+## Contributing
 
-Two kinds of "definition of done", kept distinct: the **feature's** DoD (what `/build` and `/plan`
-make *you* define for your product) vs the **skill's** gate (is this phase's output complete).
-
-## Adding / changing a skill
-
-1. Edit (or add) `commands/<name>.md` — single-purpose, well under ~250 lines.
-2. Update its row in `VISION.md` (purpose + exit criteria), `manifest.json`, and `evals/evals.json`.
-   `VISION.md` is the completeness contract — *nothing is missing if every row has a skill and every
-   skill matches its row.*
-3. `./install.sh`, then commit + push. Run `/drift-check` on this repo to confirm skills match `VISION.md`.
+1. Edit/add `commands/<name>.md` (single-purpose, well under ~250 lines).
+2. Update its row in `VISION.md`, `manifest.json`, and `evals/evals.json`.
+3. `./install.sh`, commit + push, then run `/drift-check` on this repo to confirm skills still match `VISION.md`.
 
 MIT licensed.
