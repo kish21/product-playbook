@@ -29,7 +29,7 @@ description: >
 - **Exit criteria:**
   - [ ] A folder tree matching the chosen shape (**backend / frontend / full-stack**), layered, no god-files.
   - [ ] `STRUCTURE.md` explains **what each folder is for and why**, in plain language.
-  - [ ] Root scaffolding present: `README.md` · `.gitignore` · `.env.example` · `.gitleaks.toml` · `.pre-commit-config.yaml` · task runner (`Makefile`/npm scripts) · dependency manifest (dev/prod split).
+  - [ ] Root scaffolding present: `README.md` · `.gitignore` · `.env.example` · `.gitleaks.toml` · `.pre-commit-config.yaml` · task runner (`Makefile`/npm scripts) · dependency manifest (dev/prod split) · `SECURITY.md` (responsible-disclosure policy) · `CHANGELOG.md` (Keep a Changelog format, seeded with `[Unreleased]`).
   - [ ] **The config-layering files are actually scaffolded** (not just an empty `config/`): `config/loader.py` (typed) + `config/platform.yaml` (engine knobs) + `config/product.yaml` (product knobs) reading `.env` — the no-hardcoding engine.
   - [ ] `.gitignore` ignores `.env` **and its variants/backups** (`.env.bak`, `*.env.local`); only `.env.example` is committed. **No secret in any code file.**
   - [ ] For AI products: a **`prompts/` YAML folder as a backend sub-package** (`app/prompts/` when there's an `app/` package; root `prompts/` only if there's no backend package) — prompts never inline in code.
@@ -81,10 +81,13 @@ frontend/
 
 **Root (every shape):** `README.md` · `.gitignore` · `.env.example` · `CONTRIBUTING.md` ·
 `.gitleaks.toml` (secret-scan: `useDefault=true`, allowlist only documented dev fakes + `.env.example`)
-· `.pre-commit-config.yaml` (lint + format + secret-scan) · `Makefile` (or npm scripts) · dependency
-manifest with **dev/prod split** · `tests/` · `docs/` (will hold PRODUCT.md, STRUCTURE.md,
+· `.pre-commit-config.yaml` (lint + format + secret-scan) · `SECURITY.md` (how to report a vuln —
+enables GitHub's "Report a vulnerability"; cheap on day one, annoying to retrofit) · `CHANGELOG.md`
+(Keep a Changelog format, start with an `[Unreleased]` section) · `Makefile` (or npm scripts) ·
+dependency manifest with **dev/prod split** · `tests/` · `docs/` (will hold PRODUCT.md, STRUCTURE.md,
 docs/features/*) · `tools/`|`scripts/`. **When relevant:** `Dockerfile`+`docker-compose.yml`+
-`.dockerignore` · CI workflow · migrations config · observability config · `benchmark/`|`evals/` (AI).
+`.dockerignore` · CI workflow · `.github/dependabot.yml` (or Renovate) · migrations config ·
+observability config · `benchmark/`|`evals/` (AI).
 
 **`Makefile` generic targets** a newcomer can just run: `dev` · `frontend` (full-stack) · `test` ·
 `lint` · `check` (lint+test) · and, with a DB, `seed` · `reset`.

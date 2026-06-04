@@ -25,7 +25,8 @@ description: >
   - [ ] **Fail-loud on misconfig, fail-closed on security**: boot refuses on missing/known-constant secrets.
   - [ ] Structured logging (no stray prints); dev tooling (lint/format/pre-commit) + **secret-scan** wired.
   - [ ] **CI is in place and mirrors the prod bootstrap** (builds/migrates/tests from the real schema), green — a must, not optional.
-  - [ ] CI runs **both secret-scan AND dependency-vulnerability scan**; CI creates throwaway creds at runtime (no literal secret in the repo).
+  - [ ] CI runs **both secret-scan AND dependency-vulnerability scan** (e.g. `pip-audit`/`npm audit`), **fail-closed on a known CVE**; CI creates throwaway creds at runtime (no literal secret in the repo).
+  - [ ] An **automated dependency-update bot** is wired (`.github/dependabot.yml` or Renovate). Add it **on day one while deps are clean** — a strict CVE gate bolted on late faces a months-deep backlog (the bot patches one-at-a-time so the backlog never forms).
   - [ ] Long/first-use work (model download, slow external calls) **does not block the async event loop** (offload/async).
 
 ## Step 0 — Context + prior-gate check
@@ -41,7 +42,7 @@ description: >
 1. Dependency manifest + a runnable entrypoint with a **health/hello path** (the walking skeleton).
 2. **Config loader** reading `.env`/config; add a **startup guard** (fail-loud on misconfig, fail-closed on security).
 3. **Structured logging** (no prints) **+ a tracing / error-reporter hook** (even a stub behind an adapter) — wire base infra behind the adapters from `/architect` (DB/LLM/queue), even if stubbed.
-4. **The auto-layer:** dev tooling lint + format + **pre-commit** running **secret-scan + dependency-vuln scan**; this is what enforces the deterministic checks on every commit so the later skills don't rely on memory.
+4. **The auto-layer:** dev tooling lint + format + **pre-commit** running **secret-scan + dependency-vuln scan**; this is what enforces the deterministic checks on every commit so the later skills don't rely on memory. Wire an **automated dependency-update bot** (`.github/dependabot.yml`/Renovate) here too — adding the CVE gate on day one keeps it green from the start; bolting it on later means inheriting a backlog of CVEs that piled up unscanned.
 5. **CI** that installs, bootstraps from the real schema/migrations, runs lint/secret-scan/dep-scan/tests, **builds + runs in the container prod uses**, and **blocks merge on red** — green. CI creates throwaway creds at runtime (no secret in repo).
 
 ## Step 3 — Write back to `PRODUCT.md`
