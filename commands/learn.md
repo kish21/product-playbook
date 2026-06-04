@@ -1,7 +1,7 @@
 ---
 name: learn
 description: >
-  Phase 6 (Learn) of product-builder. After something ships, capture the success metric, run a short
+  Phase 6 (Learn) of product-playbook. After something ships, capture the success metric, run a short
   retro, and decide what to build next FROM EVIDENCE — re-checking against the vision so you don't
   drift. Use after a release lands, or run /learn "retro", "what next", "did it work", "post-launch".
   Writes the Learnings section of PRODUCT.md. Composes /loop or /schedule for recurring metric checks
@@ -10,8 +10,8 @@ description: >
 
 # `/learn` — Phase 6 · Learn · run as a **product analyst**
 
-> Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing: **honesty**, **measure-first**, **vision-alignment re-check**,
+> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`.
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-playbook/PRINCIPLES.md`) — load-bearing: **honesty**, **measure-first**, **vision-alignment re-check**,
 > **defer until a real trigger**, **decide from evidence**.
 
 ## Contract

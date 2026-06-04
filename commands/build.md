@@ -1,7 +1,7 @@
 ---
 name: build
 description: >
-  Phase 2 (Development), step 5 of product-builder — the per-feature build loop. Build ONE feature at
+  Phase 2 (Development), step 5 of product-playbook — the per-feature build loop. Build ONE feature at
   a time: declare a definition-of-done that INCLUDES security, reuse before writing, code it, run and
   verify the LIVE path, review the diff, and write the feature doc. Use to implement features, or run
   /build "build feature X", "implement", "add the feature". Appends to PRODUCT.md#Build log + writes
@@ -11,8 +11,8 @@ description: >
 
 # `/build` — Phase 2 · Development ⑤ · run as an **engineer**
 
-> Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing: **per-feature contract (security in the DoD)**,
+> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`.
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-playbook/PRINCIPLES.md`) — load-bearing: **per-feature contract (security in the DoD)**,
 > **secure-by-construction**, **prompts→`prompts/` YAML**, **doc↔code reconciled**, **measure before
 > fixing**, **no swallowed errors**, **reuse-before-write**, **trace callers (live-path)**,
 > **generic-not-domain-specific**.

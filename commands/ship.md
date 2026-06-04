@@ -1,7 +1,7 @@
 ---
 name: ship
 description: >
-  Phase 5 (Ship) of product-builder. Ship a piece of work the right way — a deep fresh-eyes review,
+  Phase 5 (Ship) of product-playbook. Ship a piece of work the right way — a deep fresh-eyes review,
   a security review, reconcile docs to reality, a confidence score, open the PR, write the handoff,
   and tell the user to start a fresh session. Use when a feature/subtask is done, or run /ship "ship
   it", "open a PR", "release", "wrap up". Writes the Ship log of PRODUCT.md. Composes /code-review,
@@ -10,8 +10,8 @@ description: >
 
 # `/ship` — Phase 5 · Ship · run as a **release reviewer**
 
-> Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing: **reviews are DEEP not skims**, **fresh-eyes caller/cross-file
+> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`.
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-playbook/PRINCIPLES.md`) — load-bearing: **reviews are DEEP not skims**, **fresh-eyes caller/cross-file
 > tracing (works-in-tests-dead-in-prod)**, **security/fail-closed on auth/data**, **docs match
 > reality**, **one-subtask→PR+handoff**, **confidence score**, **verify findings against real code**.
 

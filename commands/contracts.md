@@ -1,7 +1,7 @@
 ---
 name: contracts
 description: >
-  Phase 2 (Development), step 4 of product-builder. Define typed data models, schemas, DB migrations,
+  Phase 2 (Development), step 4 of product-playbook. Define typed data models, schemas, DB migrations,
   and API/agent contracts BEFORE business logic — so boundaries are typed and units/scale agree. Use
   after /foundation, or run /contracts "define the models", "schema", "data types", "api contract".
   Writes the Contracts section of PRODUCT.md. Run /build next.
@@ -9,8 +9,8 @@ description: >
 
 # `/contracts` — Phase 2 · Development ④ · run as an **engineer**
 
-> Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing: **typed contracts not raw dict/text**, **units/scale/shape
+> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`.
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-playbook/PRINCIPLES.md`) — load-bearing: **typed contracts not raw dict/text**, **units/scale/shape
 > agree across boundaries**, **migrations (never hand-edit schema)**, **schema↔code consistency**,
 > **testable-by-construction**.
 

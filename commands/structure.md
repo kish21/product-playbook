@@ -1,7 +1,7 @@
 ---
 name: structure
 description: >
-  Phase 2 (Development), step 2 of product-builder — the FIRST thing you build. Set up a clean,
+  Phase 2 (Development), step 2 of product-playbook — the FIRST thing you build. Set up a clean,
   industry-standard folder structure (backend / frontend / full-stack) and explain what each folder is
   for and why, plus the root scaffolding every project needs (.gitignore, .env.example, .gitleaks.toml,
   pre-commit, Makefile) and a prompts/ YAML folder for AI. Use when starting to code, or run /structure
@@ -11,8 +11,8 @@ description: >
 
 # `/structure` — Phase 2 · Development ② · run as a **senior engineer**
 
-> Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`; writes `STRUCTURE.md`.
-> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing:
+> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`; writes `STRUCTURE.md`.
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-playbook/PRINCIPLES.md`) — load-bearing:
 > **modular/single-responsibility**, **layered sub-packages**, **intention-revealing naming**,
 > **prompts externalized to `prompts/` YAML**, **no-hardcoding (secrets→`.env`, knobs→config)**,
 > **no secret in any code file**.

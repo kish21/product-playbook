@@ -1,16 +1,16 @@
 {
-  "name": "product-builder",
+  "name": "product-playbook",
   "version": "1.0.0",
   "description": "A phased, principle-driven product-building skill set — guides anyone (newcomer or experienced) through the full product lifecycle, sequential but standalone, with hard-won principles baked into each phase. Anti-scope-creep by design.",
   "author": "kish21",
   "license": "MIT",
-  "homepage": "https://github.com/kish21/product-builder",
+  "homepage": "https://github.com/kish21/product-playbook",
   "kind": "claude-code-skills-collection",
   "install": {
     "method": "copy",
     "from": "commands/*.md (+ PRINCIPLES.md, VISION.md, templates/PRODUCT.md)",
     "to": "~/.claude/commands/",
-    "one_liner": "curl -fsSL https://raw.githubusercontent.com/kish21/product-builder/master/install.sh | bash"
+    "one_liner": "curl -fsSL https://raw.githubusercontent.com/kish21/product-playbook/master/install.sh | bash"
   },
   "spine": "PRODUCT.md (the shared living file each skill reads + appends to)",
   "principles": "PRINCIPLES.md (single source, referenced by every skill)",

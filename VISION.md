@@ -1,4 +1,4 @@
-# VISION.md — what product-builder is, and the contract every skill must meet
+# VISION.md — what product-playbook is, and the contract every skill must meet
 
 ## Why this exists
 
@@ -15,7 +15,7 @@ baked into every phase. Skills **compose existing Claude Code skills** (`/code-r
 `/verify`, `/doc-create`, …) rather than reinventing them.
 
 This is distinct from `product-toolkit` (a grab-bag of individual dev/quality skills).
-`product-builder` is the opinionated *journey*.
+`product-playbook` is the opinionated *journey*.
 
 ## The journey (phases → skills)
 
