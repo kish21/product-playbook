@@ -41,36 +41,48 @@ and you can **jump into any single skill** on an existing project (e.g. just `/s
 
 Each skill ends by **self-verifying its exit criteria** — it won't hand off a half-done phase.
 
-## The journey
+## Start here: `/playbook`
+
+**New or unsure? Run `/playbook` — it's the only command you need to remember.** It reads how far
+you've got, tells you the next phase in plain language, runs it, and **checks with you before moving
+on**. It doesn't build anything itself — it *drives* the skills in the table below, one at a time, and
+never skips a gate. (Prefer to drive yourself? Run the skills in order instead — each one tells you the
+next.)
 
 ```
-START HERE   /playbook    ← guided, one phase at a time (or run the skills yourself)
-1 PRODUCT    /vision  →  /scope  →  /plan
-2 DEVELOPMENT /architect → /structure → /foundation → /contracts → /build → /dev-check
-3 TESTING    /test
-4 EVALUATION /eval
-5 SHIP       /ship
-6 LEARN      /learn
-ANYTIME      /drift-check   ← are we still building the vision, or creeping?
+START → /playbook  (guides you through ↓, one phase at a time)
+
+1 PRODUCT      /vision → /scope → /plan
+2 DEVELOPMENT  /architect → /structure → /foundation → /contracts → /build → /dev-check
+3 TESTING      /test
+4 EVALUATION   /eval
+5 SHIP         /ship
+6 LEARN        /learn
+ANYTIME        /drift-check
 ```
 
-| Phase | Skill | What it does |
-|---|---|---|
-| start | `/playbook` | Guided entry-point — walks the phases in order, pausing at each gate |
-| 1 Product | `/vision` | Vision · customer · problem · value + metric/JTBD/risk — benchmarked to the current-year market |
-| 1 Product | `/scope` | Lock the **ONE** core feature + **Deferred** (with triggers) + **Non-goals** (anti-creep) |
-| 1 Product | `/plan` | Core-first milestones + timeline + **testable exit criterion each** + concern-area coverage |
-| 2 Dev | `/architect` | Stack + tools + ADRs (patterns/anti-patterns) + resilience + perf/cost budget |
-| 2 Dev | `/structure` | Stack-aware folder layout + **what each folder is for** + root scaffolding; `app/prompts/` for AI |
-| 2 Dev | `/foundation` | The **walking skeleton that runs**: config · logging · infra · pre-commit + CI auto-layer |
-| 2 Dev | `/contracts` | **Typed** models/schemas/migrations *before* logic; versioning · PII · tenant/idempotency keys |
-| 2 Dev | `/build` | Per-feature loop: **security-in-DoD** · reuse-first · **verify the live path** · feature doc |
-| 2 Dev | `/dev-check` | **Checkpoint** — verify each feature's exit criteria + security DoD before testing |
-| 3 Test | `/test` | Unit · integration · regression · **adversarial/security** + golden dataset; live-path |
-| 4 Eval | `/eval` | Is it **good**? measure-first vs a baseline · separate failures · confidence score |
-| 5 Ship | `/ship` | Deep review + security review + reconcile docs + **rollout safety** + PR + handoff |
-| 6 Learn | `/learn` | Success metric (instrumented) · user signal · decide next / **kill** from evidence |
-| anytime | `/drift-check` | Scope-creep / vision / code↔docs drift check |
+## The skills — what each does, what it produces, when to use it
+
+| Skill | What it does | Output it produces | Use it when |
+|---|---|---|---|
+| `/playbook` | Guides you through the phases, one at a time, pausing at each gate | *(routes only — runs the next skill; writes nothing itself)* | You're new / unsure what's next |
+| `/vision` | Sharpen the idea: who · problem · value · metric · risk, vs the market | `PRODUCT.md` → **Vision** | Starting a brand-new product |
+| `/scope` | Pick the **one** core feature; list Deferred (+triggers) & Non-goals | `PRODUCT.md` → **Scope** | After vision / scope is creeping |
+| `/plan` | Core-first milestones, each a testable "done" + concern coverage | `PRODUCT.md` → **Plan** | After scope / you need a roadmap |
+| `/architect` | Choose stack + tools; ADRs (patterns/anti-patterns); resilience; budget | `PRODUCT.md` → **Architecture** | Before writing any code |
+| `/structure` | Clean folders (explained) + root scaffolding; `app/prompts/` for AI | folder tree + `STRUCTURE.md` + **Structure** | The first thing you build |
+| `/foundation` | Skeleton that **runs**: config · logging · pre-commit + CI auto-layer | running skeleton + CI + **Foundation** | After structure |
+| `/contracts` | Typed models/schemas/migrations; versioning · PII · keys | models/migrations + **Contracts** | Before business logic |
+| `/build` | Build **one** feature: security-in-DoD · reuse · verify live path · doc | code + `docs/features/*` + **Build log** | Implementing each feature |
+| `/dev-check` | Verify each feature's exit criteria + security DoD, with evidence | `PRODUCT.md` → **Dev-complete** | Before moving to testing |
+| `/test` | Unit + integration + regression + adversarial + golden set; live path | tests + `PRODUCT.md` → **Tests** | After dev-check |
+| `/eval` | Measure quality vs a baseline; cost; honest confidence score | `PRODUCT.md` → **Evaluation** | "Is it actually good?" |
+| `/ship` | Review + security + reconcile docs + rollout safety + PR + handoff | PR + `PRODUCT.md` → **Ship log** | A subtask is done |
+| `/learn` | Metric (instrumented) · user signal · decide next / **kill** | `PRODUCT.md` → **Learnings** | After a release lands |
+| `/drift-check` | Detect scope / vision / code↔docs drift | report + `PRODUCT.md` → **Drift log** | Whenever you suspect creep |
+
+Everything a skill produces lands in **your project** — `PRODUCT.md` (the spine), `STRUCTURE.md`, the
+scaffolded code, `docs/features/*` — so the output becomes part of your repo and gets committed.
 
 ## Three ways to include it — you choose
 
