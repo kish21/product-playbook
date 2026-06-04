@@ -11,7 +11,7 @@ description: >
 # `/test` — Phase 3 · Testing · run as a **tester**
 
 > Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` — load-bearing: **independent test plan**, **unit=isolated/mocked,
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing: **independent test plan**, **unit=isolated/mocked,
 > integration=real contracts**, **testable-by-construction**, **tests passing ≠ it works (verify the
 > live path)**, **OWASP LLM Top 10 cases for AI**, **multi-tenant isolation tests**.
 

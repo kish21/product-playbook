@@ -11,7 +11,7 @@ description: >
 # `/dev-check` — Phase 2 · Development ⑥ · run as an **engineer/tester**
 
 > Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` — load-bearing: **exit-criteria are testable AND verified (not assumed)**,
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing: **exit-criteria are testable AND verified (not assumed)**,
 > **security-in-DoD checked**, **honest gap surfacing**, **scope re-check**, **measure not assume**.
 
 ## Contract

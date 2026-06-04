@@ -11,7 +11,7 @@ description: >
 # `/drift-check` — Cross-cutting · run as a **skeptical reviewer**
 
 > Part of **product-builder**. Reads the shared spine `PRODUCT.md` and the codebase/docs.
-> Apply `PRINCIPLES.md` — load-bearing: **vision-alignment (top priority)**, **scope discipline**,
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing: **vision-alignment (top priority)**, **scope discipline**,
 > **no-drift / no-assumptions**, **docs match reality**, **verify against real code**.
 
 > This is the seatbelt against the pain that motivated product-builder: *"I started this product but

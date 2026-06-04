@@ -11,7 +11,7 @@ description: >
 # `/architect` — Phase 2 · Development ① · run as an **architect**
 
 > Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` — load-bearing: **benchmark best-2026-OSS**, **provider/adapter for
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing: **benchmark best-2026-OSS**, **provider/adapter for
 > externals**, **typed-contracts intent**, **layered/decoupled**, **no-hardcoding**.
 
 ## Contract

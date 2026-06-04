@@ -10,7 +10,7 @@ description: >
 # `/scope` — Phase 1 · Product · run as a **product manager**
 
 > Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` — load-bearing here: **scope discipline**, **vision-alignment**,
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing here: **scope discipline**, **vision-alignment**,
 > **defer until a real trigger**, **plain-language one-recommendation**.
 
 ## Contract

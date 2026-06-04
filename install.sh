@@ -14,6 +14,9 @@ set -euo pipefail
 
 REPO_URL="https://github.com/kish21/product-builder.git"
 TARGET="${HOME}/.claude/commands"
+# Companions live OUTSIDE commands/ — anything *.md under commands/ becomes a slash
+# command, and on case-insensitive filesystems VISION.md would collide with vision.md.
+SUPPORT="${HOME}/.claude/product-builder"
 TMP_CLONE="${HOME}/.product-builder-install-$$"
 
 echo "─── product-builder installer ────────────────────────────────"
@@ -40,12 +43,13 @@ for f in "${ROOT}/commands"/*.md; do
   INSTALLED=$((INSTALLED + 1))
 done
 
-# 2) Install the companion files the skills read (single source of truth)
-cp "${ROOT}/PRINCIPLES.md" "${TARGET}/PRINCIPLES.md"
-cp "${ROOT}/VISION.md"     "${TARGET}/VISION.md"
-mkdir -p "${TARGET}/templates"
-cp "${ROOT}/templates/PRODUCT.md" "${TARGET}/templates/PRODUCT.md"
-echo "  ✓ PRINCIPLES.md · VISION.md · templates/PRODUCT.md (companions)"
+# 2) Install the companion files the skills read — into ~/.claude/product-builder/
+#    (NOT commands/, so they don't register as slash commands or collide by case).
+mkdir -p "${SUPPORT}"
+cp "${ROOT}/PRINCIPLES.md"        "${SUPPORT}/PRINCIPLES.md"
+cp "${ROOT}/VISION.md"            "${SUPPORT}/VISION.md"
+cp "${ROOT}/templates/PRODUCT.md" "${SUPPORT}/PRODUCT.md"
+echo "  ✓ companions → ${SUPPORT} (PRINCIPLES.md · VISION.md · PRODUCT.md)"
 
 if [[ "${INSTALLED}" -eq 0 ]]; then
   echo "⚠  No skills found in ${ROOT}/commands — nothing installed."

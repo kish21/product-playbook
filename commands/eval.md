@@ -11,7 +11,7 @@ description: >
 # `/eval` — Phase 4 · Evaluation · run as an **evaluator**
 
 > Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` — load-bearing: **measure-first**, **evidence-based**, **eval/benchmark
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing: **measure-first**, **evidence-based**, **eval/benchmark
 > integrity (separate operational-failure from quality)**, **honest confidence score**, **surface gaps**.
 
 ## Contract
