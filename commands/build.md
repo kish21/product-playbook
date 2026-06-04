@@ -49,9 +49,19 @@ description: >
 ## Step 3 — Write back to `PRODUCT.md`
 Append a `#Build log` row: feature · DoD-incl-security met? · **how verified** · link to the feature doc.
 
-## Step 3b — Self-verify (completeness gate)
-Check the per-feature boxes. **If you didn't verify the live path, or the feature doc doesn't match
-the code, STOP** — don't log it as done. Record HOW it was verified (evidence, not "done").
+## Step 3b — Principle-gate: verify each principle is ACTUALLY implemented (not just claimed)
+This is where principles and the gate coordinate. Walk **this phase's load-bearing principles
+(Step 1)** and confirm each is real in the code, **with evidence** — composing the existing checkers,
+not eyeballing:
+- security-in-DoD → compose **`/security-review`** on the feature; evidence = it passed.
+- no secret in code / no-hardcoding → secret-scan clean; evidence.
+- live-path-works → **`/verify`** + **`/run`** exercised the real path; evidence (green unit tests ≠ wired in).
+- reuse · no-swallowed-errors · single-responsibility → confirmed in the **`/code-review`** of the diff.
+
+**If any named principle is only claimed, not evidenced, STOP — the feature is not done.** Record the
+*how-verified* per principle in `#Build log` (evidence, not "done"). (Deterministic checks —
+secret-scan, lint, tests — also run automatically via pre-commit + CI from `/foundation`; this gate is
+the judgment layer on top.)
 
 ## Step 4 — Handoff
 "Feature done, verified, and documented. Build the next core-scope feature with `/build`, or when the

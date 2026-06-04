@@ -47,9 +47,12 @@ description: >
 ## Step 3 — Write back to `PRODUCT.md`
 Fill `#Tests`: coverage (unit/integration/regression) · security cases · note the live-path verification.
 
-## Step 3b — Self-verify (completeness gate)
-Check the boxes. **If only isolated units exist (no live-path/integration), or an AI product has no
-injection test, STOP and add them** — that's exactly the gap that ships broken-but-green code.
+## Step 3b — Principle-gate: prove the suite is real (evidence)
+Confirm with evidence: the suite **runs in CI and a red run blocks merge** (not just locally); there's at
+least one **integration + live-path** test (compose `/verify`+`/run`), not only isolated units; tests are
+**deterministic** (seeded, no time/network races); an AI product has injection/jailbreak cases; a
+**golden/eval dataset** exists. **If only isolated units exist, or the suite isn't a CI gate, STOP and
+add them** — that's exactly the gap that ships broken-but-green code.
 
 ## Step 4 — Handoff
 "Suite covers units, integration, the live path, and adversarial cases. Next run **`/eval`** to judge

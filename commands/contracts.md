@@ -37,15 +37,19 @@ description: >
 ## Step 2 — Define the contracts
 1. **Domain models** for the core-feature entities (typed; validated at construction).
 2. **Persistence schema** + a **migration**; confirm the schema matches the models and the queries.
-3. **API/agent contracts:** request/response (and, for AI, the typed output schema each step returns).
-4. **Boundary audit:** for each boundary, state the units/scale/shape both sides expect; reconcile mismatches now.
+3. **API/agent contracts:** request/response (and, for AI, the typed output schema each step returns) — with a **versioning / back-compat** approach (`/v1`, additive-only).
+4. **Boundary audit:** for each boundary, state the units/scale/shape both sides expect; reconcile mismatches now. For write/ingest paths define the **idempotency/natural key**.
+5. **Safety on the data:** classify **PII/sensitive** fields (retention/N-A) and give every persisted entity its **tenant/owner key** (the isolation seam).
 
 ## Step 3 — Write back to `PRODUCT.md`
-Fill `#Contracts`: typed models/schemas/migrations · the agreed boundary units/scale.
+Fill `#Contracts`: typed models/schemas/migrations · boundary units/scale · versioning · PII · tenant/idempotency keys.
 
-## Step 3b — Self-verify (completeness gate)
-Check the boxes. **If schema and code disagree, or a boundary's units are unstated, STOP and fix it** —
-a scale mismatch across a boundary is a silent wrong-answer bug that looks healthy.
+## Step 3b — Principle-gate: verify the contracts hold (evidence)
+Walk this phase's principles and prove each: the migration **actually applies** and a column the code
+reads exists (schema↔code — run it); every boundary's **units/scale are stated on both sides**; public
+contracts have a **versioning** approach; persisted entities carry a **tenant key**; write paths have an
+**idempotency key**; PII is classified. **If schema and code disagree, or a boundary's units are unstated,
+STOP and fix it** — a scale mismatch across a boundary is a silent wrong-answer bug that looks healthy.
 
 ## Step 4 — Handoff
 "Typed contracts and migrations are in place. Now build features against them: run **`/build`** — one

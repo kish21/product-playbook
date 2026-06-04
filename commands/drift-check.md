@@ -19,8 +19,8 @@ description: >
 
 ## Contract
 - **Purpose:** detect and surface scope creep, vision drift, and code↔docs drift — early.
-- **Reads:** `PRODUCT.md#Vision`, `#Scope` (esp. OUT-OF-SCOPE), `#Plan`, `#Build log`; the codebase + docs.
-- **Writes:** a drift report to the user (and optionally a note in `PRODUCT.md#Learnings`); does NOT advance the chain.
+- **Reads:** `PRODUCT.md#Vision`, `#Scope` (Deferred + Non-goals), `#Plan` (concern-area checklist), `#Build log`; the codebase + docs.
+- **Writes:** a drift report to the user + a dated row in `PRODUCT.md#Drift log` on any confirmed drift (its OWN section — never `/learn`'s `#Learnings`); does NOT advance the chain.
 - **Exit criteria:**
   - [ ] Built features cross-checked against `#Scope` — any OUT-OF-SCOPE item that got built is flagged as creep.
   - [ ] Current direction cross-checked against `#Vision` — misalignment surfaced.
@@ -37,15 +37,15 @@ description: >
 - **Docs match reality:** a claim in the docs that the code doesn't support is drift too.
 
 ## Step 2 — Check for drift
-1. **Scope creep:** list features present in the code/build log that are in (or not justified by) `#Scope`; flag OUT-OF-SCOPE items that were built without their trigger.
-2. **Vision drift:** is the current direction still serving `#Vision`? Surface any quiet pivot.
-3. **Plan drift:** are milestones being skipped or reordered away from core-first?
-4. **Doc drift:** compose **`/doc-audit`**; flag claims that don't match the code.
+1. **Scope creep:** list features in the code/build log not justified by `#Scope`; flag anything built that's a **Non-goal** or a **Deferred** item whose trigger never fired. Also flag the inverse: a deliberate pivot the spine never recorded → recommend updating `#Scope`/`#Vision`, not cutting code.
+2. **Vision drift:** is the current direction still serving `#Vision` and its north-star metric? Surface any quiet pivot.
+3. **Plan / concern-area drift:** milestones skipped or reordered off core-first? Re-read `#Plan`'s concern-area checklist — any "now" still unbuilt, any "next" overdue?
+4. **Doc drift:** compose **`/doc-audit`**; flag claims that don't match the code. If the `#Build log` itself is stale vs the code, flag that as drift too.
 
-## Step 3 — Report
-Give an honest verdict: **on-track**, or a specific list of drifts. For each drift, recommend a cut,
-a re-scope (add it to `#Scope` deliberately, with a trigger), or a correction. Optionally note it in
-`#Learnings`. (This skill doesn't write phase sections or hand off — it's a check, not a stage.)
+## Step 3 — Report + record
+Give an honest verdict: **on-track**, or a specific list of drifts. For each, recommend a **cut**, a
+**deliberate re-scope** (add to `#Scope` with a trigger), or a **fix**. On any confirmed drift, write a
+dated row to `PRODUCT.md#Drift log` (its own section). (No phase write, no handoff — it's a check, not a stage.)
 
 ## Step 3b — Self-verify
 **If you reported "on-track" without actually cross-checking the build against OUT-OF-SCOPE, redo it** —

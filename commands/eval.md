@@ -24,6 +24,7 @@ description: >
   - [ ] **Operational failures (errored/blocked/dropped) are separated** from genuine low quality.
   - [ ] An honest **confidence score (0–100%)** with solid / risky-untested / to-raise-it lines.
   - [ ] **Cost-per-run** captured (token/compute spend) where relevant; for AI, a **scoring-bias** check.
+  - [ ] Result compared to a **recorded baseline** — a regression below threshold **fails** (gates as config, not hardcoded).
 
 ## Step 0 — Context + prior-gate check
 - Read `#Vision/#Scope/#Plan` for the goal and `#Tests` for what's covered. If the goal is fuzzy, sharpen it first.
@@ -43,9 +44,11 @@ description: >
 Fill `#Evaluation`: the measured result + metrics, operational-failure count (separated), and a
 **confidence score** (solid / risky-untested / to-raise-it).
 
-## Step 3b — Self-verify (completeness gate)
-Check the boxes. **If the result is asserted rather than measured, or failures are blended into the
-quality number, STOP and fix it** — an un-measured or contaminated number is worse than none.
+## Step 3b — Principle-gate: measured, not asserted (evidence)
+Confirm: the number was **actually measured** against representative inputs (reproducible — show how);
+it's compared to a **recorded baseline** and a regression **fails**; operational failures are counted
+**separately** from quality. **If the result is asserted rather than measured, or failures are blended
+into the quality number, STOP and fix it** — an un-measured or contaminated number is worse than none.
 
 ## Step 4 — Handoff
 "Quality measured honestly, with a confidence score. Next run **`/ship`** — deep review, security
