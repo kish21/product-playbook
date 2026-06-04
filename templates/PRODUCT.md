@@ -48,7 +48,7 @@ _Last updated: <date> · Stage: <phase> · AI product? <yes/no>_
 
 ## Structure         <!-- /structure --> (see STRUCTURE.md for the full folder map)
 - **Folder → purpose map (summary):**
-- **Prompts location (AI):** `prompts/` (YAML, never inline)
+- **Prompts location (AI):** `app/prompts/` (backend sub-package; YAML, never inline)
 
 ## Foundation        <!-- /foundation -->
 - **Runs end-to-end (walking skeleton):**
