@@ -23,6 +23,7 @@ description: >
   - [ ] Every external dependency (LLM, DB, vendor SDK, queue) named with the **adapter interface** it sits behind.
   - [ ] Key decisions recorded as short ADRs (decision · why · rejected alternative).
   - [ ] Decisions trace to the scope/plan (not gold-plating for out-of-scope items).
+  - [ ] The **established design patterns AND known anti-patterns** for this kind of system (current-year best practice) are named, and the design **applies the patterns / avoids the anti-patterns**, adapted to this project.
   - [ ] A **migrations** approach chosen for any datastore (never hand-edited schema).
   - [ ] The **concern areas to design for** named (security, observability, testing, docs, DX, + AI-specific if AI) — what the architecture must accommodate; **no secret in code** (secrets→`.env`).
 
@@ -32,11 +33,13 @@ description: >
 
 ## Step 1 — Apply principles (this phase)
 - **Benchmark to the current year, OSS-first:** pick what leading teams use *now*; prefer open source unless told otherwise. Justify each choice in one line.
+- **Patterns & anti-patterns awareness:** know the established design patterns for this kind of system *and* its common anti-patterns (e.g. god-objects, tight coupling to a vendor, dead config, N+1 / blocking the event loop, distributed-monolith). Apply the right patterns; consciously avoid the anti-patterns — adapted to *this* project, not cargo-culted.
 - **Provider/adapter for every external:** no vendor SDK in business logic — wrap it behind a config-selected interface so it's swappable via `.env`.
 - **No-hardcoding & typed contracts:** decisions must keep values in config and payloads typed.
 
 ## Step 2 — Guided decisions
 1. **What kind of system is it?** (web app · API · CLI · data/ML · agentic). Match the scope, not ambition.
+   Then name the **2–3 design patterns** that fit it and the **2–3 anti-patterns** to avoid (current-year), and how this design honours/avoids them — record the notable ones as ADRs.
 2. **Choose the stack core** (language · framework · datastore · key libs). One-line why each; flag anything paid and its trigger to adopt.
 3. **List every external** and the **adapter interface** it will hide behind (e.g. `LLMProvider`, `Storage`). This is what keeps it swappable and testable.
 4. **Record 2–4 ADRs** for the load-bearing choices (decision · why · rejected alternative).
