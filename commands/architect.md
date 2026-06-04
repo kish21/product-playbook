@@ -1,7 +1,7 @@
 ---
 name: architect
 description: >
-  Phase 2 (Development), step 1 of product-builder. Decide the tech stack + tools + key
+  Phase 2 (Development), step 1 of product-playbook. Decide the tech stack + tools + key
   architecture decisions, benchmarked to the best current-year open-source options, aligned
   to the product. Use at the start of building, or run /architect "what stack", "tech
   decisions", "how should we build this". Writes the Architecture section of PRODUCT.md.
@@ -10,8 +10,8 @@ description: >
 
 # `/architect` — Phase 2 · Development ① · run as an **architect**
 
-> Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing this phase:
+> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`.
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-playbook/PRINCIPLES.md`) — load-bearing this phase:
 > **benchmark best-2026-OSS**, **patterns & anti-patterns**, **provider/adapter for externals**,
 > **resilience strategy**, **perf/cost budget**, **migrations (not raw schema)**, **no-hardcoding /
 > no secret in code**, **typed-contracts intent**, **layered/decoupled**. (Depth lives in Step 2 +

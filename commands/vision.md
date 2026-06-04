@@ -1,7 +1,7 @@
 ---
 name: vision
 description: >
-  Phase 1 (Product) of product-builder. Define a product's vision — who it's for, the
+  Phase 1 (Product) of product-playbook. Define a product's vision — who it's for, the
   problem (why now), the value proposition — and pressure-test it against the CURRENT-YEAR
   market and competitors. Use at the very start of a new product, or run /vision "start a
   product", "what should we build", "is this idea any good". Writes the Vision section of
@@ -10,8 +10,8 @@ description: >
 
 # `/vision` — Phase 1 · Product · run as a **product developer**
 
-> Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing here: **vision-alignment**, **verify-don't-assume**,
+> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`.
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-playbook/PRINCIPLES.md`) — load-bearing here: **vision-alignment**, **verify-don't-assume**,
 > **benchmark-to-current-year**, **plain-language communication**.
 
 ## Contract
@@ -29,7 +29,7 @@ description: >
 ## Step 0 — Context + prior-gate check
 - If `PRODUCT.md` exists, read `#Vision`; you are refining, not overwriting blindly.
 - If a codebase exists but no `PRODUCT.md`, skim it to infer what's being built, then confirm with the user.
-- If neither, start fresh from the bundled `PRODUCT.md` template (`~/.claude/product-builder/PRODUCT.md`).
+- If neither, start fresh from the bundled `PRODUCT.md` template (`~/.claude/product-playbook/PRODUCT.md`).
 
 ## Step 1 — Apply principles (this phase)
 - **Verify, don't assume:** do not invent the user's intent — ask. **Benchmark to the current year:** the idea must be judged against how the market solves this *now*, not 3 years ago.

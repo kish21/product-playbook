@@ -1,7 +1,7 @@
 ---
 name: drift-check
 description: >
-  Cross-cutting skill of product-builder — run ANYTIME. Checks whether the product is still building
+  Cross-cutting skill of product-playbook — run ANYTIME. Checks whether the product is still building
   the vision or has drifted: scope creep (features built that are OUT OF SCOPE), vision misalignment,
   and code↔docs drift. Use when you suspect creep, before a milestone, or run /drift-check "are we
   on track", "did we drift", "scope creep", "is this still the plan". Reports against PRODUCT.md;
@@ -10,11 +10,11 @@ description: >
 
 # `/drift-check` — Cross-cutting · run as a **skeptical reviewer**
 
-> Part of **product-builder**. Reads the shared spine `PRODUCT.md` and the codebase/docs.
-> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing: **vision-alignment (top priority)**, **scope discipline**,
+> Part of **product-playbook**. Reads the shared spine `PRODUCT.md` and the codebase/docs.
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-playbook/PRINCIPLES.md`) — load-bearing: **vision-alignment (top priority)**, **scope discipline**,
 > **no-drift / no-assumptions**, **docs match reality**, **verify against real code**.
 
-> This is the seatbelt against the pain that motivated product-builder: *"I started this product but
+> This is the seatbelt against the pain that motivated product-playbook: *"I started this product but
 > slowly drifted out of control adding features which may not be required."* Run it often.
 
 ## Contract

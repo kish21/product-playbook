@@ -1,25 +1,25 @@
 #!/usr/bin/env bash
-# product-builder installer
-# Copies the product-builder skills into ~/.claude/commands/ so they become
+# product-playbook installer
+# Copies the product-playbook skills into ~/.claude/commands/ so they become
 # globally available slash commands, plus the companion files the skills read
 # (PRINCIPLES.md, VISION.md, templates/PRODUCT.md).
 #
 # Usage (one-liner, recommended):
-#   curl -fsSL https://raw.githubusercontent.com/kish21/product-builder/master/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/kish21/product-playbook/master/install.sh | bash
 #
 # Usage (local clone):
 #   ./install.sh
 
 set -euo pipefail
 
-REPO_URL="https://github.com/kish21/product-builder.git"
+REPO_URL="https://github.com/kish21/product-playbook.git"
 TARGET="${HOME}/.claude/commands"
 # Companions live OUTSIDE commands/ — anything *.md under commands/ becomes a slash
 # command, and on case-insensitive filesystems VISION.md would collide with vision.md.
-SUPPORT="${HOME}/.claude/product-builder"
-TMP_CLONE="${HOME}/.product-builder-install-$$"
+SUPPORT="${HOME}/.claude/product-playbook"
+TMP_CLONE="${HOME}/.product-playbook-install-$$"
 
-echo "─── product-builder installer ────────────────────────────────"
+echo "─── product-playbook installer ────────────────────────────────"
 mkdir -p "${TARGET}"
 
 # Local clone vs remote
@@ -43,7 +43,7 @@ for f in "${ROOT}/commands"/*.md; do
   INSTALLED=$((INSTALLED + 1))
 done
 
-# 2) Install the companion files the skills read — into ~/.claude/product-builder/
+# 2) Install the companion files the skills read — into ~/.claude/product-playbook/
 #    (NOT commands/, so they don't register as slash commands or collide by case).
 mkdir -p "${SUPPORT}"
 cp "${ROOT}/PRINCIPLES.md"        "${SUPPORT}/PRINCIPLES.md"
@@ -61,4 +61,4 @@ echo "Installed ${INSTALLED} skills + companions to ${TARGET}"
 echo ""
 echo "Start a product:  /vision  →  /scope  →  /plan  →  /architect  → …"
 echo "Anytime:          /drift-check   (are we still building the vision?)"
-echo "See the journey:  https://github.com/kish21/product-builder#the-journey"
+echo "See the journey:  https://github.com/kish21/product-playbook#the-journey"

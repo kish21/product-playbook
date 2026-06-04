@@ -1,7 +1,7 @@
 ---
 name: scope
 description: >
-  Phase 1 (Product) of product-builder. Lock the ONE core feature that delivers the core
+  Phase 1 (Product) of product-playbook. Lock the ONE core feature that delivers the core
   value, and write an explicit OUT-OF-SCOPE list so the product does not drift. Use after
   /vision, or run /scope "what should the MVP be", "we keep adding features", "cut scope".
   Writes the Scope section of PRODUCT.md. Run /plan next. This is the anti-scope-creep skill.
@@ -9,8 +9,8 @@ description: >
 
 # `/scope` — Phase 1 · Product · run as a **product manager**
 
-> Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing here: **scope discipline**, **vision-alignment**,
+> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`.
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-playbook/PRINCIPLES.md`) — load-bearing here: **scope discipline**, **vision-alignment**,
 > **defer until a real trigger**, **plain-language one-recommendation**.
 
 ## Contract

@@ -1,7 +1,7 @@
 ---
 name: eval
 description: >
-  Phase 4 (Evaluation) of product-builder. Judge whether the product is actually GOOD and hits its
+  Phase 4 (Evaluation) of product-playbook. Judge whether the product is actually GOOD and hits its
   goal — measured against criteria, not assumed. Separates operational failures from genuine quality,
   and ends with an honest confidence score. Use after /test, or run /eval "is it good", "measure
   quality", "evaluate the output", "benchmark". Writes the Evaluation section of PRODUCT.md. For AI
@@ -10,8 +10,8 @@ description: >
 
 # `/eval` — Phase 4 · Evaluation · run as an **evaluator**
 
-> Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing: **measure-first**, **evidence-based**, **eval/benchmark
+> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`.
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-playbook/PRINCIPLES.md`) — load-bearing: **measure-first**, **evidence-based**, **eval/benchmark
 > integrity (separate operational-failure from quality)**, **honest confidence score**, **surface gaps**.
 
 ## Contract

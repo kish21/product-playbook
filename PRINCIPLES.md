@@ -1,6 +1,6 @@
 # PRINCIPLES.md — the working rules every skill enforces
 
-> Single source of truth. Every `product-builder` skill links here and names the
+> Single source of truth. Every `product-playbook` skill links here and names the
 > subset that is load-bearing for its phase. Do not duplicate these rules inside a
 > skill — reference them, so they can never drift.
 

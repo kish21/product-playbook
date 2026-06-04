@@ -1,7 +1,7 @@
 ---
 name: foundation
 description: >
-  Phase 2 (Development), step 3 of product-builder. Build the walking skeleton that actually RUNS —
+  Phase 2 (Development), step 3 of product-playbook. Build the walking skeleton that actually RUNS —
   dependencies, config loader, structured logging, base infra wiring (DB/LLM/queue), dev tooling
   (lint/format/pre-commit), secret-scan, and a CI that mirrors the prod bootstrap. Use after
   /structure, or run /foundation "set up the skeleton", "get it running", "wire up CI". Writes the
@@ -10,8 +10,8 @@ description: >
 
 # `/foundation` — Phase 2 · Development ③ · run as an **engineer**
 
-> Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing: **no-hardcoding (config/.env)**, **verify config actually
+> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`.
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-playbook/PRINCIPLES.md`) — load-bearing: **no-hardcoding (config/.env)**, **verify config actually
 > flows (no dead config)**, **fail-loud on misconfig / fail-closed on security**, **structured
 > logging (no prints)**, **CI mirrors prod**, **fast feedback early**.
 

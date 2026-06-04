@@ -1,4 +1,4 @@
-# product-builder
+# product-playbook
 
 A phased, principle-driven **product-building skill set** for Claude Code. It walks anyone —
 a newcomer (technical or not) *or* an experienced builder dropping into one phase — through the
@@ -6,7 +6,7 @@ a newcomer (technical or not) *or* an experienced builder dropping into one phas
 results are the default. It is **anti-scope-creep by design**.
 
 > Sibling to [`product-toolkit`](https://github.com/kish21/product-toolkit). `product-toolkit` is a
-> grab-bag of individual dev/quality skills; **`product-builder` is the opinionated end-to-end
+> grab-bag of individual dev/quality skills; **`product-playbook` is the opinionated end-to-end
 > *journey*.**
 
 ## How it works (three ideas)
@@ -89,14 +89,14 @@ not the same thing.
 
 ```bash
 # One-liner
-curl -fsSL https://raw.githubusercontent.com/kish21/product-builder/master/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/kish21/product-playbook/master/install.sh | bash
 
 # Or local clone
-git clone https://github.com/kish21/product-builder ~/product-builder
-cd ~/product-builder && ./install.sh
+git clone https://github.com/kish21/product-playbook ~/product-playbook
+cd ~/product-playbook && ./install.sh
 
 # Sync after updates
-cd ~/product-builder && git pull && ./install.sh
+cd ~/product-playbook && git pull && ./install.sh
 ```
 
 This copies the 14 skills **plus the companion files they read** (`PRINCIPLES.md`, `VISION.md`,

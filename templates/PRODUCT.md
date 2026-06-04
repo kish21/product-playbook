@@ -1,7 +1,7 @@
 <!--
 PRODUCT.md — the living spine of this product.
 
-This single file is the shared memory of the product-builder skills. Each skill
+This single file is the shared memory of the product-playbook skills. Each skill
 READS the sections it depends on and APPENDS/UPDATES its own. Read it top-to-bottom
 to understand the whole product: what it is, why, what's built, and what's next.
 

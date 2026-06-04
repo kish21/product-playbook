@@ -1,7 +1,7 @@
 ---
 name: test
 description: >
-  Phase 3 (Testing) of product-builder. Write the test suite — unit (isolated/mocked), integration
+  Phase 3 (Testing) of product-playbook. Write the test suite — unit (isolated/mocked), integration
   (real contracts), regression, and adversarial/security cases (prompt-injection & jailbreak for AI,
   authz/tenant-isolation) — and verify the path the product ACTUALLY runs, not just functions in
   isolation. Use after /dev-check, or run /test "write tests", "test this", "does it actually work".
@@ -10,8 +10,8 @@ description: >
 
 # `/test` — Phase 3 · Testing · run as a **tester**
 
-> Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing: **independent test plan**, **unit=isolated/mocked,
+> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`.
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-playbook/PRINCIPLES.md`) — load-bearing: **independent test plan**, **unit=isolated/mocked,
 > integration=real contracts**, **testable-by-construction**, **tests passing ≠ it works (verify the
 > live path)**, **OWASP LLM Top 10 cases for AI**, **multi-tenant isolation tests**.
 

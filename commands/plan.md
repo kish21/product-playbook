@@ -1,7 +1,7 @@
 ---
 name: plan
 description: >
-  Phase 1 (Product) of product-builder. Turn the locked scope into a core-first phased plan —
+  Phase 1 (Product) of product-playbook. Turn the locked scope into a core-first phased plan —
   milestones, a rough timeline, and a testable exit criterion per milestone. Use after /scope,
   or run /plan "make a roadmap", "how do we sequence this", "milestones". Writes the Plan
   section of PRODUCT.md. Run /architect next (start of Development).
@@ -9,8 +9,8 @@ description: >
 
 # `/plan` — Phase 1 · Product · run as a **product planner**
 
-> Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing here: **per-feature contract (testable "done")**,
+> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`.
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-playbook/PRINCIPLES.md`) — load-bearing here: **per-feature contract (testable "done")**,
 > **defer until a real trigger**, **docs-driven**.
 
 ## Contract

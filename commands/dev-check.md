@@ -1,7 +1,7 @@
 ---
 name: dev-check
 description: >
-  Phase 2 (Development), step 6 of product-builder — the checkpoint tester / development-complete gate.
+  Phase 2 (Development), step 6 of product-playbook — the checkpoint tester / development-complete gate.
   Verify that every core-scope feature is actually built, runs, and met its exit criteria + security
   definition-of-done, before moving to Testing. Use when you think development is done, or run
   /dev-check "is development complete", "checkpoint", "ready to test". Writes the Dev-complete section
@@ -10,8 +10,8 @@ description: >
 
 # `/dev-check` — Phase 2 · Development ⑥ · run as an **engineer/tester**
 
-> Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing: **exit-criteria are testable AND verified (not assumed)**,
+> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`.
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-playbook/PRINCIPLES.md`) — load-bearing: **exit-criteria are testable AND verified (not assumed)**,
 > **security-in-DoD checked**, **honest gap surfacing**, **scope re-check**, **measure not assume**.
 
 ## Contract
