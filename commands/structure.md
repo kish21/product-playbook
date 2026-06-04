@@ -32,7 +32,7 @@ description: >
   - [ ] Root scaffolding present: `README.md` · `.gitignore` · `.env.example` · `.gitleaks.toml` · `.pre-commit-config.yaml` · task runner (`Makefile`/npm scripts) · dependency manifest (dev/prod split).
   - [ ] **The config-layering files are actually scaffolded** (not just an empty `config/`): `config/loader.py` (typed) + `config/platform.yaml` (engine knobs) + `config/product.yaml` (product knobs) reading `.env` — the no-hardcoding engine.
   - [ ] `.gitignore` ignores `.env` **and its variants/backups** (`.env.bak`, `*.env.local`); only `.env.example` is committed. **No secret in any code file.**
-  - [ ] For AI products: a **`prompts/` YAML folder**; prompts never inline in code.
+  - [ ] For AI products: a **`prompts/` YAML folder as a backend sub-package** (`app/prompts/` when there's an `app/` package; root `prompts/` only if there's no backend package) — prompts never inline in code.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Architecture` (stack) and `#Vision` (AI?). If `#Architecture` is empty, warn and offer `/architect` first (allow override).
@@ -41,7 +41,7 @@ description: >
 ## Step 1 — Apply principles (this phase)
 - **One folder = one concern; dependencies point inward** (api → service/domain → data). No god-files.
 - **No-hardcoding:** secrets go to `.env`; tunable knobs to layered config; **never a key/secret in a code file**.
-- **Prompts are config (AI):** `prompts/*.yaml`, versioned, never inline.
+- **Prompts are config (AI):** `app/prompts/*.yaml` (backend sub-package), versioned, never inline.
 - Reuse `/new-project`'s sub-package conventions where they fit; don't reinvent.
 
 ## Step 2 — Lay the structure (pick the shape, then adapt names to the stack)
@@ -60,7 +60,7 @@ app/
 ├── config/      # loader + layered config — SEE BELOW — reads .env
 ├── jobs/        # background / scheduled tasks
 └── main.py      # entrypoint
-# AI/agentic ONLY (when PRODUCT.md says AI): agents/ · pipeline/ (orchestration) · prompts/ (YAML) · retrieval/
+# AI/agentic ONLY (when PRODUCT.md says AI), as app/ sub-packages: agents/ · pipeline/ (orchestration) · app/prompts/ (versioned YAML) · retrieval/
 ```
 **`config/` layered pattern (the no-hardcoding engine) — ACTUALLY CREATE THESE FILES, don't leave
 `config/` empty:** `loader.py` (typed loader that reads the YAML + `.env`) + `platform.yaml`
