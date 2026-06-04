@@ -83,6 +83,11 @@ ANYTIME        /drift-check
 *Produced in **your** project when you run the skills:* `PRODUCT.md` (the spine), `STRUCTURE.md` (what
 each folder is for), `docs/features/*` (one doc per feature) — all committed with your code.
 
+> **Just want individual à-la-carte skills** (scaffold, audit, quality-gate, PR-flow, UI)? See its
+> sibling **[product-toolkit](https://github.com/kish21/product-toolkit)** — the build-and-ship
+> engineering skills. **product-playbook is the guided journey that composes tools like those** across
+> the whole product arc (vision → learn).
+
 ## Install — three ways, you choose
 
 | Way | Command | Who gets it | Command names |
