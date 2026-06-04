@@ -23,6 +23,7 @@ description: >
   - [ ] A short retro: what worked · what to change.
   - [ ] A **next step decided from evidence**, re-checked against the vision (and against OUT-OF-SCOPE).
   - [ ] Any deferred item carries the **trigger** that would activate it.
+  - [ ] Ongoing **observability** in place (dashboards/alerting) + **cost** monitored — the post-launch watch, not a one-off.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Vision/#Scope/#Eval/#Ship log`. If nothing has shipped yet, this is premature — say so.

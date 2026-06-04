@@ -22,6 +22,7 @@ description: >
   - [ ] A rough timeline (relative is fine: M1, M2… or weeks).
   - [ ] **Every milestone has a testable exit criterion** (a definition of done you could verify).
   - [ ] Out-of-scope items remain out (referenced, not scheduled).
+  - [ ] A **concern-area coverage checklist** (security · ai-specific · observability · developer-experience · testing · infra · documentation · product) — each marked **now / next / later / N-A** with a trigger.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Vision` and `#Scope`. If `#Scope` is missing/empty, warn and offer `/scope` first (allow override).
@@ -36,6 +37,7 @@ description: >
 2. **Sequence the rest core-first:** what must exist for M1; what builds on it (M2, M3…). Keep it short.
 3. For **each milestone**, write a one-line **exit criterion** — an observable, testable "done".
 4. Add a **rough timeline** (relative is fine). Flag any milestone that needs paid infra and record the trigger.
+5. **Concern-area coverage:** walk the production-readiness areas in `PRINCIPLES.md` (security, ai-specific, observability, DX, testing, infra, documentation, product) and mark each now / next / later / N-A with a trigger — so nothing is missed by accident (a product-grade, interview-worthy artifact).
 - Optionally compose `/doc-create` to scaffold a fuller `ROADMAP.md`; keep `PRODUCT.md#Plan` as the summary.
 
 ## Step 3 — Write back to `PRODUCT.md`

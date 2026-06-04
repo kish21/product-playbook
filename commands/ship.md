@@ -25,6 +25,8 @@ description: >
   - [ ] **Docs reconciled to reality** (`/doc-audit`) — no false capability/security claims.
   - [ ] **Confidence score (0–100%)** reported (solid / risky-untested / to-raise-it).
   - [ ] PR opened (`github-pr-flow`); a smooth **handoff** written; user told to start a fresh session.
+  - [ ] A **CHANGELOG / release note** entry.
+  - [ ] Security checklist cleared: dependency-vuln scan, CORS prod domain, cookie-based auth (not localStorage), and data-deletion/GDPR for data products.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Eval` and the diff. If quality wasn't evaluated, warn and offer `/eval` first (allow override for small changes).

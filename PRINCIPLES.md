@@ -31,6 +31,7 @@
 ## Production safeguards
 
 - **Security baseline** — no secrets in source (secret-scan clean); check authorization / tenant-isolation on **every** data path; validate inputs; **fail-CLOSED** on security/auth.
+- **Secrets never get pushed** — tests/imports use **obviously-fake placeholder keys** (`sk-fake-...`); the secret-scan config allowlists *only those documented fakes by name* (a real key still fails CI); CI generates throwaway creds at runtime; real secrets live only in gitignored `.env` (and its backups — `.env.bak`, `*.env.local` — never `.env.example`).
 - **AI-specific security (when the product uses LLMs)** — defend against **prompt injection**, jailbreaks, data exfiltration via outputs, secret/PII leakage, tool/over-agency abuse. Benchmark to the **OWASP LLM Top 10**.
 - **Observability & audit** — structured logging; trace every external/LLM/agent step; an audit record for state changes.
 - **Fail-safe errors** — graceful fallbacks; never silently swallow errors; retry only *transient* failures.
@@ -55,6 +56,22 @@
 - **Generic, not domain-specific** — prefer the generic mechanism; a domain/special-case branch baked into shared infra is a smell.
 
 ---
+
+## Production-readiness concern areas (the coverage checklist)
+
+A serious product consciously covers — or *deliberately defers with a trigger* — each of these.
+`/plan` emits this as a now / next / later / N-A checklist; the relevant skills enforce the items:
+
+- **security** — authz/tenant-isolation, secret-scan + dependency-vulnerability scan, fail-closed, cookie-based auth (not localStorage), CORS, data-deletion/GDPR (data products).
+- **ai-specific** (AI products) — prompt-injection defence, LLM fallback, scoring-bias, prompt version pinning (OWASP LLM Top 10).
+- **observability** — structured logging, dashboards, alerting rules, cost-per-run reporting.
+- **developer-experience** — README/CONTRIBUTING, API docs (OpenAPI), CHANGELOG, task runner.
+- **testing** — unit + integration + regression + adversarial + a golden/eval dataset.
+- **infra** — CI (mirrors prod), migrations (not raw schema), containerization, backup/restore.
+- **documentation** — ADRs, architecture, ops runbook, the PRODUCT.md/STRUCTURE.md/feature-docs surface.
+- **product** — scope discipline, roadmap, success metrics.
+
+Not all are P0 — but each should be a conscious choice, never an accident.
 
 ## The exit-criteria gate (ONE pattern, used by every skill)
 

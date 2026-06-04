@@ -24,7 +24,9 @@ description: >
   - [ ] Config loads from config/`.env`; **the value actually flows** (verify — no dead/overridden config).
   - [ ] **Fail-loud on misconfig, fail-closed on security**: boot refuses on missing/known-constant secrets.
   - [ ] Structured logging (no stray prints); dev tooling (lint/format/pre-commit) + **secret-scan** wired.
-  - [ ] **CI mirrors the prod bootstrap** (builds/migrates/tests from the real schema), green.
+  - [ ] **CI is in place and mirrors the prod bootstrap** (builds/migrates/tests from the real schema), green — a must, not optional.
+  - [ ] CI runs **both secret-scan AND dependency-vulnerability scan**; CI creates throwaway creds at runtime (no literal secret in the repo).
+  - [ ] Long/first-use work (model download, slow external calls) **does not block the async event loop** (offload/async).
 
 ## Step 0 — Context + prior-gate check
 - Read `#Architecture/#Structure`. If `#Structure` is empty, warn and offer `/structure` first (allow override).

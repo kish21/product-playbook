@@ -23,6 +23,7 @@ description: >
   - [ ] **Measured** against real or representative inputs (not asserted from vibes).
   - [ ] **Operational failures (errored/blocked/dropped) are separated** from genuine low quality.
   - [ ] An honest **confidence score (0–100%)** with solid / risky-untested / to-raise-it lines.
+  - [ ] **Cost-per-run** captured (token/compute spend) where relevant; for AI, a **scoring-bias** check.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Vision/#Scope/#Plan` for the goal and `#Tests` for what's covered. If the goal is fuzzy, sharpen it first.
