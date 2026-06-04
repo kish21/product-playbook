@@ -11,7 +11,7 @@ description: >
 # `/ship` — Phase 5 · Ship · run as a **release reviewer**
 
 > Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` — load-bearing: **reviews are DEEP not skims**, **fresh-eyes caller/cross-file
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing: **reviews are DEEP not skims**, **fresh-eyes caller/cross-file
 > tracing (works-in-tests-dead-in-prod)**, **security/fail-closed on auth/data**, **docs match
 > reality**, **one-subtask→PR+handoff**, **confidence score**, **verify findings against real code**.
 

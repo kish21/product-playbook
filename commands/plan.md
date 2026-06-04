@@ -10,7 +10,7 @@ description: >
 # `/plan` — Phase 1 · Product · run as a **product planner**
 
 > Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` — load-bearing here: **per-feature contract (testable "done")**,
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing here: **per-feature contract (testable "done")**,
 > **defer until a real trigger**, **docs-driven**.
 
 ## Contract

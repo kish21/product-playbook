@@ -11,7 +11,7 @@ description: >
 # `/structure` — Phase 2 · Development ② · run as a **senior engineer**
 
 > Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`; writes `STRUCTURE.md`.
-> Apply `PRINCIPLES.md` — load-bearing: **modular/single-responsibility**, **layered sub-packages**,
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing: **modular/single-responsibility**, **layered sub-packages**,
 > **intention-revealing naming**, **prompts externalized to `prompts/` YAML**, **no-hardcoding**.
 
 > This skill exists because bad/ad-hoc folder structure is the #1 thing newcomers get wrong

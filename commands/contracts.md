@@ -10,7 +10,7 @@ description: >
 # `/contracts` — Phase 2 · Development ④ · run as an **engineer**
 
 > Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` — load-bearing: **typed contracts not raw dict/text**, **units/scale/shape
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing: **typed contracts not raw dict/text**, **units/scale/shape
 > agree across boundaries**, **migrations (never hand-edit schema)**, **schema↔code consistency**,
 > **testable-by-construction**.
 

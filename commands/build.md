@@ -12,7 +12,7 @@ description: >
 # `/build` — Phase 2 · Development ⑤ · run as an **engineer**
 
 > Part of **product-builder**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` — load-bearing: **per-feature contract (security in the DoD)**,
+> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-builder/PRINCIPLES.md`) — load-bearing: **per-feature contract (security in the DoD)**,
 > **secure-by-construction**, **prompts→`prompts/` YAML**, **doc↔code reconciled**, **measure before
 > fixing**, **no swallowed errors**, **reuse-before-write**, **trace callers (live-path)**,
 > **generic-not-domain-specific**.
