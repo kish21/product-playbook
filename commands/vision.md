@@ -11,7 +11,7 @@ description: >
 # `/vision` — Phase 1 · Product · run as a **product developer**
 
 > Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`.
-> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-playbook/PRINCIPLES.md`) — load-bearing here: **vision-alignment**, **verify-don't-assume**,
+> Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing here: **vision-alignment**, **verify-don't-assume**,
 > **benchmark-to-current-year**, **plain-language communication**.
 
 ## Contract
@@ -29,7 +29,7 @@ description: >
 ## Step 0 — Context + prior-gate check
 - If `PRODUCT.md` exists, read `#Vision`; you are refining, not overwriting blindly.
 - If a codebase exists but no `PRODUCT.md`, skim it to infer what's being built, then confirm with the user.
-- If neither, start fresh from the bundled `PRODUCT.md` template (`~/.claude/product-playbook/PRODUCT.md`).
+- If neither, start fresh from the bundled `PRODUCT.md` template (shipped with this toolkit; see README).
 
 ## Step 1 — Apply principles (this phase)
 - **Verify, don't assume:** do not invent the user's intent — ask. **Benchmark to the current year:** the idea must be judged against how the market solves this *now*, not 3 years ago.
