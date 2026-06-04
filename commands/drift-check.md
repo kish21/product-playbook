@@ -11,7 +11,7 @@ description: >
 # `/drift-check` — Cross-cutting · run as a **skeptical reviewer**
 
 > Part of **product-playbook**. Reads the shared spine `PRODUCT.md` and the codebase/docs.
-> Apply `PRINCIPLES.md` (bundled at `~/.claude/product-playbook/PRINCIPLES.md`) — load-bearing: **vision-alignment (top priority)**, **scope discipline**,
+> Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing: **vision-alignment (top priority)**, **scope discipline**,
 > **no-drift / no-assumptions**, **docs match reality**, **verify against real code**.
 
 > This is the seatbelt against the pain that motivated product-playbook: *"I started this product but

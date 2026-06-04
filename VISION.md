@@ -21,6 +21,7 @@ This is distinct from `product-toolkit` (a grab-bag of individual dev/quality sk
 
 | Phase | Skill | Purpose | Exit criteria (must all be true to hand off) |
 |---|---|---|---|
+| start | `/playbook` | Guided entry-point — orchestrates the phases one at a time, pausing at each gate | user always knows where they are + the next phase; **never skips a gate**; routes only (writes nothing itself) |
 | 1 Product | `/vision` | Vision, customer, problem, value; benchmark to the 2026 market; metric/JTBD/risk/model | `PRODUCT.md#Vision` has who/problem/value/verified-market-read + north-star metric + job-to-be-done + riskiest assumption + business model, all non-empty |
 | 1 Product | `/scope` | The ONE core feature + Deferred(+trigger) + Non-goals (anti-creep) | `#Scope` names a single core feature, a non-empty **Deferred** list with triggers, **and** a **Non-goals** list |
 | 1 Product | `/plan` | Phases, milestones, timeline, per-milestone exit criteria + concern-area coverage | `#Plan` has core-first phases + timeline + a testable exit criterion per milestone + a concern-area checklist (security/observability/testing/docs/DX/…) marked now/next/later |

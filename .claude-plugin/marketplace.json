@@ -1,0 +1,15 @@
+{
+  "name": "product-playbook",
+  "owner": { "name": "kish21" },
+  "plugins": [
+    {
+      "name": "product-playbook",
+      "description": "Phased, principle-driven product-building skills (vision → … → learn + /playbook + /drift-check).",
+      "source": {
+        "source": "git",
+        "url": "https://github.com/kish21/product-playbook.git",
+        "path": "."
+      }
+    }
+  ]
+}

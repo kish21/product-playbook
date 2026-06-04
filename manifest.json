@@ -16,6 +16,7 @@
   "principles": "PRINCIPLES.md (single source, referenced by every skill)",
   "vision": "VISION.md (the toolkit's own completeness contract)",
   "commands": [
+    { "id": "playbook",    "category": "0-entry",       "purpose": "Guided entry-point — walk the phases one at a time, pausing at each gate", "file": "commands/playbook.md" },
     { "id": "vision",      "category": "1-product",     "purpose": "Vision, customer, problem, value — benchmarked to the current-year market", "file": "commands/vision.md" },
     { "id": "scope",       "category": "1-product",     "purpose": "Lock the ONE core feature + explicit OUT-OF-SCOPE list (anti-creep)",       "file": "commands/scope.md" },
     { "id": "plan",        "category": "1-product",     "purpose": "Core-first phased plan with a testable exit criterion per milestone",      "file": "commands/plan.md" },

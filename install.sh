@@ -7,19 +7,41 @@
 # Usage (one-liner, recommended):
 #   curl -fsSL https://raw.githubusercontent.com/kish21/product-playbook/master/install.sh | bash
 #
-# Usage (local clone):
+# Usage (local clone, GLOBAL — available in all your projects):
 #   ./install.sh
+#
+# Usage (PROJECT-LEVEL — commit it into one project so teammates get it on clone):
+#   ./install.sh --project /path/to/project
+#   (copies skills → <project>/.claude/commands/ and companions → <project>/.claude/product-playbook/)
 
 set -euo pipefail
 
 REPO_URL="https://github.com/kish21/product-playbook.git"
-TARGET="${HOME}/.claude/commands"
+
+# --- parse mode: global (default) vs --project <path> ---
+SCOPE="global"
+PROJECT_DIR=""
+if [[ "${1:-}" == "--project" ]]; then
+  SCOPE="project"
+  PROJECT_DIR="${2:-}"
+  if [[ -z "${PROJECT_DIR}" || ! -d "${PROJECT_DIR}" ]]; then
+    echo "⚠  --project needs an existing directory: ./install.sh --project /path/to/project"
+    exit 1
+  fi
+fi
+
+if [[ "${SCOPE}" == "project" ]]; then
+  BASE="${PROJECT_DIR}/.claude"
+else
+  BASE="${HOME}/.claude"
+fi
+TARGET="${BASE}/commands"
 # Companions live OUTSIDE commands/ — anything *.md under commands/ becomes a slash
 # command, and on case-insensitive filesystems VISION.md would collide with vision.md.
-SUPPORT="${HOME}/.claude/product-playbook"
+SUPPORT="${BASE}/product-playbook"
 TMP_CLONE="${HOME}/.product-playbook-install-$$"
 
-echo "─── product-playbook installer ────────────────────────────────"
+echo "─── product-playbook installer (${SCOPE}) ─────────────────────"
 mkdir -p "${TARGET}"
 
 # Local clone vs remote
@@ -58,7 +80,11 @@ fi
 
 echo "─── Done ─────────────────────────────────────────────────────"
 echo "Installed ${INSTALLED} skills + companions to ${TARGET}"
+if [[ "${SCOPE}" == "project" ]]; then
+  echo "Project-level install — commit ${BASE} so teammates get the skills on clone."
+fi
 echo ""
-echo "Start a product:  /vision  →  /scope  →  /plan  →  /architect  → …"
-echo "Anytime:          /drift-check   (are we still building the vision?)"
-echo "See the journey:  https://github.com/kish21/product-playbook#the-journey"
+echo "New here?  Run  /playbook  to be guided one phase at a time."
+echo "Or:        /vision → /scope → /plan → /architect → …   (run each in order)"
+echo "Anytime:   /drift-check   (are we still building the vision?)"
+echo "Journey:   https://github.com/kish21/product-playbook#the-journey"
