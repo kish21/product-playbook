@@ -26,7 +26,7 @@ description: >
   - [ ] Structured logging (no stray prints); dev tooling (lint/format/pre-commit) + **secret-scan** wired.
   - [ ] **CI is in place and mirrors the prod bootstrap** (builds/migrates/tests from the real schema), green — a must, not optional.
   - [ ] CI runs **both secret-scan AND dependency-vulnerability scan** (e.g. `pip-audit`/`npm audit`), **fail-closed on a known CVE**; CI creates throwaway creds at runtime (no literal secret in the repo).
-  - [ ] An **automated dependency-update bot** is wired (`.github/dependabot.yml` or Renovate). Add it **on day one while deps are clean** — a strict CVE gate bolted on late faces a months-deep backlog (the bot patches one-at-a-time so the backlog never forms).
+  - [ ] An **automated dependency-update bot** is wired (`.github/dependabot.yml` or Renovate). Add it **on day one while deps are clean** — a strict CVE gate bolted on late faces a months-deep backlog (the bot patches one-at-a-time so the backlog never forms). **Group tightly-coupled packages** (react+react-dom, eslint+eslint-config-next) so they bump in one PR — bumping them independently drifts versions apart and breaks the build.
   - [ ] Long/first-use work (model download, slow external calls) **does not block the async event loop** (offload/async).
 
 ## Step 0 — Context + prior-gate check
