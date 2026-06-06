@@ -41,7 +41,7 @@ description: >
 1. **Unit** tests for each core-feature unit (inject deps; mock externals).
 2. **Integration** tests across real boundaries/contracts from `/contracts`.
 3. **Live-path** test: exercise the real end-to-end path (`/run`+`/verify`); confirm the feature is reachable in the running product.
-4. **Adversarial/security:** cross-tenant access attempts; for AI, prompt-injection/jailbreak prompts that must be refused/neutralised.
+4. **Adversarial/security:** cross-tenant AND **within-tenant** access attempts (one user must not see another user's resources inside the same org — tenant-id/RLS only stops cross-tenant). Assert the per-resource access check on **every resource-returning endpoint individually, including streaming ones** (SSE/WebSocket/`StreamingResponse` handlers routinely skip the guard their REST siblings call). For AI, prompt-injection/jailbreak prompts that must be refused/neutralised.
 5. **Regression:** lock in any fixed bug with a test.
 
 ## Step 3 — Write back to `PRODUCT.md`
