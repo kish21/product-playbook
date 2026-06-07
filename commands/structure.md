@@ -29,6 +29,7 @@ description: >
 - **Exit criteria:**
   - [ ] A folder tree matching the chosen shape (**backend / frontend / full-stack**), layered, no god-files.
   - [ ] `STRUCTURE.md` explains **what each folder is for and why**, in plain language.
+  - [ ] **`STRUCTURE.md`'s map and the real tree agree BOTH ways:** every folder drawn in the map exists on disk (create it — even with just an `__init__.py`/`.gitkeep`), and every folder on disk is in the map. A drawn-but-missing folder is silent doc↔code drift.
   - [ ] Root scaffolding present: `README.md` · `.gitignore` · `.env.example` · `.gitleaks.toml` · `.pre-commit-config.yaml` · task runner (`Makefile`/npm scripts) · dependency manifest (dev/prod split) · `SECURITY.md` (responsible-disclosure policy) · `CHANGELOG.md` (Keep a Changelog format, seeded with `[Unreleased]`).
   - [ ] **The config-layering files are actually scaffolded** (not just an empty `config/`): `config/loader.py` (typed) + `config/platform.yaml` (engine knobs) + `config/product.yaml` (product knobs) reading `.env` — the no-hardcoding engine.
   - [ ] `.gitignore` ignores `.env` **and its variants/backups** (`.env.bak`, `*.env.local`); only `.env.example` is committed. **No secret in any code file.**
@@ -97,7 +98,9 @@ Write **`STRUCTURE.md`** (one line per folder — *what goes here and why*, plai
 `PRODUCT.md#Structure` with the summary + the prompts location (AI).
 
 ## Step 3b — Self-verify (completeness gate)
-Check the boxes. **STOP and fix if:** a folder is unexplained; `.gitignore` doesn't cover `.env*`;
+Check the boxes. **STOP and fix if:** a folder is unexplained; **a folder drawn in `STRUCTURE.md`
+doesn't exist on disk, or a folder on disk is absent from the map** (the map↔tree must match BOTH
+directions — a drawn-but-uncreated folder is silent doc↔code drift); `.gitignore` doesn't cover `.env*`;
 `.gitleaks.toml`/pre-commit secret-scan is missing; a secret sits in a code file; or an AI product has
 no `prompts/` folder. An unexplained layout decays into god-files; a leaked `.env` is a real incident.
 
