@@ -10,7 +10,7 @@ description: >
 
 # `/test` — Phase 3 · Testing · run as a **tester**
 
-> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`.
+> Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per PRINCIPLES.md §Spine resolution).
 > Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing: **independent test plan**, **unit=isolated/mocked,
 > integration=real contracts**, **testable-by-construction**, **tests passing ≠ it works (verify the
 > live path)**, **OWASP LLM Top 10 cases for AI**, **multi-tenant isolation tests**.

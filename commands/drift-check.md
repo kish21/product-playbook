@@ -4,13 +4,16 @@ description: >
   Cross-cutting skill of product-playbook — run ANYTIME. Checks whether the product is still building
   the vision or has drifted: scope creep (features built that are OUT OF SCOPE), vision misalignment,
   and code↔docs drift. Use when you suspect creep, before a milestone, or run /drift-check "are we
-  on track", "did we drift", "scope creep", "is this still the plan". Reports against PRODUCT.md;
-  composes /doc-audit. Does not advance the phase chain.
+  on track", "did we drift", "scope creep", "is this still the plan". Reports against the project
+  spine (PRODUCT.md, or the project's existing docs / inferred-from-code — see PRINCIPLES.md
+  §Spine resolution); composes /doc-audit. Does not advance the phase chain.
 ---
 
 # `/drift-check` — Cross-cutting · run as a **skeptical reviewer**
 
-> Part of **product-playbook**. Reads the shared spine `PRODUCT.md` and the codebase/docs.
+> Part of **product-playbook**. Reads the project spine — `PRODUCT.md`, or (for existing/brownfield
+> projects) the project's own docs, or an inferred-from-code picture — and the codebase/docs.
+> Resolve the spine per `PRINCIPLES.md` §Spine resolution.
 > Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing: **vision-alignment (top priority)**, **scope discipline**,
 > **no-drift / no-assumptions**, **docs match reality**, **verify against real code**.
 
@@ -19,17 +22,24 @@ description: >
 
 ## Contract
 - **Purpose:** detect and surface scope creep, vision drift, and code↔docs drift — early.
-- **Reads:** `PRODUCT.md#Vision`, `#Scope` (Deferred + Non-goals), `#Plan` (concern-area checklist), `#Build log`; the codebase + docs.
-- **Writes:** a drift report to the user + a dated row in `PRODUCT.md#Drift log` on any confirmed drift (its OWN section — never `/learn`'s `#Learnings`); does NOT advance the chain.
+- **Reads:** the resolved spine's Vision, Scope (Deferred + Non-goals), Plan (concern-area checklist), Build log; the codebase + docs. (`PRODUCT.md#…` when it exists; otherwise the equivalent sections of the resolved doc, per PRINCIPLES.md §Spine resolution.)
+- **Writes:** a drift report to the user + a dated row in `PRODUCT.md#Drift log` on any confirmed drift (its OWN section — never `/learn`'s `#Learnings`); does NOT advance the chain. **If there is no `PRODUCT.md`, do not create one** — report to the user and, if the project keeps a log/CHANGELOG, offer to append the drift note there.
 - **Exit criteria:**
   - [ ] Built features cross-checked against `#Scope` — any OUT-OF-SCOPE item that got built is flagged as creep.
   - [ ] Current direction cross-checked against `#Vision` — misalignment surfaced.
   - [ ] Code↔docs drift checked (claims that don't match reality), composing `/doc-audit`.
   - [ ] A clear verdict: on-track, or a specific list of drifts + a recommended cut/correction.
 
-## Step 0 — Context
-- Read `#Vision/#Scope/#Plan/#Build log`. Build the picture of what was *supposed* to be built.
+## Step 0 — Resolve the spine, then build context
+- **Resolve the spine first** (PRINCIPLES.md §Spine resolution): `PRODUCT.md` if present; else the
+  project's own docs (`CLAUDE.md` → `README.md` → `docs/` → `AGENTS.md`); else (code only) an
+  **INFERRED** picture from code + package metadata. **Say which you resolved.**
+- Read the spine's Vision / Scope / Plan / Build-log equivalents. Build the picture of what was
+  *supposed* to be built.
 - **Verify against the real code/docs** — don't assume the spine is current; reconcile it with what's actually there.
+- **Code-only (Tier 3):** there is no recorded intent, so **true scope/vision drift cannot be
+  judged** — do not invent a baseline and grade against it. You may still sanity-check the code's
+  internal consistency; then jump to Step 3 and recommend bootstrapping a spine.
 
 ## Step 1 — Apply principles
 - **Vision-alignment is top priority:** the test for every feature is "does this serve the vision?"
@@ -44,8 +54,15 @@ description: >
 
 ## Step 3 — Report + record
 Give an honest verdict: **on-track**, or a specific list of drifts. For each, recommend a **cut**, a
-**deliberate re-scope** (add to `#Scope` with a trigger), or a **fix**. On any confirmed drift, write a
-dated row to `PRODUCT.md#Drift log` (its own section). (No phase write, no handoff — it's a check, not a stage.)
+**deliberate re-scope** (add to Scope with a trigger), or a **fix**. On any confirmed drift, write a
+dated row to `PRODUCT.md#Drift log` (its own section) **when a `PRODUCT.md` exists**; otherwise report
+to the user and offer to append to the project's log/CHANGELOG — never silently create a `PRODUCT.md`.
+(No phase write, no handoff — it's a check, not a stage.)
+
+**Tier-3 (code-only) verdict:** say plainly *"no spine doc exists, so I can't assess scope/vision
+drift — there's no recorded intent to compare against."* Give the INFERRED summary, then recommend
+bootstrapping a spine (`/vision`+`/scope`, or a minimal `PRODUCT.md`/`CLAUDE.md`). Do **not** report
+"on-track" (there's nothing to be on-track *against*) and do **not** fabricate drift.
 
 ## Step 3b — Self-verify
 **If you reported "on-track" without actually cross-checking the build against OUT-OF-SCOPE, redo it** —

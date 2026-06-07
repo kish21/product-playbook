@@ -10,7 +10,7 @@ description: >
 
 # `/vision` — Phase 1 · Product · run as a **product developer**
 
-> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`.
+> Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per PRINCIPLES.md §Spine resolution).
 > Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing here: **vision-alignment**, **verify-don't-assume**,
 > **benchmark-to-current-year**, **plain-language communication**.
 

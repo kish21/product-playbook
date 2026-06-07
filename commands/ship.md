@@ -10,7 +10,7 @@ description: >
 
 # `/ship` — Phase 5 · Ship · run as a **release reviewer**
 
-> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`.
+> Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per PRINCIPLES.md §Spine resolution).
 > Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing: **reviews are DEEP not skims**, **fresh-eyes caller/cross-file
 > tracing (works-in-tests-dead-in-prod)**, **security/fail-closed on auth/data**, **docs match
 > reality**, **one-subtask→PR+handoff**, **confidence score**, **verify findings against real code**.

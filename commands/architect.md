@@ -10,7 +10,7 @@ description: >
 
 # `/architect` — Phase 2 · Development ① · run as an **architect**
 
-> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`.
+> Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per PRINCIPLES.md §Spine resolution).
 > Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing this phase:
 > **benchmark best-2026-OSS**, **patterns & anti-patterns**, **provider/adapter for externals**,
 > **resilience strategy**, **perf/cost budget**, **migrations (not raw schema)**, **no-hardcoding /
