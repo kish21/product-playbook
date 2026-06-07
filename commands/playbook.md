@@ -10,7 +10,7 @@ description: >
 
 # `/playbook` — guided orchestrator · run as a **calm guide**
 
-> Part of **product-playbook**. Reads the shared spine `PRODUCT.md`; orchestrates the phase skills.
+> Part of **product-playbook**. Reads the project spine (`PRODUCT.md`, or existing project docs — see PRINCIPLES.md §Spine resolution); orchestrates the phase skills.
 > Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) —
 > load-bearing here: **plain-language communication**, **one recommendation + confirm**, **never
 > bypass a gate**.

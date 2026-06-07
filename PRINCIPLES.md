@@ -96,6 +96,29 @@ Exit criteria:
 - **Runtime self-check (before handoff):** verify every required `PRODUCT.md` field is present, non-empty, and evidenced. **If anything is missing, STOP and report it — do not hand off.**
 - **Prior-gate check (Step 0):** confirm the previous phase's exit criteria were met; if not, warn but allow override (standalone/jump-in still works).
 
+## Spine resolution — what "`PRODUCT.md`" means (greenfield · brownfield · code-only)
+
+`PRODUCT.md` is the spine for products *born* in this playbook. Every skill must resolve the
+spine **flexibly and `PRODUCT.md`-first**, so a greenfield playbook project is never affected:
+
+1. **`PRODUCT.md` exists** → it *is* the spine. (default — unchanged behaviour)
+2. **No `PRODUCT.md`, but the project has docs** → resolve the spine from the project's own
+   docs, in order: `CLAUDE.md` → `README.md` → `docs/` → `AGENTS.md`. Map sections *loosely*
+   (Vision ≈ the "what/why"; Scope/Non-goals ≈ an out-of-scope / "not doing" list; Build log ≈
+   a build-state / `CHANGELOG`). **State which file you resolved as the spine.** Never fabricate
+   a section that isn't there.
+3. **Code only, no spine doc at all** → infer a **low-confidence** picture from the code +
+   package metadata (`package.json`, `pyproject.toml`, manifest, entry points, routes). **Label
+   it "INFERRED"** and say plainly what *cannot* be judged without recorded intent (e.g. true
+   scope/vision drift). **Never grade against a self-guessed baseline** (no-assumptions /
+   honesty). Recommend bootstrapping a real spine — `/vision`+`/scope`, or a minimal
+   `PRODUCT.md`/`CLAUDE.md`.
+
+A skill that *writes* a section degrades gracefully when there's no `PRODUCT.md`: prefer
+reporting to the user (and offering to create/append a spine) over forcing a `PRODUCT.md` the
+project never opted into. A skill that *creates* `PRODUCT.md` by design (e.g. `/vision`) keeps
+doing so.
+
 ---
 
 ## Lessons baked in (generalised from real project struggles)

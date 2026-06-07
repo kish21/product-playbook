@@ -10,7 +10,7 @@ description: >
 
 # `/learn` — Phase 6 · Learn · run as a **product analyst**
 
-> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`.
+> Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per PRINCIPLES.md §Spine resolution).
 > Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing: **honesty**, **measure-first**, **vision-alignment re-check**,
 > **defer until a real trigger**, **decide from evidence**.
 

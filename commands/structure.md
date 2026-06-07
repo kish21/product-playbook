@@ -11,7 +11,7 @@ description: >
 
 # `/structure` — Phase 2 · Development ② · run as a **senior engineer**
 
-> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`; writes `STRUCTURE.md`.
+> Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per PRINCIPLES.md §Spine resolution); writes `STRUCTURE.md`.
 > Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing:
 > **modular/single-responsibility**, **layered sub-packages**, **intention-revealing naming**,
 > **prompts externalized to `prompts/` YAML**, **no-hardcoding (secrets→`.env`, knobs→config)**,

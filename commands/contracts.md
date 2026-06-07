@@ -9,7 +9,7 @@ description: >
 
 # `/contracts` — Phase 2 · Development ④ · run as an **engineer**
 
-> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`.
+> Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per PRINCIPLES.md §Spine resolution).
 > Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing: **typed contracts not raw dict/text**, **units/scale/shape
 > agree across boundaries**, **migrations (never hand-edit schema)**, **schema↔code consistency**,
 > **testable-by-construction**.

@@ -9,7 +9,7 @@ description: >
 
 # `/plan` — Phase 1 · Product · run as a **product planner**
 
-> Part of **product-playbook**. Reads + updates the shared spine `PRODUCT.md`.
+> Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per PRINCIPLES.md §Spine resolution).
 > Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing here: **per-feature contract (testable "done")**,
 > **defer until a real trigger**, **docs-driven**.
 
