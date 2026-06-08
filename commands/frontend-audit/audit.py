@@ -120,6 +120,19 @@ def audit_text(path, text, findings):
     if re.search(r"<(button|input|a)\b", text, re.I) and "focus-visible" not in text:
         findings.append(("WARN", "Law13-focus", path, "interactive elements but no :focus-visible found"))
 
+    # Law 21 — responsive / mobile-first (heuristic). A real breakpoint = @media min/max-width,
+    # @container, or a Tailwind responsive prefix — NOT prefers-reduced-motion / prefers-color-scheme.
+    has_bp = (bool(re.search(r"@media[^{]*\b(?:min-width|max-width)\b", text))
+              or "@container" in text
+              or bool(re.search(r"\b(?:sm|md|lg|xl|2xl):[A-Za-z]", text)))
+    multicol = (bool(re.search(r"grid-template-columns\s*:[^;]*\d{3,}px", text))
+                or bool(re.search(r"grid-template-columns\s*:(?:[^;]*\b1fr\b){2,}", text)))
+    if path.lower().endswith((".html", ".htm")) and "viewport" not in text:
+        findings.append(("ERROR", "Law21-viewport", path, "missing <meta name=viewport> - not mobile-ready"))
+    if multicol and not has_bp:
+        findings.append(("ERROR", "Law21-responsive", path,
+                         "multi-column/grid layout with no responsive breakpoint (@media min/max-width, @container) - desktop-only"))
+
 # ---------- runner ---------------------------------------------------------
 
 EXTS = (".html", ".htm", ".css", ".tsx", ".jsx", ".vue", ".svelte", ".md")

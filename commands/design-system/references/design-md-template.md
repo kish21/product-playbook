@@ -88,8 +88,10 @@ _Archetype: <family> · derived by /design-system on <date> · approved sample: 
 - **Don't:** <5 don'ts — e.g. "no purple gradient", "no body text under 14px", "no flat shadow-md on cards",
   "no raw hex in components", "no Inter as the primary face">
 
-## 9. Responsive & Agent Guide
-- **Breakpoints:** <mobile <640 · tablet 640–1024 · desktop >1024> + what collapses (sidebar → drawer, etc.)
+## 9. Responsive & Agent Guide  (mobile-first, Law 21)
+- **Approach:** mobile-first — design the phone first, scale up. Breakpoints (where content breaks): mobile <640 · tablet 640–1024 · desktop >=1024. Container queries for components, media queries for page layout; fluid type via clamp().
+- **Mobile content priority:** <the user's #1 mobile job leads; what is demoted / hidden / tap-to-reveal>. Tap targets >=44px; no hover-only controls.
+- **Per-component collapse (fill in):** nav/sidebar <persistent -> drawer/Sheet> · data table <full -> stacked cards> · detail panel <side -> bottom Sheet> · KPI grid <N-col -> 1-col>.
 - **Agent guide (how a build step/LLM uses this file):** always reference tokens (never raw hex/font);
   pull components from shadcn/ui + 21st.dev and skin with these tokens; keep body ≥ <min>px; run the
   contrast check on any new colour; obey the universal laws. `/new-component` builds against this;

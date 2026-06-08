@@ -54,6 +54,9 @@ wins; otherwise the proposal stands.
   tell); AA-darken the label text (Law 7).
 - **Tables:** header alignment matches cells; **numbers right + tabular**, **dates/text left** (Law 20).
 - **Layout:** **persistent left sidebar + content area**, dense top bar, data tables, right detail panel.
+- **Responsive (mobile-first, Law 21):** sidebar → **drawer/Sheet** (hamburger); data table → **stacked cards**
+  (label:value rows, lead with vendor + amount + status); right detail panel → **bottom Sheet**; KPI row → **2-col
+  then 1-col reflow**. Phone leads with *overdue / the action*; secondary columns hidden or tap-to-reveal; tap targets ≥44px.
 - **Depth:** subtle — hairline borders + `--shadow-sm`; flat-ish, separation by border/space not big shadows.
 - **Motion:** minimal, fast (120–180ms), opacity/transform only; no decorative motion.
 - **Brands:** Linear, Stripe Dashboard, Carbon (IBM), Vercel dashboard, Datadog.
@@ -156,5 +159,11 @@ wins; otherwise the proposal stands.
 5. **Depth ladder** → `--shadow-sm/-md/-lg` + `--radius` for the family (Law 9).
 6. **Layout pattern** → the structure of the sample page (Law 11).
 7. **Motion** → duration/easing tokens; transform/opacity only (Law 12).
+8. **Responsive** → mobile-first; the family's collapse pattern + breakpoints (mobile <640 · tablet 640–1024 ·
+   desktop ≥1024); container queries for components, fluid type via `clamp()` (Law 21).
 
 These become the concrete contents of `DESIGN.md` (see `design-md-template.md`).
+
+> **Every family is mobile-first.** The presets above describe the *desktop* expression; each must also state
+> how it collapses to tablet and phone (Law 21). For non-dashboard families the collapse is simpler (top-nav →
+> hamburger, multi-col → single column, side content → stacked), but it is never optional.

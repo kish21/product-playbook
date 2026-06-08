@@ -12,7 +12,7 @@ description: >
 # `/frontend-audit` — the UI quality gate (mechanical floor)
 
 > Part of the **product-playbook UI suite** (mastered here; see `/design-system`). `/design-system`
-> *decides* the look and writes `DESIGN.md` + the 20 universal laws; **this skill *enforces* the
+> *decides* the look and writes `DESIGN.md` + the 21 universal laws; **this skill *enforces* the
 > mechanically-checkable subset** so a guaranteed floor holds regardless of who built the screen.
 > It does **not** judge taste/archetype fit — it checks what a machine can prove.
 
@@ -36,6 +36,7 @@ python commands/frontend-audit/audit.py <file-or-dir> [more...]
 | 1 — distinctive font | Inter/Roboto/Arial/system-ui as the **primary** `--font-sans/-display` = ERROR |
 | 3 — type floor | any `font-size` below 12px = ERROR |
 | 13 — states | interactive elements but no `:focus-visible` = WARN |
+| **21 — responsive** | missing `<meta viewport>` (html) = ERROR; multi-column/grid layout with **no** `@media`/`@container` breakpoint = ERROR (desktop-only) |
 
 Markdown is treated as spec: only its colour **tokens** are contrast-checked; code-pattern rules are
 skipped (so a `DESIGN.md` "Don't: no `transition: all`" line doesn't false-positive).

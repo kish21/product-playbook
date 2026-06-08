@@ -10,9 +10,10 @@
 > the **visual-design** bar. If a derived per-product principle (Step 1) ever conflicts with a law
 > here, **the law wins** — say so to the user and adjust the principle.
 
-A new, non-designer user gets a guaranteed-good result *regardless of their taste* because every
-output is checked against these. Each law has a one-line **why** (teach-mode) and a **check** (so a
-future `/frontend-audit` can enforce it mechanically).
+**These laws don't *design* — a designer does (SKILL.md Steps 1–4). The laws are the *enforcement
+floor* that guarantees a non-designer's output can't fall below a professional baseline.** Designer
+reasoning *leads*; the laws *catch*. Each law has a one-line **why** (teach-mode) and a **check** (so
+`/frontend-audit` can enforce it mechanically).
 
 ---
 
@@ -158,9 +159,27 @@ future `/frontend-audit` can enforce it mechanically).
     **Status cells = a coloured dot + label, NOT a filled pastel pill** (the filled-badge default is a generic/AI tell).
     *Check:* each column's header and cells share an alignment; numeric columns are right + tabular; no filled status pills.
 
+## H. Responsive & mobile (fixes "looks fine on the laptop, breaks on a phone")
+
+21. **Design the mobile experience first — never ship a shrunk desktop.**
+    *Why (how a designer thinks):* a phone user isn't a small-screen desktop user — they have **one goal,
+    one thumb, and no hover.** A senior designer decides *what matters most on a phone* and builds **up**,
+    not down. Responsive is a design decision (what to show, hide, reflow), not just a CSS afterthought.
+    *Law:* **mobile-first** — base styles target the smallest screen; complexity is added upward.
+    - **Content priority / progressive disclosure:** lead with the user's #1 mobile job; demote, hide, or
+      tap-to-reveal the rest. Don't cram the desktop in.
+    - **Touch ergonomics:** primary actions thumb-reachable; tap targets **≥ 44px**; no hover-only controls.
+    - **Adapt the layout to the device** via the archetype's collapse pattern — sidebar → drawer/Sheet,
+      data table → stacked cards, detail panel → Sheet/bottom-sheet, KPI grid → reflow (see `archetypes.md`).
+    - **Mechanics:** `<meta name="viewport">` present; **container queries** for components, **media queries**
+      for page layout; **fluid type** via `clamp()`; **no fixed width > ~360px without a collapse**;
+      breakpoints where content breaks (mobile <640 · tablet 640–1024 · desktop ≥1024 — laptop = monitor = desktop).
+    *Check:* viewport meta present; any multi-column/grid page has ≥1 `@media`/`@container` breakpoint; no fixed
+    pixel layout width without a responsive fallback; **the sample is confirmed at ~375 / 768 / desktop.**
+
 ---
 
 ### The contract, in one line
-**`/design-system` output = these 20 universal laws (the guaranteed floor) + the per-product principles
-derived in Step 1 (the specific look).** The laws make it impossible to ship something generic or
-inaccessible; the principles make it *this* product's own.
+**`/design-system` output = these 21 universal laws (the guaranteed floor) + the per-product principles
+derived in Step 1 (the specific look).** The laws make it impossible to ship something generic, inaccessible,
+or broken-on-mobile; the principles make it *this* product's own.
