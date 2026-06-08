@@ -82,3 +82,5 @@
   makes the whole type scale respond. Export captures it as a token (so DESIGN.md is complete).
 - **Export** writes BOTH `:root` and `.dark` blocks → drop straight into `DESIGN.md` §2 / shadcn `globals.css`.
 - Strip the entire commented block for production; the chosen tokens already live in `DESIGN.md`.
+- The block is delimited by the `THEME STUDIO … /THEME STUDIO` markers; **`/frontend-audit` skips everything between
+  them** (it's dev-only), so the studio's own colour-input hex literal + 🎨 emoji + panel labels don't false-positive.

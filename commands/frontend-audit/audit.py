@@ -108,10 +108,15 @@ def audit_text(path, text, findings):
     if path.lower().endswith(".md"):
         return
 
+    # T2-A: the dev-only Theme Studio block is stripped for the production build — don't audit its own
+    # chrome (its colour-input hex literal, the palette-emoji entity, its small panel labels).
+    text = re.sub(r"<!--[^>]*\bTHEME STUDIO\b.*?/THEME STUDIO[^>]*-->", "", text, flags=re.S | re.I)
+
     # Law 14 — no raw hex outside :root token declarations (component code)
     body = re.sub(r":root\s*\{.*?\}", "", text, flags=re.S)
     body = re.sub(r"\.dark\s*\{.*?\}", "", body, flags=re.S)
-    for m in re.finditer(r"(?<![\w/])#[0-9a-fA-F]{6}\b", body):
+    # lookbehind excludes & so HTML numeric entities like the 🎨 emoji (&#127912;) aren't read as hex
+    for m in re.finditer(r"(?<![\w/&])#[0-9a-fA-F]{6}\b", body):
         if "href" in body[max(0, m.start()-8):m.start()]:
             continue
         findings.append(("ERROR", "Law14-raw-hex", path, f"raw hex {m.group(0)} in component code (use a token)"))
