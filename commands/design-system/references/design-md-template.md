@@ -44,7 +44,9 @@ _Archetype: <family> · derived by /design-system on <date> · approved sample: 
   --radius: <rem>;
 }
 .dark { /* REQUIRED (Law 22) — same keys, dark values; re-check every pair at AA */ }
-/* follow the OS via @media (prefers-color-scheme: dark){ :root{ ...dark... } } + an optional manual toggle */
+/* Follow the OS, but let a manual toggle BEAT it (T5-6): system-dark applies UNLESS the user chose light.
+   @media (prefers-color-scheme: dark){ :root:not(.light){ /* …dark values… */ } }
+   Toggle: add class "light" or "dark" to <html>; neither = follow OS. (.dark above handles explicit dark.) */
 
 ## 3. Typography
 - **Fonts:** display `--font-display: <face>` · body `--font-sans: <face>` · data `--font-mono: <face>`

@@ -14,10 +14,10 @@
 ```html
 <!-- ===== THEME STUDIO (dev-only; delete this whole block for the production build) ===== -->
 <style>
-  .ts-open{position:fixed;right:18px;bottom:18px;z-index:50;border:none;border-radius:999px;padding:13px 18px;font:inherit;font-weight:700;font-size:14px;background:var(--primary);color:var(--primary-foreground);cursor:pointer;box-shadow:0 8px 24px oklch(0 0 0 / .25);font-family:var(--font-sans)}
+  .ts-open{position:fixed;right:18px;bottom:18px;z-index:2147483640;border:none;border-radius:999px;padding:13px 18px;font:inherit;font-weight:700;font-size:14px;background:var(--primary);color:var(--primary-foreground);cursor:pointer;box-shadow:0 8px 24px oklch(0 0 0 / .25);font-family:var(--font-sans)}
   .ts-open:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
-  .ts{position:fixed;right:0;top:0;height:100%;width:330px;max-width:88vw;z-index:60;background:var(--card);border-left:1px solid var(--border);box-shadow:-8px 0 30px oklch(0 0 0 / .2);transform:translateX(100%);transition:transform 160ms ease;overflow:auto;padding:20px;font-family:var(--font-sans);color:var(--foreground)}
-  body.ts-on .ts{transform:translateX(0)} body.ts-on .ts-scrim{position:fixed;inset:0;z-index:55;background:oklch(0 0 0 / .35)}
+  .ts{position:fixed;right:0;top:0;height:100%;width:330px;max-width:88vw;z-index:2147483646;background:var(--card);border-left:1px solid var(--border);box-shadow:-8px 0 30px oklch(0 0 0 / .2);transform:translateX(100%);transition:transform 160ms ease;overflow:auto;padding:20px;font-family:var(--font-sans);color:var(--foreground)}
+  body.ts-on .ts{transform:translateX(0)} body.ts-on .ts-scrim{position:fixed;inset:0;z-index:2147483645;background:oklch(0 0 0 / .35)}
   .ts h3{font-size:17px;font-weight:800} .ts .close{position:absolute;right:14px;top:16px;border:none;background:var(--muted);color:var(--foreground);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:16px}
   .ts .grp{margin-top:18px} .ts .glab{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted-foreground);margin-bottom:8px}
   .ts .sw{width:38px;height:38px;border-radius:10px;border:2px solid var(--border);cursor:pointer} .ts .swatches{display:flex;gap:8px;flex-wrap:wrap}
@@ -62,7 +62,7 @@
   document.getElementById('ts_font').addEventListener('change',function(e){rs.setProperty('--font-sans',e.target.value)});
   document.getElementById('ts_radius').addEventListener('input',function(e){rs.setProperty('--radius',e.target.value+'rem')});
   function seg(id,fn){var el=document.getElementById(id);el.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;[].forEach.call(el.children,function(x){x.classList.remove('on')});b.classList.add('on');fn(b)})}
-  seg('ts_mode',function(b){var el=document.documentElement,m=b.dataset.m;if(m==='dark')el.classList.add('dark');else if(m==='light')el.classList.remove('dark');else el.classList.toggle('dark',matchMedia('(prefers-color-scheme: dark)').matches);aa()});
+  seg('ts_mode',function(b){var el=document.documentElement,m=b.dataset.m;el.classList.remove('dark');el.classList.remove('light');if(m==='dark')el.classList.add('dark');else if(m==='light')el.classList.add('light');aa()});
   seg('ts_vw',function(b){var st=document.getElementById('ts_stage')||document.body;var w=+b.dataset.w;if(w){st.style.maxWidth=w+'px';st.style.margin='14px auto';st.style.border='1px solid var(--border)';st.style.borderRadius='20px';st.style.overflow='hidden'}else{st.style.maxWidth='';st.style.border='';st.style.borderRadius='';st.style.margin=''}});
   seg('ts_size',function(b){rs.setProperty('--font-size-base',b.dataset.s+'px')});
   var body=document.body;document.getElementById('tsOpen').onclick=function(){body.classList.add('ts-on')};document.getElementById('tsClose').onclick=function(){body.classList.remove('ts-on')};document.getElementById('tsScrim').onclick=function(){body.classList.remove('ts-on')};
@@ -76,8 +76,16 @@
 ```
 
 ## Notes
-- **Responsive preview** targets `#ts_stage` if the sample wraps its content in `<div id="ts_stage">…</div>`; otherwise it
-  frames `<body>`. Wrapping in `#ts_stage` gives the cleanest device frame.
+- **Responsive preview (T5-1 — required for the width buttons to actually reflow):** wrap the page content in
+  `<div id="ts_stage" style="container-type:inline-size">…</div>` **and write the page's responsive layout with
+  `@container` queries, NOT `@media`.** `@media` reacts to the *window*, not the box the toggle resizes — so with `@media`
+  the Mobile/Tablet buttons just shrink a strip of the desktop layout (misleading). Keep `@media` only for viewport-true
+  things (`prefers-reduced-motion`, `prefers-color-scheme`).
+- **Mode + the OS (T5-6):** the studio sets a `.light`/`.dark` class (or neither = System). The sample MUST use the
+  escape-hatch dark pattern (`design-md-template.md` §2: `:root:not(.light){…}` for system-dark) or a manual "Light" can't
+  beat an OS set to dark.
+- **Font in a standalone preview (T5-7):** load the distinctive face via `<link>` (the laws forbid CSS `@import`); the real
+  shadcn/Next build uses self-hosted `next/font`. Without it the preview silently falls back to a system font.
 - **Base text size** sets `--font-size-base`; the sample's `html { font-size: var(--font-size-base,16px) }` + rem text
   makes the whole type scale respond. Export captures it as a token (so DESIGN.md is complete).
 - **Export** writes BOTH `:root` and `.dark` blocks → drop straight into `DESIGN.md` §2 / shadcn `globals.css`.

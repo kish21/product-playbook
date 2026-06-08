@@ -165,7 +165,9 @@ wins; otherwise the proposal stands.
    minimum (Law 3).
 2. **Font pairing** → `--font-display` / `--font-sans` / `--font-mono` (Law 1: no default-only face).
 3. **Colour roles** → the shadcn token set in OKLCH (Law 8), one `--primary` (Law 5), semantic status,
-   WCAG-AA verified for every foreground/surface pair (Law 7).
+   WCAG-AA verified for every foreground/surface pair (Law 7). **A *light/vivid* `--primary` fill takes DARK
+   `--primary-foreground`** (white-on-light fails ~1.7:1); for accent **text / active / rings on a light surface use a
+   separate *deeper* shade** of the accent — never the light fill as text (T1-b). Start from `references/palettes.md`.
 4. **Grid + density** → spacing scale (4 or 8px base) and component padding (Law 10).
 5. **Depth ladder** → `--shadow-sm/-md/-lg` + `--radius` for the family (Law 9).
 6. **Layout pattern** → the structure of the sample page (Law 11).

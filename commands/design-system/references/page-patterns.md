@@ -23,7 +23,9 @@ inline validation, errors `role="alert"`. Minimal nav.
 ### Dashboard / overview — the home of most SaaS
 Sidebar (nav) + top bar + content. Lead with KPIs / the user's top job, then the primary list/table. Archetype
 drives density (Data-Dense Pro = tight table; Cinematic = media grid). Mobile: sidebar → drawer, KPIs reflow,
-table → cards (Laws 20/21).
+table → cards (Laws 20/21). **Content aligns with the top-bar header and uses consistent padding (~24–32px) — no
+large left gutter / off-centre indent (T3-C).** *(Contrast: editorial/reading layouts ARE a centered narrow column
+with wide margins — that's correct there, not a gutter.)*
 
 ### Data display — lists · tables · detail
 Table/DataGrid (header align = cell align; numbers right + tabular; status = dot + label — Law 20) OR a card grid.

@@ -40,7 +40,7 @@ description: >
 ## Contract
 - **Purpose:** principles → confirmed sample page → a concrete, archetype-correct `DESIGN.md` harness.
 - **Reads:** spine `#Vision`/`#Scope`/`#Architecture` (or discovers the vision if there's none);
-  `references/universal-laws.md`, `references/archetypes.md`, `references/design-md-template.md`, `references/page-patterns.md`, `references/theme-studio.md`.
+  `references/universal-laws.md`, `references/archetypes.md`, `references/design-md-template.md`, `references/page-patterns.md`, `references/palettes.md`, `references/theme-studio.md`.
 - **Writes:** `DESIGN.md` (9-section standard, shadcn CSS-variable tokens) · one approved **sample page**
   · `PRODUCT.md#Design` (principles + archetype + token summary + paths).
 - **Exit criteria (the gate):**
@@ -143,6 +143,9 @@ Generate **a single, representative screen of THIS product** using the Step-3 fo
   `html { font-size: var(--font-size-base,16px) }`, and replace the studio's `PRESETS` with 3–5 vetted palettes for the
   archetype (from `palettes.md`). Now the user **tweaks colour / theme / type-size / responsive LIVE, AA-guarded** —
   not "agent regenerates". Dev-only: stripped from the real build; only the finalized tokens persist.
+  **For the studio to actually work:** give `#ts_stage` `container-type:inline-size` and write the page's responsive with
+  **`@container` queries (not `@media`)** so the width buttons reflow (T5-1); use the `.light`/`.dark` **escape-hatch** dark
+  pattern (template §2) so manual mode beats the OS (T5-6); load the font via `<link>` in the preview (T5-7).
 
 Then **STOP. Show it and confirm.** Describe what they should see, and (if possible) screenshot it and
 compare pixel-level: spacing, weight, exact colours, radius, alignment. **Confirm it at THREE widths —
@@ -164,6 +167,8 @@ Load `references/design-md-template.md` and write **`DESIGN.md`** filling all **
   *(If the user used the Theme Studio **Export**, those tokens — both modes + `--font-size-base` — ARE §2; paste them in.)*
 - **Record the page inventory** in §5 (each page type → its layout pattern from `page-patterns.md`).
 - **Re-run the WCAG-AA contrast check** on every foreground/surface pair, **in both modes**, before writing (Laws 7 & 22).
+- **Audit timing (T1-c):** `/frontend-audit` runs on the **approved sample** at confirm-time (Step 4) and on **`DESIGN.md`
+  after** it's emitted here — never `DESIGN.md` before approval (Law 16).
 - The **Agent Guide** (§9) tells every later build step how to obey this file.
 *(Greenfield: `DESIGN.md` is now the harness for new pages. Retrofit-rewrite of existing pages is the
 documented follow-up.)*

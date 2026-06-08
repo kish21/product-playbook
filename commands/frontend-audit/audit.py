@@ -117,7 +117,11 @@ def audit_text(path, text, findings):
     body = re.sub(r"\.dark\s*\{.*?\}", "", body, flags=re.S)
     # lookbehind excludes & so HTML numeric entities like the 🎨 emoji (&#127912;) aren't read as hex
     for m in re.finditer(r"(?<![\w/&])#[0-9a-fA-F]{6}\b", body):
-        if "href" in body[max(0, m.start()-8):m.start()]:
+        ctx = body[max(0, m.start()-60):m.start()]
+        if "href" in ctx:
+            continue
+        if "theme-color" in ctx:   # T1-a: <meta theme-color> is an HTML attr — can't use a token
+            findings.append(("WARN", "Law14-theme-color", path, f"theme-color {m.group(0)} OK (HTML attr) - keep it mirroring --primary"))
             continue
         findings.append(("ERROR", "Law14-raw-hex", path, f"raw hex {m.group(0)} in component code (use a token)"))
 
@@ -125,16 +129,21 @@ def audit_text(path, text, findings):
     for m in re.finditer(r"transition:\s*all|transition-all", text):
         findings.append(("ERROR", "Law12-transition-all", path, "transition: all (animate transform/opacity only)"))
 
-    # Law 1 — Inter/Roboto/Arial as the PRIMARY (first) font family
-    for m in re.finditer(r"--font-(?:sans|display)\s*:\s*([^;]+);", text):
-        first = m.group(1).split(",")[0].strip().strip('"\'').lower()
+    # Law 1 — the DISPLAY/identity face must be distinctive (ERROR if generic); a generic BODY face is a WARN
+    # (Inter/Roboto are fine as the body/UI face when paired with a distinctive --font-display).
+    for m in re.finditer(r"--font-(sans|display)\s*:\s*([^;,]+)", text):
+        role, first = m.group(1), m.group(2).strip().strip('"\'').lower()
         if first in ("inter", "roboto", "arial", "system-ui", "helvetica"):
-            findings.append(("ERROR", "Law1-default-font", path, f"primary font is '{first}' - pick a distinctive face"))
+            if role == "display":
+                findings.append(("ERROR", "Law1-default-font", path, f"display/identity font is generic '{first}' - pick a distinctive face"))
+            else:
+                findings.append(("WARN", "Law1-default-font", path, f"body font '{first}' - OK only behind a distinctive --font-display"))
 
-    # Law 3 — font-size below the floor (13px), excluding the 12px caption tier check is heuristic
-    for m in re.finditer(r"font-size:\s*(\d+)px", text):
-        if int(m.group(1)) < 12:
-            findings.append(("ERROR", "Law3-tiny-font", path, f"font-size {m.group(1)}px below 12px floor"))
+    # Law 3 — font-size below the 12px floor, in px AND rem/em (T5-3: rem/em ×16 root were slipping through)
+    for m in re.finditer(r"font-size:\s*([0-9.]+)(px|rem|em)\b", text):
+        px = float(m.group(1)) * (16 if m.group(2) in ("rem", "em") else 1)
+        if px < 12:
+            findings.append(("ERROR", "Law3-tiny-font", path, f"font-size {m.group(1)}{m.group(2)} (~{px:.0f}px) below 12px floor"))
 
     # Law 13 — interactive elements should define focus-visible (presence heuristic)
     if re.search(r"<(button|input|a)\b", text, re.I) and "focus-visible" not in text:
@@ -188,7 +197,16 @@ def main(argv):
     for level, law, path, msg in findings:
         tag = {"ERROR": "[FAIL]", "WARN": "[WARN]", "PASS": "[PASS]"}[level]
         print(f"  {tag}  [{law}]  {os.path.basename(path)} - {msg}")
+    # Per-law roll-up (T5-4) so a clean run shows EVERY law was checked, not just contrast.
+    LAWS = [("Law7", "contrast"), ("Law14", "no-raw-hex"), ("Law12", "motion"), ("Law1", "font"),
+            ("Law3", "type-floor"), ("Law13", "focus"), ("Law21", "responsive"), ("Law22", "theming")]
+    roll = []
+    for tag, name in LAWS:
+        cat = [f for f in findings if f[1].startswith(tag + "-")]
+        e = sum(1 for f in cat if f[0] == "ERROR"); w = sum(1 for f in cat if f[0] == "WARN")
+        roll.append(f"{name}:{'FAIL' if e else ('warn' if w else 'ok')}")
     print("-" * 60)
+    print("  laws: " + "  ".join(roll))
     print(f"  {passes} pass | {warns} warn | {errors} error  ({len(paths)} files)")
     return 1 if errors else 0
 

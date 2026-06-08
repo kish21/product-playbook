@@ -19,13 +19,14 @@ reasoning *leads*; the laws *catch*. Each law has a one-line **why** (teach-mode
 
 ## A. Type & hierarchy (fixes "fonts too small / no hierarchy")
 
-1. **Distinctive primary typeface — never a default.**
-   *Why:* Inter / Roboto / Arial / `system-ui` / Helvetica as the *primary* face is the #1 tell of an
-   AI-generated page; they read as "no decision was made."
-   *Law:* primary face is a deliberate, characterful choice (e.g. Geist, Plus Jakarta Sans, General
-   Sans, Space Grotesk, Instrument Sans, IBM Plex, Söhne-likes, a serif for editorial). A neutral
-   grotesque is allowed only as a *secondary/UI* face, never the whole identity.
-   *Check:* `--font-sans` / `--font-display` is not Inter/Roboto/Arial/system-ui/Helvetica alone.
+1. **Distinctive display/identity typeface — never a default as the identity.**
+   *Why:* Inter / Roboto / Arial / `system-ui` / Helvetica as the *whole identity* is the #1 tell of an
+   AI-generated page; it reads as "no decision was made."
+   *Law:* the **display/identity face is a deliberate, characterful choice** (Geist, Plus Jakarta Sans, General
+   Sans, Space Grotesk, Fraunces/Newsreader for editorial, IBM Plex, a serif). A **neutral grotesque (incl.
+   Inter/Roboto) is fine as the BODY/UI face when paired with a distinctive display** (e.g. Inter body +
+   Playfair display) — it just can't be the *whole* identity.
+   *Check:* `--font-display` is not a generic default; if `--font-sans` is Inter/Roboto/Arial, a distinctive `--font-display` is present.
 
 2. **A real type scale — no random sizes.**
    *Why:* arbitrary `text-[15px]` everywhere = visual noise; a ratio creates rhythm.
