@@ -36,6 +36,8 @@ description: >
 
 ## Step 2 — Guided decisions
 1. **What kind of system is it?** (web app · API · CLI · data/ML · agentic). Match the scope, not ambition.
+   Note whether it has a **user-facing UI** — this flags whether `/design-system` runs after `/structure`
+   (UI products) or is skipped (backend/API/CLI only).
    Then name the **2–3 design patterns** that fit it and the **2–3 anti-patterns** to avoid (current-year), and how this design honours/avoids them — record the notable ones as ADRs.
 2. **Choose the stack core** (language · framework · datastore · key libs). One-line why each; flag anything paid and its trigger to adopt.
 3. **List every external** and the **adapter interface** it will hide behind (e.g. `LLMProvider`, `Storage`) — *and* its **failure/resilience strategy** (timeouts · retry-transient-only · fallback/circuit-breaker). This is what keeps it swappable, testable, and resilient.

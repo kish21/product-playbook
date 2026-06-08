@@ -56,12 +56,23 @@ else
   trap 'rm -rf "${TMP_CLONE}"' EXIT
 fi
 
-# 1) Install the skills (flat, one file = one slash command)
+# 1) Install the flat skills (one file = one slash command)
 INSTALLED=0
 for f in "${ROOT}/commands"/*.md; do
   [[ -e "$f" ]] || continue
   cp "$f" "${TARGET}/$(basename "$f")"
   echo "  ✓ $(basename "$f")"
+  INSTALLED=$((INSTALLED + 1))
+done
+
+# 1b) Install directory-form skills (commands/<name>/SKILL.md + references/*) — e.g. design-system
+for d in "${ROOT}/commands"/*/; do
+  [[ -d "$d" ]] || continue
+  name="$(basename "$d")"
+  rm -rf "${TARGET:?}/${name}"   # prevent a nested copy (design-system/design-system) on re-install
+  cp -R "$d" "${TARGET}/${name}"
+  files_in=$(find "${TARGET}/${name}" -name "*.md" | wc -l)
+  echo "  ✓ ${name}/ (${files_in} files — SKILL.md + references)"
   INSTALLED=$((INSTALLED + 1))
 done
 

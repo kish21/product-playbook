@@ -105,5 +105,9 @@ directions — a drawn-but-uncreated folder is silent doc↔code drift); `.gitig
 no `prompts/` folder. An unexplained layout decays into god-files; a leaked `.env` is a real incident.
 
 ## Step 4 — Handoff
-"Clean structure + root scaffolding in place and explained in `STRUCTURE.md`. Next run **`/foundation`**
-to make a walking skeleton that actually runs (config, logging, infra, CI, secret-scan live)."
+"Clean structure + root scaffolding in place and explained in `STRUCTURE.md`.
+- **If this product has a user-facing UI** (there's a `frontend/`): run **`/design-system`** next — agree
+  design principles + a confirmed sample page + a concrete `DESIGN.md` (shadcn tokens) *before* building
+  screens, so the UI doesn't end up generic/AI-looking. Then `/foundation`.
+- **Backend/API/CLI only** (no UI): skip straight to **`/foundation`** to make a walking skeleton that
+  actually runs (config, logging, infra, CI, secret-scan live)."
