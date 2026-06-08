@@ -8,7 +8,7 @@
   "kind": "claude-code-skills-collection",
   "install": {
     "method": "copy",
-    "from": "commands/*.md (+ PRINCIPLES.md, VISION.md, templates/PRODUCT.md)",
+    "from": "commands/*.md + directory-form commands/<name>/ (SKILL.md + references/) (+ PRINCIPLES.md, VISION.md, templates/PRODUCT.md)",
     "to": "~/.claude/commands/",
     "one_liner": "curl -fsSL https://raw.githubusercontent.com/kish21/product-playbook/master/install.sh | bash"
   },
@@ -22,6 +22,7 @@
     { "id": "plan",        "category": "1-product",     "purpose": "Core-first phased plan with a testable exit criterion per milestone",      "file": "commands/plan.md" },
     { "id": "architect",   "category": "2-development", "purpose": "Decide stack + tools + key decisions (2026 OSS-first); ADRs",              "file": "commands/architect.md" },
     { "id": "structure",   "category": "2-development", "purpose": "Clean folder layout + what each folder is for; prompts/ YAML for AI",      "file": "commands/structure.md" },
+    { "id": "design-system", "category": "2-development", "purpose": "(UI products) principles → confirmed sample page → archetype-correct DESIGN.md (shadcn tokens)", "file": "commands/design-system/SKILL.md" },
     { "id": "foundation",  "category": "2-development", "purpose": "Walking skeleton that runs: config, logging, infra, tooling, CI",          "file": "commands/foundation.md" },
     { "id": "contracts",   "category": "2-development", "purpose": "Typed models/schemas/migrations BEFORE logic; agree units across boundaries", "file": "commands/contracts.md" },
     { "id": "build",       "category": "2-development", "purpose": "Per-feature loop with security-in-DoD + per-feature doc + live-path verify", "file": "commands/build.md" },
