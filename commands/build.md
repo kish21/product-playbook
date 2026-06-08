@@ -19,7 +19,7 @@ description: >
 
 ## Contract
 - **Purpose:** implement one feature to a verified, secure, documented definition-of-done.
-- **Reads:** `PRODUCT.md#Scope`, `#Plan`, `#Contracts`, `#Structure`.
+- **Reads:** `PRODUCT.md#Scope`, `#Plan`, `#Contracts`, `#Structure` — **plus `DESIGN.md` + `#Design` for any feature with a user-facing screen** (UI products).
 - **Writes:** a row in `PRODUCT.md#Build log` + `docs/features/<feature>.md`.
 - **Exit criteria (per feature):**
   - [ ] A written **definition-of-done that includes security** (input validation, authz/tenant-isolation; for AI: prompt-injection defence).
@@ -29,6 +29,7 @@ description: >
   - [ ] **`docs/features/<feature>.md` written and matches the code** (what · contract · exit criteria · how verified · code links).
   - [ ] **No secret in any code file** (secrets→`.env`; tests use fake placeholder keys).
   - [ ] **Single-responsibility kept** — a file growing large/multi-concern is split into modules (don't let god-files form); long/blocking work stays off the async event loop.
+  - [ ] **(UI products) The feature's screen(s) are built to `DESIGN.md`** — layout from its page inventory (§5), look from its tokens, parts via `/new-component` — and **`/frontend-audit` is clean** (0 errors) before done.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Scope/#Plan/#Contracts`. **Confirm the feature is IN scope** — if it's in OUT-OF-SCOPE, stop and
@@ -42,6 +43,7 @@ description: >
 1. **Declare the DoD** (incl. security + the exit criteria above). 
 2. **Reuse scan:** find existing helpers/contracts to use; don't reinvent.
 3. **Code** against the typed contracts; keep it modular and generic (no domain special-casing in shared infra).
+   - **If the feature has a user-facing screen (UI products):** build it to **`DESIGN.md`** — take the layout from its **page inventory (§5)** and the look from its **tokens**, and **reuse `/new-component`** for buttons/inputs/cards/etc. (never hand-roll, Law 15). Then run **`/frontend-audit`** and fix every ERROR. *(No `DESIGN.md` yet? the product has UI but skipped `/design-system` — run that first.)*
 4. **Run + verify the LIVE path** — compose `/run` and `/verify` to exercise the path the product actually runs, then **trace your change to its real callers** (green unit tests ≠ wired in).
 5. **Review the diff** — compose `/code-review`; fix findings (watch for "works in tests, dead in the real path").
 6. **Document** — write/update `docs/features/<feature>.md` (compose `/doc-create`); reconcile it with the code.
@@ -57,6 +59,7 @@ not eyeballing:
 - no secret in code / no-hardcoding → secret-scan clean; evidence.
 - live-path-works → **`/verify`** + **`/run`** exercised the real path; evidence (green unit tests ≠ wired in).
 - reuse · no-swallowed-errors · single-responsibility → confirmed in the **`/code-review`** of the diff.
+- (UI features) built-to-the-design → **`/frontend-audit`** clean against `DESIGN.md`; evidence = scorecard with 0 errors.
 
 **If any named principle is only claimed, not evidenced, STOP — the feature is not done.** Record the
 *how-verified* per principle in `#Build log` (evidence, not "done"). (Deterministic checks —
