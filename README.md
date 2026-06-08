@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](CHANGELOG.md)
-![Claude Code skills](https://img.shields.io/badge/Claude%20Code-15%20skills-8A2BE2.svg)
+![Claude Code skills](https://img.shields.io/badge/Claude%20Code-16%20skills-8A2BE2.svg)
 
 **A guided path from idea → shipped that bakes in the engineering discipline most teams learn the hard way.**
 
@@ -27,9 +27,9 @@ Here is exactly how it happened:
 
 To cut short the time of my next project and stay laser-focused, I needed a playbook. Not just a document, but **executable skills with evidence-based gates and checks** that force both me and the AI to maintain engineering discipline.
 
-> 👉 *Short on time? **[Skip the story — jump straight to the 15 skills →](#skill-reference)***
+> 👉 *Short on time? **[Skip the story — jump straight to the 16 skills →](#skill-reference)***
 
-`product-playbook` was born from my scars. It turns those lessons into a single, shared rulebook (`PRINCIPLES.md`) and maps them to **15 step-by-step commands (skills)**. It forces you to move one phase at a time, checking gates with evidence before writing code, so you get senior-level discipline by default.
+`product-playbook` was born from my scars. It turns those lessons into a single, shared rulebook (`PRINCIPLES.md`) and maps them to **16 step-by-step commands (skills)**. It forces you to move one phase at a time, checking gates with evidence before writing code, so you get senior-level discipline by default.
 
 ---
 
@@ -39,7 +39,7 @@ This system relies on three core files to create a structured, sequential, yet s
 
 ```mermaid
 graph TD
-    A["PRINCIPLES.md<br/>The Rulebook"] -->|Enforces rules inside| C["commands/*.md<br/>The 15 Skills"]
+    A["PRINCIPLES.md<br/>The Rulebook"] -->|Enforces rules inside| C["commands/*.md<br/>The 16 Skills"]
     B["PRODUCT.md<br/>The Living Spine"] <-->|Reads & Updates| C
     C -->|Generates & Scaffolds| D["Your Codebase"]
 ```
@@ -57,7 +57,7 @@ The single source of truth for your quality bar. It details:
 *   **Production Safeguards:** Zero-secrets, fail-closed security, observability, and rollback paths.
 
 ### 3. The Commands (`commands/*.md`)
-These are **15 custom Markdown commands** (skills) that you install into Claude Code. Each command (e.g., `/vision`, `/scope`, `/architect`, `/dev-check`) has a strict contract:
+These are **16 custom Markdown commands** (skills) that you install into Claude Code. Each command (e.g., `/vision`, `/scope`, `/architect`, `/dev-check`) has a strict contract:
 
 ```markdown
 ---
@@ -95,7 +95,8 @@ Run `/playbook` to start. It reads your `PRODUCT.md` and guides you step-by-step
 START → /playbook (guides you through the phases below)
 
 1. PRODUCT       /vision ──> /scope ──> /plan
-2. DEVELOPMENT   /architect ──> /structure ──> /foundation ──> /contracts ──> /build ──> /dev-check
+2. DEVELOPMENT   /architect ──> /structure ──> /design-system* ──> /foundation ──> /contracts ──> /build ──> /dev-check
+                                              (* if the product has a UI)
 3. TESTING       /test
 4. EVALUATION    /eval
 5. SHIP          /ship
@@ -114,6 +115,7 @@ ANYTIME          /drift-check (detects scope creep or code-docs drift)
 | **Product** | `/plan` | Core-first milestones + concern-area checklists | `PRODUCT.md` → **Plan** | Creating the roadmap |
 | **Dev** | `/architect` | Chooses stack, records ADRs, wraps externals in adapters | `PRODUCT.md` → **Architecture** | Before writing any code |
 | **Dev** | `/structure` | Scaffolds directory layout + root scaffolding; `app/prompts/` for AI | File tree + `STRUCTURE.md` | The first coding step |
+| **Dev** | `/design-system` | (UI products) Derives design principles → confirmed sample page → archetype-correct `DESIGN.md` (shadcn tokens). Kills the generic AI look; fixes too-small fonts | `DESIGN.md` + sample page + `PRODUCT.md` → **Design** | Before building any screens |
 | **Dev** | `/foundation` | Builds walking skeleton with logging, config, pre-commit & CI | Running app + CI workflows | Bootstrapping the codebase |
 | **Dev** | `/contracts` | Writes typed schemas/migrations BEFORE business logic | Schema files + migrations | Writing data layers |
 | **Dev** | `/build` | Implements feature with testable exit criteria and docs | Feature code + `docs/features/*` | Building feature-by-feature |
@@ -128,6 +130,12 @@ ANYTIME          /drift-check (detects scope creep or code-docs drift)
 > **build-and-ship** engineering skills (scaffold, audit, quality-gate, PR-flow, UI) — reach for one
 > when you know what you need. **product-playbook is the guided journey that composes tools like those**
 > across the whole product arc (vision → learn).
+>
+> **Single-master rule for the UI suite.** The UI suite — `/design-system`, `/new-component`, and the
+> future `/frontend-audit` — is **mastered here in product-playbook** (they're coupled through
+> `DESIGN.md`, so one master = one place to fix bugs). `/new-component` is **bundled in this repo** so
+> product-playbook installs **fully standalone** (no product-toolkit needed). Any copy elsewhere (e.g.
+> in product-toolkit) is a **one-way synced, read-only copy** — edit it here, then re-sync.
 
 ---
 

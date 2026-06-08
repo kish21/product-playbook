@@ -50,6 +50,14 @@ _Last updated: <date> · Stage: <phase> · AI product? <yes/no>_
 - **Folder → purpose map (summary):**
 - **Prompts location (AI):** `app/prompts/` (backend sub-package; YAML, never inline)
 
+## Design             <!-- /design-system --> (UI products only; see DESIGN.md for the full system)
+- **Has user-facing UI?** <yes/no — if no, this phase is skipped intentionally>
+- **Design principles (4–6, derived from vision):**
+- **Archetype (aesthetic family + why it fits):**
+- **Foundations summary (font pairing · base body size + type scale · one accent + palette · density · depth · motion):**
+- **Tokens:** shadcn/ui-compatible CSS variables (OKLCH), WCAG-AA verified — see `DESIGN.md`
+- **Approved sample page (path):** · **DESIGN.md (path):**
+
 ## Foundation        <!-- /foundation -->
 - **Runs end-to-end (walking skeleton):**
 - **Config flows verified (no dead config):**
