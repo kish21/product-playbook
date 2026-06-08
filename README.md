@@ -130,6 +130,12 @@ ANYTIME          /drift-check (detects scope creep or code-docs drift)
 > **build-and-ship** engineering skills (scaffold, audit, quality-gate, PR-flow, UI) — reach for one
 > when you know what you need. **product-playbook is the guided journey that composes tools like those**
 > across the whole product arc (vision → learn).
+>
+> **Single-master rule for the UI suite.** The UI suite — `/design-system`, `/new-component`, and the
+> future `/frontend-audit` — is **mastered here in product-playbook** (they're coupled through
+> `DESIGN.md`, so one master = one place to fix bugs). `/new-component` is **bundled in this repo** so
+> product-playbook installs **fully standalone** (no product-toolkit needed). Any copy elsewhere (e.g.
+> in product-toolkit) is a **one-way synced, read-only copy** — edit it here, then re-sync.
 
 ---
 

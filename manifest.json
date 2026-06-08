@@ -31,7 +31,8 @@
     { "id": "eval",        "category": "4-evaluation",  "purpose": "Is it good? measure-first; separate failures; confidence score",           "file": "commands/eval.md" },
     { "id": "ship",        "category": "5-ship",        "purpose": "Deep review + security review + reconcile docs + PR + handoff",             "file": "commands/ship.md" },
     { "id": "learn",       "category": "6-learn",       "purpose": "Success metric + retro + decide next from evidence",                       "file": "commands/learn.md" },
-    { "id": "drift-check", "category": "cross-cutting", "purpose": "Run anytime: scope creep / vision drift / code↔docs drift check",          "file": "commands/drift-check.md" }
+    { "id": "drift-check", "category": "cross-cutting", "purpose": "Run anytime: scope creep / vision drift / code↔docs drift check",          "file": "commands/drift-check.md" },
+    { "id": "new-component", "category": "ui-suite",    "purpose": "(UI suite, bundled) build/skin ONE React component against DESIGN.md tokens; CSS-vars, interactive states, a11y", "file": "commands/new-component.md" }
   ],
   "compatibility": {
     "claude_code": ">=0.1.0",
@@ -41,6 +42,8 @@
     "Sequential but standalone: run the phases in order, or enter at any skill — each bootstraps context from PRODUCT.md or the existing codebase.",
     "Compose, don't reimplement: skills invoke existing Claude Code skills (/code-review, /security-review, /verify, /run, /doc-create, /doc-audit, /loop, github-pr-flow) rather than duplicating them.",
     "Each skill self-identifies via YAML frontmatter and references PRINCIPLES.md (single source) — no duplicated rule text.",
-    "Spine resolution is PRODUCT.md-first but flexible: existing/brownfield projects fall back to CLAUDE.md/README/docs/AGENTS.md, and code-only projects get a clearly-labelled INFERRED read — never a fabricated baseline (PRINCIPLES.md, §Spine resolution)."
+    "Spine resolution is PRODUCT.md-first but flexible: existing/brownfield projects fall back to CLAUDE.md/README/docs/AGENTS.md, and code-only projects get a clearly-labelled INFERRED read — never a fabricated baseline (PRINCIPLES.md, §Spine resolution).",
+    "The 16-skill journey badge counts the phase chain; /new-component is a bundled UI-suite SUPPORT skill (category ui-suite), not a journey phase — it is shipped here so product-playbook installs fully standalone.",
+    "Single-master rule for the UI suite (/design-system, /new-component, future /frontend-audit): mastered in product-playbook; any copy elsewhere (e.g. product-toolkit) is a one-way synced, read-only copy (playbook → toolkit)."
   ]
 }
