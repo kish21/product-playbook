@@ -40,7 +40,7 @@ description: >
 ## Contract
 - **Purpose:** principles → confirmed sample page → a concrete, archetype-correct `DESIGN.md` harness.
 - **Reads:** spine `#Vision`/`#Scope`/`#Architecture` (or discovers the vision if there's none);
-  `references/universal-laws.md`, `references/archetypes.md`, `references/design-md-template.md`.
+  `references/universal-laws.md`, `references/archetypes.md`, `references/design-md-template.md`, `references/page-patterns.md`.
 - **Writes:** `DESIGN.md` (9-section standard, shadcn CSS-variable tokens) · one approved **sample page**
   · `PRODUCT.md#Design` (principles + archetype + token summary + paths).
 - **Exit criteria (the gate):**
@@ -52,15 +52,15 @@ description: >
     archetype-correct base size, colour roles, spacing/density, depth — all from `archetypes.md`.
   - [ ] **ONE real sample page** built in the project's stack (or a standalone preview), **real content not
     lorem**, reusing a shadcn/21st.dev primitive or two — then **STOP + confirm + iterate until approved.**
-  - [ ] `DESIGN.md` emitted **only after approval**: 9 sections, **shadcn-compatible OKLCH tokens**, **WCAG-AA
-    verified**, fixing the three symptoms (a real type scale → no tiny fonts; a layout/density spec; an
-    archetype + Do/Don't list → no generic AI look).
-  - [ ] All **21 universal laws** satisfied (run the principle-gate, Step 6 self-check).
+  - [ ] `DESIGN.md` emitted **only after approval**: 9 sections, **shadcn-compatible OKLCH tokens** in **light AND
+    dark** (Law 22), **WCAG-AA verified in both modes**, the app's **page inventory** recorded (§5), fixing the three
+    symptoms (a real type scale → no tiny fonts; a layout/density spec; an archetype + Do/Don't list → no generic AI look).
+  - [ ] All **22 universal laws** satisfied (run the principle-gate, Step 6 self-check).
 
-> **Scope of this version: greenfield core loop only.** Retrofit (rewrite existing pages), "make it like
-> <site>" token-extraction, the component-gallery page, and deeper teach-mode are the documented
-> follow-ups (`/frontend-audit` is the separate enforcement skill). If an existing UI is detected, say so
-> and proceed greenfield for new screens — don't silently rewrite their pages yet.
+> **Scope of this version: greenfield core loop.** Lightweight brand-input (re-skin to given colours/reference)
+> is in; **deep** image/code token-extraction (the user's `UI_to_Prompt`), full retrofit (rewrite existing pages),
+> and the component-gallery page are documented follow-ups (`/frontend-audit` is the separate enforcement skill).
+> If an existing UI is detected, say so and proceed greenfield for new screens.
 
 ---
 
@@ -112,6 +112,11 @@ the popular skills omit, and the fix for "fonts too small / artsy-but-wrong":*
 - **Colour roles** (one dominant + one accent; semantic status) in **OKLCH**, **WCAG-AA verified** — Laws 5–8.
 - **Spacing / density**, **depth ladder** (`--shadow-sm/-lg`, `--radius`), **layout pattern**, **motion**
   defaults (transform/opacity only) — Laws 9–12.
+- **Light + dark by default (Law 22):** derive both token sets now (dark is not inverted light — give it its own
+  AA-checked values); the archetype's natural mode is the default, the other is the alternate.
+- **Brand input (optional — decide-for-them otherwise):** if the user has a brand — colours, a logo, a marketing
+  screenshot, or a *"make it like <site>"* reference — extract its palette + type and **re-skin the tokens to it**.
+  The archetype is the strong default; the brand *personalises* it; the laws + AA contrast still hold.
 Give each as a **decided default + one-line why**; let the user tweak.
 
 ## Step 4 — Build ONE sample page · STOP · iterate until liked  *(the non-negotiable loop)*
@@ -122,7 +127,9 @@ Generate **a single, representative screen of THIS product** using the Step-3 fo
 - **Reuse a shadcn/ui + 21st.dev primitive or two** (Law 15 — never hand-roll buttons/inputs/modals),
   re-skinned with the tokens.
 - **Real content from the product's domain — never lorem** (Law 18).
-- Pick the *most representative* screen (a dashboard's main view, the consumer app's home — not a login).
+- **Note the page inventory first** (which page TYPES this app needs — auth, dashboard, billing, settings, landing…
+  from the vision; see `references/page-patterns.md`), then build the *most representative* one (a dashboard's main
+  view, the consumer app's home — not a login). The other pages' patterns get recorded in `DESIGN.md` §5 — we don't build them all now.
 - **Build it mobile-first and responsive (Law 21):** design the **phone view first** — lead with the user's
   #1 mobile job (content priority), collapse the archetype's layout (sidebar → drawer, table → stacked cards,
   detail → sheet, KPIs reflow), tap targets ≥44px — *then* scale up to tablet/desktop. Never a fixed desktop
@@ -147,18 +154,21 @@ Load `references/design-md-template.md` and write **`DESIGN.md`** filling all **
 7 Motion · 8 Do's & Don'ts · 9 Responsive & Agent Guide.*
 - Tokens are **shadcn/ui-compatible CSS variables in OKLCH** (rebrand = change values; plugs into
   shadcn/21st.dev with no theme provider/build step).
-- **Re-run the WCAG-AA contrast check** on every foreground/surface pair before writing (Law 7).
+- **Emit light AND dark token sets + system switch** (`:root` + `.dark` + `prefers-color-scheme`) — Law 22.
+- **Record the page inventory** in §5 (each page type → its layout pattern from `page-patterns.md`).
+- **Re-run the WCAG-AA contrast check** on every foreground/surface pair, **in both modes**, before writing (Laws 7 & 22).
 - The **Agent Guide** (§9) tells every later build step how to obey this file.
 *(Greenfield: `DESIGN.md` is now the harness for new pages. Retrofit-rewrite of existing pages is the
 documented follow-up.)*
 
 ## Step 6 — Principle-gate self-check, then handoff
 
-**Before handing off, walk `references/universal-laws.md` and confirm all 21 hold** for the sample +
+**Before handing off, walk `references/universal-laws.md` and confirm all 22 hold** for the sample +
 `DESIGN.md` — especially: distinctive font (1), body ≥ min (3), one accent (5), AA contrast *computed* (7),
 elevation ladder not flat shadows (9), grid spacing (10), archetype layout (11), no `transition: all` (12), all
 interactive states (13), tokens-not-hex (14), reused primitives (15), confirmed via sample (16), real
-content (18), table header/cell alignment + dot-not-pill status (20), mobile-first responsive confirmed at 3 widths (21). **If any law fails, STOP and fix it** — the floor is non-negotiable.
+content (18), table header/cell alignment + dot-not-pill status (20), mobile-first responsive at 3 widths (21),
+light+dark+system shipped (22). **If any law fails, STOP and fix it** — the floor is non-negotiable.
 
 Then write `PRODUCT.md#Design` (principles + archetype + token summary + `DESIGN.md`/sample paths) and hand off:
 

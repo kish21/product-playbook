@@ -43,7 +43,8 @@ _Archetype: <family> · derived by /design-system on <date> · approved sample: 
   --border: <oklch>;   --input: <oklch>;    --ring: <oklch>;
   --radius: <rem>;
 }
-.dark { /* same keys, dark values — keep AA */ }
+.dark { /* REQUIRED (Law 22) — same keys, dark values; re-check every pair at AA */ }
+/* follow the OS via @media (prefers-color-scheme: dark){ :root{ ...dark... } } + an optional manual toggle */
 
 ## 3. Typography
 - **Fonts:** display `--font-display: <face>` · body `--font-sans: <face>` · data `--font-mono: <face>`
@@ -72,6 +73,9 @@ _Archetype: <family> · derived by /design-system on <date> · approved sample: 
 - **Pattern:** <sidebar+content | top-nav app | single editorial column | bottom-tab mobile>
 - **Density:** <compact | medium | airy> · **Grid base:** <4px | 8px> · **Container max-width:** <px>
 - **Page anatomy:** <sidebar / top bar / content / detail panel — what goes where>
+- **Pages this app needs (each page TYPE gets its own layout, same tokens/laws):** <from the vision — e.g.
+  login (centered card) · dashboard (sidebar + data) · billing (plans / invoice table) · settings (form sections) ·
+  landing (hero + sections)>. Per-type layout patterns: see `references/page-patterns.md`.
 
 ## 6. Depth & Elevation  (Law 9)
 - **Ladder:** base (`--background`) → raised `--shadow-sm` → floating `--shadow-lg`.

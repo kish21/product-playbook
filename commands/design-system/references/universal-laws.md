@@ -177,9 +177,19 @@ reasoning *leads*; the laws *catch*. Each law has a one-line **why** (teach-mode
     *Check:* viewport meta present; any multi-column/grid page has ≥1 `@media`/`@container` breakpoint; no fixed
     pixel layout width without a responsive fallback; **the sample is confirmed at ~375 / 768 / desktop.**
 
+## I. Theming (light, dark & system)
+
+22. **Ship light AND dark, and follow the system preference — by default.**
+    *Why (how a designer thinks):* users expect their OS choice respected; one-mode-only feels dated in 2026, and
+    dark is not just inverted light — it needs its **own** AA-checked values.
+    *Law:* emit **both** a `:root` (light) and `.dark` token set (shadcn contract) and switch on
+    `prefers-color-scheme` (+ an optional manual toggle). **Contrast (Law 7) holds in BOTH modes.** A deliberately
+    single-mode product (e.g. a cinematic dark tool) states *why* and still provides a usable alternate.
+    *Check:* a `.dark` (or equivalent) token block exists; foreground/surface pairs pass AA in **both** modes.
+
 ---
 
 ### The contract, in one line
-**`/design-system` output = these 21 universal laws (the guaranteed floor) + the per-product principles
+**`/design-system` output = these 22 universal laws (the guaranteed floor) + the per-product principles
 derived in Step 1 (the specific look).** The laws make it impossible to ship something generic, inaccessible,
-or broken-on-mobile; the principles make it *this* product's own.
+broken-on-mobile, or single-mode-by-accident; the principles make it *this* product's own.

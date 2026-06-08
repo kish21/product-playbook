@@ -73,19 +73,34 @@ PAIRS = [
 def collect_tokens(text):
     return {k: v.strip() for k, v in _TOKEN_RE.findall(text)}
 
-def audit_text(path, text, findings):
-    tokens = collect_tokens(text)
+def _block(text, selector):
+    """Inner text of the first `selector { ... }` block (token blocks have no nested braces)."""
+    m = re.search(re.escape(selector) + r"\s*\{(.*?)\}", text, re.S)
+    return m.group(1) if m else ""
 
-    # Law 7 — COMPUTED contrast on every defined foreground/surface pair
-    for fg, bg in PAIRS:
-        if fg in tokens and bg in tokens:
-            ratio = contrast(tokens[fg], tokens[bg])
-            if ratio is None:
-                continue
-            level = "PASS" if ratio >= 4.5 else ("WARN" if ratio >= 3.0 else "ERROR")
-            findings.append((level, "Law7-contrast", path,
-                             f"{fg} on {bg} = {ratio:.2f}:1 "
-                             f"({'AA' if ratio>=4.5 else 'AA-large only' if ratio>=3 else 'FAILS AA'})"))
+def audit_text(path, text, findings):
+    # Law 7 + 22 — COMPUTED contrast on every fg/surface pair, in BOTH light and dark modes.
+    root = collect_tokens(_block(text, ":root")) or collect_tokens(text)
+    dark_raw = _block(text, ".dark")
+    modes = [("light", root)]
+    if dark_raw:
+        dark = dict(root); dark.update(collect_tokens(dark_raw))
+        modes.append(("dark", dark))
+    for mode, tokens in modes:
+        for fg, bg in PAIRS:
+            if fg in tokens and bg in tokens:
+                ratio = contrast(tokens[fg], tokens[bg])
+                if ratio is None:
+                    continue
+                level = "PASS" if ratio >= 4.5 else ("WARN" if ratio >= 3.0 else "ERROR")
+                findings.append((level, "Law7-contrast", path,
+                                 f"[{mode}] {fg} on {bg} = {ratio:.2f}:1 "
+                                 f"({'AA' if ratio>=4.5 else 'AA-large only' if ratio>=3 else 'FAILS AA'})"))
+    # Law 22 — single-mode warning (component code defines :root colour tokens but no .dark)
+    if not path.lower().endswith(".md") and _block(text, ":root") and not dark_raw \
+            and any(k in root for k in ("--background", "--foreground")):
+        findings.append(("WARN", "Law22-theme", path,
+                         "defines :root tokens but no .dark block - single-mode (Law 22 wants light+dark)"))
 
     # Markdown is documentation/spec — only its colour tokens are machine-checkable
     # (the contrast pass above). The code-pattern checks below are for component
@@ -124,7 +139,8 @@ def audit_text(path, text, findings):
     # @container, or a Tailwind responsive prefix — NOT prefers-reduced-motion / prefers-color-scheme.
     has_bp = (bool(re.search(r"@media[^{]*\b(?:min-width|max-width)\b", text))
               or "@container" in text
-              or bool(re.search(r"\b(?:sm|md|lg|xl|2xl):[A-Za-z]", text)))
+              or bool(re.search(r"\b(?:sm|md|lg|xl|2xl):[A-Za-z]", text))
+              or "auto-fit" in text or "auto-fill" in text or "minmax(" in text or "clamp(" in text)
     multicol = (bool(re.search(r"grid-template-columns\s*:[^;]*\d{3,}px", text))
                 or bool(re.search(r"grid-template-columns\s*:(?:[^;]*\b1fr\b){2,}", text)))
     if path.lower().endswith((".html", ".htm")) and "viewport" not in text:

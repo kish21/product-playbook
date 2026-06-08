@@ -146,6 +146,17 @@ wins; otherwise the proposal stands.
 - **Base body:** **18px+**. **Scale 1.333–1.618** (dramatic display).
 - **Brands:** product launch pages, campaign microsites.
 
+### 10. Cinematic / Media-Forward  — *video, streaming, creative tools, media review, AI-video*
+- **Use when:** the content is **media** (video/image/audio) and should be the hero; premium dark feel.
+- **Base body:** 14–15px; larger media, lower density. **Scale 1.2–1.25.**
+- **Type pairing:** display — **Space Grotesk** / **Clash Display**; body — **Geist** / **General Sans**; timecodes — **JetBrains Mono**.
+- **Colour roles:** **dark-default** near-black surfaces so thumbnails pop; ONE vivid accent (violet / electric-blue)
+  with **dark text on the bright accent** for AA (white-on-bright fails); semantic status. (Law 22: still provide a light alternate.)
+- **Layout:** sidebar + **media grid** (auto-fill 16:9 thumbnail cards with a duration badge) or a player + timeline review screen.
+- **Depth:** flat dark; shadow on hover/overlays; restrained gradient accents.
+- **Motion:** smooth 160–250ms, transform/opacity; gentle card lift on hover.
+- **Brands:** Frame.io, Vimeo, RunwayML, Mux, Pika.
+
 ---
 
 ## How Step 3 turns a family into tokens
