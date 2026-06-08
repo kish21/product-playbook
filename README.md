@@ -1,8 +1,8 @@
 # Product Playbook: Build with Discipline in the AI Era
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](CHANGELOG.md)
-![Claude Code skills](https://img.shields.io/badge/Claude%20Code-16%20skills-8A2BE2.svg)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](CHANGELOG.md)
+![Claude Code skills](https://img.shields.io/badge/Claude%20Code-18%20skills-8A2BE2.svg)
 
 **A guided path from idea → shipped that bakes in the engineering discipline most teams learn the hard way.**
 
@@ -27,9 +27,9 @@ Here is exactly how it happened:
 
 To cut short the time of my next project and stay laser-focused, I needed a playbook. Not just a document, but **executable skills with evidence-based gates and checks** that force both me and the AI to maintain engineering discipline.
 
-> 👉 *Short on time? **[Skip the story — jump straight to the 16 skills →](#skill-reference)***
+> 👉 *Short on time? **[Skip the story — jump straight to the 18 skills →](#skill-reference)***
 
-`product-playbook` was born from my scars. It turns those lessons into a single, shared rulebook (`PRINCIPLES.md`) and maps them to **16 step-by-step commands (skills)**. It forces you to move one phase at a time, checking gates with evidence before writing code, so you get senior-level discipline by default.
+`product-playbook` was born from my scars. It turns those lessons into a single, shared rulebook (`PRINCIPLES.md`) and maps them to **18 step-by-step commands (skills)** (16 journey phases + the `/frontend-audit` and `/new-component` UI-suite skills). It forces you to move one phase at a time, checking gates with evidence before writing code, so you get senior-level discipline by default.
 
 ---
 
@@ -39,7 +39,7 @@ This system relies on three core files to create a structured, sequential, yet s
 
 ```mermaid
 graph TD
-    A["PRINCIPLES.md<br/>The Rulebook"] -->|Enforces rules inside| C["commands/*.md<br/>The 16 Skills"]
+    A["PRINCIPLES.md<br/>The Rulebook"] -->|Enforces rules inside| C["commands/<br/>The 18 Skills"]
     B["PRODUCT.md<br/>The Living Spine"] <-->|Reads & Updates| C
     C -->|Generates & Scaffolds| D["Your Codebase"]
 ```
@@ -57,7 +57,7 @@ The single source of truth for your quality bar. It details:
 *   **Production Safeguards:** Zero-secrets, fail-closed security, observability, and rollback paths.
 
 ### 3. The Commands (`commands/*.md`)
-These are **16 custom Markdown commands** (skills) that you install into Claude Code. Each command (e.g., `/vision`, `/scope`, `/architect`, `/dev-check`) has a strict contract:
+These are **18 custom Markdown commands** (skills) that you install into Claude Code. Each command (e.g., `/vision`, `/scope`, `/architect`, `/dev-check`) has a strict contract:
 
 ```markdown
 ---
@@ -116,6 +116,8 @@ ANYTIME          /drift-check (detects scope creep or code-docs drift)
 | **Dev** | `/architect` | Chooses stack, records ADRs, wraps externals in adapters | `PRODUCT.md` → **Architecture** | Before writing any code |
 | **Dev** | `/structure` | Scaffolds directory layout + root scaffolding; `app/prompts/` for AI | File tree + `STRUCTURE.md` | The first coding step |
 | **Dev** | `/design-system` | (UI products) Derives design principles → confirmed sample page → archetype-correct `DESIGN.md` (shadcn tokens). Kills the generic AI look; fixes too-small fonts | `DESIGN.md` + sample page + `PRODUCT.md` → **Design** | Before building any screens |
+| **Dev / UI** | `/frontend-audit` | (UI products) Mechanically enforces the design-system laws — a real OKLCH→WCAG contrast engine + token/motion/font/responsive checks; CI-friendly | Pass/warn/error scorecard (exits non-zero on error) | After building or changing UI, or in CI |
+| **UI suite** | `/new-component` | (bundled support skill) Builds/skins ONE React component against the `DESIGN.md` tokens — CSS-vars, interactive states, a11y; reuses shadcn/ui + 21st.dev | Component file | Building any UI component |
 | **Dev** | `/foundation` | Builds walking skeleton with logging, config, pre-commit & CI | Running app + CI workflows | Bootstrapping the codebase |
 | **Dev** | `/contracts` | Writes typed schemas/migrations BEFORE business logic | Schema files + migrations | Writing data layers |
 | **Dev** | `/build` | Implements feature with testable exit criteria and docs | Feature code + `docs/features/*` | Building feature-by-feature |
@@ -131,11 +133,29 @@ ANYTIME          /drift-check (detects scope creep or code-docs drift)
 > when you know what you need. **product-playbook is the guided journey that composes tools like those**
 > across the whole product arc (vision → learn).
 >
-> **Single-master rule for the UI suite.** The UI suite — `/design-system`, `/new-component`, and the
-> future `/frontend-audit` — is **mastered here in product-playbook** (they're coupled through
-> `DESIGN.md`, so one master = one place to fix bugs). `/new-component` is **bundled in this repo** so
-> product-playbook installs **fully standalone** (no product-toolkit needed). Any copy elsewhere (e.g.
-> in product-toolkit) is a **one-way synced, read-only copy** — edit it here, then re-sync.
+> **Single-master rule for the UI suite.** The UI suite — `/design-system`, `/frontend-audit`, and
+> `/new-component` — is **mastered here in product-playbook** (they're coupled through `DESIGN.md`, so one
+> master = one place to fix bugs). `/new-component` is **bundled in this repo** so product-playbook installs
+> **fully standalone** (no product-toolkit needed). Any copy elsewhere (e.g. in product-toolkit) is a
+> **one-way synced, read-only copy** — edit it here, then re-sync.
+
+### How `DESIGN.md` is derived (the UI suite)
+
+For UI products, `/design-system` turns your vision into one concrete, reusable design spec — **`DESIGN.md`** — which
+the other two UI skills then consume. So the look is *decided once, confirmed by you, and enforced everywhere*:
+
+```mermaid
+graph TD
+    P["PRODUCT.md (vision / scope)<br/>+ universal-laws (the quality floor)"] --> DS["/design-system<br/>principles → archetype → ONE sample → STOP &amp; confirm (iterate till you like it)"]
+    DS --> DM["DESIGN.md<br/>9-section harness · shadcn/OKLCH tokens · light + dark · WCAG-AA verified"]
+    DM --> NC["/new-component<br/>builds components AGAINST the tokens"]
+    DM --> FA["/frontend-audit<br/>ENFORCES the tokens + laws (computed contrast)"]
+    NC --> UI["Your UI — consistent, accessible, not generic"]
+    FA -. checks .-> UI
+```
+
+`DESIGN.md` is **derived** (not hand-written) through the sample-and-confirm loop, then **consumed**: `/new-component`
+builds against its tokens and `/frontend-audit` mechanically enforces them. Skipped entirely for backend/API/CLI products.
 
 ---
 
@@ -153,7 +173,7 @@ You can install `product-playbook` in three different ways:
 
 ## 🛠️ Contributing
 
-1.  Add or modify commands in `commands/<name>.md` (keep them concise and single-purpose).
-2.  Update the command row in `VISION.md`, `manifest.json`, and `evals/evals.json`.
-3.  Run `./install.sh`, commit, and push.
-4.  Run `/drift-check` on this repo to verify consistency.
+1.  Add or modify a command in `commands/<name>.md` — or directory-form `commands/<name>/SKILL.md` (+ `references/`) for skills that carry references. Keep them concise and single-purpose.
+2.  Register it in **all three**: `VISION.md`, `manifest.json`, and `evals/evals.json` (the CI gate checks they stay in sync).
+3.  Run `python tools/check.py` (the CI consistency gate: every skill registered + structured + under the 500-line budget), then `./install.sh`, commit, and open a PR (master requires the `check` to pass).
+4.  Run `/drift-check` on this repo to verify nothing drifted.
