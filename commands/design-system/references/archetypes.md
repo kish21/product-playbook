@@ -157,6 +157,34 @@ wins; otherwise the proposal stands.
 - **Motion:** smooth 160–250ms, transform/opacity; gentle card lift on hover.
 - **Brands:** Frame.io, Vimeo, RunwayML, Mux, Pika.
 
+### 11. E-commerce / Retail  — *storefronts, product catalogs, marketplaces, checkout*
+- **Use when:** selling products; imagery + conversion are the job; trust + speed-to-purchase.
+- **Base body:** 15–16px. **Scale 1.25.**
+- **Type pairing:** display — **General Sans** / **Cabinet Grotesk**; body — **Inter** (OK as body behind the distinctive display, Law 1) / **General Sans**.
+- **Colour roles:** clean neutral base so product imagery pops; ONE confident brand accent for CTA / price / cart; sale/stock as **semantic** status (not decorative).
+- **Layout:** top-nav + search + cart; **product grid** (auto-fill cards: image · title · price · rating) → PDP (gallery + buy box) → **stepped checkout**.
+- **Depth:** light cards, clear product hover-lift; price + primary CTA are the loudest elements. **Motion:** quick add-to-cart feedback, image hover (transform/opacity).
+- **Responsive:** grid auto-fills 4→2→1; nav → hamburger; filters → drawer/sheet; **sticky buy-bar** on mobile PDP.
+- **Brands:** Shopify, Stripe checkout, Allbirds, Glossier.
+
+### 12. Conversational / AI-chat  — *AI assistants, copilots, chat-first products*
+- **Use when:** the core surface is a conversation / agent thread.
+- **Base body:** 15–16px (comfortable reading). **Scale 1.2.**
+- **Type pairing:** UI — **Geist** (display) + **Inter** body; **mono** for code / tool output.
+- **Colour roles:** calm neutral canvas; ONE accent for the send action + assistant emphasis; user-vs-assistant distinction by **surface**, not loud colour.
+- **Layout:** **message stream** + sticky composer; optional left thread list; **inline tool/agent cards**. **Reuse 21st.dev agent-UI primitives** (chat shell, tool-call cards, streaming markdown). **Depth:** flat; the composer is the one elevated element. **Motion:** streaming text, gentle message-in.
+- **Responsive:** thread list → drawer; full-width turns on mobile; composer pinned to bottom (safe-area).
+- **Brands:** ChatGPT, Claude, Perplexity, Linear agent UI.
+
+### 13. Social / Feed  — *feeds, communities, creator/consumer social (mobile-first)*
+- **Use when:** an infinite feed of posts/people; consumption + light interaction.
+- **Base body:** 15–16px. **Scale 1.2–1.25.**
+- **Type pairing:** **Plus Jakarta Sans** / **General Sans** — friendly, not loud.
+- **Colour roles:** neutral canvas so content + avatars lead; ONE accent for the primary action (post/follow) + active nav; like/notify **semantic**.
+- **Layout:** **single centred feed column** (≈600px) + optional desktop side rails; **bottom-tab nav on mobile**, top-nav desktop; composer; profile. **Depth:** flat cards/dividers; media is the texture. **Motion:** like/tap micro-feedback, optimistic UI.
+- **Responsive:** desktop 3-col (nav · feed · rail) → mobile single feed + bottom tabs; rails drop first.
+- **Brands:** Instagram, Bluesky, Threads, Reddit.
+
 ---
 
 ## How Step 3 turns a family into tokens

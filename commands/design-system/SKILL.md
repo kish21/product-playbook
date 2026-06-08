@@ -96,7 +96,7 @@ Show them; **let the user adjust**. These principles constrain every later token
 
 ## Step 2 — Propose an archetype, stay flexible
 
-Load `references/archetypes.md`. Map the principles to one of the **~9 aesthetic families** using the
+Load `references/archetypes.md`. Map the principles to one of the **13 aesthetic families** using the
 **3-question picker** (read- vs scan-heavy · user type · calm vs bold). **Propose ONE as the default
 with a plain-language why** — then **ask the user**: *"Do you already have a look in mind — a product you
 admire, or bold vs minimal?"* **The user's idea/reference wins;** otherwise your proposal stands. Confirm

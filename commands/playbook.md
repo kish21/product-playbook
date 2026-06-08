@@ -30,13 +30,15 @@ description: >
 ## Step 0 — Orient
 - If there's no `PRODUCT.md`, this is a fresh start → the next phase is **`/vision`**.
 - If `PRODUCT.md` exists, read which sections are filled and find the **first unfilled / incomplete
-  phase** in order: Vision → Scope → Plan → Architect → Structure → Foundation → Contracts → Build →
-  Dev-check → Test → Eval → Ship → Learn. That's the next phase.
+  phase** in order: Vision → Scope → Plan → Architect → Structure → **Design (if UI)** → Foundation →
+  Contracts → Build → Dev-check → Test → Eval → Ship → Learn. That's the next phase.
+  *(Design = run `/design-system`; it fills `PRODUCT.md#Design`. **Skip it for backend/API/CLI products** —
+  the has-UI flag from `/architect`/`/structure` decides.)*
 - Brownfield (existing code, no `PRODUCT.md`): say so, and propose entering at `/architect` or `/build`.
 
 ## Step 1 — Explain the map (once, briefly, plain language)
 Show the journey in one screen so the user has the mental model:
-`vision → scope → plan` (Product) · `architect → structure → foundation → contracts → build → dev-check`
+`vision → scope → plan` (Product) · `architect → structure → design-system* → foundation → contracts → build → dev-check` (*UI only)
 (Development) · `test` · `eval` · `ship` · `learn` · `/drift-check` anytime. Note: each step asks a few
 questions and ends with a check before moving on — you stay in control.
 
