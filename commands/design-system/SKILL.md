@@ -16,7 +16,7 @@ description: >
 
 > Part of **product-playbook**. Reads the spine (`PRODUCT.md`, or the project's existing docs — resolve
 > per `PRINCIPLES.md` §Spine resolution); writes `DESIGN.md` + `PRODUCT.md#Design`.
-> **Always enforces the quality floor** — load `references/universal-laws.md` (the 21 fixed UI laws) and
+> **Always enforces the quality floor** — load `references/universal-laws.md` (the 22 fixed UI laws) and
 > `PRINCIPLES.md` (*Accessibility (UI)* + 5-step spine). The look changes per product; the laws never do.
 
 > **Lens throughout: a brand-new, non-designer user.** Plain language, **decide FOR them with a clear
@@ -40,7 +40,7 @@ description: >
 ## Contract
 - **Purpose:** principles → confirmed sample page → a concrete, archetype-correct `DESIGN.md` harness.
 - **Reads:** spine `#Vision`/`#Scope`/`#Architecture` (or discovers the vision if there's none);
-  `references/universal-laws.md`, `references/archetypes.md`, `references/design-md-template.md`, `references/page-patterns.md`.
+  `references/universal-laws.md`, `references/archetypes.md`, `references/design-md-template.md`, `references/page-patterns.md`, `references/theme-studio.md`.
 - **Writes:** `DESIGN.md` (9-section standard, shadcn CSS-variable tokens) · one approved **sample page**
   · `PRODUCT.md#Design` (principles + archetype + token summary + paths).
 - **Exit criteria (the gate):**
@@ -138,13 +138,19 @@ Generate **a single, representative screen of THIS product** using the Step-3 fo
   the real build. Still mirror the `DESIGN.md` tokens exactly.
 - **Confirm on the user's real display:** subtle choices (canvas tint, status-label colour, table alignment)
   render differently across screens — pick **clearly visible** values and verify on the user's monitor, not just code.
+- **Ship it as an INTERACTIVE sample (the visualization moat):** inject `references/theme-studio.md` (the drop-in editor)
+  before `</body>`, wrap the page content in `<div id="ts_stage">…</div>`, size readable text in **rem** with
+  `html { font-size: var(--font-size-base,16px) }`, and replace the studio's `PRESETS` with 3–5 vetted palettes for the
+  archetype (from `palettes.md`). Now the user **tweaks colour / theme / type-size / responsive LIVE, AA-guarded** —
+  not "agent regenerates". Dev-only: stripped from the real build; only the finalized tokens persist.
 
 Then **STOP. Show it and confirm.** Describe what they should see, and (if possible) screenshot it and
 compare pixel-level: spacing, weight, exact colours, radius, alignment. **Confirm it at THREE widths —
 ~375px (mobile), 768px (tablet), and desktop — not just desktop;** a phone view that overflows, clips, or
 is a shrunk desktop is a fail (Law 21). **If the user doesn't like it, ask what to change** (bolder /
 lighter / denser / different font / *"make it like <site>"*) and **generate another — loop until they
-approve.** **Do not emit `DESIGN.md` until the sample is approved.**
+approve.** The **Theme Studio** lets the user finalize colour / type-size / theme / roundness *themselves* (and **Export**
+the tokens); only *structural* changes (layout, content) need a regenerate. **Do not emit `DESIGN.md` until approved.**
 
 ## Step 5 — Emit `DESIGN.md` (only after approval)
 
@@ -155,6 +161,7 @@ Load `references/design-md-template.md` and write **`DESIGN.md`** filling all **
 - Tokens are **shadcn/ui-compatible CSS variables in OKLCH** (rebrand = change values; plugs into
   shadcn/21st.dev with no theme provider/build step).
 - **Emit light AND dark token sets + system switch** (`:root` + `.dark` + `prefers-color-scheme`) — Law 22.
+  *(If the user used the Theme Studio **Export**, those tokens — both modes + `--font-size-base` — ARE §2; paste them in.)*
 - **Record the page inventory** in §5 (each page type → its layout pattern from `page-patterns.md`).
 - **Re-run the WCAG-AA contrast check** on every foreground/surface pair, **in both modes**, before writing (Laws 7 & 22).
 - The **Agent Guide** (§9) tells every later build step how to obey this file.
