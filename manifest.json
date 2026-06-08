@@ -23,6 +23,7 @@
     { "id": "architect",   "category": "2-development", "purpose": "Decide stack + tools + key decisions (2026 OSS-first); ADRs",              "file": "commands/architect.md" },
     { "id": "structure",   "category": "2-development", "purpose": "Clean folder layout + what each folder is for; prompts/ YAML for AI",      "file": "commands/structure.md" },
     { "id": "design-system", "category": "2-development", "purpose": "(UI products) principles → confirmed sample page → archetype-correct DESIGN.md (shadcn tokens)", "file": "commands/design-system/SKILL.md" },
+    { "id": "frontend-audit", "category": "2-development", "purpose": "(UI products) mechanical enforcement of the design-system laws — real OKLCH→WCAG contrast engine + token/motion/font checks; CI-friendly", "file": "commands/frontend-audit/SKILL.md" },
     { "id": "foundation",  "category": "2-development", "purpose": "Walking skeleton that runs: config, logging, infra, tooling, CI",          "file": "commands/foundation.md" },
     { "id": "contracts",   "category": "2-development", "purpose": "Typed models/schemas/migrations BEFORE logic; agree units across boundaries", "file": "commands/contracts.md" },
     { "id": "build",       "category": "2-development", "purpose": "Per-feature loop with security-in-DoD + per-feature doc + live-path verify", "file": "commands/build.md" },
@@ -44,6 +45,6 @@
     "Each skill self-identifies via YAML frontmatter and references PRINCIPLES.md (single source) — no duplicated rule text.",
     "Spine resolution is PRODUCT.md-first but flexible: existing/brownfield projects fall back to CLAUDE.md/README/docs/AGENTS.md, and code-only projects get a clearly-labelled INFERRED read — never a fabricated baseline (PRINCIPLES.md, §Spine resolution).",
     "The 16-skill journey badge counts the phase chain; /new-component is a bundled UI-suite SUPPORT skill (category ui-suite), not a journey phase — it is shipped here so product-playbook installs fully standalone.",
-    "Single-master rule for the UI suite (/design-system, /new-component, future /frontend-audit): mastered in product-playbook; any copy elsewhere (e.g. product-toolkit) is a one-way synced, read-only copy (playbook → toolkit)."
+    "Single-master rule for the UI suite (/design-system, /new-component, /frontend-audit): mastered in product-playbook; any copy elsewhere (e.g. product-toolkit) is a one-way synced, read-only copy (playbook → toolkit)."
   ]
 }
