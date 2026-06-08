@@ -16,7 +16,7 @@ description: >
 
 > Part of **product-playbook**. Reads the spine (`PRODUCT.md`, or the project's existing docs — resolve
 > per `PRINCIPLES.md` §Spine resolution); writes `DESIGN.md` + `PRODUCT.md#Design`.
-> **Always enforces the quality floor** — load `references/universal-laws.md` (the 19 fixed UI laws) and
+> **Always enforces the quality floor** — load `references/universal-laws.md` (the 20 fixed UI laws) and
 > `PRINCIPLES.md` (*Accessibility (UI)* + 5-step spine). The look changes per product; the laws never do.
 
 > **Lens throughout: a brand-new, non-designer user.** Plain language, **decide FOR them with a clear
@@ -48,7 +48,7 @@ description: >
   - [ ] `DESIGN.md` emitted **only after approval**: 9 sections, **shadcn-compatible OKLCH tokens**, **WCAG-AA
     verified**, fixing the three symptoms (a real type scale → no tiny fonts; a layout/density spec; an
     archetype + Do/Don't list → no generic AI look).
-  - [ ] All **19 universal laws** satisfied (run the principle-gate, Step 6 self-check).
+  - [ ] All **20 universal laws** satisfied (run the principle-gate, Step 6 self-check).
 
 > **Scope of this version: greenfield core loop only.** Retrofit (rewrite existing pages), "make it like
 > <site>" token-extraction, the component-gallery page, and deeper teach-mode are the documented
@@ -116,6 +116,10 @@ Generate **a single, representative screen of THIS product** using the Step-3 fo
   re-skinned with the tokens.
 - **Real content from the product's domain — never lorem** (Law 18).
 - Pick the *most representative* screen (a dashboard's main view, the consumer app's home — not a login).
+- **Preview caveat:** a standalone preview (no stack) **can't import shadcn/21st.dev** — say so; Law 15 governs
+  the real build. Still mirror the `DESIGN.md` tokens exactly.
+- **Confirm on the user's real display:** subtle choices (canvas tint, status-label colour, table alignment)
+  render differently across screens — pick **clearly visible** values and verify on the user's monitor, not just code.
 
 Then **STOP. Show it and confirm.** Describe what they should see, and (if possible) screenshot it and
 compare pixel-level: spacing, weight, exact colours, radius, alignment. **If the user doesn't like it,
@@ -137,11 +141,11 @@ documented follow-up.)*
 
 ## Step 6 — Principle-gate self-check, then handoff
 
-**Before handing off, walk `references/universal-laws.md` and confirm all 19 hold** for the sample +
-`DESIGN.md` — especially: distinctive font (1), body ≥ min (3), one accent (5), AA contrast (7), elevation
-ladder not flat shadows (9), grid spacing (10), archetype layout (11), no `transition: all` (12), all
+**Before handing off, walk `references/universal-laws.md` and confirm all 20 hold** for the sample +
+`DESIGN.md` — especially: distinctive font (1), body ≥ min (3), one accent (5), AA contrast *computed* (7),
+elevation ladder not flat shadows (9), grid spacing (10), archetype layout (11), no `transition: all` (12), all
 interactive states (13), tokens-not-hex (14), reused primitives (15), confirmed via sample (16), real
-content (18). **If any law fails, STOP and fix it** — the floor is non-negotiable.
+content (18), table header/cell alignment + dot-not-pill status (20). **If any law fails, STOP and fix it** — the floor is non-negotiable.
 
 Then write `PRODUCT.md#Design` (principles + archetype + token summary + `DESIGN.md`/sample paths) and hand off:
 

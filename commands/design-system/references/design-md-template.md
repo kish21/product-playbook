@@ -64,6 +64,8 @@ _Archetype: <family> · derived by /design-system on <date> · approved sample: 
 - **Source:** shadcn/ui + 21st.dev primitives, re-skinned with the tokens above.
 - **Key components + their look:** Button (variants <primary/secondary/ghost>, radius, padding) ·
   Input · Card · Table/DataGrid · Nav/Sidebar · Dialog · Toast · Badge/Status.
+- **Table/DataGrid (Law 20):** header alignment matches cells; **numbers right-aligned + tabular-nums**;
+  **dates/text left**; **status = coloured dot + label, not a filled pastel pill.**
 - **States (Law 13):** every interactive element defines hover · focus-visible (visible ring) · active · disabled.
 
 ## 5. Layout  (archetype pattern, Law 11)

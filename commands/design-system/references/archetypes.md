@@ -48,6 +48,11 @@ wins; otherwise the proposal stands.
 - **Colour roles:** near-neutral background, one restrained accent (often a desaturated blue/teal/indigo
   *value you choose*, not tailwind-blue) for primary actions + active nav; status colours semantic.
   Strong reliance on `--muted-foreground` for secondary metadata.
+- **Canvas vs surface:** a **clearly visible** light-grey canvas (L≈0.97) behind **white** cards (L=1.0) —
+  never a sub-1.5% tint (it only shows on good monitors; confirm it on the user's real display).
+- **Status indicators:** coloured **dot + label**, *not* filled pastel pills (filled badges are a generic/AI
+  tell); AA-darken the label text (Law 7).
+- **Tables:** header alignment matches cells; **numbers right + tabular**, **dates/text left** (Law 20).
 - **Layout:** **persistent left sidebar + content area**, dense top bar, data tables, right detail panel.
 - **Depth:** subtle — hairline borders + `--shadow-sm`; flat-ish, separation by border/space not big shadows.
 - **Motion:** minimal, fast (120–180ms), opacity/transform only; no decorative motion.

@@ -36,7 +36,9 @@ future `/frontend-audit` can enforce it mechanically).
    *Why:* the single most common new-user mistake is body copy that's too small to read comfortably.
    *Law:* **app/dashboard body ≥ 16px** (14px floor for genuinely dense data tables, 13px is the
    hard floor for tabular numerals only); **marketing/consumer body ≥ 16–18px**. Never below.
-   *Check:* no text token below the archetype's stated minimum.
+   **Caption tier:** uppercase **labels / overlines / table headers** may be **12px** — the only
+   non-numeral exception, and only when uppercase + letter-spaced.
+   *Check:* no text token below the archetype's minimum, except 12px uppercase captions and 13px numerals.
 
 4. **Clear hierarchy via weight + size + colour, not size alone.**
    *Why:* heading and subtitle at the same weight look flat and undesigned.
@@ -63,7 +65,10 @@ future `/frontend-audit` can enforce it mechanically).
    *Why:* low-contrast grey-on-white is both an accessibility failure and an "undesigned" tell.
    *Law:* body/UI text ≥ **4.5:1**; large text (≥ 24px or 19px bold) and meaningful UI/icons ≥ **3:1**.
    Verify each text-colour-on-its-surface pair — including muted text and text on coloured buttons.
-   *Check:* compute contrast for every `(--x-foreground on --x)` pair; none below threshold.
+   **Compute the ratio — never eyeball or assert it.** Semantic **status text** is the usual failure
+   (warning-amber especially): **darken the label shade** until it passes on its surface; the status
+   **dot/icon may stay brighter** (3:1 graphical). Never ship a colour whose contrast you haven't computed.
+   *Check:* compute contrast for every `(--x-foreground on --x)` pair, incl. status labels; none below threshold.
 
 8. **Prefer OKLCH for colour tokens.**
    *Why:* OKLCH is the 2026 norm (shadcn ships it) — perceptually uniform, predictable lightness for
@@ -143,9 +148,19 @@ future `/frontend-audit` can enforce it mechanically).
     skill's edge is *real apps* (enterprise, dense, existing codebases, disciplined builds).
     *Law:* if the product is a simple marketing/brochure page, say so and point the user to `frontend-design`.
 
+## G. Data tables (fixes "misaligned columns / badge-on-every-row")
+
+20. **A data table's header alignment matches its cell alignment, per column.**
+    *Why:* a left-aligned "DUE" header sitting over right-aligned dates (or vice-versa) reads as broken —
+    one of the most common, most visible table mistakes.
+    *Law:* for every column the `<th>` and `<td>` share **one** alignment. **Numbers right-aligned** with
+    **tabular figures** (`font-variant-numeric: tabular-nums`); **text and dates left-aligned**; IDs/amounts in mono.
+    **Status cells = a coloured dot + label, NOT a filled pastel pill** (the filled-badge default is a generic/AI tell).
+    *Check:* each column's header and cells share an alignment; numeric columns are right + tabular; no filled status pills.
+
 ---
 
 ### The contract, in one line
-**`/design-system` output = these 19 universal laws (the guaranteed floor) + the per-product principles
+**`/design-system` output = these 20 universal laws (the guaranteed floor) + the per-product principles
 derived in Step 1 (the specific look).** The laws make it impossible to ship something generic or
 inaccessible; the principles make it *this* product's own.
