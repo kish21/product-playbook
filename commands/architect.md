@@ -41,7 +41,7 @@ description: >
    Then name the **2–3 design patterns** that fit it and the **2–3 anti-patterns** to avoid (current-year), and how this design honours/avoids them — record the notable ones as ADRs.
 2. **Choose the stack core** (language · framework · datastore · key libs). One-line why each; flag anything paid and its trigger to adopt.
 3. **List every external** and the **adapter interface** it will hide behind (e.g. `LLMProvider`, `Storage`) — *and* its **failure/resilience strategy** (timeouts · retry-transient-only · fallback/circuit-breaker). This is what keeps it swappable, testable, and resilient.
-4. **Set a rough perf/cost budget** where it matters (latency + cost-per-operation), since the stack choice locks it in — or mark **N/A**.
+4. **Set a rough perf/cost budget** where it matters (latency + cost-per-operation), since the stack choice locks it in — or mark **N/A**. **Derive the number from the dominant cost, don't guess it:** name the single most expensive step (a durable fsync, an LLM call, a network hop) and budget from a quick probe of *that* — or, if you can't probe now, write the budget as **explicitly aspirational** and commit to **re-measuring it in `/eval`**. A hard ADR number pulled from a hunch tends to miss by ~2× and erodes trust when `/eval` measures the truth.
 5. **If it's an AI product:** decide **prompt-versioning**, an **eval harness**, and **LLM tracing/observability** as ADRs (don't let them emerge).
 6. **Record 2–4 ADRs** for the load-bearing choices (decision · why · rejected alternative).
 - Give **one recommendation** for the stack; get a yes/no. Keep it plain — explain *why* for a newcomer.
