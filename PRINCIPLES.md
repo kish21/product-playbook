@@ -139,3 +139,4 @@ Phrased generically so they apply to any project:
 - **Tests passing ≠ it works** — verify the path the product *actually runs*, not just the function in isolation; trace callers / cross-file wiring.
 - **Every "done" records HOW it was verified** — evidence, not just "done".
 - **Multi-tenant isolation at DB *and* app (defense-in-depth)** — one missing scope filter is a silent cross-tenant leak.
+- **Policy-as-code: "parses" ≠ "governs"** — a syntactically-valid but ruleless policy (comments-only / zero statements) silently degrades to the engine's default (deny-all, or worse allow-all); load-validate that it defines ≥1 rule and fail-loud. Build the authz query from **escaped identifiers + structured request/entity objects**, never string-interpolated into policy text — a crafted name (tool/resource/role) is an injection point like SQL. Default-deny; any eval error / no-decision → **deny**.

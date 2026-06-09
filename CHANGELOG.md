@@ -3,6 +3,16 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.1.1] — 2026-06-09
+
+### Added
+- **Lesson: policy-as-code "parses" ≠ "governs"** (`PRINCIPLES.md` §Lessons baked in) — a
+  syntactically-valid but ruleless authorization policy silently degrades to the engine default
+  (deny-all / allow-all); load-validate ≥1 rule and fail-loud, build the authz query from escaped
+  identifiers + structured request/entity objects (a crafted tool/role name is an injection point
+  like SQL), and default-deny on any eval error / no-decision. Generalised from a Cedar RBAC adapter
+  build (GateKeeperAI M1.2).
+
 ## [1.1.0] — 2026-06-07
 
 ### Added
