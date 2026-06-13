@@ -3,6 +3,23 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.2.1] — 2026-06-13
+
+Refinements to `/design-system` from a six-archetype test pass — additive, backward-compatible.
+
+### Changed
+- **Theme Studio — Mode toggle syncs to the page's real mode on load** (`references/theme-studio.md`).
+  It no longer hard-codes "Light" active; a **dark-default** product (ships `<html class="dark">`) opens on
+  **Dark**, a light one on **Light**, a class-less one on **System**. Note added: keep samples token-only so
+  the Light switch actually adapts (a stray hardcoded colour ghosts in light mode).
+- **Craft layer — "shared grammar, distinct voice"** (`references/craft.md`, `SKILL.md`). The signature
+  *moves* are reusable across an archetype, but the *voice* (typeface pairing, palette, texture, radius) must
+  be derived per product and never lifted from one exemplar — so two Cinematic products look like two brands,
+  not clones. Added an explicit gut-check + a Step-6 self-check clause.
+- **Craft layer — expressive pages earn ≥1 signature moment** (`references/craft.md`, `SKILL.md`). An
+  expressive (Bucket B) page with no signature gesture is under-built; restraint (Bucket A) families
+  deliberately ship none.
+
 ## [1.2.0] — 2026-06-13
 
 Motion gets a discipline: which motion an archetype may use, and the concrete craft to wire it well.
@@ -75,5 +92,6 @@ First public release.
   and plugin (`.claude-plugin/` → `/plugin install`).
 - `manifest.json`, `evals/evals.json` (a behaviour check per skill), and an `install.sh` installer.
 
+[1.2.1]: https://github.com/kish21/product-playbook/releases/tag/v1.2.1
 [1.2.0]: https://github.com/kish21/product-playbook/releases/tag/v1.2.0
 [1.0.0]: https://github.com/kish21/product-playbook/releases/tag/v1.0.0

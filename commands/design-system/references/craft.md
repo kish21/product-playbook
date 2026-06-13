@@ -11,6 +11,20 @@
 > Every Tier ≥ 1 snippet below already carries its **`prefers-reduced-motion` static fallback** and a
 > **lazy-load**, per Law 12. **Do not strip them**, and never offer a Tier ≥ 1 move to a Tier-0 family.
 
+## Two rules that govern this whole file
+
+1. **Shared grammar, distinct voice.** The signature *moves* below (line-mask, scrub parallax, count-up,
+   spring-stagger, glass/WebGL hero) are the reusable **grammar** of an archetype. The **voice** — typeface
+   pairing, palette, texture, radius — is **derived for THIS product in Step 3**, **never lifted from one
+   exemplar.** Two Cinematic products must share the motion grammar and still look like **two different
+   brands**. *Gut-check:* if the page resembles a specific site you've seen (same fonts + same texture),
+   change the voice — that's a clone, not a craft. craft.md owns the *moves*; `archetypes.md` + Step 3 own
+   the *look*.
+2. **Expressive pages earn at least ONE signature moment.** An expressive family (Bucket B) that ships a
+   page with *no* signature gesture is under-built ("safe/flat") — pick at least one within its tier (a
+   scroll-reveal, a full-bleed break, a hero gesture). **Restraint families (Bucket A) deliberately ship
+   none** — for them, zero decorative motion *is* the signature.
+
 ---
 
 ## Archetype → bucket index  (the routing table — no family falls through)
