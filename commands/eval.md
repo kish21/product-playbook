@@ -36,7 +36,7 @@ description: >
 
 ## Step 2 — Evaluate
 1. **Define "good":** the metric(s) or rubric that reflect the goal (e.g. accuracy, groundedness, latency, task success). For AI, compose **`/enterprise-ai-audit`**.
-2. **Measure** against a representative set; record the numbers + how they were produced (so they're reproducible).
+2. **Measure** against a representative set; record the numbers + how they were produced (so they're reproducible). **Re-measuring an aspirational overhead/latency budget?** Gate the **isolated** layer's delta — *not* the end-to-end number a noisy carried baseline (an fsync tail, GC, a slow neighbour) swamps; a **negative or wildly variable p95** is the tell you're measuring noise, not the layer (a category error). And **don't certify a single-digit-ms budget on a shared/dev box** — re-measure on a dedicated target (Linux/SSD CI) before quoting a canonical number. (This is the budget-*checking* half of `/architect`'s "set it aspirational + re-measure here".)
 3. **Separate failures:** tag operational failures distinctly; report a clean quality number + a separate failure count.
 4. **Interpret honestly:** what's solid, what's weak, what's an artifact vs a real gap.
 
