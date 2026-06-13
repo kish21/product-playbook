@@ -39,6 +39,11 @@ wins; otherwise the proposal stands.
 > Denser product → smaller ratio (1.2). Marketing → larger ratio (1.25–1.333) for big display jumps.
 > **Font pairings avoid Inter/Roboto/Arial as the *primary* (Law 1).** All listed faces are free/OSS
 > unless noted. Mono is for data/IDs/code.
+>
+> **Motion ceiling = the max tier this family may use** (Law 12's 4-tier ladder): **Tier 0** CSS
+> transitions/keyframes · **Tier 1** Framer Motion · **Tier 2** GSAP + ScrollTrigger · **Tier 3** Three.js/
+> WebGL. Every tier still obeys the Tier ≥ 1 guardrails (reduced-motion fallback, lazy-load, 60fps,
+> earn-its-place). Don't exceed the ceiling without re-confirming.
 
 ### 1. Data-Dense Pro  — *enterprise dashboards, admin, analytics, B2B tools*
 - **Use when:** scan-heavy, expert users, many hours/day. (This RFP platform is here.)
@@ -58,7 +63,7 @@ wins; otherwise the proposal stands.
   (label:value rows, lead with vendor + amount + status); right detail panel → **bottom Sheet**; KPI row → **2-col
   then 1-col reflow**. Phone leads with *overdue / the action*; secondary columns hidden or tap-to-reveal; tap targets ≥44px.
 - **Depth:** subtle — hairline borders + `--shadow-sm`; flat-ish, separation by border/space not big shadows.
-- **Motion:** minimal, fast (120–180ms), opacity/transform only; no decorative motion.
+- **Motion:** minimal, fast (120–180ms), opacity/transform only; no decorative motion. **Motion ceiling: Tier 0.**
 - **Brands:** Linear, Stripe Dashboard, Carbon (IBM), Vercel dashboard, Datadog.
 
 ### 2. Editorial Minimalism  — *marketing sites, docs, premium SaaS landing, content-forward*
@@ -70,7 +75,9 @@ wins; otherwise the proposal stands.
 - **Colour roles:** off-white/warm-neutral base, near-black ink, ONE quiet accent; lots of restraint.
 - **Layout:** single centred reading column (≈ 640–720px) or simple top-nav; big hero type, few elements.
 - **Depth:** mostly flat; subtle borders; shadow only on true overlays.
-- **Motion:** gentle fade/slide on scroll (transform/opacity), 200–300ms.
+- **Motion:** gentle fade/slide on scroll (transform/opacity), 200–300ms. **Motion ceiling: Tier 2** —
+  GSAP/ScrollTrigger is in scope for tasteful scroll-reveal/parallax on a content-forward marketing site
+  (behind reduced-motion + lazy-load); keep it gentle, not a carnival.
 - **Brands:** Stripe (marketing), Vercel, Notion, Linear (site), Apple editorial.
 
 ### 3. Terminal-Core / Developer  — *dev tools, infra, CLIs-with-a-UI, technical products*
@@ -83,7 +90,7 @@ wins; otherwise the proposal stands.
   used sparingly; semantic status.
 - **Layout:** sidebar or command-palette-centric; monospace tables, log panes, keyboard-first.
 - **Depth:** flat, crisp borders; minimal shadow.
-- **Motion:** snappy (100–150ms), almost utilitarian.
+- **Motion:** snappy (100–150ms), almost utilitarian. **Motion ceiling: Tier 0.**
 - **Brands:** Vercel, Railway, Warp, Supabase, GitHub dark.
 
 ### 4. Warm Editorial / Humanist  — *media, creator, community, lifestyle SaaS*
@@ -94,7 +101,8 @@ wins; otherwise the proposal stands.
 - **Colour roles:** warm neutrals (cream/sand), an earthy or saturated-warm accent; tactile.
 - **Layout:** editorial grid, generous imagery, top-nav.
 - **Depth:** soft; rounded corners (larger `--radius`); gentle shadows.
-- **Motion:** friendly ease, 200–300ms.
+- **Motion:** friendly ease, 200–300ms. **Motion ceiling: Tier 2** — GSAP scroll-reveal is OK for an
+  editorial/story layout (behind reduced-motion + lazy-load).
 - **Brands:** Medium, Substack, Ghost, Airbnb-ish warmth.
 
 ### 5. Playful Consumer  — *consumer apps, growth/gamified, B2C onboarding*
@@ -105,7 +113,8 @@ wins; otherwise the proposal stands.
 - **Colour roles:** one vivid brand + a friendly secondary; rounded, energetic; still ONE dominant (Law 5).
 - **Layout:** top-nav or bottom-tab (mobile), big touch targets, cards, illustration.
 - **Depth:** rounded, soft colourful shadows (accent-tinted), bouncy.
-- **Motion:** lively spring/ease, 250–350ms (still transform/opacity).
+- **Motion:** lively spring/ease, 250–350ms (still transform/opacity). **Motion ceiling: Tier 1** — Framer
+  Motion for delightful staggered/gesture micro-interactions (behind reduced-motion).
 - **Brands:** Duolingo, Gumroad, Cash App, Headspace.
 
 ### 6. Glass / Soft Depth  — *premium consumer, AI products, "Apple-like"*
@@ -115,7 +124,9 @@ wins; otherwise the proposal stands.
 - **Colour roles:** layered translucency (backdrop-blur), soft gradients used *with restraint*, one accent.
 - **Layout:** floating panels over a soft background; top-nav or sidebar.
 - **Depth:** the star — frosted glass, layered `--shadow-lg`, subtle gradient borders.
-- **Motion:** smooth, 250–350ms, springy.
+- **Motion:** smooth, 250–350ms, springy. **Motion ceiling: Tier 3** — a restrained WebGL/3D hero or
+  shader accent fits the "premium/futuristic" feel, but only as a hero moment, behind reduced-motion +
+  lazy-load; the app chrome stays Tier 0–1.
 - **Brands:** Arc, Raycast, Apple, Linear (accents).
 
 ### 7. Neo-Brutalist / Bold  — *creator tools, bold brands, statement products*
@@ -125,7 +136,8 @@ wins; otherwise the proposal stands.
 - **Colour roles:** high-contrast, flat saturated blocks, hard borders, visible offsets.
 - **Layout:** asymmetric blocks, thick borders, hard shadows (offset, not blur).
 - **Depth:** intentional flat hard-shadow (`4px 4px 0`), no soft blur.
-- **Motion:** snappy, deliberate.
+- **Motion:** snappy, deliberate. **Motion ceiling: Tier 2** — a bold statement/marketing build can use
+  GSAP scroll for deliberate, hard-edged motion (behind reduced-motion + lazy-load); app chrome stays Tier 0.
 - **Brands:** Gumroad (rebrand), Figma community, indie tools.
 
 ### 8. Calm Authority / Trust  — *fintech, healthcare, gov, compliance, insurance*
@@ -136,7 +148,8 @@ wins; otherwise the proposal stands.
   high legibility; semantic status carefully accessible.
 - **Layout:** clean sidebar or top-nav; lots of structure, clear sectioning, evidence/figures foregrounded.
 - **Depth:** subtle, orderly; hairline borders + `--shadow-sm`.
-- **Motion:** calm, minimal, 150–200ms.
+- **Motion:** calm, minimal, 150–200ms. **Motion ceiling: Tier 0** — trust products stay restrained; flashy
+  motion reads as unserious here.
 - **Brands:** Mercury, Wise, Ramp, Stripe, healthcare dashboards.
 
 ### 9. Bold Brand / Marketing Splash  — *simple promo / landing / brochure*
@@ -144,6 +157,10 @@ wins; otherwise the proposal stands.
   **point the user to Anthropic's `frontend-design`** (277k installs, tuned for exactly this). Use this
   family only when the marketing page must match a real app's design system.
 - **Base body:** **18px+**. **Scale 1.333–1.618** (dramatic display).
+- **Motion ceiling: Tier 3** — this is one of the two families where a GSAP scroll narrative or a Three.js/
+  WebGL hero is genuinely *in scope* (and nowhere else outside Cinematic/Glass). It must still sit behind
+  `prefers-reduced-motion` with a static fallback, be lazy-loaded, hold 60fps, and serve the launch story —
+  not decorate. A flashy hero that janks or has no reduced-motion path is a fail, not a win.
 - **Brands:** product launch pages, campaign microsites.
 
 ### 10. Cinematic / Media-Forward  — *video, streaming, creative tools, media review, AI-video*
@@ -154,7 +171,10 @@ wins; otherwise the proposal stands.
   with **dark text on the bright accent** for AA (white-on-bright fails); semantic status. (Law 22: still provide a light alternate.)
 - **Layout:** sidebar + **media grid** (auto-fill 16:9 thumbnail cards with a duration badge) or a player + timeline review screen.
 - **Depth:** flat dark; shadow on hover/overlays; restrained gradient accents.
-- **Motion:** smooth 160–250ms, transform/opacity; gentle card lift on hover.
+- **Motion:** smooth 160–250ms, transform/opacity; gentle card lift on hover. **Motion ceiling: Tier 3** —
+  the other family (with Marketing-Splash/Glass) where a GSAP scroll sequence or a Three.js/WebGL hero is
+  in scope, for a landing/showcase moment. The dense review/player chrome (grids, timelines) stays Tier 0;
+  Tier 2–3 is the marketing/hero surface only, behind reduced-motion + lazy-load + 60fps.
 - **Brands:** Frame.io, Vimeo, RunwayML, Mux, Pika.
 
 ### 11. E-commerce / Retail  — *storefronts, product catalogs, marketplaces, checkout*
@@ -163,7 +183,7 @@ wins; otherwise the proposal stands.
 - **Type pairing:** display — **General Sans** / **Cabinet Grotesk**; body — **Inter** (OK as body behind the distinctive display, Law 1) / **General Sans**.
 - **Colour roles:** clean neutral base so product imagery pops; ONE confident brand accent for CTA / price / cart; sale/stock as **semantic** status (not decorative).
 - **Layout:** top-nav + search + cart; **product grid** (auto-fill cards: image · title · price · rating) → PDP (gallery + buy box) → **stepped checkout**.
-- **Depth:** light cards, clear product hover-lift; price + primary CTA are the loudest elements. **Motion:** quick add-to-cart feedback, image hover (transform/opacity).
+- **Depth:** light cards, clear product hover-lift; price + primary CTA are the loudest elements. **Motion:** quick add-to-cart feedback, image hover (transform/opacity). **Motion ceiling: Tier 0** (a 3D product viewer, if the catalog needs one, is an isolated component decision — not a site-wide license).
 - **Responsive:** grid auto-fills 4→2→1; nav → hamburger; filters → drawer/sheet; **sticky buy-bar** on mobile PDP.
 - **Brands:** Shopify, Stripe checkout, Allbirds, Glossier.
 
@@ -172,7 +192,7 @@ wins; otherwise the proposal stands.
 - **Base body:** 15–16px (comfortable reading). **Scale 1.2.**
 - **Type pairing:** UI — **Geist** (display) + **Inter** body; **mono** for code / tool output.
 - **Colour roles:** calm neutral canvas; ONE accent for the send action + assistant emphasis; user-vs-assistant distinction by **surface**, not loud colour.
-- **Layout:** **message stream** + sticky composer; optional left thread list; **inline tool/agent cards**. **Reuse 21st.dev agent-UI primitives** (chat shell, tool-call cards, streaming markdown). **Depth:** flat; the composer is the one elevated element. **Motion:** streaming text, gentle message-in.
+- **Layout:** **message stream** + sticky composer; optional left thread list; **inline tool/agent cards**. **Reuse 21st.dev agent-UI primitives** (chat shell, tool-call cards, streaming markdown). **Depth:** flat; the composer is the one elevated element. **Motion:** streaming text, gentle message-in. **Motion ceiling: Tier 0.**
 - **Responsive:** thread list → drawer; full-width turns on mobile; composer pinned to bottom (safe-area).
 - **Brands:** ChatGPT, Claude, Perplexity, Linear agent UI.
 
@@ -181,7 +201,7 @@ wins; otherwise the proposal stands.
 - **Base body:** 15–16px. **Scale 1.2–1.25.**
 - **Type pairing:** **Plus Jakarta Sans** / **General Sans** — friendly, not loud.
 - **Colour roles:** neutral canvas so content + avatars lead; ONE accent for the primary action (post/follow) + active nav; like/notify **semantic**.
-- **Layout:** **single centred feed column** (≈600px) + optional desktop side rails; **bottom-tab nav on mobile**, top-nav desktop; composer; profile. **Depth:** flat cards/dividers; media is the texture. **Motion:** like/tap micro-feedback, optimistic UI.
+- **Layout:** **single centred feed column** (≈600px) + optional desktop side rails; **bottom-tab nav on mobile**, top-nav desktop; composer; profile. **Depth:** flat cards/dividers; media is the texture. **Motion:** like/tap micro-feedback, optimistic UI. **Motion ceiling: Tier 1** (Framer Motion for gesture/optimistic feedback; behind reduced-motion).
 - **Responsive:** desktop 3-col (nav · feed · rail) → mobile single feed + bottom tabs; rails drop first.
 - **Brands:** Instagram, Bluesky, Threads, Reddit.
 
@@ -199,7 +219,8 @@ wins; otherwise the proposal stands.
 4. **Grid + density** → spacing scale (4 or 8px base) and component padding (Law 10).
 5. **Depth ladder** → `--shadow-sm/-md/-lg` + `--radius` for the family (Law 9).
 6. **Layout pattern** → the structure of the sample page (Law 11).
-7. **Motion** → duration/easing tokens; transform/opacity only (Law 12).
+7. **Motion** → duration/easing tokens; transform/opacity only (Law 12) **+ the family's motion ceiling**
+   (which tier/libraries are allowed: CSS-only → Framer → GSAP → Three.js). Record it in `DESIGN.md` §7.
 8. **Responsive** → mobile-first; the family's collapse pattern + breakpoints (mobile <640 · tablet 640–1024 ·
    desktop ≥1024); container queries for components, fluid type via `clamp()` (Law 21).
 

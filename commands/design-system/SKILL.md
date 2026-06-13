@@ -111,7 +111,8 @@ the popular skills omit, and the fix for "fonts too small / artsy-but-wrong":*
   ~1.2 ratio, 4–8px grid; consumer 16–18px, 1.25–1.333, bolder) — Law 3.
 - **Colour roles** (one dominant + one accent; semantic status) in **OKLCH**, **WCAG-AA verified** — Laws 5–8.
 - **Spacing / density**, **depth ladder** (`--shadow-sm/-lg`, `--radius`), **layout pattern**, **motion**
-  defaults (transform/opacity only) — Laws 9–12.
+  defaults (transform/opacity only) + the archetype's **motion tier/library ceiling** (CSS → Framer → GSAP →
+  Three.js; `archetypes.md`) — Laws 9–12.
 - **Light + dark by default (Law 22):** derive both token sets now (dark is not inverted light — give it its own
   AA-checked values); the archetype's natural mode is the default, the other is the alternate.
 - **Brand input (optional — decide-for-them otherwise):** if the user has a brand — colours, a logo, a marketing
@@ -177,7 +178,8 @@ documented follow-up.)*
 
 **Before handing off, walk `references/universal-laws.md` and confirm all 22 hold** for the sample +
 `DESIGN.md` — especially: distinctive font (1), body ≥ min (3), one accent (5), AA contrast *computed* (7),
-elevation ladder not flat shadows (9), grid spacing (10), archetype layout (11), no `transition: all` (12), all
+elevation ladder not flat shadows (9), grid spacing (10), archetype layout (11), no `transition: all` +
+motion tier within the archetype ceiling + a `prefers-reduced-motion` fallback for any Tier ≥ 1 motion (12), all
 interactive states (13), tokens-not-hex (14), reused primitives (15), confirmed via sample (16), real
 content (18), table header/cell alignment + dot-not-pill status (20), mobile-first responsive at 3 widths (21),
 light+dark+system shipped (22). **If any law fails, STOP and fix it** — the floor is non-negotiable.

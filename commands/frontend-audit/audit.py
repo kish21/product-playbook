@@ -129,6 +129,31 @@ def audit_text(path, text, findings):
     for m in re.finditer(r"transition:\s*all|transition-all", text):
         findings.append(("ERROR", "Law12-transition-all", path, "transition: all (animate transform/opacity only)"))
 
+    # Law 12 (Tier >= 1) — a heavy-motion library must ship a prefers-reduced-motion fallback (a11y)
+    _heavy = re.search(r"\b(?:gsap|ScrollTrigger|@react-three|react-three|three/examples"
+                       r"|framer-motion|lottie)\b|from\s+['\"]three['\"]|from\s+['\"]motion/react['\"]"
+                       r"|require\(\s*['\"]three['\"]\s*\)", text)
+    if _heavy and "prefers-reduced-motion" not in text:
+        findings.append(("WARN", "Law12-reduced-motion", path,
+                         f"heavy-motion lib ('{_heavy.group(0)}') with no prefers-reduced-motion guard "
+                         "(Tier >=1 needs a static fallback)"))
+
+    # Law 12 — transitions should not animate layout/paint properties (jank); transform/opacity only
+    for m in re.finditer(r"transition(?:-property)?:\s*([^;{}]+)", text):
+        props = m.group(1).lower()
+        if re.search(r"\b(width|height|top|left|right|bottom|margin|padding|background|box-shadow)\b", props):
+            findings.append(("WARN", "Law12-layout-anim", path,
+                             f"transition targets a layout/paint property ({m.group(1).strip()[:40]}) "
+                             "- animate transform/opacity instead"))
+
+    # Law 12 — overlong durations drag (unless an intentional scroll-driven effect)
+    for m in re.finditer(r"(?:transition(?:-duration)?|animation(?:-duration)?):[^;{}]*?([0-9.]+)(ms|s)\b", text):
+        ms = float(m.group(1)) * (1000 if m.group(2) == "s" else 1)
+        if ms > 1000:
+            findings.append(("WARN", "Law12-long-duration", path,
+                             f"animation duration ~{ms:.0f}ms > 1000ms - confirm it's an intentional "
+                             "scroll-driven effect, not motion that drags"))
+
     # Law 1 — the DISPLAY/identity face must be distinctive (ERROR if generic); a generic BODY face is a WARN
     # (Inter/Roboto are fine as the body/UI face when paired with a distinctive --font-display).
     for m in re.finditer(r"--font-(sans|display)\s*:\s*([^;,]+)", text):

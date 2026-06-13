@@ -107,6 +107,28 @@ reasoning *leads*; the laws *catch*. Each law has a one-line **why** (teach-mode
     an ease. Respect `prefers-reduced-motion`. Motion must *earn its place* (feedback/continuity), not decorate.
     *Check:* no `transition: all` / `transition-all`; transition properties are transform/opacity.
 
+    **When heavier motion is justified — the 4-tier ladder (start at Tier 0, escalate only with reason):**
+    - **Tier 0 — CSS transitions/keyframes (default, ~90% of products).** Hover/focus/active feedback,
+      overlay enter/exit, scroll-reveal via Intersection Observer. `transform`/`opacity`, 150–300ms. *This
+      law, as above.*
+    - **Tier 1 — Framer Motion (`motion/react`).** Orchestrated/staggered sequences, layout & shared-element
+      transitions, gesture/drag feedback in React — when choreography exceeds what CSS expresses cleanly.
+    - **Tier 2 — GSAP (+ ScrollTrigger).** Scroll-driven storytelling: pinned/parallax sections, timelines
+      where scroll progress *drives* the animation. Marketing / editorial / cinematic pages.
+    - **Tier 3 — Three.js / WebGL (React Three Fiber).** A genuine 3D/shader **hero moment** — highest cost
+      (bundle, perf, complexity). **Cinematic / Marketing-Splash / Glass archetypes ONLY** — never
+      dashboards, data-dense, forms, conversational, or social feeds.
+
+    **Guardrails for every Tier ≥ 1 (non-negotiable):** wrap behind `@media (prefers-reduced-motion: reduce)`
+    with a static fallback; **lazy-load** the library (keep it out of the critical bundle); hold a 60fps /
+    no-main-thread-jank budget; and the motion must serve the product's vision, not decorate — "earn its
+    place" still rules. Each archetype declares its **motion ceiling** (the max tier it may use) in
+    `archetypes.md`; do not exceed it without re-confirming with the user.
+    *Check (Tier ≥ 1):* a heavy-motion library (`gsap`/`ScrollTrigger`/`three`/`@react-three`/`framer-motion`/
+    `motion/react`/`lottie`) implies a `prefers-reduced-motion` guard is present; transitions never target
+    layout/paint properties (width/height/top/left/margin/box-shadow/background); no duration > ~1000ms
+    outside an intentional scroll-driven effect.
+
 13. **Every interactive element has hover + focus-visible + active states.**
     *Why:* missing states (especially `:focus-visible`) is both an a11y failure and an "undesigned" tell.
     *Law:* buttons/links/inputs define hover, **focus-visible** (keyboard), and active/pressed; disabled
