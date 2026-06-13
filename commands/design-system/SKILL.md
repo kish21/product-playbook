@@ -135,7 +135,9 @@ Generate **a single, representative screen of THIS product** using the Step-3 fo
   **never stubbed in a comment.** Ship the gesture *with* its `prefers-reduced-motion` fallback + lazy-load
   attached, at/below the family's `archetypes.md` ceiling. The non-motion craft (display type, radius,
   full-bleed structure, italic-serif accent) matters as much as the motion — a generic layout sinks an
-  expressive page even with perfect animation.
+  expressive page even with perfect animation. **Shared grammar, distinct voice (craft.md):** the *moves*
+  are reusable, but derive the *voice* (fonts/palette/texture) **for this product** — never clone one
+  exemplar's identity. Every **expressive** page earns **≥1 signature moment**; **restraint** pages earn none.
 - **Note the page inventory first** (which page TYPES this app needs — auth, dashboard, billing, settings, landing…
   from the vision; see `references/page-patterns.md`), then build the *most representative* one (a dashboard's main
   view, the consumer app's home — not a login). The other pages' patterns get recorded in `DESIGN.md` §5 — we don't build them all now.
@@ -190,8 +192,9 @@ documented follow-up.)*
 `DESIGN.md` — especially: distinctive font (1), body ≥ min (3), one accent (5), AA contrast *computed* (7),
 elevation ladder not flat shadows (9), grid spacing (10), archetype layout (11), no `transition: all` +
 motion tier within the archetype ceiling + a `prefers-reduced-motion` fallback for any Tier ≥ 1 motion + the
-**archetype's craft signature present** — expressive families ship the real wired move (not a stub), restraint
-families have NO decorative/scroll motion (`craft.md`) (12), all
+**archetype's craft signature present** — expressive families ship the real wired move (≥1 signature moment, not a
+stub) in a voice derived for THIS product (not a clone of an exemplar), restraint families have NO decorative/scroll
+motion (`craft.md`) (12), all
 interactive states (13), tokens-not-hex (14), reused primitives (15), confirmed via sample (16), real
 content (18), table header/cell alignment + dot-not-pill status (20), mobile-first responsive at 3 widths (21),
 light+dark+system shipped (22). **If any law fails, STOP and fix it** — the floor is non-negotiable.

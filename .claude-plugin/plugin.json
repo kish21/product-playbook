@@ -1,7 +1,7 @@
 {
   "name": "product-playbook",
   "description": "A phased, principle-driven product-building skill set: vision → scope → plan → architect → structure → foundation → contracts → build → dev-check → test → eval → ship → learn, plus /drift-check and a guided /playbook entry-point. Sequential-but-standalone, anti-scope-creep, with hard-won engineering principles verified at each gate.",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "author": { "name": "kish21" },
   "homepage": "https://github.com/kish21/product-playbook",
   "repository": "https://github.com/kish21/product-playbook",
