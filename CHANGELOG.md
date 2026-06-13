@@ -3,6 +3,32 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] — 2026-06-13
+
+Motion gets a discipline: which motion an archetype may use, and the concrete craft to wire it well.
+
+### Added
+- **Motion tier ladder** (`/design-system` Law 12) — turns the motion law from a pure constraint into a
+  gated 4-tier ladder: **Tier 0** CSS transitions · **Tier 1** Framer Motion · **Tier 2** GSAP +
+  ScrollTrigger · **Tier 3** Three.js / WebGL. Each archetype declares a **motion ceiling** in
+  `archetypes.md`; Tier 3 (3D/WebGL hero) is sanctioned only for Cinematic / Marketing-Splash / Glass.
+  Every Tier ≥ 1 effect must sit behind `prefers-reduced-motion` with a static fallback, be lazy-loaded,
+  and hold a 60fps budget — the "earn its place" restraint floor is unchanged.
+- **Craft layer** (`design-system/references/craft.md`, loaded at Step 4) — the per-archetype *signature
+  moves* that make a page read as hand-crafted, split into **restraint** families (the craft is precision;
+  an explicit "no scroll theatrics" list) and **expressive** families (real, wired GSAP/Framer signatures —
+  line-mask reveal, scrub parallax, count-up, spring-stagger, glass/WebGL hero — never stubbed). Snippets
+  ship their reduced-motion guard + lazy-load inline.
+- **DESIGN.md §7 motion fields** — motion tier, scroll/hero motion, reduced-motion fallback, and perf budget
+  are now recorded so the chosen signature survives into the real build.
+
+### Changed
+- `/frontend-audit` (`audit.py`) gains three motion checks (WARN): `Law12-reduced-motion` (heavy-motion lib
+  with no reduced-motion guard — accepts the media query *or* an idiomatic `useReducedMotion` hook),
+  `Law12-layout-anim` (transition targets a layout/paint property), `Law12-long-duration` (CSS animation
+  > 1000ms). They fold into the existing `motion` roll-up; reference docs that *name* the libraries do not
+  false-positive.
+
 ## [1.1.1] — 2026-06-09
 
 ### Added
@@ -49,4 +75,5 @@ First public release.
   and plugin (`.claude-plugin/` → `/plugin install`).
 - `manifest.json`, `evals/evals.json` (a behaviour check per skill), and an `install.sh` installer.
 
+[1.2.0]: https://github.com/kish21/product-playbook/releases/tag/v1.2.0
 [1.0.0]: https://github.com/kish21/product-playbook/releases/tag/v1.0.0

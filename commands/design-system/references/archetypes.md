@@ -44,6 +44,10 @@ wins; otherwise the proposal stands.
 > transitions/keyframes · **Tier 1** Framer Motion · **Tier 2** GSAP + ScrollTrigger · **Tier 3** Three.js/
 > WebGL. Every tier still obeys the Tier ≥ 1 guardrails (reduced-motion fallback, lazy-load, 60fps,
 > earn-its-place). Don't exceed the ceiling without re-confirming.
+>
+> **Signature moves → `references/craft.md`** — the *concrete* per-family craft gesture (or, for restraint
+> families, the deliberate *absence* of motion) lives there; loaded at Step 4 build-time. This file picks
+> the family + ceiling; `craft.md` says how to make it feel hand-crafted.
 
 ### 1. Data-Dense Pro  — *enterprise dashboards, admin, analytics, B2B tools*
 - **Use when:** scan-heavy, expert users, many hours/day. (This RFP platform is here.)

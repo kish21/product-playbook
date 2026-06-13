@@ -133,7 +133,11 @@ def audit_text(path, text, findings):
     _heavy = re.search(r"\b(?:gsap|ScrollTrigger|@react-three|react-three|three/examples"
                        r"|framer-motion|lottie)\b|from\s+['\"]three['\"]|from\s+['\"]motion/react['\"]"
                        r"|require\(\s*['\"]three['\"]\s*\)", text)
-    if _heavy and "prefers-reduced-motion" not in text:
+    # A valid guard is the media query OR an idiomatic reduced-motion hook (Framer `useReducedMotion`,
+    # etc.) — accept both so correct Framer/React components don't false-positive.
+    _guarded = ("prefers-reduced-motion" in text
+                or re.search(r"\b(?:use|get)?[Pp]refers[Rr]educed[Mm]otion\b|\buseReducedMotion\b", text))
+    if _heavy and not _guarded:
         findings.append(("WARN", "Law12-reduced-motion", path,
                          f"heavy-motion lib ('{_heavy.group(0)}') with no prefers-reduced-motion guard "
                          "(Tier >=1 needs a static fallback)"))
