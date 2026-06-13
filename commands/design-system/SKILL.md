@@ -40,7 +40,7 @@ description: >
 ## Contract
 - **Purpose:** principles → confirmed sample page → a concrete, archetype-correct `DESIGN.md` harness.
 - **Reads:** spine `#Vision`/`#Scope`/`#Architecture` (or discovers the vision if there's none);
-  `references/universal-laws.md`, `references/archetypes.md`, `references/design-md-template.md`, `references/page-patterns.md`, `references/palettes.md`, `references/theme-studio.md`.
+  `references/universal-laws.md`, `references/archetypes.md`, `references/design-md-template.md`, `references/page-patterns.md`, `references/palettes.md`, `references/craft.md`, `references/theme-studio.md`.
 - **Writes:** `DESIGN.md` (9-section standard, shadcn CSS-variable tokens) · one approved **sample page**
   · `PRODUCT.md#Design` (principles + archetype + token summary + paths).
 - **Exit criteria (the gate):**
@@ -128,6 +128,14 @@ Generate **a single, representative screen of THIS product** using the Step-3 fo
 - **Reuse a shadcn/ui + 21st.dev primitive or two** (Law 15 — never hand-roll buttons/inputs/modals),
   re-skinned with the tokens.
 - **Real content from the product's domain — never lorem** (Law 18).
+- **Apply the craft layer (load `references/craft.md`).** Route the confirmed archetype through its index:
+  **restraint families (Bucket A) get the precision signature and NO decorative motion** — adding scroll
+  reveals/parallax/count-ups here breaks trust; **expressive families (Bucket B) WIRE THE REAL signature
+  move(s)** for their tier — line-mask reveal, scrub parallax, count-up, spring-stagger, glass/WebGL hero —
+  **never stubbed in a comment.** Ship the gesture *with* its `prefers-reduced-motion` fallback + lazy-load
+  attached, at/below the family's `archetypes.md` ceiling. The non-motion craft (display type, radius,
+  full-bleed structure, italic-serif accent) matters as much as the motion — a generic layout sinks an
+  expressive page even with perfect animation.
 - **Note the page inventory first** (which page TYPES this app needs — auth, dashboard, billing, settings, landing…
   from the vision; see `references/page-patterns.md`), then build the *most representative* one (a dashboard's main
   view, the consumer app's home — not a login). The other pages' patterns get recorded in `DESIGN.md` §5 — we don't build them all now.
@@ -136,7 +144,9 @@ Generate **a single, representative screen of THIS product** using the Step-3 fo
   detail → sheet, KPIs reflow), tap targets ≥44px — *then* scale up to tablet/desktop. Never a fixed desktop
   grid that can't collapse.
 - **Preview caveat:** a standalone preview (no stack) **can't import shadcn/21st.dev** — say so; Law 15 governs
-  the real build. Still mirror the `DESIGN.md` tokens exactly.
+  the real build. Still mirror the `DESIGN.md` tokens exactly. **For an expressive archetype the preview
+  still ships real motion** — load GSAP/Framer from a CDN (the wrapper in `craft.md`), gated behind
+  `prefers-reduced-motion`; do not fall back to a comment stub.
 - **Confirm on the user's real display:** subtle choices (canvas tint, status-label colour, table alignment)
   render differently across screens — pick **clearly visible** values and verify on the user's monitor, not just code.
 - **Ship it as an INTERACTIVE sample (the visualization moat):** inject `references/theme-studio.md` (the drop-in editor)
@@ -179,7 +189,9 @@ documented follow-up.)*
 **Before handing off, walk `references/universal-laws.md` and confirm all 22 hold** for the sample +
 `DESIGN.md` — especially: distinctive font (1), body ≥ min (3), one accent (5), AA contrast *computed* (7),
 elevation ladder not flat shadows (9), grid spacing (10), archetype layout (11), no `transition: all` +
-motion tier within the archetype ceiling + a `prefers-reduced-motion` fallback for any Tier ≥ 1 motion (12), all
+motion tier within the archetype ceiling + a `prefers-reduced-motion` fallback for any Tier ≥ 1 motion + the
+**archetype's craft signature present** — expressive families ship the real wired move (not a stub), restraint
+families have NO decorative/scroll motion (`craft.md`) (12), all
 interactive states (13), tokens-not-hex (14), reused primitives (15), confirmed via sample (16), real
 content (18), table header/cell alignment + dot-not-pill status (20), mobile-first responsive at 3 widths (21),
 light+dark+system shipped (22). **If any law fails, STOP and fix it** — the floor is non-negotiable.
