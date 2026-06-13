@@ -1,7 +1,7 @@
 # Product Playbook: Build with Discipline in the AI Era
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.2.1-blue.svg)](CHANGELOG.md)
 ![Claude Code skills](https://img.shields.io/badge/Claude%20Code-18%20skills-8A2BE2.svg)
 
 **A guided path from idea → shipped that bakes in the engineering discipline most teams learn the hard way.**

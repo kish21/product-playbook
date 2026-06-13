@@ -35,7 +35,7 @@
   <h3>Theme Studio</h3><button class="close" id="tsClose" aria-label="Close">&times;</button>
   <div class="grp"><div class="glab">Starter looks</div><div class="swatches" id="presets"></div></div>
   <div class="grp"><div class="glab">Accent</div><div class="row"><input type="color" id="ts_accent" value="#4f46e5" aria-label="Accent colour"><span style="font-size:12px;color:var(--muted-foreground)">Text auto-adjusts for contrast.</span></div></div>
-  <div class="grp"><div class="glab">Mode</div><div class="seg" id="ts_mode"><button data-m="light" class="on">Light</button><button data-m="dark">Dark</button><button data-m="system">System</button></div></div>
+  <div class="grp"><div class="glab">Mode</div><div class="seg" id="ts_mode"><button data-m="light">Light</button><button data-m="dark">Dark</button><button data-m="system">System</button></div></div>
   <div class="grp"><div class="glab">Preview width</div><div class="seg" id="ts_vw"><button data-w="375">Mobile</button><button data-w="768">Tablet</button><button data-w="0" class="on">Desktop</button></div></div>
   <div class="grp"><div class="glab">Base text size</div><div class="seg" id="ts_size"><button data-s="14">14</button><button data-s="15">15</button><button data-s="16" class="on">16</button><button data-s="17">17</button><button data-s="18">18</button></div></div>
   <div class="grp"><div class="glab">Font</div><div class="row"><select id="ts_font"><option value="var(--font-sans)">Default</option><option value='"Plus Jakarta Sans",sans-serif'>Plus Jakarta Sans</option><option value='"Space Grotesk",sans-serif'>Space Grotesk</option><option value='"IBM Plex Sans",sans-serif'>IBM Plex Sans</option></select></div></div>
@@ -67,6 +67,9 @@
   seg('ts_size',function(b){rs.setProperty('--font-size-base',b.dataset.s+'px')});
   var body=document.body;document.getElementById('tsOpen').onclick=function(){body.classList.add('ts-on')};document.getElementById('tsClose').onclick=function(){body.classList.remove('ts-on')};document.getElementById('tsScrim').onclick=function(){body.classList.remove('ts-on')};
   document.addEventListener('keydown',function(e){if(e.key==='Escape')body.classList.remove('ts-on')});
+  // sync the Mode toggle to the page's ACTUAL starting mode (.dark / .light / neither = System) — so a
+  // dark-default product opens on "Dark", not a hard-coded "Light" (T5-6).
+  (function(){var el=document.documentElement,m=el.classList.contains('dark')?'dark':el.classList.contains('light')?'light':'system';var sg=document.getElementById('ts_mode');[].forEach.call(sg.children,function(b){b.classList.toggle('on',b.dataset.m===m)})})();
   var KEYS=['--background','--foreground','--card','--card-foreground','--muted','--muted-foreground','--primary','--primary-foreground','--accent','--accent-foreground','--border','--ring','--radius','--font-size-base','--font-sans'];
   document.getElementById('ts_export').onclick=function(){var el=document.documentElement,was=el.classList.contains('dark');function rd(){var c=cs();return KEYS.map(function(k){return '  '+k+': '+c.getPropertyValue(k).trim()+';'}).join('\n')}el.classList.remove('dark');var L=rd();el.classList.add('dark');var D=rd();if(!was)el.classList.remove('dark');document.getElementById('ts_out').value=':root {\n'+L+'\n}\n.dark {\n'+D+'\n}\n'};
   aa();
@@ -83,7 +86,9 @@
   things (`prefers-reduced-motion`, `prefers-color-scheme`).
 - **Mode + the OS (T5-6):** the studio sets a `.light`/`.dark` class (or neither = System). The sample MUST use the
   escape-hatch dark pattern (`design-md-template.md` §2: `:root:not(.light){…}` for system-dark) or a manual "Light" can't
-  beat an OS set to dark.
+  beat an OS set to dark. **The Mode toggle auto-reflects the page's starting mode on load** — a **dark-default**
+  product ships `<html class="dark">` and the toggle opens on **Dark** (not a hard-coded Light). Keep the sample
+  **token-only (no hardcoded colours)** so switching to Light actually adapts — a stray `#fff` will ghost in light mode.
 - **Font in a standalone preview (T5-7):** load the distinctive face via `<link>` (the laws forbid CSS `@import`); the real
   shadcn/Next build uses self-hosted `next/font`. Without it the preview silently falls back to a system font.
 - **Base text size** sets `--font-size-base`; the sample's `html { font-size: var(--font-size-base,16px) }` + rem text
