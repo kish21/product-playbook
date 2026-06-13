@@ -88,6 +88,12 @@ _Archetype: <family> · derived by /design-system on <date> · approved sample: 
 - **Tokens:** `--transition: <150–250ms> <ease>`; animate **transform/opacity only**; honour
   `prefers-reduced-motion`. **No `transition: all`.**
 - **Where motion is allowed:** <hover feedback · overlay enter/exit · scroll reveal> — and where it isn't.
+- **Motion tier:** <Tier 0 CSS | Tier 1 Framer Motion | Tier 2 GSAP+ScrollTrigger | Tier 3 Three.js/WebGL>
+  — at/below the archetype's ceiling (`archetypes.md`). Library (if Tier ≥ 1): <e.g. `motion/react` | `gsap`>.
+- **Scroll / hero motion:** <what, if any — e.g. "GSAP pinned hero on landing only"; or "none">.
+- **Reduced-motion fallback (Tier ≥ 1, required):** <the static state shown under
+  `@media (prefers-reduced-motion: reduce)`>.
+- **Perf budget (Tier ≥ 1):** 60fps, no main-thread jank; the lib is **lazy-loaded** (out of the critical bundle).
 
 ## 8. Do's & Don'ts  (kills the generic AI look)
 - **Do:** <5 product-specific do's — e.g. "lead with the evidence table", "use mono for vendor IDs">
@@ -100,7 +106,9 @@ _Archetype: <family> · derived by /design-system on <date> · approved sample: 
 - **Per-component collapse (fill in):** nav/sidebar <persistent -> drawer/Sheet> · data table <full -> stacked cards> · detail panel <side -> bottom Sheet> · KPI grid <N-col -> 1-col>.
 - **Agent guide (how a build step/LLM uses this file):** always reference tokens (never raw hex/font);
   pull components from shadcn/ui + 21st.dev and skin with these tokens; keep body ≥ <min>px; run the
-  contrast check on any new colour; obey the universal laws. `/new-component` builds against this;
+  contrast check on any new colour; **honour the declared motion tier (§7) — never escalate past it
+  (e.g. reach for GSAP/Three.js) without re-confirming, and gate any Tier ≥ 1 motion behind
+  `prefers-reduced-motion`**; obey the universal laws. `/new-component` builds against this;
   `/frontend-audit` enforces it.
 ```
 
