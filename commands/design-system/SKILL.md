@@ -184,8 +184,15 @@ Load `references/design-md-template.md` and write **`DESIGN.md`** filling all **
   *(If the user used the Theme Studio **Export**, those tokens — both modes + `--font-size-base` — ARE §2; paste them in.)*
 - **Record the page inventory** in §5 (each page type → its layout pattern from `page-patterns.md`).
 - **Re-run the WCAG-AA contrast check** on every foreground/surface pair, **in both modes**, before writing (Laws 7 & 22).
-- **Audit timing (T1-c):** `/frontend-audit` runs on the **approved sample** at confirm-time (Step 4) and on **`DESIGN.md`
-  after** it's emitted here — never `DESIGN.md` before approval (Law 16).
+- **Audit timing (T1-c) — actually RUN it, don't just cite it:** the floor is mechanically enforced, not
+  asserted. Run the engine on the **approved sample** at confirm-time (Step 4) and on **`DESIGN.md` after**
+  it's emitted here (never `DESIGN.md` before approval — Law 16):
+  ```
+  python commands/frontend-audit/audit.py <approved-sample> DESIGN.md
+  ```
+  **Read the output and act on it:** fix every `[FAIL]` (the floor is non-negotiable) and triage `[WARN]`
+  before handing off — a `Law7-unverified` warn means contrast was NOT checked (rename tokens so it can be),
+  not that it passed. Do not emit a "passes the laws" claim you didn't run the engine to back.
 - The **Agent Guide** (§9) tells every later build step how to obey this file.
 *(Greenfield: `DESIGN.md` is now the harness for new pages. Retrofit-rewrite of existing pages is the
 documented follow-up.)*

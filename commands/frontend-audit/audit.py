@@ -68,6 +68,11 @@ PAIRS = [
     ("--secondary-foreground", "--secondary"), ("--muted-foreground", "--background"),
     ("--muted-foreground", "--card"), ("--accent-foreground", "--accent"),
     ("--destructive-foreground", "--destructive"),
+    # Common non-shadcn aliases — so projects that didn't adopt shadcn token names
+    # still get a REAL contrast check (rather than silently passing unchecked).
+    ("--text", "--background"), ("--text", "--bg"), ("--text", "--surface"),
+    ("--text-muted", "--background"), ("--text-muted", "--bg"), ("--text-muted", "--surface"),
+    ("--muted", "--surface"), ("--fg", "--bg"), ("--text-secondary", "--surface"),
 ]
 
 def collect_tokens(text):
@@ -86,21 +91,38 @@ def audit_text(path, text, findings):
     if dark_raw:
         dark = dict(root); dark.update(collect_tokens(dark_raw))
         modes.append(("dark", dark))
+    checked_any = False
     for mode, tokens in modes:
         for fg, bg in PAIRS:
             if fg in tokens and bg in tokens:
                 ratio = contrast(tokens[fg], tokens[bg])
                 if ratio is None:
                     continue
+                checked_any = True
                 level = "PASS" if ratio >= 4.5 else ("WARN" if ratio >= 3.0 else "ERROR")
                 findings.append((level, "Law7-contrast", path,
                                  f"[{mode}] {fg} on {bg} = {ratio:.2f}:1 "
                                  f"({'AA' if ratio>=4.5 else 'AA-large only' if ratio>=3 else 'FAILS AA'})"))
+    # Honest coverage (the anti-false-pass): if colour tokens exist but NO recognized
+    # foreground/surface pair was checkable, never report "contrast: ok" — say it wasn't verified.
+    if not path.lower().endswith(".md") and not checked_any \
+            and any(luminance(v) is not None for v in root.values()):
+        findings.append(("WARN", "Law7-unverified", path,
+                         "contrast NOT verified - no recognized foreground/surface token pairs found "
+                         "(name tokens per shadcn --x-foreground/--x, or extend PAIRS) - do not assume it passes"))
     # Law 22 — single-mode warning (component code defines :root colour tokens but no .dark)
     if not path.lower().endswith(".md") and _block(text, ":root") and not dark_raw \
             and any(k in root for k in ("--background", "--foreground")):
         findings.append(("WARN", "Law22-theme", path,
                          "defines :root tokens but no .dark block - single-mode (Law 22 wants light+dark)"))
+    # Law 22 — a .dark class block must also be reachable from the OS preference, not manual-toggle-only.
+    # A prefers-color-scheme rule that swaps tokens contains a `--token:` assignment; one that only sets
+    # `color-scheme:` (our common bug) does not. Heuristic, so WARN (a JS theme-provider may set .dark).
+    if not path.lower().endswith(".md") and dark_raw \
+            and not re.search(r"prefers-color-scheme:\s*dark.{0,500}?--[\w-]+\s*:", text, re.S):
+        findings.append(("WARN", "Law22-system", path,
+                         "dark tokens apply only via manual .dark toggle - no prefers-color-scheme rule "
+                         "swaps the token set; confirm a theme provider sets .dark from the OS (Law 22)"))
 
     # Markdown is documentation/spec — only its colour tokens are machine-checkable
     # (the contrast pass above). The code-pattern checks below are for component
@@ -160,13 +182,28 @@ def audit_text(path, text, findings):
 
     # Law 1 — the DISPLAY/identity face must be distinctive (ERROR if generic); a generic BODY face is a WARN
     # (Inter/Roboto are fine as the body/UI face when paired with a distinctive --font-display).
-    for m in re.finditer(r"--font-(sans|display)\s*:\s*([^;,]+)", text):
+    for m in re.finditer(r"--font-(sans|body|base|display)\s*:\s*([^;,]+)", text):
         role, first = m.group(1), m.group(2).strip().strip('"\'').lower()
         if first in ("inter", "roboto", "arial", "system-ui", "helvetica"):
             if role == "display":
                 findings.append(("ERROR", "Law1-default-font", path, f"display/identity font is generic '{first}' - pick a distinctive face"))
             else:
                 findings.append(("WARN", "Law1-default-font", path, f"body font '{first}' - OK only behind a distinctive --font-display"))
+
+    # Law 1 — the display face must be DISTINCT from the body face, not a width/weight variant of it
+    # (e.g. "Inter Tight" over "Inter" is a near-twin, not a distinctive display). Strip family suffixes
+    # and compare stems; a sans/serif pair of the same superfamily (IBM Plex Sans/Serif) is NOT flagged.
+    _fv = dict(re.findall(r"--font-(sans|body|base|display)\s*:\s*([^;,]+)", text))
+    _body = next((_fv[k] for k in ("sans", "body", "base") if k in _fv), None)
+    if _body and "display" in _fv:
+        def _stem(s):
+            s = s.strip().strip('"\'').lower()
+            return re.sub(r"\b(tight|condensed|expanded|extended|narrow|display|text|semicondensed|sc)\b", "", s).strip()
+        s_raw, d_raw = _body.strip().strip('"\'').lower(), _fv["display"].strip().strip('"\'').lower()
+        if s_raw != d_raw and _stem(s_raw) == _stem(d_raw) and _stem(d_raw):
+            findings.append(("WARN", "Law1-near-twin", path,
+                             f"display font '{d_raw}' is a width/weight variant of the body face '{s_raw}' "
+                             "- not a distinctive display identity (Law 1)"))
 
     # Law 3 — font-size below the 12px floor, in px AND rem/em (T5-3: rem/em ×16 root were slipping through)
     for m in re.finditer(r"font-size:\s*([0-9.]+)(px|rem|em)\b", text):

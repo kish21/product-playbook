@@ -3,6 +3,30 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.2.3] — 2026-06-14
+
+`/frontend-audit` made trustworthy — closes three silent false-passes found by running the engine on real
+sample pages, and wires `/design-system` to actually RUN it. Backward-compatible.
+
+### Fixed
+- **Contrast no longer silently passes when it wasn't checked** (`audit.py`, Law 7). The fg/surface token
+  pairs were hard-coded to shadcn names, so a project using `--text`/`--surface`/`--bg` got **zero** contrast
+  checks yet a `contrast:ok` roll-up. Now: common non-shadcn aliases are checked too, and if colour tokens
+  exist but no pair is checkable, it emits a `Law7-unverified` **WARN** instead of a false "ok".
+- **Near-twin display fonts are caught** (Law 1). A `--font-display` that is a width/weight variant of the
+  body face (e.g. `Inter Tight` over `Inter`) now WARNs `Law1-near-twin` — it isn't a distinct identity. A
+  real pairing (e.g. `Space Grotesk` over `Inter`, or IBM Plex Sans/Serif) is not flagged. Font checks now
+  also recognise `--font-body`/`--font-base`, not just `--font-sans`.
+- **Manual-toggle-only dark mode is caught** (Law 22). A `.dark` block with no `prefers-color-scheme` rule
+  that swaps the token set now WARNs `Law22-system` (system preference ignored) — previously reported
+  `theming:ok`.
+
+### Changed
+- **`/design-system` now RUNS the audit, not just cites it** (`SKILL.md` Step 5). Concrete
+  `python commands/frontend-audit/audit.py <sample> DESIGN.md` invocation at confirm-time and post-emit, with
+  an instruction to act on `[FAIL]`/`[WARN]` and to treat `Law7-unverified` as "not checked," never "passed."
+- `frontend-audit/SKILL.md` check table updated to document the new checks.
+
 ## [1.2.2] — 2026-06-14
 
 `/design-system` laws reframed as **outcomes, not tools** — additive, backward-compatible (numbering 1–22 unchanged).
