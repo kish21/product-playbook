@@ -3,6 +3,28 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.2.2] — 2026-06-14
+
+`/design-system` laws reframed as **outcomes, not tools** — additive, backward-compatible (numbering 1–22 unchanged).
+
+### Changed
+- **Universal laws restructured into Floor / Means / Aesthetic / Process** (`references/universal-laws.md`). A
+  rule is only a *law* if it holds regardless of stack, aesthetic, or motion level; rules that named a tool or
+  a look are now tagged `[MEANS]` / `[AESTHETIC]` recommendations. Every law tagged, a grouped index added, and
+  numbering 1–22 kept stable (other files reference laws by number).
+- **Law 15 reframed** — the floor is now *"interactive components meet the accessibility floor
+  (focus/ARIA/keyboard/states)"*; **shadcn/ui + 21st.dev is the recommended means on a React stack**. Resolves
+  the contradiction where the skill's own standalone-preview output could never satisfy a shadcn-mandating law.
+- **Law 8 (OKLCH)** and **Law 12 (Framer/GSAP/Three.js ladder)** demoted to `[MEANS]`; their floors (predictable
+  lightness / performant + reduced-motion-safe) stay fixed.
+- **Laws 6 & 20** restated as outcome + canonical example (purple gradient / dot-not-pill).
+- **Tightened catchable floors:** Law 1 (a body-face near-twin like Inter Tight is not a distinctive display),
+  Law 7 (an asserted contrast comment is not compliance — compute it), Law 21 (desktop-first + `max-width` is
+  the named failure), Law 22 (the system swap must actually apply dark values).
+- **Law 19** now also declines **bespoke / non-document surfaces** (canvas/WebGL games, generative art, TUIs).
+- **`SKILL.md`** Step-4 lines fixed so the preview caveat no longer reads as a Law-15 exemption — accessible
+  primitives are required even in a vanilla preview.
+
 ## [1.2.1] — 2026-06-13
 
 Refinements to `/design-system` from a six-archetype test pass — additive, backward-compatible.
