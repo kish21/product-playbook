@@ -30,14 +30,14 @@ python commands/frontend-audit/audit.py <file-or-dir> [more...]
 
 | Law | Check |
 |---|---|
-| **7 — contrast (the headline)** | **Computes** WCAG ratio for every shadcn foreground/surface token pair (OKLCH or hex → relative luminance → ratio). `<4.5` body = ERROR, `3–4.5` = large-only WARN. *This is the law `/design-system` could only assert.* |
+| **7 — contrast (the headline)** | **Computes** WCAG ratio for every foreground/surface token pair — shadcn names **plus common aliases** (`--text`/`--surface`/`--bg`/`--text-muted`…) — (OKLCH or hex → relative luminance → ratio). `<4.5` body = ERROR, `3–4.5` = large-only WARN. **Anti-false-pass:** if colour tokens exist but no pair was checkable, it **WARNs "unverified"** rather than silently reporting ok. *This is the law `/design-system` could only assert.* |
 | 14 — tokens only | raw `#hex` in component code (outside `:root`) = ERROR |
-| 12 — motion | `transition: all` / `transition-all` = ERROR |
-| 1 — distinctive font | Inter/Roboto/Arial/system-ui as the **primary** `--font-sans/-display` = ERROR |
-| 3 — type floor | any `font-size` below 12px = ERROR |
+| 12 — motion | `transition: all` / `transition-all` = ERROR; transition on a layout/paint prop = WARN; heavy-motion lib without a `prefers-reduced-motion` guard = WARN |
+| 1 — distinctive font | Inter/Roboto/Arial/system-ui as the **display** `--font-display` = ERROR; as the body face = WARN; **a display that is a width/weight variant of the body face (e.g. `Inter Tight` over `Inter`) = WARN** (near-twin, not a distinct identity) |
+| 3 — type floor | any `font-size` below 12px (px **and** rem/em) = ERROR |
 | 13 — states | interactive elements but no `:focus-visible` = WARN |
 | **21 — responsive** | missing `<meta viewport>` (html) = ERROR; multi-column/grid layout with **no** `@media`/`@container`/`auto-fit`/`minmax` = ERROR (desktop-only) |
-| **22 — theming** | computes contrast in **both** `:root` (light) and `.dark`; `:root` colour tokens but no `.dark` block = WARN (single-mode) |
+| **22 — theming** | computes contrast in **both** `:root` (light) and `.dark`; `:root` colour tokens but no `.dark` block = WARN (single-mode); **a `.dark` block but no `prefers-color-scheme` rule that swaps tokens = WARN** (system preference ignored — manual-toggle-only) |
 
 Markdown is treated as spec: only its colour **tokens** are contrast-checked; code-pattern rules are
 skipped (so a `DESIGN.md` "Don't: no `transition: all`" line doesn't false-positive).
