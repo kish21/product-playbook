@@ -125,8 +125,9 @@ Give each as a **decided default + one-line why**; let the user tweak.
 Generate **a single, representative screen of THIS product** using the Step-3 foundations:
 - **In the project's stack** if one exists (a real page/route); otherwise a **standalone preview HTML**
   the user can open in a browser.
-- **Reuse a shadcn/ui + 21st.dev primitive or two** (Law 15 — never hand-roll buttons/inputs/modals),
-  re-skinned with the tokens.
+- **Interactive primitives must meet the accessibility floor** (Law 15 — focus management, ARIA, keyboard
+  nav, all states). On a React stack the recommended means is **reuse a shadcn/ui + 21st.dev primitive or
+  two**, re-skinned with the tokens — never re-author what the registry already solved.
 - **Real content from the product's domain — never lorem** (Law 18).
 - **Apply the craft layer (load `references/craft.md`).** Route the confirmed archetype through its index:
   **restraint families (Bucket A) get the precision signature and NO decorative motion** — adding scroll
@@ -145,10 +146,13 @@ Generate **a single, representative screen of THIS product** using the Step-3 fo
   #1 mobile job (content priority), collapse the archetype's layout (sidebar → drawer, table → stacked cards,
   detail → sheet, KPIs reflow), tap targets ≥44px — *then* scale up to tablet/desktop. Never a fixed desktop
   grid that can't collapse.
-- **Preview caveat:** a standalone preview (no stack) **can't import shadcn/21st.dev** — say so; Law 15 governs
-  the real build. Still mirror the `DESIGN.md` tokens exactly. **For an expressive archetype the preview
-  still ships real motion** — load GSAP/Framer from a CDN (the wrapper in `craft.md`), gated behind
-  `prefers-reduced-motion`; do not fall back to a comment stub.
+- **Preview caveat:** a standalone preview (no stack) **can't import shadcn/21st.dev** (they're React) — say
+  so. This does NOT exempt it from Law 15: the **floor is accessible components, not the library**, so any
+  interactive primitive in the preview (button/input/dialog/menu) **still ships focus-visible + ARIA +
+  keyboard nav** via vanilla — don't hand-roll an inaccessible one and call it "just a preview." Mirror the
+  `DESIGN.md` tokens exactly. **For an expressive archetype the preview still ships real motion** — load
+  GSAP/Framer from a CDN (the wrapper in `craft.md`), gated behind `prefers-reduced-motion`; do not fall back
+  to a comment stub.
 - **Confirm on the user's real display:** subtle choices (canvas tint, status-label colour, table alignment)
   render differently across screens — pick **clearly visible** values and verify on the user's monitor, not just code.
 - **Ship it as an INTERACTIVE sample (the visualization moat):** inject `references/theme-studio.md` (the drop-in editor)
@@ -195,7 +199,7 @@ motion tier within the archetype ceiling + a `prefers-reduced-motion` fallback f
 **archetype's craft signature present** — expressive families ship the real wired move (≥1 signature moment, not a
 stub) in a voice derived for THIS product (not a clone of an exemplar), restraint families have NO decorative/scroll
 motion (`craft.md`) (12), all
-interactive states (13), tokens-not-hex (14), reused primitives (15), confirmed via sample (16), real
+interactive states (13), tokens-not-hex (14), accessible primitives — focus/ARIA/keyboard, reused from the registry on React (15), confirmed via sample (16), real
 content (18), table header/cell alignment + dot-not-pill status (20), mobile-first responsive at 3 widths (21),
 light+dark+system shipped (22). **If any law fails, STOP and fix it** — the floor is non-negotiable.
 
