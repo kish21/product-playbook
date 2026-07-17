@@ -24,7 +24,7 @@ description: >
 - **Exit criteria (per feature):**
   - [ ] A written **definition-of-done that includes security** (input validation, authz/tenant-isolation; for AI: prompt-injection defence).
   - [ ] Reused existing helpers where possible (no reinvented utilities).
-  - [ ] Code **runs and the LIVE path is verified** (not just an isolated unit) — traced to its real callers.
+  - [ ] Code **runs and the LIVE path is verified** (not just an isolated unit) — traced to its real callers, **on the runtime the USER actually runs**: a project often has several serving surfaces (deployed app, local dev shim/gateway, env-configured URLs). A new endpoint/route must be registered on EVERY surface, and verifying only the surface you deployed proves nothing about the one the user opens (lesson 2026-07-17: an endpoint live-verified on the cloud 404'd for the owner, whose frontend pointed at a local shim missing the route).
   - [ ] Diff self-reviewed (`/code-review`); no swallowed errors; prompts in `prompts/` YAML, not inline.
   - [ ] **`docs/features/<feature>.md` written and matches the code** (what · contract · exit criteria · how verified · code links).
   - [ ] **No secret in any code file** (secrets→`.env`; tests use fake placeholder keys).
