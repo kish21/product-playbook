@@ -53,6 +53,17 @@ description: >
 4. **Doc drift:** compose **`/doc-audit`**; flag claims that don't match the code. If the `#Build log` itself is stale vs the code, flag that as drift too.
 5. **Agent-instruction drift — the project's OWN skills/commands/`CLAUDE.md`.** These rot exactly like docs, but they are far more dangerous, because they are **executed, not read**: a stale `docs/` page misleads a human who can sanity-check it, while a stale `.claude/skills/*` is picked up and *acted on*. Check each skill's concrete, falsifiable claims against the code — file paths and directory layout, storage/vendor, model + provider, contract field names, stage list and count, and any "always/never do X" rule. Flag three things: claims that are **false**, skills that contradict **each other**, and skills that contradict a **locked decision** in the spine. *(Real instance: a project's three most task-relevant skills were each materially wrong — a stage documented as "no LLM, schema check only" that actually runs a vision judge; a contract listing fields deleted a session earlier plus a storage vendor the project had migrated off; and an "X is blocking" claim that inverted a locked blocking-vs-advisory split. Two also contradicted each other on whether a whole backend technology was permitted. Nobody had noticed, because sessions read the code directly and never opened the skills.)*
 
+   **The structural fix, once you find the drift: make docs POINT, don't RE-TYPE.** Audit the rotted
+   set and you'll find nearly every false claim is a constant that already exists in config or a
+   schema — a model name, a bucket, a threshold, a field list — copied into prose where nothing can
+   ever check it. This is the **no-hardcoding rule aimed at documentation**: a re-typed constant in a
+   doc is the same defect as a magic number in source, minus the compiler. So cite the source of
+   truth (`see platform.yaml llm.*`, `see schemas/brief.py`) instead of restating its values, and
+   where a claim must be stated, pin it with a **parity test** that reads both sides. *(Real
+   instance: in a 21-skill audit, 14 were stale and **every** model/storage error was a re-typed
+   config value; the only two skills that survived were the two that pointed at a doc rather than
+   restating it.)*
+
 ## Step 3 — Report + record
 Give an honest verdict: **on-track**, or a specific list of drifts. For each, recommend a **cut**, a
 **deliberate re-scope** (add to Scope with a trigger), or a **fix**. On any confirmed drift, write a
