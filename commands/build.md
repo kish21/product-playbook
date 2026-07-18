@@ -34,6 +34,33 @@ description: >
 ## Step 0 — Context + prior-gate check
 - Read `#Scope/#Plan/#Contracts`. **Confirm the feature is IN scope** — if it's in OUT-OF-SCOPE, stop and
   flag it (this is where creep enters). If `#Contracts` is empty, warn and offer `/contracts` first.
+- **Load the project's OWN skills/commands for the area you're about to touch** (`.claude/skills/`,
+  `.claude/commands/`, `CLAUDE.md`) — a mature repo encodes hard-won decisions there, and building
+  from a fresh read of the code alone silently re-litigates them.
+- **But treat every project doc, skill and pinned plan as a CLAIM, not as truth — verify its premises
+  against the code before you build on it.** They are written at a point in time and the code moves;
+  a stale instruction is worse than no instruction, because it is *followed*. Two failure modes, and
+  you must check for both:
+  1. **The plan you were handed is wrong.** Before treating a pinned spec/target-contract as a
+     contract, verify each of its load-bearing claims against the code. *(Real instance: a pinned
+     "target contract" asserted a provenance field didn't exist and required collapsing two schemas
+     to add it — the field **already existed**, one level coarser, and the actual defect was that the
+     consumer's slice didn't carry it. Verifying first turned a 2–3-session refactor into a
+     one-seam fix; the same doc also claimed a prior session had shipped a flag that was never
+     built, and listed the wrong destination for deferred work.)*
+  2. **The project's own skills have rotted.** Grep the skill's concrete claims — paths, storage,
+     model/provider, field names, stage lists — against the code. *(Real instance: a repo's three
+     most relevant skills each contradicted the shipped system — one said the QC stage used "no LLM,
+     schema check only" when it runs a vision judge; one listed brief fields that had been deleted
+     and told you to use a storage vendor the project migrated off; one said the LLM reviewer was
+     "blocking" when a locked decision made judgements explicitly non-blocking. Two of them also
+     contradicted **each other**. Following them would have re-added a deleted field, written to the
+     wrong bucket, and broken a locked architectural decision.)*
+
+  **When a project doc or skill is wrong, FIX IT IN THIS SESSION** — a correction you only put in the
+  PR description dies there, and the next session reads the same lie. Record the corrected premises
+  where the wrong ones lived, so nobody re-derives them. This is the same "docs must not lie" bar you
+  apply to user-facing copy, pointed at your own instructions.
 
 ## Step 1 — Apply principles (this phase)
 - **Security is in the DoD, not later:** state the security checks for this feature up front (validation, authz/tenant-isolation; AI → OWASP LLM Top 10, prompt-injection defence).
