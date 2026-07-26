@@ -37,6 +37,7 @@ description: >
 ## Step 2 — Define the contracts
 1. **Domain models** for the core-feature entities (typed; validated at construction).
 2. **Persistence schema** + a **migration**; confirm the schema matches the models and the queries.
+   - **Seed data that mirrors a code registry must be PINNED to it by a test** (parse the seed migration, assert its rows are in lockstep with the registry constant). A seed is a copy of a code contract frozen in SQL — without the pin, the registry evolves and the DB silently offers keys the code no longer recognises, or misses ones it requires. *(Real instance: per-intent option seeds pinned to the active intent registry by a migration-parsing test — a registry rename now fails the build instead of orphaning seeded rows.)*
 3. **API/agent contracts:** request/response (and, for AI, the typed output schema each step returns) — with a **versioning / back-compat** approach (`/v1`, additive-only).
 4. **Boundary audit:** for each boundary, state the units/scale/shape both sides expect; reconcile mismatches now. For write/ingest paths define the **idempotency/natural key**.
 5. **Safety on the data:** classify **PII/sensitive** fields (retention/N-A) and give every persisted entity its **tenant/owner key** (the isolation seam).
