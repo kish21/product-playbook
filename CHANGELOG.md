@@ -5,7 +5,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [1.3.0] — 2026-07-27
 
-Catch-up release: 20 merged PRs of harvested build-loop lessons (June 15 → July 27, PRs #12–#31)
+Catch-up release: 20 merged PRs of harvested build-loop lessons (PRs #12–#31)
 that shipped without CHANGELOG/version bumps. All additive guidance — backward-compatible.
 Every lesson below was paid for by a real bug (or a real bill) on a shipped project.
 
