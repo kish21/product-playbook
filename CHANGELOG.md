@@ -3,6 +3,62 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] — 2026-07-27
+
+Catch-up release: 20 merged PRs of harvested build-loop lessons (June 15 → July 27, PRs #12–#31)
+that shipped without CHANGELOG/version bumps. All additive guidance — backward-compatible.
+Every lesson below was paid for by a real bug (or a real bill) on a shipped project.
+
+### Added — `/build`
+- **Session economy** (#31): one-feature-per-session is a COST rule — session cost grows
+  ~quadratically with length; handoff + fresh session at checkpoints, `/compact` after closed
+  detours, bulky output to files. Measured: 97% of a ~$2.9K-equivalent month was cache re-reads.
+- **Latency/concurrency-fix lessons** (#30): sync-SDK-in-async serializes the process (measure the
+  staircase first); the platform's per-container concurrency is a SECOND serializer — re-measure
+  deployed. Plus delete-the-wire mechanics: cut wires on a COMMITTED baseline.
+- **Suggested-options lessons** (#29, also `/contracts`): AI suggestion vs user confirmation kept
+  structurally distinct; service-role reads re-state RLS scoping; client selectors only choose among
+  server-approved sets; context switches clear dependent confirmations.
+- **Collector + comment lessons** (#28): config-driven collectors drop inputs rendered outside the
+  config list — audit them; a code comment's behavioral claim is a spec to verify.
+- **Re-run bypasses cache** (#27): an explicit Refresh must skip the cache READ, keep the WRITE;
+  cache keys include logic version.
+- **Green-suite gates** (#25): criterion-altitude tests (match the VERB); implemented ≠ verified;
+  delete-the-wire; wrong-column corollary (a wire can exist and point at the wrong source — verify
+  every WRITER); widening what's legal leaves the suite green and the consumers unread; round-trip
+  save→reopen→save tests; mechanical checks over remembered rules.
+- **Vendor-payload fixtures** (#24): your own fixtures can't falsify what a third party sends —
+  capture one real vendor response; read what a vendor flag REMOVES.
+- **Licence gate** (#18): third-party content licences are a feasibility gate before design —
+  sublicensing, attribution, indemnity; ship the mechanism OFF when no source clears it.
+- **Shipped-config spot-checks** (#17): validate generated output at the values production ships,
+  not test-convenient ones; derive layout constants from runtime state.
+- **Deployed-binary features** (#16): a pinned static binary's feature set is a deploy-only risk —
+  smoke the actual feature, not `--version`.
+- **Async-job checklist + production entrypoint** (#15): the job handle IS the money (spawner must
+  poll); sign handles (HMAC); persist per-poll; terminal-timeout taxonomy; mid-batch merges. Verify
+  the production ENTRYPOINT — dependency construction is untested code.
+- **Gate/validator DoD + cache keys** (#14): fail CLOSED on your own bugs; unconfigured ≠ degraded;
+  auto-fixes re-validated; never trust client "already passed"; facts vs judgements; no fabricated
+  scores; cache keys built by EXCLUSION.
+- **Browser-E2E traps** (#12, #13): `text=` substring waits; mid-request browser close; assert
+  persisted state; verify the actual bound dev-server port; env-gated UI on the instance under test.
+- **Live path on the USER'S runtime** (#20): register routes on EVERY serving surface; verifying the
+  deployed surface proves nothing about the local shim the user opens.
+- **Project docs/skills are CLAIMS** (#22, also `/drift-check`): verify a pinned plan's load-bearing
+  claims and a repo skill's concrete facts against the code; fix rotted instructions in-session.
+
+### Added — other skills
+- **`/ship`**: one-subtask-per-session named as the cost lever with the measurement (#31).
+- **`/scope`**: non-goal reversal protocol — reopen deliberately, record the reversal (#19).
+- **`/architect`**: benchmark must ask where approvals/human-in-the-loop attach — the OSS-first
+  blind spot (#21).
+- **`/drift-check`**: docs must POINT at the source of truth, not re-type it (#23).
+
+### Process
+- This release also closes the gap it documents: `/ship`'s own CHANGELOG+semver criterion was
+  skipped by every one of these PRs. Stale PR #26 closed as superseded (content landed via #27/#28).
+
 ## [1.2.3] — 2026-06-14
 
 `/frontend-audit` made trustworthy — closes three silent false-passes found by running the engine on real
