@@ -36,7 +36,7 @@ description: >
 ## Step 1 — Apply principles (this phase)
 - **Reviews are DEEP:** trace the change to its real callers; hunt the "green tests, dead in the live path" bug. **Verify any review/audit finding against the real code** — don't rubber-stamp; some findings are already done or misdiagnosed.
 - **Security fail-closed** on auth/data; **docs must match reality** (a false claim is a diligence liability).
-- **One subtask per session:** ship this, then hand off — don't roll into the next subtask.
+- **One subtask per session:** ship this, then hand off — don't roll into the next subtask. This is also the **cost lever**: agent-session cost grows ~quadratically with length (every API call re-reads the full history), so a fresh session after the PR is materially cheaper than continuing — measured on a shipped project (97% of a month's token spend was cache re-reads from overlong sessions), not a vibe.
 
 ## Step 2 — Ship
 1. **Deep review:** compose **`/code-review`**; fix real findings; verify each against the code before acting.
