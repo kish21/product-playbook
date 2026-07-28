@@ -50,7 +50,7 @@ description: >
 2. **Reuse scan:** find existing helpers/contracts; don't reinvent.
 3. **Code** against the typed contracts; keep it modular and generic (no domain special-casing in shared infra).
    - **If the feature has a user-facing screen (UI products):** build to **`DESIGN.md`** — §5 layout, token look, `/new-component` parts (Law 15) — then run **`/frontend-audit`**, fix every ERROR. *(No `DESIGN.md`? `/design-system` first.)*
-   - **If the feature is a GATE — a validator, quality check, policy engine, anything whose job is to say "no"** — seven rules, each from a real bug on a shipped project:
+   - **If the feature is a GATE — a validator, quality check, policy engine, anything whose job is to say "no"** — eight rules, each from a real bug on a shipped project:
      1. **Fail CLOSED on your OWN bugs.** A check that throws must **refuse passage** — fail-soft waves everything through silently.
      2. **Unconfigured ≠ degraded.** No endpoint/flag/key = **no gate** — say so loudly, never a quiet mock that fails open.
      3. **An auto-fix ("fix it for me") MUST be re-validated against the very checks it claims to fix** — apply fix → re-run → assert zero findings; else **refuse honestly**, naming the item.
@@ -58,6 +58,7 @@ description: >
      5. **Separate FACTS from JUDGEMENTS, and never let severity be a config knob.** Breakage blocks (un-overridable); quality advises (override *recorded*); per-check `enabled` is fine — disabled reports *nothing*.
      6. **Don't fabricate the number.** Unmeasurable → **no score** + the why; a confidently fake metric will be believed.
      7. **A gate nobody sees is no gate.** Put the verdict where the user can *act*, on the screen reached *by passing it*; decision dialogs must not auto-dismiss.
+     8. **Gating LLM/probabilistic output? Schema-valid ≠ structurally sound, and the reject band must be WIDER than the ask.** Gate the structural expectations the prompt actually asked for (counts, lengths, non-emptiness), with the reject threshold a config'd tolerance beyond the prompt's target — a gate at the ask-band fires on routine near-misses and becomes noise nobody respects. (case file: The schema-valid empty output)
    - **If the feature is an ASYNC JOB — work that outlives the request (spawn + poll, queue + callback)** — five rules, same provenance:
      1. **The job handle IS the money — the component that polls must be the component that spawns.** Pick ONE spawner; unattended processing = durable backend job store + server-side poller — built fully or deferred *explicitly*.
      2. **Sign the handle you give the client.** HMAC it server-side binding `{tenant/project, resource, vendor-id, attempt}`; verification failure is a refusal, never a lookup.
