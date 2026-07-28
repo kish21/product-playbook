@@ -314,3 +314,18 @@ of noise: the prompt's target band is the ASK; the reject line is a config'd tol
 beyond it (clamped ≥1 so a bad knob degrades to the exact band rather than dividing by zero),
 because models routinely land near-misses on counts and a gate that pauses every run gets
 ignored or disabled.
+
+### The regenerate loop
+*(Backs: gate rule 9 — one failure flag with N causes must name the cause in the payload.)*
+Real instance: a generation stage's single `degraded` boolean accumulated three causes over time —
+provider outage (placeholder served), structural quality shortfall (real draft kept, off-target),
+and blank upstream inputs (the model invented content to fill the holes). Every surface showed the
+same generic copy: "degraded — review and regenerate." For the third cause that advice is actively
+harmful: regenerating re-runs the same blank inputs, so the user loops forever while the actual fix
+lives one stage upstream (complete the missing fields). The flag itself was well-tested; no test
+ever asserted the MESSAGE matched the cause, and the defect was only caught by a fresh-eyes ship
+review asking "what does the user read, and is it true for every path that sets this flag?" Fix:
+the result payload names the cause (the list of blank fields), and each surface routes to the
+right remediation — the pipeline pause-note and the UI toast name the fields and point at the
+upstream stage, while the other causes keep the regenerate copy. The test additions pin the note
+text per cause at the caller's altitude, not just the boolean.
