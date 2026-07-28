@@ -299,3 +299,18 @@ better, build the validation payload from the same config loader). When the outp
 that interacts with runtime state — a fixed line-wrap width vs the actual frame width, a page size vs
 the paper, a font size vs the box — a fixed constant that "looked fine once" is fragile; derive it
 from the state it must fit.
+
+### The schema-valid empty output
+*(Backs: gate rule 8 — schema-valid ≠ structurally sound; reject band wider than the ask.)*
+Real instance: a generation stage used schema-enforced structured output, so every response was
+"valid" — but the schema put no minimum on a list field and no length expectation on the prose
+field. A draft with zero list entries and a ten-word body passed, was wrapped as a healthy
+(non-degraded) result, and the downstream stage that expanded those entries silently emitted
+nothing. The review gate only fired on provider FAILURE, so a structurally empty success sailed
+past it. Fix: a post-generation structural check of exactly what the prompt asked for (entry
+count, word-count band), routing misses into the same degraded→human-review path a provider
+failure gets — draft kept so the reviewer sees why. The calibration that made it a gate instead
+of noise: the prompt's target band is the ASK; the reject line is a config'd tolerance factor
+beyond it (clamped ≥1 so a bad knob degrades to the exact band rather than dividing by zero),
+because models routinely land near-misses on counts and a gate that pauses every run gets
+ignored or disabled.
