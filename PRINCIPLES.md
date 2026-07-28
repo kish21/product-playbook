@@ -140,3 +140,18 @@ Phrased generically so they apply to any project:
 - **Every "done" records HOW it was verified** — evidence, not just "done".
 - **Multi-tenant isolation at DB *and* app (defense-in-depth)** — one missing scope filter is a silent cross-tenant leak.
 - **Policy-as-code: "parses" ≠ "governs"** — a syntactically-valid but ruleless policy (comments-only / zero statements) silently degrades to the engine's default (deny-all, or worse allow-all); load-validate that it defines ≥1 rule and fail-loud. Build the authz query from **escaped identifiers + structured request/entity objects**, never string-interpolated into policy text — a crafted name (tool/resource/role) is an injection point like SQL. Default-deny; any eval error / no-decision → **deny**.
+
+## §Lesson format — rule up front, story in the case file
+
+Skills are loaded verbatim into every session that runs them, so their size is a per-session cost
+and an attention cost: a checklist of sharp one-liners gets followed; a wall of war stories gets
+skimmed. Therefore every harvested lesson is written in two parts:
+
+- **In the skill file:** the **bold one-line rule** plus at most one sentence of mechanism — enough
+  to act on, nothing more.
+- **In `references/case-files-<skill>.md`:** the full war story, verbatim, under its own heading,
+  pointed to from the rule as `(case file: <heading>)`. Opened on demand, never auto-loaded.
+
+Gardening cadence: roughly every 10 merged lessons (or when a skill file passes ~15KB), run a prune
+pass — condense, merge overlapping rules, retire ones that stopped earning their place. A lesson
+that can't be stated as one bold line isn't distilled enough to be a rule yet.

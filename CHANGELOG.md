@@ -3,6 +3,24 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.4.0] — 2026-07-28
+
+The first pruning release. `/build` had grown to 41KB of load-bearing lessons — every byte
+re-read at the start of every build session, and the rules increasingly buried in their own
+war stories.
+
+### Changed — `/build`
+- **Distilled to rule-first form**: every lesson keeps its bold one-line rule (+ ≤1 sentence of
+  mechanism); all 26 war stories moved verbatim to `references/case-files-build.md`, pointed to
+  as `(case file: <heading>)`. 41KB → 16KB with zero rules dropped.
+
+### Added
+- **`/build`: validator-seam parity rule** — a sibling field's check that runs AFTER the
+  protected use (a prompt render, a query) protects nothing on that path while reading as
+  covered; check WHERE each check runs, not just that it exists (supersedes PR #34).
+- **PRINCIPLES §Lesson format** — the standing policy: rule up front, story in the case file;
+  prune roughly every 10 merged lessons or when a skill passes ~15KB.
+
 ## [1.3.0] — 2026-07-27
 
 Catch-up release: 20 merged PRs of harvested build-loop lessons (PRs #12–#31)
