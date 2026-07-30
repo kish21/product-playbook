@@ -43,6 +43,7 @@ description: >
 2. **Security:** compose **`/security-review`** on auth/data; for AI, run the OWASP LLM Top 10 / prompt-injection checklist.
 3. **Reconcile docs:** compose **`/doc-audit`**; update `PRODUCT.md`, `docs/features/*`, README so they match reality (no false claims). Gate the PR on this.
 4. **Rollout safety:** state the **rollback path** (revert PR / migration-down / flag-off); put risky/irreversible changes behind a **flag or staged rollout**; name the **post-deploy signal to watch** (the bridge to `/learn`); bump **semver** where versioned.
+   - **Post-deploy live verification must never mutate a record sitting in a human's review/approval state — dry-run the same code path on the real data with persistence off.** A no-persist harness proves the deployed logic on production inputs while the human's pending decision stays untouched (case file: Dry-run live verify).
 5. **Confidence score:** report 0–100% with solid / risky-untested / to-raise-it.
 6. **PR + handoff:** compose **`github-pr-flow`** to open the PR (with **`Closes #N`** in the body for any tracked issue) + a **CHANGELOG** entry; write a short handoff (done / next / how to resume / blockers).
 7. **Reconcile the tracker (post-merge):** verify the linked issue actually **Closed** and the project-board card moved to **Done** (`github-pr-flow` Step 7) — close/move manually if the keyword or board workflow was missing. A "shipped" note is not proof; check the tracker.
