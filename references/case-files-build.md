@@ -372,3 +372,67 @@ The generalisable shape: **when a server-side computation spans the whole set bu
 batch, its inputs for the other batches come from storage — so "when does the client persist?" is
 part of that computation''s contract, not a client detail.** Write the batched protocol down and
 test the last call, not just the first.
+
+
+## The number that justified the feature
+
+A tracked issue opened with a crisp piece of arithmetic: the text-to-speech voice reads at ~1.3
+words per second, the generation prompt asks for ~2, so every script is written half again too long
+and the quality gate blocks it after the money is spent. That number survived into a plan, a memory
+note, a config default and several code comments. It was the reason the feature existed.
+
+It was wrong. The same session was also fixing an off-by-one in how scenes were numbered — labels
+added a `+1` to an index that was already 1-based, so every message named the scene after the one it
+meant. The issue's "~1.3 w/s" had been computed by dividing one scene's word count by the NEXT
+scene's audio length: an artifact of exactly the bug being fixed, quoted as the evidence for a
+different fix. Measured against the real audio, the voice read at 2.58 w/s — *faster* than the
+prompt's assumption. The real defect was a single scene carrying 31 words in a 7-second slot, which
+no voice could have delivered.
+
+Nothing in the code could have revealed this. Every claim about the code was true: the estimators
+really did disagree, the counters really were duplicated, the prompt really did hardcode a rate. The
+only thing that could falsify the number was running the real system against real data — and that
+happened late, during the live verify, *after* the conservative default had already been calibrated
+to 1.4 w/s. That default would have shipped scripts too short to fill the ad, in the opposite
+direction from the bug it was meant to fix.
+
+Two things follow. **Measure the premise before you calibrate to it** — if a number justifies the
+work, reproducing it is part of Step 0, not part of the final verification. And **when the measured
+value contradicts the plan, fix the record everywhere it was copied to** — the issue, the config
+comment, the design doc, the changelog — and state the corrected claim plainly, including the part
+where the feature is now worth less than it was sold as. The honest version here was: the ask and
+the check now come from one measured number instead of two unverified constants, which is a
+correctness win, not the 2x saving the issue promised.
+
+## The global row a client could aim at
+
+A feature needed to know how fast a given text-to-speech voice actually speaks, so it measured every
+synthesis and accumulated the result in a table keyed by `(provider, voice, language)`. The table
+was deliberately global rather than per-tenant: a voice's speed is a property of the voice, so the
+first customer to use it calibrates it for everyone and nobody starts uncalibrated.
+
+The design doc argued this was safe, and gave a reason that sounded complete: the table holds only
+counts and durations — no names, no text, no tenant identifier — so there is nothing to leak. That
+reasoning is true and it covers exactly one direction. It never asks whether one tenant can WRITE
+into the number every other tenant reads.
+
+They could. The request handler carefully stamped the provider and voice from server config, because
+those select which paid vendor tier runs — but `language` was passed through from the client, and it
+was the third component of the key. So a caller could aim its writes at the precise row everyone
+else reads, or mint new ones with an arbitrary string, and the values being accumulated derived from
+content that same caller controlled. No data crossed a boundary; the damage was that other tenants'
+generations would be built on a number quietly dragged off true, which is close to undiagnosable
+from their side.
+
+The obvious one-line fix — stamp `language` from config like the other identity fields — was wrong
+for a reason worth remembering: that field also reached the synthesis engine, so hard-stamping it
+would have silently switched a live project's audio to a different locale. **A field can be an
+identity key in one place and a functional setting in another; fix the key, not the field.** The
+shipped fix mapped the tag through a closed, config-owned set when computing the key (a client may
+choose among approved values, never contribute one) and added a plausibility bound so a single batch
+outside a believable range is discarded rather than banked — which covers broken input, a
+mis-measured batch and a deliberate skew identically, so intent never has to be guessed.
+
+The residual was accepted and written down: a tenant can still contribute *plausible* values, which
+is the entire point of sharing. Per-tenant rows were rejected as the cure being worse than the
+disease.
