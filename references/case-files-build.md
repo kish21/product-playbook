@@ -344,3 +344,31 @@ variant without any writer having to say so. The test that pins it sits at the s
 the UPDATE payload sent to the DB must not CONTAIN the column when no explicit selection is being
 made — asserting the call args alone would miss a repo layer that "helpfully" fills the default
 back in.
+
+
+## The final-batch verdict
+
+A GPU-synthesis endpoint capped how many items one request could process and handed the leftovers
+back as `meta.remaining`; the client looped until the list came back empty. A new feature added a
+whole-set computation to that endpoint — a verdict spanning EVERY item, using this batch's freshly
+measured values merged over the values already persisted on the row. It ran only on the final
+batch, on the reasoning that a mid-batch verdict would just be rewritten by the next call. That
+reasoning was right, and the implementation was still wrong: the page persisted measurements once,
+AFTER the whole loop finished. So on any set larger than one batch, the final call looked at
+batches 1..n-1, found nothing persisted, and emitted a confident refusal — "N items have no
+measurement yet, regenerate them" — whose suggested fix re-spent the money and refused again. A
+second manifestation was quieter: on a re-run, the final batch's verdict mixed fresh values for
+its own items with the PREVIOUS run's stale values for every earlier one, so the verdict looked
+successful while being computed from audio that no longer existed.
+
+Every test passed. The suite covered the single-batch happy path, the honest refusal, the subset
+regeneration and the mid-batch omission — but nothing exercised the FINAL call of a multi-batch
+run, which is the only place the bug lives. The fix was one line in the client loop (persist this
+batch before requesting the next, which doubles as crash insurance for work already paid for) plus
+a test that drives the real two-call protocol end to end: first call returns `remaining` and no
+verdict, the measurements are persisted, the second call's verdict spans every item.
+
+The generalisable shape: **when a server-side computation spans the whole set but runs on one
+batch, its inputs for the other batches come from storage — so "when does the client persist?" is
+part of that computation''s contract, not a client detail.** Write the batched protocol down and
+test the last call, not just the first.
