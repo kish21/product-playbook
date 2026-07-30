@@ -329,3 +329,18 @@ the result payload names the cause (the list of blank fields), and each surface 
 right remediation — the pipeline pause-note and the UI toast name the fields and point at the
 upstream stage, while the other causes keep the regenerate copy. The test additions pin the note
 text per cause at the caller's altitude, not just the boolean.
+
+### The reset selection
+
+A generation stage produced four variants and the user could pick one; the pick was persisted in
+its own column. The pipeline's automated runner, on every run, persisted the fresh variants AND
+`selected_index=0` — reasonable-looking on the first run (someone has to pick a default), fatal on
+every re-run: regeneration silently snapped the user's deliberate choice back to variant 1 with no
+signal. The sibling stage never had the bug — its runner simply never wrote its selection column —
+so the asymmetry itself was the finding. The fix made the write optional (`None` = column
+untouched), removed the automation write entirely, and moved the default to READ time: every
+reader already resolved an absent index to variant 0, so the first run still landed on the hero
+variant without any writer having to say so. The test that pins it sits at the storage altitude:
+the UPDATE payload sent to the DB must not CONTAIN the column when no explicit selection is being
+made — asserting the call args alone would miss a repo layer that "helpfully" fills the default
+back in.
