@@ -436,3 +436,35 @@ mis-measured batch and a deliberate skew identically, so intent never has to be 
 The residual was accepted and written down: a tenant can still contribute *plausible* values, which
 is the entire point of sharing. Per-tenant rows were rejected as the cure being worse than the
 disease.
+
+## The stub that looked like a feature
+
+A page on a shipped project carried a button offering to rewrite a line of copy so it would fit the
+slot it had to fill. The button had been there for months. It picked a random string from a
+hardcoded five-item array of generic marketing sentences and wrote it straight into the user's
+content — ignoring the item, its length constraint, the brand rules, and the quality verdict that
+had just been computed for it.
+
+Nothing ever failed. Both test suites were green throughout. The button rendered, responded to a
+click, and changed the text on screen, which is the entire observable surface of "it works". A stub
+that returns *something* is indistinguishable from a feature at every level a normal test operates
+at — the only thing that separates them is whether the returned value has any relationship to the
+inputs, and no assertion was ever written about that relationship because nobody had written the
+feature yet.
+
+It surfaced the way these always surface: a user hit the exact dead end the button existed to
+resolve, clicked it, and got an irrelevant sentence. The placeholder was not discovered by the
+people maintaining the code. It was discovered by the person it stranded.
+
+Two rules came out of it. First, when you deliberately ship a placeholder, ship the failing test
+with it — a skipped or `xfail` test naming what the real thing must do, so the debt is a red mark
+in the suite rather than a comment nobody re-reads. Second, when you finally replace one, pin its
+removal *by its literal content*: a repo scan asserting those five exact strings appear in no
+production file, plus a scan asserting the real call has exactly the callers it should. A remembered
+rule ("don't put the fake content back") gets skipped under pressure; a scan fails the build.
+
+The same replacement also earned a smaller companion rule. The stub wrote its output straight into
+the user's content, so there was nothing to reject. The real version proposes, and the user applies —
+because an AI suggestion and a user confirmation are different facts, and a placeholder that writes
+immediately hides that distinction along with everything else.
+
