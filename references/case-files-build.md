@@ -468,3 +468,66 @@ the user's content, so there was nothing to reject. The real version proposes, a
 because an AI suggestion and a user confirmation are different facts, and a placeholder that writes
 immediately hides that distinction along with everything else.
 
+## The gate that confiscated the key
+
+A quality check on a shipped project was blocking users at a stage boundary. The owner's instruction
+was blunt: the check should highlight problems and offer a fix, never withhold passage. It looked
+like a one-line change — a frontend early-return that refused to navigate when the verdict came back
+invalid.
+
+It was three walls, and the second one is the reason this is a case file.
+
+The first was the obvious early-return. The third was the server refusing to record an override,
+which is why "continue anyway" could not even be offered. The second was invisible from anywhere the
+word "block" appeared: the gate's own runner built the downstream job package *only if the verdict
+was valid*, and the next stage refused to start without that package. The gate did not merely judge —
+it **issued the artifact the rest of the pipeline required**. Delete the visible check and the door
+is still shut, now for a reason with no error message attached to it.
+
+Every test passed throughout, because every test asked the same question: *does the check still
+report correctly?* None asked *can a user who ignores the check actually proceed?* The rule that
+falls out is to test the gate's **negative** path as a user journey, not as a verdict assertion.
+
+There was a fourth wall, and the owner found it in the running app rather than anyone finding it in
+the code. Several screens each kept their own **local restatement** of the server's refusal message —
+literal copy along the lines of "pass the quality check first" — so the product went on saying the
+gate existed after the gate was gone. The fix was to render the server's own message everywhere and
+pin the removal with a repo scan on the phrase itself.
+
+Hence the two halves of the rule. **Find every place the verdict is enforced**, with particular
+suspicion of anything that both judges and *issues* a token, package or approval — that shape hides
+the enforcement behind a missing artifact rather than a visible check. Then **grep the gate's
+vocabulary, not just its logic**, because copy is enforcement too as far as a user is concerned.
+
+
+## The config the database outranked
+
+A project kept its form definitions in two places: a typed config file in the frontend source, and a
+table the admin dashboard could edit so an operator could change a form without a deploy. The
+resolution order was one line in a hook — database row first, source file as fallback — and it was
+correctly documented right there.
+
+Months earlier a required file-upload field had been made optional, because the file it collected
+reached storage and then reached nothing else; requiring it gated a submit on a dead end. That change
+edited the source file *and* shipped a migration for the table, and its migration header even said so:
+the row wins at runtime, so both must move together.
+
+When the feature finally shipped that made the upload real, the obvious task was to revert the copy
+and make the field required again. Editing the source file was a two-character change and it would
+have done **nothing**. The database row was the value in force; the source file had been the fallback
+the whole time. Nothing would have failed — it lints, it type-checks, the parity tests pass, a code
+review reads clean — and the operator would have reported that the change "didn't work" with nobody
+able to see why. The only thing that catches this is reading the value back out of the running
+system rather than out of the file you just edited.
+
+Querying the live table before writing anything then exposed a second, sharper problem. The original
+migration had applied its update to **every row containing that field**, not just the one row that
+had motivated it. Going out that was harmless — only one row held the old value, so the rest were
+no-ops. Coming back it would have been silently destructive: two other form variants had that field
+optional *by deliberate design*, and a mirror-image revert would have quietly reversed both
+decisions with no discussion and no test to catch it.
+
+So the revert was scoped to one variant, one form, one field. And because a data migration has no
+suite to go red, it was verified the way such things have to be: back up every row first, apply,
+then assert that **exactly one row changed and the other twenty-four were byte-identical**. That
+sentence is the evidence. "The migration ran without error" is not.
