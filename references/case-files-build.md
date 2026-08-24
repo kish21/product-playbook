@@ -531,3 +531,45 @@ So the revert was scoped to one variant, one form, one field. And because a data
 suite to go red, it was verified the way such things have to be: back up every row first, apply,
 then assert that **exactly one row changed and the other twenty-four were byte-identical**. That
 sentence is the evidence. "The migration ran without error" is not.
+
+---
+
+## The read-back that always said unset
+
+A junior ticket filed two follow-up issues and added them to the project board. The board's own
+skill already carried the right rule — *add the card AND set every single-select (Status, Owner,
+Lane), then re-list the board and confirm the card reads the way you set it.* Only the first half
+happened: `gh project item-add` created the cards, and no field was ever set.
+
+The owner asked whether the tickets were properly filed under the junior view. The check looked
+like diligence:
+
+```bash
+gh project item-list 4 --owner kish21 --format json \
+  | jq '.items[] | {owner: (.Owner // "UNSET"), lane: (.Lane // "UNSET")}'
+```
+
+Every card came back `Owner=UNSET, Lane=UNSET`. That confirmed the suspicion, and two claims were
+reported to the owner: the two new tickets were unstamped (true, by accident), **and** the parent
+ticket was unstamped too, therefore "the board fields have been going unset on this project more
+broadly" (false).
+
+`gh project item-list --format json` returns its field keys **lowercase** — `owner`, `lane`,
+`status`. `.Owner` matches nothing. The `// "UNSET"` fallback then converts "your filter is
+malformed" into "the board is empty", with no error, for every card ever queried. The same query
+would have said UNSET against a perfectly maintained board — which is exactly what it did: a later
+count with the correct keys showed **107 of 116 cards had Owner set and 106 had Lane**.
+
+The damage was not only the wrong claim. Believing the parent was unstamped, the agent *stamped
+it* — overwriting whatever Lane it already carried, on a card it had no reason to touch, with no
+record of the previous value. A broken read turned into an unnecessary write.
+
+The tell was available and ignored: a fallback that reports the same value for *absence* and for
+*never asked correctly* should never be trusted on its first negative. One glance at a card known
+to be set — or one `jq keys` on a single item — would have shown lowercase keys immediately.
+
+**The general rule this earns:** a probe that reports absence proves nothing until it has proved it
+can report presence. Point it at a known-positive first. This is not specific to `gh` or `jq` —
+`grep` with the wrong flag, a query with the wrong filter, a test file the runner never collected,
+and a scan whose glob excludes its own target all report "clean" in exactly the same voice as a
+genuine pass, and none of them raise.
