@@ -181,6 +181,22 @@ many tests surround it — this is the only thing that distinguishes "the pieces
 pieces are connected", the drift-verification rule applied to WIRING. `git checkout -- <file>`
 restores HEAD and silently wipes an uncommitted fix along with the cut.
 
+Second instance (MarkVid #685, 2026-08-24) — the *restore* is the fragile half, not the cut. The fix
+was a one-line swap: `batch = list(resp.data or []) if resp else []` became
+`batch = _rows_or_refuse(resp, source="projects")`. Cutting it was unambiguous, because only one
+guarded line existed. Restoring it was NOT: the identical raw line
+`batch = list(resp.data or []) if resp else []` also appeared in a *different* function in the same
+file, so the moment the wire was cut there were TWO candidates and a naive `replace()` would have
+silently patched the wrong one — reverting an unrelated function while reporting success. What
+caught it was the script asserting `s.count(target) == 1` before writing; it raised
+`expected exactly 1, found 2` and refused. The re-apply was then re-anchored on the unique comment
+line directly above the target, and the restore proven with `git diff --exit-code` against the
+committed baseline.
+*Full rule context:* a wire-cut script is throwaway code that edits the file you are trying to
+protect, which is exactly the code that should be paranoid. Anchor on unique context, assert the
+match count before writing, and prove the restore against the committed baseline rather than
+assuming it. An unasserted `replace()` fails silently and in the one direction you cannot see.
+
 ### The wrong column
 *(Backs: delete-the-wire proves a wire EXISTS, not that it goes somewhere CORRECT.)*
 Real instance: a scraped brand name was mapped from `projects.title` because one write path set
