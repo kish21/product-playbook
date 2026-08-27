@@ -573,3 +573,74 @@ can report presence. Point it at a known-positive first. This is not specific to
 `grep` with the wrong flag, a query with the wrong filter, a test file the runner never collected,
 and a scan whose glob excludes its own target all report "clean" in exactly the same voice as a
 genuine pass, and none of them raise.
+
+---
+
+## The field that was safe until someone read it
+
+A video product assembled films from a "prompt package" — a snapshot of every scene taken at
+quality-check time, minted before the expensive generation stages run. Because that snapshot goes
+stale by design, there was a helper whose entire job was to overlay the CURRENT stage-owned
+artifacts back onto it: the rendered clip, its measured length, the voiceover, its word timings. Two
+stages called it. It was well documented, and it was correct.
+
+Its field list did not include the scene's IMAGE key.
+
+That was not an oversight anyone could have caught, because for as long as it existed it was
+unobservable. The one renderer that made films out of images read the live database rows directly
+and never touched the package. The renderer that read the package made films out of video clips and
+had no use for an image. The staleness was real the whole time and could not produce a symptom.
+
+Then a ticket added a second picture source to the package-reading renderer: films made of stills.
+The new code was reviewed carefully — the tenant guard moved with the column, the filtergraph was
+traced, the stamp another stage reads was pinned by its own wire-cut. All of that was correct. And
+the feature was still broken: regenerate a scene's image after the quality check, and the ad renders
+the OLD picture. Worse, the version-history entry stamps the OLD key, so every page in the product
+agrees the film is current. No error, no log line, nothing to explain it.
+
+The fix was one string in a list. The point is where it was: **not in the diff under review.** The
+diff's own tests all passed, because they exercised the new path and the new path was right. What
+was wrong was an assumption the old code had been allowed to make for free — "nobody reads this, so
+it need not be fresh" — which the new reader silently invalidated.
+
+So the question to ask when wiring a second consumer onto an existing data path is not *"is my new
+code correct?"* It is **"what was this path allowed to get away with while it had one reader?"**
+Freshness, validation, ordering, error handling, tenant scoping — each may have been skipped for a
+perfectly good reason the second reader has just deleted.
+
+---
+
+## The duration that reading the code got wrong twice
+
+The same ticket's exit criterion, drafted by the person who filed it, said the delivered video's
+measured duration should equal *"the sum of the scene durations"*.
+
+Reading the code showed that was wrong: scenes crossfade, and a crossfade OVERLAPS two of them, so a
+film with transitions is *shorter* than the sum by exactly the transition time. That correction went
+into the plan, the feature doc and the PR description. It was confident, it cited the right
+function, and it was **also wrong**.
+
+The live test that finally rendered a crossfaded film came back at 4.0s where that reasoning
+predicted 3.5s. The missing fact was two functions away: the per-scene voiceovers are DE-OVERLAPPED
+(a crossfade would otherwise start the next voice while the previous is still speaking), so the
+audio runs past the shortened video fold and the last frame is held under it. The real rule is
+`max(video fold, de-overlapped audio)` — neither the sum, nor the sum minus the crossfade.
+
+Two things to take from it.
+
+**First: "the generated graph contains `xfade`" is not "the engine accepted it."** The crossfade had
+been pinned only by a string assertion on the filtergraph. That filter refuses inputs which disagree
+on timebase or sample-aspect-ratio, and the new code path reached it through a different set of
+filters, in a different order, than the existing one did. No string check can answer whether that is
+acceptable to the tool; only the tool can, and it answers by failing the whole render. The same
+holds for any generated artifact handed to an external engine — a SQL string, a Dockerfile, a CI
+config, an ffmpeg command. Containing the right tokens is not the property you care about.
+
+**Second, and more general: re-deriving the expected value by reading the code is a SECOND GUESS,
+not a verification.** The test that caught this now asserts the delivered bytes against the
+producer's own computed total, not against a number recomputed in the test. A hand-recomputed
+expectation can be wrong in the same direction as the implementation, drifts the moment the
+arithmetic moves, and — as here — can be wrong twice in a row while sounding more rigorous each
+time. When the system already owns the calculation, assert the ARTIFACT against the SYSTEM's answer,
+and reserve hand-computed numbers for the one or two cases simple enough to be obviously right.
+
