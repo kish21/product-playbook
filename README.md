@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.2.1-blue.svg)](CHANGELOG.md)
-![Claude Code skills](https://img.shields.io/badge/Claude%20Code-19%20skills-8A2BE2.svg)
+![Claude Code skills](https://img.shields.io/badge/Claude%20Code-18%20skills-8A2BE2.svg)
 
 **A guided path from idea → shipped that bakes in the engineering discipline most teams learn the hard way.**
 
@@ -27,9 +27,9 @@ Here is exactly how it happened:
 
 To cut short the time of my next project and stay laser-focused, I needed a playbook. Not just a document, but **executable skills with evidence-based gates and checks** that force both me and the AI to maintain engineering discipline.
 
-> 👉 *Short on time? **[Skip the story — jump straight to the 19 skills →](#skill-reference)***
+> 👉 *Short on time? **[Skip the story — jump straight to the 18 skills →](#skill-reference)***
 
-`product-playbook` was born from my scars. It turns those lessons into a single, shared rulebook (`PRINCIPLES.md`) and maps them to **19 step-by-step commands (skills)** (16 journey phases + the `/frontend-audit` and `/new-component` UI-suite skills). It forces you to move one phase at a time, checking gates with evidence before writing code, so you get senior-level discipline by default.
+`product-playbook` was born from my scars. It turns those lessons into a single, shared rulebook (`PRINCIPLES.md`) and maps them to **18 step-by-step commands (skills)** (16 journey phases + the `/frontend-audit` and `/new-component` UI-suite skills). It forces you to move one phase at a time, checking gates with evidence before writing code, so you get senior-level discipline by default.
 
 ---
 
@@ -39,7 +39,7 @@ This system relies on three core files to create a structured, sequential, yet s
 
 ```mermaid
 graph TD
-    A["PRINCIPLES.md<br/>The Rulebook"] -->|Enforces rules inside| C["commands/<br/>The 19 Skills"]
+    A["PRINCIPLES.md<br/>The Rulebook"] -->|Enforces rules inside| C["commands/<br/>The 18 Skills"]
     B["PRODUCT.md<br/>The Living Spine"] <-->|Reads & Updates| C
     C -->|Generates & Scaffolds| D["Your Codebase"]
 ```
@@ -57,7 +57,7 @@ The single source of truth for your quality bar. It details:
 *   **Production Safeguards:** Zero-secrets, fail-closed security, observability, and rollback paths.
 
 ### 3. The Commands (`commands/*.md`)
-These are **19 custom Markdown commands** (skills) that you install into Claude Code. Each command (e.g., `/vision`, `/scope`, `/architect`, `/dev-check`) has a strict contract:
+These are **18 custom Markdown commands** (skills) that you install into Claude Code. Each command (e.g., `/vision`, `/scope`, `/architect`, `/dev-check`) has a strict contract:
 
 ```markdown
 ---
@@ -95,7 +95,7 @@ Run `/playbook` to start. It reads your `PRODUCT.md` and guides you step-by-step
 START → /playbook (guides you through the phases below)
 
 1. PRODUCT       /vision ──> /scope ──> /plan
-2. DEVELOPMENT   /architect ──> /structure ──> /design-system* ──> /foundation ──> /contracts ──> /tickets ──> /build ──> /dev-check
+2. DEVELOPMENT   /architect ──> /structure ──> /design-system* ──> /foundation ──> /contracts ──> /build ──> /dev-check
                                               (* if the product has a UI)
 3. TESTING       /test
 4. EVALUATION    /eval
