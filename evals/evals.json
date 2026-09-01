@@ -141,20 +141,6 @@
       "prompt": "build a new React component for my app",
       "expected_output": "Builds/skins ONE component against DESIGN.md tokens; uses CSS variables (never raw hex), defines hover/focus-visible/active/disabled states, respects the typography + a11y constraints, and reuses shadcn/ui + 21st.dev primitives rather than hand-rolling.",
       "files": []
-    },
-    {
-      "id": "tickets-milestone-breakdown",
-      "skill": "tickets",
-      "prompt": "Break down the milestones in PRODUCT.md into GitHub issue tickets with target modules and DoD",
-      "expected_artifacts": [
-        "docs/issues/*.md",
-        ".github/ISSUE_TEMPLATE/feature_ticket.md"
-      ],
-      "assertions": [
-        "Each milestone maps to target files across domain, services, components, and tests",
-        "Pre-flight remote check is executed before calling gh issue create",
-        "Definition of done includes security checks"
-      ]
     }
   ]
 }

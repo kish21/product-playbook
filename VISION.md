@@ -31,8 +31,7 @@ This is distinct from `product-toolkit` (a grab-bag of individual dev/quality sk
 | 2 Dev | `/frontend-audit` | (UI products only) Mechanical enforcement of the design-system laws — real OKLCH→WCAG contrast engine + token/motion/font/responsive checks; CI-friendly | runs `audit.py` over UI + `DESIGN.md`; computes the WCAG ratio per token pair in **both** modes; any ERROR exits non-zero (CI gate); prints a per-law pass/warn/error scorecard |
 | UI suite | `/new-component` | (bundled UI-suite support) Build/skin ONE React component against `DESIGN.md` tokens | CSS-vars (no raw hex); interactive states (hover/focus-visible/active/disabled); typography + a11y constraints; reuses shadcn/ui + 21st.dev primitives |
 | 2 Dev | `/foundation` | Walking skeleton that RUNS: config, logging+tracing, infra, the pre-commit+CI auto-layer | `#Foundation` shows app runs end-to-end (shown); config-flow verified; guards; **pre-commit + CI auto-run** secret-scan + dependency-vuln + tests and block on red; observability hook; async-safe |
-| 2 Dev | `/contracts` | Typed models/schemas/migrations BEFORE logic | #Contracts lists typed models/migrations (applies); boundary units/scale agreed; **versioning**; **PII + tenant + idempotency keys**; API contracts documented |
-| 2 Dev | `/tickets` | Breaks down milestones into structured GitHub issue tickets with target file paths, modules, tasks, and DoD | docs/issues/*.md, .github/ISSUE_TEMPLATE/ |
+| 2 Dev | `/contracts` | Typed models/schemas/migrations BEFORE logic | `#Contracts` lists typed models/migrations (applies); boundary units/scale agreed; **versioning**; **PII + tenant + idempotency keys**; API contracts documented |
 | 2 Dev | `/build` | Per-feature loop with security-in-DoD + per-feature doc | each feature in `#Build log` has DoD-met + how-verified + a `docs/features/*` doc; no secret in code; single-responsibility (no god-files) |
 | 2 Dev | `/dev-check` | Checkpoint: verify every feature's exit criteria + security DoD | all `#Dev-complete` boxes checked, with evidence; no god-files; scans clean |
 | 3 Test | `/test` | Unit/integration/regression + adversarial (injection/authz) + golden dataset | `#Tests` shows coverage incl. live-path + security cases + a golden/eval dataset; fake keys only |
@@ -54,5 +53,3 @@ No hardcoding (config/`.env`/prompt files) · typed contracts · provider/adapte
 security-in-the-build (fail-closed; OWASP LLM Top 10 for AI) · honest docs that match reality ·
 measure before fixing · evidence-based "done" · generic-not-domain-specific · plain-language
 communication · `.env` is user-owned.
-
-<!-- skills: `/architect` `/build` `/contracts` `/design-system` `/dev-check` `/drift-check` `/eval` `/foundation` `/frontend-audit` `/learn` `/new-component` `/plan` `/playbook` `/scope` `/ship` `/structure` `/test` `/tickets` `/vision` -->
