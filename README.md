@@ -40,7 +40,7 @@ This system relies on three core files to create a structured, sequential, yet s
 ```mermaid
 flowchart TD
     A["PRINCIPLES.md<br/>The Rulebook"] -->|Enforces rules inside| C["commands/<br/>The 18 Skills"]
-    B["PRODUCT.md<br/>The Living Spine"] <-->|Reads and Updates| C
+    B["PRODUCT.md<br/>The Living Spine"] ---|Reads and Updates| C
     C -->|Generates and Scaffolds| D["Your Codebase"]
 ```
 
@@ -146,12 +146,12 @@ the other two UI skills then consume. So the look is *decided once, confirmed by
 
 ```mermaid
 flowchart TD
-    P["PRODUCT.md (vision / scope)<br/>+ universal-laws (the quality floor)"] --> DS["/design-system<br/>principles -> archetype -> ONE sample -> STOP and confirm (iterate till you like it)"]
-    DS --> DM["DESIGN.md<br/>9-section harness , shadcn/OKLCH tokens , light + dark , WCAG-AA verified"]
+    P["PRODUCT.md (vision / scope)<br/>+ universal-laws (quality floor)"] --> DS["/design-system<br/>principles to archetype to sample to confirm"]
+    DS --> DM["DESIGN.md<br/>9-section harness, shadcn tokens, light + dark, WCAG verified"]
     DM --> NC["/new-component<br/>builds components AGAINST the tokens"]
-    DM --> FA["/frontend-audit<br/>ENFORCES the tokens + laws (computed contrast)"]
-    NC --> UI["Your UI : consistent, accessible, not generic"]
-    FA -.->|checks| UI
+    DM --> FA["/frontend-audit<br/>ENFORCES tokens and laws (computed contrast)"]
+    NC --> UI["Your UI: consistent, accessible, not generic"]
+    FA -.-> UI
 ```
 
 `DESIGN.md` is **derived** (not hand-written) through the sample-and-confirm loop, then **consumed**: `/new-component`
