@@ -38,7 +38,7 @@ To cut short the time of my next project and stay laser-focused, I needed a play
 This system relies on three core files to create a structured, sequential, yet standalone development workflow.
 
 ```mermaid
-graph TD
+flowchart TD
     A["PRINCIPLES.md<br/>The Rulebook"] -->|Enforces rules inside| C["commands/<br/>The 18 Skills"]
     B["PRODUCT.md<br/>The Living Spine"] <-->|Reads & Updates| C
     C -->|Generates & Scaffolds| D["Your Codebase"]
@@ -145,7 +145,7 @@ For UI products, `/design-system` turns your vision into one concrete, reusable 
 the other two UI skills then consume. So the look is *decided once, confirmed by you, and enforced everywhere*:
 
 ```mermaid
-graph TD
+flowchart TD
     P["PRODUCT.md (vision / scope)<br/>+ universal-laws (the quality floor)"] --> DS["/design-system<br/>principles → archetype → ONE sample → STOP &amp; confirm (iterate till you like it)"]
     DS --> DM["DESIGN.md<br/>9-section harness · shadcn/OKLCH tokens · light + dark · WCAG-AA verified"]
     DM --> NC["/new-component<br/>builds components AGAINST the tokens"]
