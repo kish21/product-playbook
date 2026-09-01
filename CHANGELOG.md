@@ -3,6 +3,13 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.5.0] - 2026-09-01
+
+### Added
+- **/tickets Skill (Phase 2, Step 4b):** Bridges /contracts and /build. Automatically translates milestones from PRODUCT.md#Plan into structured GitHub Issue Tickets with exact target files, modules, tasks, and security DoD.
+- **GitHub Templates Auto-Provisioning:** Bundles and automatically deploys .github/ISSUE_TEMPLATE/feature_ticket.md and .github/PULL_REQUEST_TEMPLATE.md.
+- **Pre-Flight Remote & Deduplication Guard:** Verifies remote repository status before publishing, never blindly creates repos, and ignores existing issues to prevent duplicates.
+
 ## [1.4.0] — 2026-07-28
 
 The first pruning release. `/build` had grown to 41KB of load-bearing lessons — every byte
