@@ -143,7 +143,7 @@
       "files": []
     },
     {
-      "id": "tickets-milestone-layer-decomposition",
+      "id": "tickets-strategy-proposed-and-confirmed",
       "skill": "tickets",
       "prompt": "Break down the milestones in PRODUCT.md into GitHub issue tickets",
       "expected_artifacts": [
@@ -151,13 +151,43 @@
         ".github/ISSUE_TEMPLATE/feature_ticket.md"
       ],
       "assertions": [
-        "Each milestone is decomposed into one ticket PER architectural layer, not a single combined ticket",
-        "Only layers the project actually has are emitted - a backend/CLI product with no src/components/ gets no UI ticket",
-        "Every ticket names exact target file paths, never a bare directory",
-        "Every ticket states its typed inputs and outputs and is mergeable as an isolated PR",
-        "Ticket IDs are milestone-scoped (M<n>-TICK-<nn>) so they stay unique across milestones",
+        "A slice strategy (vertical or horizontal) is RECOMMENDED per milestone with a one-line reason, and the run STOPS for confirmation before writing tickets",
+        "Naming the strategy in the invocation (/tickets \"vertical\") skips the proposal",
+        "The chosen strategy is recorded on every ticket of that milestone",
+        "Each milestone yields 2-4 tickets, each mergeable as an isolated PR",
+        "Every ticket names exact target file paths, never a bare directory, and states typed inputs and outputs",
+        "Ticket IDs are milestone-scoped (M<n>-SLICE-<nn> / M<n>-TICK-<nn>) so they stay unique across milestones",
         "Pre-flight remote check and gh issue list dedup run before any gh issue create",
         "Definition of done includes security checks on every ticket"
+      ]
+    },
+    {
+      "id": "tickets-vertical-slicing",
+      "skill": "tickets",
+      "prompt": "/tickets \"vertical\"",
+      "expected_artifacts": [
+        "docs/issues/*.md"
+      ],
+      "assertions": [
+        "Each milestone is split into 2-4 thin end-to-end slices, each crossing layers on purpose",
+        "Every slice states an observable Demo - what a reviewer can see working after it merges",
+        "Slice 1 is a walking skeleton that runs end to end on its own",
+        "A slice with no observable outcome is rejected as a layer wearing a slice id, and re-sliced or moved to horizontal",
+        "No separate test slice is emitted - each slice's DoD carries the tests for the layers it touched"
+      ]
+    },
+    {
+      "id": "tickets-horizontal-slicing",
+      "skill": "tickets",
+      "prompt": "/tickets \"horizontal\"",
+      "expected_artifacts": [
+        "docs/issues/*.md"
+      ],
+      "assertions": [
+        "Each milestone yields one ticket PER architectural layer, and no ticket lists files from two layers",
+        "Only layers the project actually has are emitted - a backend/CLI product with no src/components/ gets no UI ticket",
+        "Layer 4 holds ONLY cross-layer work (integration across the real seam, adversarial/security); per-layer unit tests stay in each layer ticket's DoD",
+        "Each ticket exposes the typed contract its dependants build against, so layers can start before their dependency merges"
       ]
     },
     {

@@ -79,7 +79,7 @@
     {
       "id": "tickets",
       "category": "2-development",
-      "purpose": "Bridge /contracts and /build: decompose each milestone into layer-scoped, independently mergeable tickets (data/service/UI/tests) with exact file paths and a security DoD; or log a single ad-hoc bug against the file that owns it",
+      "purpose": "Bridge /contracts and /build: decompose each milestone into independently mergeable tickets - vertical thin end-to-end slices or horizontal layer tickets, recommended per milestone and confirmed by you - with exact file paths and a security DoD; or log a single ad-hoc bug against the file that owns it",
       "file": "commands/tickets.md"
     },
     {
