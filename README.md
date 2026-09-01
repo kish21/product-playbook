@@ -120,7 +120,7 @@ ANYTIME          /drift-check (detects scope creep or code-docs drift)
 | **UI suite** | `/new-component` | (bundled support skill) Builds/skins ONE React component against the `DESIGN.md` tokens : CSS-vars, interactive states, a11y; reuses shadcn/ui + 21st.dev | Component file | Building any UI component |
 | **Dev** | `/foundation` | Builds walking skeleton with logging, config, pre-commit and CI | Running app + CI workflows | Bootstrapping the codebase |
 | **Dev** | `/contracts` | Writes typed schemas/migrations BEFORE business logic | Schema files + migrations | Writing data layers |
-| **Dev** | `/tickets` | Breaks milestones into code-mapped GitHub issue tickets with exact target files and a security DoD; provisions `.github/ISSUE_TEMPLATE/`. Pre-flight verifies the remote : never blindly creates one | `docs/issues/*` + issue/PR templates | After `/contracts`, before building |
+| **Dev** | `/tickets` | Splits each milestone into 2-4 layer-scoped tickets (data / service / UI / tests) that different developers can merge as separate PRs : exact file paths, typed in/out, security DoD. Given a description instead, logs ONE ad-hoc bug against the owning file | `docs/issues/*` + issue/PR templates | After `/contracts`, before building; or any time you spot a bug |
 | **Dev** | `/build` | Implements feature with testable exit criteria and docs | Feature code + `docs/features/*` | Building feature-by-feature |
 | **Dev** | `/dev-check` | Verifies exit criteria and security DoD with evidence | `PRODUCT.md` -> **Dev-complete** | Prior to testing |
 | **Testing** | `/test` | Performs unit/integration/regression and adversarial tests | Test suites | Post-development check |
