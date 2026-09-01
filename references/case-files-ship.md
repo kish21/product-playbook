@@ -49,3 +49,33 @@ workaround, confirm the workaround APPLIED (`command -v python`) before drawing 
 from the fact that the symptom persisted. A workaround that silently no-ops is indistinguishable
 from an environment that refuses to cooperate — and the second story is far more flattering,
 which is exactly why it gets believed.
+
+## The second review round
+
+**lanekeeper #38, 2026-09-01.** A ~2,000-line step (a new `divide` package, a new CLI
+command, a new config section) went through `/code-review` at high effort. It returned
+10 findings, every one real and reproduced. They were fixed carefully — deny/shared
+zones honoured in the collision check, the draft file no longer clobbered, configured
+paths validated — and the whole suite went green.
+
+The second review round on the fixed tree returned **7 more findings**, and at least
+four of them existed only because of the first round's fixes:
+
+- The fix for "an existing lane file gets clobbered" added a `--fresh` overwrite switch —
+  reusing step 1's flag, whose documented meaning is "ignore the recorded judgement". A
+  user re-running `start --fresh` for that meaning would now silently lose an edited file.
+- The fix for "deny and shared zones are dropped" suppressed *every* structural overlap
+  whenever any zone existed anywhere, so one answered overlap hid all the unanswered ones.
+- The fix for "a feature with a directory on one side only is missed" read feature names
+  out of filenames by concatenating the surviving words: `useAuth.ts` became `useauth`,
+  a word in no project, and the very files the fix cited stayed unmatched.
+- A commented-out block the file instructs the user to uncomment emitted a blank list
+  item, which loads as the path `"None"` — passing the "does this entry have a boundary"
+  check with a boundary that matches nothing.
+
+None of these were in the original code. Each was written while looking at a finding
+rather than at the design, and every one passed the suite, because the suite was written
+against the design the fixes had just quietly changed.
+
+**The rule:** a review is not done when the findings are fixed. Fixing is editing, and
+the edits have had no reviewer. Re-run the review on the fixed tree before the PR.
