@@ -1,6 +1,6 @@
 {
   "name": "product-playbook",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "A phased, principle-driven product-building skill set — guides anyone (newcomer or experienced) through the full product lifecycle, sequential but standalone, with hard-won principles baked into each phase. Anti-scope-creep by design.",
   "author": "kish21",
   "license": "MIT",
@@ -16,28 +16,128 @@
   "principles": "PRINCIPLES.md (single source, referenced by every skill)",
   "vision": "VISION.md (the toolkit's own completeness contract)",
   "commands": [
-    { "id": "playbook",    "category": "0-entry",       "purpose": "Guided entry-point — walk the phases one at a time, pausing at each gate", "file": "commands/playbook.md" },
-    { "id": "vision",      "category": "1-product",     "purpose": "Vision, customer, problem, value — benchmarked to the current-year market", "file": "commands/vision.md" },
-    { "id": "scope",       "category": "1-product",     "purpose": "Lock the ONE core feature + explicit OUT-OF-SCOPE list (anti-creep)",       "file": "commands/scope.md" },
-    { "id": "plan",        "category": "1-product",     "purpose": "Core-first phased plan with a testable exit criterion per milestone",      "file": "commands/plan.md" },
-    { "id": "architect",   "category": "2-development", "purpose": "Decide stack + tools + key decisions (2026 OSS-first); ADRs",              "file": "commands/architect.md" },
-    { "id": "structure",   "category": "2-development", "purpose": "Clean folder layout + what each folder is for; prompts/ YAML for AI",      "file": "commands/structure.md" },
-    { "id": "design-system", "category": "2-development", "purpose": "(UI products) principles → confirmed sample page → archetype-correct DESIGN.md (shadcn tokens)", "file": "commands/design-system/SKILL.md" },
-    { "id": "frontend-audit", "category": "2-development", "purpose": "(UI products) mechanical enforcement of the design-system laws — real OKLCH→WCAG contrast engine + token/motion/font checks; CI-friendly", "file": "commands/frontend-audit/SKILL.md" },
-    { "id": "foundation",  "category": "2-development", "purpose": "Walking skeleton that runs: config, logging, infra, tooling, CI",          "file": "commands/foundation.md" },
-    { "id": "contracts",   "category": "2-development", "purpose": "Typed models/schemas/migrations BEFORE logic; agree units across boundaries", "file": "commands/contracts.md" },
-    { "id": "build",       "category": "2-development", "purpose": "Per-feature loop with security-in-DoD + per-feature doc + live-path verify", "file": "commands/build.md" },
-    { "id": "dev-check",   "category": "2-development", "purpose": "Checkpoint tester: verify exit criteria + security DoD before testing",     "file": "commands/dev-check.md" },
-    { "id": "test",        "category": "3-testing",     "purpose": "Unit/integration/regression + adversarial (injection/authz); live-path",   "file": "commands/test.md" },
-    { "id": "eval",        "category": "4-evaluation",  "purpose": "Is it good? measure-first; separate failures; confidence score",           "file": "commands/eval.md" },
-    { "id": "ship",        "category": "5-ship",        "purpose": "Deep review + security review + reconcile docs + PR + handoff",             "file": "commands/ship.md" },
-    { "id": "learn",       "category": "6-learn",       "purpose": "Success metric + retro + decide next from evidence",                       "file": "commands/learn.md" },
-    { "id": "drift-check", "category": "cross-cutting", "purpose": "Run anytime: scope creep / vision drift / code↔docs drift check",          "file": "commands/drift-check.md" },
-    { "id": "new-component", "category": "ui-suite",    "purpose": "(UI suite, bundled) build/skin ONE React component against DESIGN.md tokens; CSS-vars, interactive states, a11y", "file": "commands/new-component.md" }
+    {
+      "id": "playbook",
+      "category": "0-entry",
+      "purpose": "Guided entry-point — walk the phases one at a time, pausing at each gate",
+      "file": "commands/playbook.md"
+    },
+    {
+      "id": "vision",
+      "category": "1-product",
+      "purpose": "Vision, customer, problem, value — benchmarked to the current-year market",
+      "file": "commands/vision.md"
+    },
+    {
+      "id": "scope",
+      "category": "1-product",
+      "purpose": "Lock the ONE core feature + explicit OUT-OF-SCOPE list (anti-creep)",
+      "file": "commands/scope.md"
+    },
+    {
+      "id": "plan",
+      "category": "1-product",
+      "purpose": "Core-first phased plan with a testable exit criterion per milestone",
+      "file": "commands/plan.md"
+    },
+    {
+      "id": "architect",
+      "category": "2-development",
+      "purpose": "Decide stack + tools + key decisions (2026 OSS-first); ADRs",
+      "file": "commands/architect.md"
+    },
+    {
+      "id": "structure",
+      "category": "2-development",
+      "purpose": "Clean folder layout + what each folder is for; prompts/ YAML for AI",
+      "file": "commands/structure.md"
+    },
+    {
+      "id": "design-system",
+      "category": "2-development",
+      "purpose": "(UI products) principles → confirmed sample page → archetype-correct DESIGN.md (shadcn tokens)",
+      "file": "commands/design-system/SKILL.md"
+    },
+    {
+      "id": "frontend-audit",
+      "category": "2-development",
+      "purpose": "(UI products) mechanical enforcement of the design-system laws — real OKLCH→WCAG contrast engine + token/motion/font checks; CI-friendly",
+      "file": "commands/frontend-audit/SKILL.md"
+    },
+    {
+      "id": "foundation",
+      "category": "2-development",
+      "purpose": "Walking skeleton that runs: config, logging, infra, tooling, CI",
+      "file": "commands/foundation.md"
+    },
+    {
+      "id": "contracts",
+      "category": "2-development",
+      "purpose": "Typed models/schemas/migrations BEFORE logic; agree units across boundaries",
+      "file": "commands/contracts.md"
+    },
+    {
+      "id": "tickets",
+      "category": "2-development",
+      "purpose": "Bridge /contracts and /build: auto-breakdown milestones into GitHub issue tickets with target file paths, modules, and DoD",
+      "file": "commands/tickets.md"
+    },
+    {
+      "id": "build",
+      "category": "2-development",
+      "purpose": "Per-feature loop with security-in-DoD + per-feature doc + live-path verify",
+      "file": "commands/build.md"
+    },
+    {
+      "id": "dev-check",
+      "category": "2-development",
+      "purpose": "Checkpoint tester: verify exit criteria + security DoD before testing",
+      "file": "commands/dev-check.md"
+    },
+    {
+      "id": "test",
+      "category": "3-testing",
+      "purpose": "Unit/integration/regression + adversarial (injection/authz); live-path",
+      "file": "commands/test.md"
+    },
+    {
+      "id": "eval",
+      "category": "4-evaluation",
+      "purpose": "Is it good? measure-first; separate failures; confidence score",
+      "file": "commands/eval.md"
+    },
+    {
+      "id": "ship",
+      "category": "5-ship",
+      "purpose": "Deep review + security review + reconcile docs + PR + handoff",
+      "file": "commands/ship.md"
+    },
+    {
+      "id": "learn",
+      "category": "6-learn",
+      "purpose": "Success metric + retro + decide next from evidence",
+      "file": "commands/learn.md"
+    },
+    {
+      "id": "drift-check",
+      "category": "cross-cutting",
+      "purpose": "Run anytime: scope creep / vision drift / code↔docs drift check",
+      "file": "commands/drift-check.md"
+    },
+    {
+      "id": "new-component",
+      "category": "ui-suite",
+      "purpose": "(UI suite, bundled) build/skin ONE React component against DESIGN.md tokens; CSS-vars, interactive states, a11y",
+      "file": "commands/new-component.md"
+    }
   ],
   "compatibility": {
     "claude_code": ">=0.1.0",
-    "platforms": ["macOS", "Linux", "Windows (Git Bash / WSL)"]
+    "platforms": [
+      "macOS",
+      "Linux",
+      "Windows (Git Bash / WSL)"
+    ]
   },
   "notes": [
     "Sequential but standalone: run the phases in order, or enter at any skill — each bootstraps context from PRODUCT.md or the existing codebase.",

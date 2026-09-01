@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.2.1-blue.svg)](CHANGELOG.md)
-![Claude Code skills](https://img.shields.io/badge/Claude%20Code-18%20skills-8A2BE2.svg)
+![Claude Code skills](https://img.shields.io/badge/Claude%20Code-19%20skills-8A2BE2.svg)
 
 **A guided path from idea -> shipped that bakes in the engineering discipline most teams learn the hard way.**
 
@@ -27,9 +27,9 @@ Here is exactly how it happened:
 
 To cut short the time of my next project and stay laser-focused, I needed a playbook. Not just a document, but **executable skills with evidence-based gates and checks** that force both me and the AI to maintain engineering discipline.
 
-> 👉 *Short on time? **[Skip the story : jump straight to the 18 skills ->](#skill-reference)***
+> 👉 *Short on time? **[Skip the story : jump straight to the 19 skills ->](#skill-reference)***
 
-`product-playbook` was born from my scars. It turns those lessons into a single, shared rulebook (`PRINCIPLES.md`) and maps them to **18 step-by-step commands (skills)** (16 journey phases + the `/frontend-audit` and `/new-component` UI-suite skills). It forces you to move one phase at a time, checking gates with evidence before writing code, so you get senior-level discipline by default.
+`product-playbook` was born from my scars. It turns those lessons into a single, shared rulebook (`PRINCIPLES.md`) and maps them to **19 step-by-step commands (skills)** (17 journey phases + the `/frontend-audit` and `/new-component` UI-suite skills). It forces you to move one phase at a time, checking gates with evidence before writing code, so you get senior-level discipline by default.
 
 ---
 
@@ -39,7 +39,7 @@ This system relies on three core files to create a structured, sequential, yet s
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/architecture-dark.svg">
-  <img alt="How product-playbook works: PRINCIPLES.md and PRODUCT.md feed the 18 skills, which generate your codebase" src="docs/diagrams/architecture-light.svg">
+  <img alt="How product-playbook works: PRINCIPLES.md and PRODUCT.md feed the 19 skills, which generate your codebase" src="docs/diagrams/architecture-light.svg">
 </picture>
 
 <sub>Diagram source: <a href="docs/diagrams/architecture.mmd"><code>docs/diagrams/architecture.mmd</code></a> (regenerate with <code>sh tools/render-diagrams.sh</code>).</sub>
@@ -57,7 +57,7 @@ The single source of truth for your quality bar. It details:
 *   **Production Safeguards:** Zero-secrets, fail-closed security, observability, and rollback paths.
 
 ### 3. The Commands (`commands/*.md`)
-These are **18 custom Markdown commands** (skills) that you install into Claude Code. Each command (e.g., `/vision`, `/scope`, `/architect`, `/dev-check`) has a strict contract:
+These are **19 custom Markdown commands** (skills) that you install into Claude Code. Each command (e.g., `/vision`, `/scope`, `/architect`, `/dev-check`) has a strict contract:
 
 ```markdown
 ---
@@ -95,7 +95,7 @@ Run `/playbook` to start. It reads your `PRODUCT.md` and guides you step-by-step
 START -> /playbook (guides you through the phases below)
 
 1. PRODUCT       /vision ──> /scope ──> /plan
-2. DEVELOPMENT   /architect ──> /structure ──> /design-system* ──> /foundation ──> /contracts ──> /build ──> /dev-check
+2. DEVELOPMENT   /architect ──> /structure ──> /design-system* ──> /foundation ──> /contracts ──> /tickets ──> /build ──> /dev-check
                                               (* if the product has a UI)
 3. TESTING       /test
 4. EVALUATION    /eval
@@ -120,6 +120,7 @@ ANYTIME          /drift-check (detects scope creep or code-docs drift)
 | **UI suite** | `/new-component` | (bundled support skill) Builds/skins ONE React component against the `DESIGN.md` tokens : CSS-vars, interactive states, a11y; reuses shadcn/ui + 21st.dev | Component file | Building any UI component |
 | **Dev** | `/foundation` | Builds walking skeleton with logging, config, pre-commit and CI | Running app + CI workflows | Bootstrapping the codebase |
 | **Dev** | `/contracts` | Writes typed schemas/migrations BEFORE business logic | Schema files + migrations | Writing data layers |
+| **Dev** | `/tickets` | Breaks milestones into code-mapped GitHub issue tickets with exact target files and a security DoD; provisions `.github/ISSUE_TEMPLATE/`. Pre-flight verifies the remote : never blindly creates one | `docs/issues/*` + issue/PR templates | After `/contracts`, before building |
 | **Dev** | `/build` | Implements feature with testable exit criteria and docs | Feature code + `docs/features/*` | Building feature-by-feature |
 | **Dev** | `/dev-check` | Verifies exit criteria and security DoD with evidence | `PRODUCT.md` -> **Dev-complete** | Prior to testing |
 | **Testing** | `/test` | Performs unit/integration/regression and adversarial tests | Test suites | Post-development check |
