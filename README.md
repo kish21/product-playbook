@@ -37,12 +37,12 @@ To cut short the time of my next project and stay laser-focused, I needed a play
 
 This system relies on three core files to create a structured, sequential, yet standalone development workflow.
 
-```mermaid
-flowchart TD
-    A["PRINCIPLES.md<br/>The Rulebook"] -->|Enforces rules inside| C["commands/<br/>The 18 Skills"]
-    B["PRODUCT.md<br/>The Living Spine"] ---|Reads and Updates| C
-    C -->|Generates and Scaffolds| D["Your Codebase"]
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/architecture-dark.svg">
+  <img alt="How product-playbook works: PRINCIPLES.md and PRODUCT.md feed the 18 skills, which generate your codebase" src="docs/diagrams/architecture-light.svg">
+</picture>
+
+<sub>Diagram source: <a href="docs/diagrams/architecture.mmd"><code>docs/diagrams/architecture.mmd</code></a> (regenerate with <code>sh tools/render-diagrams.sh</code>).</sub>
 
 ### 1. The Living Spine (`PRODUCT.md`)
 Every project gets a single file at its root called `PRODUCT.md` (instantiated from `templates/PRODUCT.md`). This file is the **shared memory** of the product.
@@ -144,15 +144,12 @@ ANYTIME          /drift-check (detects scope creep or code-docs drift)
 For UI products, `/design-system` turns your vision into one concrete, reusable design spec : **`DESIGN.md`** : which
 the other two UI skills then consume. So the look is *decided once, confirmed by you, and enforced everywhere*:
 
-```mermaid
-flowchart TD
-    P["PRODUCT.md (vision / scope)<br/>+ universal-laws (quality floor)"] --> DS["/design-system<br/>principles to archetype to sample to confirm"]
-    DS --> DM["DESIGN.md<br/>9-section harness, shadcn tokens, light + dark, WCAG verified"]
-    DM --> NC["/new-component<br/>builds components AGAINST the tokens"]
-    DM --> FA["/frontend-audit<br/>ENFORCES tokens and laws (computed contrast)"]
-    NC --> UI["Your UI: consistent, accessible, not generic"]
-    FA -.-> UI
-```
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/design-system-dark.svg">
+  <img alt="How DESIGN.md is derived: PRODUCT.md and universal-laws feed /design-system, which emits DESIGN.md, consumed by /new-component and enforced by /frontend-audit" src="docs/diagrams/design-system-light.svg">
+</picture>
+
+<sub>Diagram source: <a href="docs/diagrams/design-system.mmd"><code>docs/diagrams/design-system.mmd</code></a> (regenerate with <code>sh tools/render-diagrams.sh</code>).</sub>
 
 `DESIGN.md` is **derived** (not hand-written) through the sample-and-confirm loop, then **consumed**: `/new-component`
 builds against its tokens and `/frontend-audit` mechanically enforces them. Skipped entirely for backend/API/CLI products.
