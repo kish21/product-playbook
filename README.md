@@ -1,7 +1,7 @@
 # Product Playbook: Build with Discipline in the AI Era
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.6.1-blue.svg)](CHANGELOG.md)
 ![Claude Code skills](https://img.shields.io/badge/Claude%20Code-19%20skills-8A2BE2.svg)
 
 **A guided path from idea -> shipped that bakes in the engineering discipline most teams learn the hard way.**
@@ -159,13 +159,50 @@ builds against its tokens and `/frontend-audit` mechanically enforces them. Skip
 
 ## 🚀 Installation and Setup
 
-You can install `product-playbook` in three different ways:
+**Pick one route.** Both give you the same 19 skills. They differ in how you *call* a skill and how you *get updates*.
 
-| Installation Mode | Command | Target Audience | Command Namespace |
-|---|---|---|---|
-| **Global (Local Machine)** | `git clone https://github.com/kish21/product-playbook ~/product-playbook && cd ~/product-playbook && ./install.sh` | Available in any folder on your machine | `/vision` |
-| **Project-Level** | `./install.sh --project /path/to/project` | Committed in Git; available to any teammate who clones it | `/vision` |
-| **Plugin Mode** | `/plugin marketplace add kish21/product-playbook` <br> `/plugin install product-playbook@product-playbook` | Installed as a namespaced package | `/product-playbook:vision` |
+| | **A. Plugin** (recommended) | **B. Copy install** |
+|---|---|---|
+| Call a skill as | `/product-playbook:vision` | `/vision` (the bare names used throughout this README) |
+| Updates | Automatic, once you enable it (step 3 below) | Nothing tracks the copy : re-run the installer |
+| Lives in | Claude Code's plugin cache, per scope | `~/.claude/commands/` (or `<project>/.claude/commands/`) |
+| Needs | Claude Code ≥ 2.0.70 | `bash` : on Windows, run from **Git Bash** |
+
+### A. Plugin (recommended)
+
+1. **Add the marketplace, then install** : inside Claude Code:
+   ```
+   /plugin marketplace add kish21/product-playbook
+   /plugin install product-playbook@product-playbook
+   ```
+   Choose a scope when asked: **User** (all your projects) · **Project** (everyone who clones this repo, via `.claude/settings.json`) · **Local** (you only, this repo). From a shell instead: `claude plugin install product-playbook@product-playbook --scope user`.
+2. **Activate** : if the install summary says `Run /reload-plugins to activate.`, run `/reload-plugins`.
+3. **Turn on updates** : third-party marketplaces do **not** auto-update by default. `/plugin` → **Marketplaces** → `product-playbook` → **Enable auto-update**. Claude Code then checks after each session start and tells you to `/reload-plugins` when a new version lands.
+   To update by hand: `/plugin marketplace update product-playbook`, then from a shell `claude plugin update product-playbook@product-playbook`.
+
+Skills are **namespaced by the plugin**: wherever this README says `/vision`, type `/product-playbook:vision` (same for `/playbook`, `/build`, …).
+Context cost, from `claude plugin details`: ~3.5k tokens always-on per session; each skill's full text loads only when you invoke it.
+
+### B. Copy install
+
+| Scope | Command |
+|---|---|
+| **Global** : one line, no clone | `curl -fsSL https://raw.githubusercontent.com/kish21/product-playbook/master/install.sh \| bash` |
+| **Global** : from a clone | `git clone https://github.com/kish21/product-playbook ~/product-playbook && cd ~/product-playbook && ./install.sh` |
+| **Project-level** : teammates get it on clone | `./install.sh --project /path/to/project` then commit `<project>/.claude/` |
+
+What it puts where: the 19 skills → `~/.claude/commands/` (or `<project>/.claude/commands/`), plus the companions the skills read (`PRINCIPLES.md`, `VISION.md`, `PRODUCT.md` template) → `~/.claude/product-playbook/` (or `<project>/.claude/product-playbook/`).
+
+**Updating:** re-run the exact same command. It overwrites in place. There is no version check : if you want to be told about updates, use route A.
+
+### Did it work?
+
+Open a new Claude Code session and type `/playbook` (route A: `/product-playbook:playbook`). It should be offered as a command and greet you with the journey. Route A users can also run `/plugin list` and expect `product-playbook@product-playbook · Version: 1.6.1 · enabled`.
+
+### Uninstall
+
+- **A:** `/plugin uninstall product-playbook@product-playbook`, then `/plugin marketplace remove product-playbook`.
+- **B:** delete the 19 skill files/folders from `~/.claude/commands/` (or the project's) and the `product-playbook/` companions folder beside it.
 
 ---
 
