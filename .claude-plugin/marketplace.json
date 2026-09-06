@@ -1,15 +1,14 @@
 {
   "name": "product-playbook",
-  "owner": { "name": "kish21" },
+  "description": "The product-playbook marketplace: one plugin, 19 phase skills that take a product from vision to shipped with engineering discipline built into every gate.",
+  "owner": {
+    "name": "kish21"
+  },
   "plugins": [
     {
       "name": "product-playbook",
       "description": "Phased, principle-driven product-building skills (vision → … → learn + /playbook + /drift-check).",
-      "source": {
-        "source": "git",
-        "url": "https://github.com/kish21/product-playbook.git",
-        "path": "."
-      }
+      "source": "./"
     }
   ]
 }

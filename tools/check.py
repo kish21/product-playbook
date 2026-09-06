@@ -15,6 +15,8 @@ Checks:
   4. Every skill file is under the SKILL line budget (500).
   5. One version everywhere: the newest CHANGELOG release is the source of truth, and
      manifest.json, .claude-plugin/plugin.json and the README badge must all match it.
+  6. A plugin install ships every skill: each directory-form skill's folder is listed under
+     `skills` in .claude-plugin/plugin.json (Claude Code only scans skills/ by default).
 """
 from __future__ import annotations
 import json
@@ -85,6 +87,8 @@ def main() -> int:
                     fail(f"{c} missing {token!r}")
     # 5. one version across CHANGELOG + manifest + plugin manifest + README badge
     check_versions(manifest)
+    # 6. plugin install ships every skill (directory-form ones need an explicit skills path)
+    check_plugin_skill_paths(files)
 
     return done(len(cmds))
 
@@ -116,6 +120,22 @@ def check_versions(manifest: dict) -> None:
     for name, got in surfaces:
         if got != want:
             fail(f"{name} version is {got!r}, but CHANGELOG declares {want!r}")
+
+
+def check_plugin_skill_paths(files: dict[str, Path]) -> None:
+    """6. Directory-form skills load as a plugin only if plugin.json points `skills` at their folder."""
+    plugin = ROOT / ".claude-plugin" / "plugin.json"
+    if not plugin.exists():
+        return
+    declared = {Path(s).as_posix().strip("./").rstrip("/")
+                for s in json.loads(plugin.read_text(encoding="utf-8")).get("skills", [])}
+    for name, path in files.items():
+        if path.name != "SKILL.md":
+            continue
+        folder = path.parent.parent.relative_to(ROOT).as_posix()
+        if folder not in declared:
+            fail(f"{name} is directory-form ({folder}/{name}/SKILL.md) but plugin.json `skills` "
+                 f"does not list ./{folder}/ - a plugin install would drop it")
 
 
 def done(n: int = 0) -> int:
