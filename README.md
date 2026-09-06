@@ -85,6 +85,17 @@ When you run `/playbook` or an individual command, the AI is instructed to:
 4.  Write results back to `PRODUCT.md`.
 5.  **Stop at the gate** and wait for your explicit confirmation before moving forward.
 
+### 4. The Forms (`templates/`)
+Think of a template as a printed form with blank boxes. A skill fills the boxes so every ticket and every pull request looks the same and nothing gets forgotten. All three are ordinary text files in your repo: edit the wording if you like, and no skill will ever overwrite a form you already have.
+
+| Form | File | Who fills it | What its boxes ask |
+|---|---|---|---|
+| **The product spine** | `templates/PRODUCT.md` | Every phase skill, one section each | Vision, Scope, Plan, Architecture, and so on. An empty section means that phase is not done yet. |
+| **The ticket form** | `templates/feature_ticket_template.md` | `/tickets`, one copy per ticket | The goal; how the work was cut (a thin end-to-end slice, a single layer, or a one-off bug); the feature it belongs to (the optional *Lane*); the **exact files it may touch** : the box that keeps a ticket small and lets two people work without colliding; what data it takes in and hands out; which tickets must come first; what a reviewer can *see working* after merge; a short task list; a definition of done with security built in; the one command that proves it works. |
+| **The pull request form** | `templates/pull_request_template.md` | GitHub shows it on every PR | Which issue it closes, a summary, the files changed, and a checklist of what was verified using the project's own test command. |
+
+How they fit together: the spine says *what* to build, the ticket form turns that into small bounded pieces, and the pull request form is how each finished piece is checked back in. (When [Lanekeeper](https://github.com/kish21/parallel-agents) is present it supplies its own pull request form, so `/tickets` leaves that one alone : see `PRINCIPLES.md` §Lane mode.)
+
 ---
 
 ## 🗺️ The Playbook Journey
