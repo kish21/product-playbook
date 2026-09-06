@@ -1,0 +1,48 @@
+name: Release
+
+# The CHANGELOG is the single source of truth for a version (tools/check.py check 5 already makes
+# manifest.json, plugin.json and the README badge agree with it). This closes the last gap: on every
+# merge to master, if the newest CHANGELOG version has no tag yet, cut the tag + GitHub Release from
+# it — so "Latest" on the Releases page can never fall behind what master actually is.
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # tags are needed to know whether this version is already released
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Read the newest CHANGELOG version
+        id: ver
+        run: |
+          v="$(python tools/release_notes.py --version)"
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          if git rev-parse -q --verify "refs/tags/v$v" >/dev/null; then
+            echo "exists=true"  >> "$GITHUB_OUTPUT"; echo "v$v already released — nothing to do"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"; echo "v$v has no tag — releasing"
+          fi
+
+      - name: Cut tag + release from the CHANGELOG section
+        if: steps.ver.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          V: ${{ steps.ver.outputs.version }}
+        run: |
+          python tools/release_notes.py "$V" > /tmp/notes.md
+          gh release create "v$V" \
+            --target "$GITHUB_SHA" \
+            --title "$(python tools/release_notes.py --title)" \
+            --notes-file /tmp/notes.md \
+            --latest
