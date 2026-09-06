@@ -3,6 +3,19 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.6.1] - 2026-09-06
+
+### Fixed - installing as a Claude Code plugin
+- **Plugin Mode never worked.** `.claude-plugin/marketplace.json` declared `"source": "git"`, a source type the marketplace schema does not have; `claude plugin validate` failed with `plugins.0.source: Invalid input`, so `/plugin install product-playbook@product-playbook` could not succeed. The source is now the documented relative-path form (`"./"` : the marketplace and the plugin are the same repo) and the marketplace carries the `description` the validator asks for. Passes `claude plugin validate --strict`.
+- **A plugin install silently dropped two skills.** Claude Code loads `SKILL.md` skills from `skills/`, not `commands/`, so the directory-form `design-system` and `frontend-audit` were missing: a live install reported **17** skills. `plugin.json` now declares `"skills": ["./commands/"]`; a live install reports all **19**.
+- **Version surfaces disagreed** (README badge 1.2.1 · `plugin.json` 1.2.3 · `manifest.json` 1.6.0). On the plugin route `plugin.json`'s version is what pins updates, so a stale value there means users never receive one. All aligned, and `tools/check.py` check 5 enforces it against the newest CHANGELOG release from now on.
+
+### Changed - README
+- **Installation rewritten as a choice between two verified routes.** Plugin (namespaced `/product-playbook:vision`, auto-update once enabled) vs. copy (bare `/vision`, re-run to update) : with the `curl` one-liner that `install.sh` always supported but the README never showed, the scope choices, the *enable auto-update* step third-party marketplaces need, a "did it work?" check, update and uninstall steps for each route, and the Windows Git Bash note.
+
+### Added - `tools/check.py`
+- **Check 6:** every directory-form skill's folder must be listed under `skills` in `plugin.json`, so a plugin install can never silently drop skills again.
+
 ## [1.6.0] - 2026-09-01
 
 ### Changed - `/tickets`
