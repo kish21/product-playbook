@@ -24,6 +24,7 @@ description: >
   - [ ] No oversized god-files (single-responsibility held); secret-scan + dependency-vuln scan clean.
   - [ ] **Scope re-check:** nothing built that's in OUT-OF-SCOPE (no creep).
   - [ ] Every "done" has **HOW it was verified** recorded (evidence, not "done").
+  - [ ] **(Lane mode — PRINCIPLES.md §Lane mode)** every `## Build log row` in `docs/features/*.md` is **reconciled into `#Build log`** (this is the spine's one writer), and the **cross-lane seams** — files two lanes both depend on through a contract — have an integration test that ran on the merged base.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Scope/#Plan/#Build log`. Cross-check the planned core features against what's actually in the build log.
@@ -33,11 +34,19 @@ description: >
 - **Scope discipline:** anything built that's in OUT-OF-SCOPE is flagged as creep, not quietly accepted.
 
 ## Step 2 — Run the checkpoint
+0. **Lane mode first — reconcile the spine.** Run this on the **base branch after the lane PRs merged**, not
+   inside a worktree. For every `docs/features/*.md` whose `## Build log row` is not yet in `#Build log`,
+   append it verbatim (feature · DoD met · how verified · date · ticket). `/build` could not write it from
+   inside a lane; this is the single writer that keeps every lane PR clean of the spine.
 1. **Coverage:** every core-scope feature present + runs (spot-run the live paths, compose `/verify`/`/run`).
 2. **Quality bar:** no hardcoded values; prompts in `prompts/` YAML; contracts typed; schema↔code consistent; CI green.
 3. **Security DoD:** each feature's security checks are actually present (not just promised) — for AI, prompt-injection defence exists.
-4. **Scope re-check:** compare built features to OUT-OF-SCOPE; flag any creep.
+4. **Scope re-check:** compare built features to OUT-OF-SCOPE; flag any creep. **Lane mode:** also compare
+   `lanes.yaml` to `#Scope` — a lane that traces to no in-scope item is creep with a worktree attached.
 5. **Evidence:** confirm each `#Build log` row records HOW it was verified.
+6. **Lane mode — the seams:** each lane was verified alone by `/build`; nothing has yet run the paths that
+   *cross* lanes (a `shared:` zone, a contract two lanes consume). Run the cross-layer verification ticket's
+   integration tests on the merged base; a green lane is not a green product.
 
 ## Step 3 — Write back to `PRODUCT.md`
 Fill `#Dev-complete`: tick each box **only with evidence**; list any failing item explicitly.

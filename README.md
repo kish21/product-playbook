@@ -1,7 +1,7 @@
 # Product Playbook: Build with Discipline in the AI Era
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.6.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.7.0-blue.svg)](CHANGELOG.md)
 ![Claude Code skills](https://img.shields.io/badge/Claude%20Code-19%20skills-8A2BE2.svg)
 
 **A guided path from idea -> shipped that bakes in the engineering discipline most teams learn the hard way.**
@@ -134,6 +134,13 @@ ANYTIME          /drift-check (detects scope creep or code-docs drift)
 > when you know what you need. **product-playbook is the guided journey that composes tools like those**
 > across the whole product arc (vision -> learn).
 >
+> **Companion for parallel agents:** [`Lanekeeper`](https://github.com/kish21/parallel-agents) runs several
+> coding agents on one repo without collisions. *product-playbook writes the work down; Lanekeeper divides it
+> up.* Each `/tickets` ticket's **Target Files** list is the lane Lanekeeper enforces on every PR. When a
+> project is in **lane mode** (a `.lanekeeper/` policy or a `.lane` file is present), `/tickets`, `/build`,
+> `/dev-check` and `/ship` follow the four rules in `PRINCIPLES.md` §Lane mode : ticket = boundary, lanes are
+> features not layers, the spine has one writer, the PR carries its lane.
+>
 > **Single-master rule for the UI suite.** The UI suite : `/design-system`, `/frontend-audit`, and
 > `/new-component` : is **mastered here in product-playbook** (they're coupled through `DESIGN.md`, so one
 > master = one place to fix bugs). `/new-component` is **bundled in this repo** so product-playbook installs
@@ -197,7 +204,7 @@ What it puts where: the 19 skills → `~/.claude/commands/` (or `<project>/.clau
 
 ### Did it work?
 
-Open a new Claude Code session and type `/playbook` (route A: `/product-playbook:playbook`). It should be offered as a command and greet you with the journey. Route A users can also run `/plugin list` and expect `product-playbook@product-playbook · Version: 1.6.1 · enabled`.
+Open a new Claude Code session and type `/playbook` (route A: `/product-playbook:playbook`). It should be offered as a command and greet you with the journey. Route A users can also run `/plugin list` and expect `product-playbook@product-playbook · Version: 1.7.0 · enabled`.
 
 ### Uninstall
 
