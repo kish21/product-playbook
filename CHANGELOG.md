@@ -3,6 +3,25 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.6.0] - 2026-09-01
+
+### Changed - `/tickets`
+- **Two slice strategies, chosen per milestone.** A milestone is no longer one monolithic card. It is decomposed either **vertically** - 2-4 thin end-to-end slices, each crossing layers on purpose and each demoable on merge - or **horizontally** - one ticket per architectural layer (storage/provider, domain service, UI component, cross-layer verification). `/tickets` reads `STRUCTURE.md` and the milestone, **recommends one with a reason, and stops for confirmation**; `/tickets "vertical"` or `/tickets "horizontal"` skips the ask. The chosen strategy is recorded on every ticket.
+- **Every ticket is a real ticket.** Whichever strategy is used, each one carries a milestone-scoped ID (`[M2-SLICE-01]` / `[M2-TICK-01]`), exact target file paths, typed inputs/outputs, a `Depends on` contract list and a security DoD - assignable to a different developer and mergeable as an isolated PR. Previously a milestone produced one card listing all five layers as checkboxes.
+- **Vertical guardrail:** a slice with no observable outcome is rejected as "a layer wearing a slice id" and re-sliced, or the milestone moves to horizontal. Slice 1 must be a walking skeleton that runs end to end on its own.
+- **Layer 4 narrowed to cross-layer work only** (integration across the real seam, adversarial/security). Per-layer unit tests stay in each layer ticket's DoD - previously the same work was counted twice, and a standalone QA ticket is the part of the layered model most teams have moved away from.
+- **Layers are emitted only if the project has them.** Read from `STRUCTURE.md`, so a backend/API/CLI product gets 3 tickets and no orphan UI card; full-stack gets 4.
+- **Dual-mode execution.** Bare `/tickets` (or a planning phrase) runs batch milestone decomposition. `/tickets "<description>"` logs ONE ad-hoc bug / edge case / tech debt item against the file that owns it, classified and labelled, with a DoD requiring a regression test - without reading, regenerating or renumbering the backlog.
+- **Canonical structure + enforcement.** `/tickets` now follows the standard phase-skill shape (principles reference, `Step 3b` principle-gate, `Step 4 - Handoff`) and was added to the `TEMPLATE` set in `tools/check.py`, so CI enforces that shape from now on instead of exempting it.
+
+### Fixed
+- **Template provisioning was broken.** The skill copied from `resources/`, a directory that does not exist; the bundled templates live in `templates/`. Auto-provisioning would have failed on every run.
+- **Ticket IDs could collide across milestones.** `[TICK-01]` repeated per milestone, so the dedup guard would skip real tickets as duplicates on re-run. IDs are now milestone-scoped and derived from `docs/issues/` and the fetched issue list together.
+- **`manifest.json` said `1.4.0` while the changelog declared `1.5.0`** (v1.5.0 never bumped it).
+
+### Changed - templates
+- `templates/feature_ticket_template.md` rewritten for a single scope-bounded ticket (one concern, one PR) with slice-strategy, layer, contract, dependency, **Demo** and mergeable-alone fields, replacing the old all-layers-in-one-card form.
+
 ## [1.5.0] - 2026-09-01
 
 ### Added

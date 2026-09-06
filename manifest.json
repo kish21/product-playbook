@@ -1,6 +1,6 @@
 {
   "name": "product-playbook",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "A phased, principle-driven product-building skill set — guides anyone (newcomer or experienced) through the full product lifecycle, sequential but standalone, with hard-won principles baked into each phase. Anti-scope-creep by design.",
   "author": "kish21",
   "license": "MIT",
@@ -79,7 +79,7 @@
     {
       "id": "tickets",
       "category": "2-development",
-      "purpose": "Bridge /contracts and /build: auto-breakdown milestones into GitHub issue tickets with target file paths, modules, and DoD",
+      "purpose": "Bridge /contracts and /build: decompose each milestone into independently mergeable tickets - vertical thin end-to-end slices or horizontal layer tickets, recommended per milestone and confirmed by you - with exact file paths and a security DoD; or log a single ad-hoc bug against the file that owns it",
       "file": "commands/tickets.md"
     },
     {
@@ -144,7 +144,7 @@
     "Compose, don't reimplement: skills invoke existing Claude Code skills (/code-review, /security-review, /verify, /run, /doc-create, /doc-audit, /loop, github-pr-flow) rather than duplicating them.",
     "Each skill self-identifies via YAML frontmatter and references PRINCIPLES.md (single source) — no duplicated rule text.",
     "Spine resolution is PRODUCT.md-first but flexible: existing/brownfield projects fall back to CLAUDE.md/README/docs/AGENTS.md, and code-only projects get a clearly-labelled INFERRED read — never a fabricated baseline (PRINCIPLES.md, §Spine resolution).",
-    "The 16-skill journey badge counts the phase chain; /new-component is a bundled UI-suite SUPPORT skill (category ui-suite), not a journey phase — it is shipped here so product-playbook installs fully standalone.",
+    "The 17-skill journey badge counts the phase chain; /new-component is a bundled UI-suite SUPPORT skill (category ui-suite), not a journey phase — it is shipped here so product-playbook installs fully standalone.",
     "Single-master rule for the UI suite (/design-system, /new-component, /frontend-audit): mastered in product-playbook; any copy elsewhere (e.g. product-toolkit) is a one-way synced, read-only copy (playbook → toolkit)."
   ]
 }

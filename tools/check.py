@@ -26,7 +26,7 @@ errors: list[str] = []
 
 # Canonical phase-template skills (the vision->learn chain /playbook walks).
 TEMPLATE = {"vision", "scope", "plan", "architect", "structure", "foundation", "contracts",
-            "build", "dev-check", "test", "eval", "ship", "learn"}
+            "tickets", "build", "dev-check", "test", "eval", "ship", "learn"}
 
 
 def fail(msg: str) -> None:
