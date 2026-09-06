@@ -13,6 +13,8 @@ Checks:
      cross-cutting (drift-check) and the UI suite (design-system, frontend-audit, new-component)
      have their own formats — they get registration + line-budget checks only.
   4. Every skill file is under the SKILL line budget (500).
+  5. One version everywhere: the newest CHANGELOG release is the source of truth, and
+     manifest.json, .claude-plugin/plugin.json and the README badge must all match it.
 """
 from __future__ import annotations
 import json
@@ -81,7 +83,39 @@ def main() -> int:
                 # match the literal heading regardless of hyphen/dash style
                 if token not in text and token.replace(" - ", " — ") not in text:
                     fail(f"{c} missing {token!r}")
+    # 5. one version across CHANGELOG + manifest + plugin manifest + README badge
+    check_versions(manifest)
+
     return done(len(cmds))
+
+
+def released_version() -> str | None:
+    """The newest version declared in CHANGELOG.md — the single source of truth for a release."""
+    text = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    m = re.search(r"^##\s*\[(\d+\.\d+\.\d+)\]", text, re.MULTILINE)
+    return m.group(1) if m else None
+
+
+def check_versions(manifest: dict) -> None:
+    """5. Every version surface agrees with the newest CHANGELOG release."""
+    want = released_version()
+    if not want:
+        fail("CHANGELOG.md has no '## [x.y.z]' release heading to version against")
+        return
+    surfaces: list[tuple[str, str | None]] = [("manifest.json", manifest.get("version"))]
+
+    plugin = ROOT / ".claude-plugin" / "plugin.json"
+    if plugin.exists():
+        surfaces.append((".claude-plugin/plugin.json",
+                         json.loads(plugin.read_text(encoding="utf-8")).get("version")))
+
+    badge = re.search(r"badge/version-(\d+\.\d+\.\d+)-",
+                      (ROOT / "README.md").read_text(encoding="utf-8"))
+    surfaces.append(("README.md badge", badge.group(1) if badge else None))
+
+    for name, got in surfaces:
+        if got != want:
+            fail(f"{name} version is {got!r}, but CHANGELOG declares {want!r}")
 
 
 def done(n: int = 0) -> int:
