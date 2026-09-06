@@ -121,6 +121,38 @@ doing so.
 
 ---
 
+## §Lane mode — when several agents build one repo (Lanekeeper)
+
+**Detection:** the project has `.lanekeeper/config.yaml` or a root `lanes.yaml` (the policy), or
+the current worktree has a `.lane` file (this session IS one agent's seat). Either → **lane mode**.
+The companion tool is [Lanekeeper](https://github.com/kish21/parallel-agents): *product-playbook
+writes the work down; Lanekeeper divides it up and gates every PR to its lane.* Four rules that
+every phase skill honours in lane mode — defined once here, referenced by the skills:
+
+1. **The ticket's file list IS the lane.** Lanekeeper reads the `Target Files` / `Allowed File
+   Paths` section of the issue as the boundary, and a `Lane` heading as the feature name. A ticket
+   with no files has no safety guarantee; a ticket that lists a *folder* has a boundary too wide to
+   protect anyone. Exact paths, always — and the paths a ticket names must include **everything the
+   build will write**, feature doc included.
+2. **A lane is a feature slice, never a technology layer.** Vertical tickets are lanes by
+   construction. A horizontal (per-layer) ticket turns one feature into N lanes and makes every
+   change a collision — in lane mode the default is vertical, and horizontal needs a recorded reason.
+3. **The spine is a shared file — it gets ONE writer.** `PRODUCT.md`, `CHANGELOG.md`, `STRUCTURE.md`
+   and the policy files sit outside every lane; a lane PR that touches them fails the gate (or
+   merge-conflicts with every other lane). Inside a lane, a skill writes only lane-owned files
+   (`docs/features/<feature>.md`); the spine rows are **reconciled by the integrating session** on the
+   base branch (`/dev-check` for the Build log, `/ship` for the Ship log + CHANGELOG). The alternative —
+   a declared `shared:` zone for the spine with `merge=union` — is the user's explicit choice, never a
+   default.
+4. **The PR carries its lane.** Every lane PR is labelled `lane: <name>` and passes `lanekeeper check`
+   before it is opened; the gate fails closed without exactly one label. Lanekeeper owns the
+   **PR template** and the gate workflow; product-playbook owns the **issue template**. Neither
+   overwrites the other's file.
+
+Outside lane mode nothing above applies and every skill behaves as before.
+
+---
+
 ## Lessons baked in (generalised from real project struggles)
 
 Phrased generically so they apply to any project:

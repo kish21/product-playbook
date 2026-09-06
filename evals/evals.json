@@ -204,6 +204,36 @@
         "The DoD requires a regression test that fails without the fix",
         "The same remote-verification and dedup guards apply before publishing"
       ]
+    },
+    {
+      "id": "tickets-lane-mode",
+      "skill": "tickets",
+      "prompt": "/tickets  (project has .lanekeeper/config.yaml and a Lanekeeper task.yml issue form)",
+      "expected_artifacts": [
+        "docs/issues/*.md",
+        ".github/ISSUE_TEMPLATE/feature_ticket.md"
+      ],
+      "assertions": [
+        "Recommends VERTICAL slicing and, if the user insists on horizontal, records the reason on every ticket of that milestone",
+        "Every ticket fills the Lane heading with a feature name (never a layer) and lists docs/features/<feature>.md plus its tests under Target Files",
+        "No ticket lists PRODUCT.md, CHANGELOG.md or STRUCTURE.md under Target Files",
+        "Does NOT write .github/PULL_REQUEST_TEMPLATE.md - Lanekeeper owns the PR template and the gate",
+        "Two tickets naming the same file are either linked through Depends On or flagged as a collision before publishing"
+      ]
+    },
+    {
+      "id": "build-lane-mode",
+      "skill": "build",
+      "prompt": "/build \"#12 checkout: cart to confirmed order\"  (worktree contains a .lane file with ALLOW='src/checkout/** tests/checkout/** docs/features/checkout.md')",
+      "expected_artifacts": [
+        "docs/features/checkout.md"
+      ],
+      "assertions": [
+        "Reads .lane before touching code and treats ALLOW/DENY as the file-level scope gate",
+        "Stops and flags a needed file outside ALLOW as file-level creep instead of silently editing it",
+        "Does not append to PRODUCT.md#Build log; writes the row as a '## Build log row' section in docs/features/checkout.md",
+        "Step 3b evidence includes git diff --name-only against the base showing only ALLOW paths, and a passing lanekeeper check"
+      ]
     }
   ]
 }

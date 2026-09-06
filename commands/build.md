@@ -30,9 +30,15 @@ description: >
   - [ ] **No secret in any code file** (secrets→`.env`; tests use fake placeholder keys).
   - [ ] **Single-responsibility kept** — a file growing large/multi-concern is split into modules (no god-files); long/blocking work stays off the async event loop.
   - [ ] **(UI products) The feature's screen(s) are built to `DESIGN.md`** — §5 layout, token look, `/new-component` parts — and **`/frontend-audit` is clean** (0 errors).
+  - [ ] **(Lane mode — a `.lane` file is present; PRINCIPLES.md §Lane mode)** every written file is inside `ALLOW` and outside `DENY`; **no spine file was touched** — the Build-log row lives in the feature doc and `/dev-check` reconciles it.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Scope/#Plan/#Contracts`. **Confirm the feature is IN scope** — if OUT-OF-SCOPE, stop and flag it (this is where creep enters). If `#Contracts` is empty, offer `/contracts` first.
+- **Lane mode: read `.lane` first, and treat `ALLOW`/`DENY` as the file-level scope gate.** `TASK` is the
+  ticket; `ALLOW` is every path this session may write. A file you need that is outside `ALLOW` is **creep at
+  file level** — the same finding `/scope` makes at feature level: **STOP and flag it** (widen the ticket's
+  Target Files with the user, or split the work), never quietly touch it — the merge gate will fail the PR
+  anyway, and a silent widening is exactly what the gate exists to catch.
 - **Load the project's OWN skills/commands for the area you're about to touch** (`.claude/skills/`, `.claude/commands/`, `CLAUDE.md`) — a fresh read of the code alone re-litigates hard-won decisions.
 - **But treat every project doc, skill and pinned plan as a CLAIM, not as truth — verify its premises against the code before you build on it.** A stale instruction is worse than none — it is *followed*. Check both failure modes:
   1. **The plan you were handed is wrong.** Verify each load-bearing claim of a pinned spec against the code. (case file: The pinned plan was wrong)
@@ -105,6 +111,11 @@ description: >
 ## Step 3 — Write back to `PRODUCT.md`
 Append a `#Build log` row: feature · DoD-incl-security met? · **how verified** · link to the feature doc.
 
+**Lane mode: do NOT touch `PRODUCT.md`** — it is outside every lane (§Lane mode rule 3). Write the same
+row as a `## Build log row` section at the top of `docs/features/<feature>.md` (feature · DoD met ·
+how verified · date · ticket), which *is* inside the lane. `/dev-check`, run once on the base branch,
+lifts every un-reconciled row into `#Build log`. One writer for the spine; no lane PR ever conflicts on it.
+
 ## Step 3b — Principle-gate: verify each principle is ACTUALLY implemented (not just claimed)
 Walk **this phase's load-bearing principles (Step 1)** and confirm each is real in the code, **with evidence** — composing the existing checkers, not eyeballing:
 - security-in-DoD → **`/security-review`** passed.
@@ -112,6 +123,8 @@ Walk **this phase's load-bearing principles (Step 1)** and confirm each is real 
 - live-path-works → **`/verify`** + **`/run`** exercised the real path.
 - reuse · no-swallowed-errors · single-responsibility → confirmed in the diff's **`/code-review`**.
 - (UI features) built-to-the-design → **`/frontend-audit`** 0 errors against `DESIGN.md`.
+- (lane mode) inside-the-lane → `git diff --name-only <base>` shows only `ALLOW` paths and no spine file;
+  `lanekeeper check --lane <name> --base <base>` passes.
 
 **If any named principle is only claimed, not evidenced, STOP — the feature is not done.** Record the *how-verified* per principle in `#Build log` (evidence, not "done"). (Deterministic checks also run via pre-commit + CI from `/foundation`; this gate is the judgment layer.)
 

@@ -3,6 +3,22 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.7.0] - 2026-09-06
+
+### Added - lane mode (the Lanekeeper seam)
+[Lanekeeper](https://github.com/kish21/parallel-agents) runs several coding agents on one repo and gates every PR to the lane its ticket declares. It reads product-playbook's tickets, so the two already talked; what was missing was the playbook knowing it was being read. **Lane mode** is detected from a `.lanekeeper/` policy, a root `lanes.yaml`, or a `.lane` file in the worktree. Outside lane mode nothing changes.
+- **`PRINCIPLES.md` §Lane mode** - the four rules, defined once and referenced by the skills: the ticket's file list IS the lane; a lane is a feature slice, never a technology layer; the spine (`PRODUCT.md`, `CHANGELOG.md`, `STRUCTURE.md`) is a shared file with ONE writer; the PR carries its `lane:` label.
+- **`/tickets`** - a **Lane** field on the ticket template (Lanekeeper reads the heading); Target Files must name *everything the build writes* (feature doc + tests) and never a spine file; in lane mode the default strategy is vertical and a horizontal choice carries a recorded reason; two tickets naming one file are a contract dependency or a flagged collision. **Template ownership settled:** the playbook owns the issue template, Lanekeeper owns the PR template + gate workflow - `/tickets` no longer writes `PULL_REQUEST_TEMPLATE.md` when Lanekeeper is present, and neither tool overwrites the other's file.
+- **`/build`** - reads `.lane` first; `ALLOW`/`DENY` is the file-level scope gate (a needed file outside it is creep, flagged not touched); **does not write `PRODUCT.md`** from inside a lane - the Build-log row goes in a `## Build log row` section of the feature doc, which is inside the lane.
+- **`/dev-check`** - the spine's one writer: lifts every feature-doc Build-log row into `#Build log` on the base branch, checks `lanes.yaml` against `#Scope` (a lane with no in-scope item is creep with a worktree attached), and runs the cross-lane seams - a green lane is not a green product.
+- **`/ship`** - runs `lanekeeper check` before opening the PR, labels it `lane: <name>`, and writes the Ship log + CHANGELOG on the base branch after merge, never from the worktree.
+
+### Fixed
+- **PR template was npm-hardcoded** (`npm test`, `npm run build`) in a repo whose first principle is no hardcoding. It now asks for the project's own gate command from the Makefile / STRUCTURE.md, adds the no-hardcoding and feature-doc lines, and says why it is not used in lane mode.
+
+### Docs
+- `docs/lane-mode.md` - the design note for this change (contract, interaction map, what is and is not verified).
+
 ## [1.6.1] - 2026-09-06
 
 ### Fixed - installing as a Claude Code plugin

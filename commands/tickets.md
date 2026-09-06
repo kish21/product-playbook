@@ -40,6 +40,7 @@ description: >
   - [ ] Ticket IDs are **globally unique** across milestones (`[M2-SLICE-01]`, `[M2-TICK-01]`), so dedup is reliable on re-run.
   - [ ] **Mode B:** an ad-hoc issue is filed against the owning file with a reproduction, and **no backlog ticket is created, renumbered or modified**.
   - [ ] **Pre-flight remote verification executed** — no remote repository is ever created.
+  - [ ] **Lane mode** (PRINCIPLES.md §Lane mode — Lanekeeper present): every ticket's Target Files include **everything the build writes** (feature doc + tests) and **never a spine file**; a horizontal strategy carries a **recorded reason**; the playbook's PR template is **not** written (Lanekeeper owns it).
 
 ## Step 0 — Context + prior-gate check
 - Read `#Plan`, `#Contracts`, `#Architecture` and `STRUCTURE.md`. If `#Contracts` is empty, warn (tickets
@@ -62,9 +63,13 @@ description: >
 - **Security is not a ticket.** It is a DoD line on *every* ticket. Never emit an "add security" ticket.
 
 ## Step 2 — Provision templates + pre-flight remote guard (both modes)
-1. **Templates.** If `.github/ISSUE_TEMPLATE/feature_ticket.md` is missing, copy it from the bundled
-   `templates/feature_ticket_template.md`. If `.github/PULL_REQUEST_TEMPLATE.md` is missing, copy
-   `templates/pull_request_template.md`. Never overwrite a template the project already has.
+1. **Templates — one master per file.** If `.github/ISSUE_TEMPLATE/feature_ticket.md` is missing, copy it
+   from the bundled `templates/feature_ticket_template.md` — the playbook owns the **issue** template
+   (Lanekeeper's own `task.yml`/`bug.yml` forms may sit beside it; both carry the file-paths heading
+   Lanekeeper reads). If `.github/PULL_REQUEST_TEMPLATE.md` is missing **and the project is not in lane
+   mode**, copy `templates/pull_request_template.md`; **in lane mode, do not write a PR template** —
+   Lanekeeper owns the PR template and the gate workflow (§Lane mode rule 4). Never overwrite a template
+   the project already has.
 2. **Remote guard — NEVER blindly create a remote repository.** Run `git remote -v`.
    - **No remote:** write tickets to `docs/issues/` only and say:
      *"Tickets written to `docs/issues/`. No remote is linked — run `git remote add origin <url>`, then `/tickets` again to publish."*
@@ -89,6 +94,11 @@ strategy, skip straight to 3A.2 / 3A.3.
 |---|---|
 | **Vertical** (default lean) | Solo or small team · one full-stack codebase · the milestone has a user-visible surface · early product where "show it working" matters more than parallelism. |
 | **Horizontal** | Separate frontend/backend trees owned by different people · a milestone that is mostly infrastructure with no user-visible surface · contracts already frozen in `#Contracts`, so layers can safely run in parallel. |
+
+**Lane mode overrides the table:** the default is **vertical**, because a vertical slice *is* a lane
+(one feature, top to bottom) and a horizontal ticket turns one feature into N lanes that collide on every
+change (§Lane mode rule 2). If the user still wants horizontal, say so plainly, **record the reason on
+every ticket of that milestone**, and expect Lanekeeper to report the collisions.
 
 State it like this, then stop:
 > *Milestone 2 "Quote export" touches providers + services + UI. Recommending **vertical** (3 slices) — solo build, each slice demoable on merge. Proceed, or switch to horizontal?*
@@ -136,7 +146,12 @@ ID: `[M<milestone>-TICK-<nn>]`.
 Fill the provisioned `feature_ticket.md` template for each ticket:
 - **ID + title:** `[M<milestone>-SLICE-<nn>]` or `[M<milestone>-TICK-<nn>]`, then the concern in plain words.
   The `M<milestone>` prefix is what keeps IDs unique across milestones; without it, dedup misfires on re-run.
+- **Lane:** the feature name this ticket belongs to (`checkout`, `export`) — never a layer. Vertical: the slice's
+  feature. Horizontal: the milestone's feature (all its layer tickets share one lane). Lanekeeper reads it.
 - **Target files:** exact paths, derived from `STRUCTURE.md` — `src/services/quoteEngine.ts`, not `src/services/`.
+  **The list is the boundary**, so it must name **everything `/build` will write**: the code, its tests, *and*
+  `docs/features/<feature>.md`. **Never list `PRODUCT.md`, `CHANGELOG.md` or `STRUCTURE.md`** — the spine is
+  shared and is reconciled by `/dev-check` + `/ship`, not written from inside a ticket (§Lane mode rule 3).
 - **Inputs → outputs:** the typed contract this ticket consumes and the one it exposes, named from `#Contracts`.
 - **Depends on:** the ticket IDs whose *contracts* it needs. Contracts land first, so dependants can start
   against a stub rather than waiting for a merge.
@@ -178,8 +193,13 @@ Walk the principles and prove each against the files just written — do not ass
 - **Security DoD present** on every ticket, including the ad-hoc ones.
 - **Independently mergeable.** For each ticket ask: could one developer open a PR containing only these
   files and have it reviewed on its own? **If not, the split is wrong — STOP and re-split before publishing.**
+- **Lane mode:** no ticket lists a spine file; every ticket lists its feature doc and tests; two tickets that
+  name the same file are either **dependants through a contract** (fine — `Depends On` says so) or a
+  **collision** (STOP: re-split, or name the shared file so Lanekeeper can declare it a `shared:` zone).
+  A horizontal milestone has its reason recorded. No `PULL_REQUEST_TEMPLATE.md` was written.
 
 ## Step 4 — Handoff
 "Backlog decomposed — each ticket assignable to a different developer and mergeable on its own. Vertical
 slices go in order (slice 1 is the walking skeleton); horizontal tickets go contract-first (layer 1 → 2 → 3,
-tests alongside). Run **`/build`** on the first ticket, one ticket per session."
+tests alongside). Run **`/build`** on the first ticket, one ticket per session. In lane mode, hand the
+tickets to Lanekeeper (`lanekeeper start` / `spawn --ticket <n>`) — each ticket's file list is its lane."

@@ -29,6 +29,7 @@ description: >
   - [ ] A **CHANGELOG / release note** entry (+ a **semver** bump where versioned).
   - [ ] Security checklist cleared: dependency-vuln scan, CORS prod domain, cookie-based auth (not localStorage), and data-deletion/GDPR for data products.
   - [ ] **Rollout safety:** a stated **rollback path** (revert PR / migration-down / flag-off); risky changes behind a **flag / staged rollout**; the **post-deploy signal to watch** named.
+  - [ ] **(Lane mode — PRINCIPLES.md §Lane mode)** `lanekeeper check` passed before the PR was opened; the PR carries exactly one `lane: <name>` label; the `#Ship log` + CHANGELOG entries were written **on the base branch after merge**, never from inside the lane.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Eval` and the diff. If quality wasn't evaluated, warn and offer `/eval` first (allow override for small changes).
@@ -48,8 +49,9 @@ description: >
    - **A DATA migration (one that rewrites rows rather than schema) usually has no automatic down-path — "migration-down" is not the rollback, a hand-written re-flip is.** Say so in the rollback line instead of implying reversibility, and take the backup BEFORE applying: with no failing test to catch a bad data write, the only evidence you will have afterwards is a before/after diff proving exactly the intended rows moved.
 5. **Confidence score:** report 0–100% with solid / risky-untested / to-raise-it.
 6. **PR + handoff:** compose **`github-pr-flow`** to open the PR (with **`Closes #N`** in the body for any tracked issue) + a **CHANGELOG** entry; write a short handoff (done / next / how to resume / blockers).
+   - **Lane mode (a `.lane` file is present):** before opening, run `lanekeeper check --lane <LANE> --base origin/<base>` and fix every file it names — a stray file is creep, not a label problem. Open the PR with the label **`lane: <LANE>`** (the gate fails closed without exactly one). Use Lanekeeper's PR template as-is. **Do not write the CHANGELOG or `#Ship log` from the worktree** — both are spine files outside the lane; note the entry in the PR body, and write it on the base branch once the PR merges (step 7).
    - **A blocker you hand the user must be a PROVEN blocker — re-run with your workaround actually in effect and confirm it took, before calling it environmental.** An unverified diagnosis costs a round-trip and is often your own bug wearing the environment's clothes (case file: The environment blocker that was my own typo).
-7. **Reconcile the tracker (post-merge):** verify the linked issue actually **Closed** and the project-board card moved to **Done** (`github-pr-flow` Step 7) — close/move manually if the keyword or board workflow was missing. A "shipped" note is not proof; check the tracker.
+7. **Reconcile the tracker (post-merge):** verify the linked issue actually **Closed** and the project-board card moved to **Done** (`github-pr-flow` Step 7) — close/move manually if the keyword or board workflow was missing. A "shipped" note is not proof; check the tracker. **Lane mode:** now, on the base branch, write the `#Ship log` row + CHANGELOG entry the lane PR could not carry (one writer for the spine), and if a Lanekeeper board exists confirm the card's Lane/Seat fields still match `lanes.yaml`.
 
 ## Step 3 — Write back to `PRODUCT.md`
 Append a `#Ship log` row: date · what shipped · review+security · docs reconciled? · CHANGELOG · rollback/flag · PR link.
