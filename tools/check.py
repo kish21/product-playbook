@@ -29,7 +29,7 @@ LINE_BUDGET = 500
 errors: list[str] = []
 
 # Canonical phase-template skills (the vision->learn chain /playbook walks).
-TEMPLATE = {"vision", "scope", "plan", "architect", "structure", "foundation", "contracts",
+TEMPLATE = {"vision", "validate", "scope", "plan", "architect", "structure", "foundation", "contracts",
             "tickets", "build", "dev-check", "test", "eval", "ship", "learn"}
 
 

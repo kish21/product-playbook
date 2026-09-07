@@ -27,6 +27,14 @@ _Last updated: <date> · Stage: <phase> · AI product? <yes/no>_
 - **Riskiest assumption this depends on:**
 - **Business model (free / paid / internal):**
 
+## Validation        <!-- /validate --> (test the riskiest assumption BEFORE code; append a dated entry per run)
+- **Assumption under test (falsifiable: <user> will <behaviour> because <reason>):**
+- **Experiment (type · who it reaches · time box · due date):**
+- **Pass/fail threshold (written BEFORE the result):**
+- **Measured result (number / quoted evidence · date · raw notes in docs/validation/):**
+- **Verdict (proceed / pivot / kill) + one-line reason:**
+- **Override (only if skipped: date · reason · "assumption untested"):**
+
 ## Scope             <!-- /scope -->
 - **THE core feature (the one thing):**
 - **In scope (now):**
