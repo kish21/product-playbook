@@ -60,5 +60,7 @@ named products (not from memory), the metric is a measurable number, the JTBD/ri
 field is empty or vague, STOP and fill it with the user** — a fuzzy vision is the root of later drift.
 
 ## Step 4 — Handoff
-"Vision captured in `PRODUCT.md`. Next run **`/scope`** to lock the ONE core feature and what's
-explicitly out of scope — that's your seatbelt against feature creep."
+"Vision captured in `PRODUCT.md`. Next run **`/validate`** to test the riskiest assumption you just
+named with the cheapest real-world experiment — days of evidence before months of code. Then
+**`/scope`** locks the ONE core feature and what's explicitly out of scope — your seatbelt against
+feature creep."

@@ -3,6 +3,15 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.8.0] - 2026-09-07
+
+### Added - `/validate` (Phase 1, between `/vision` and `/scope`)
+`/vision` made you *name* the riskiest assumption; nothing in the chain ever *tested* it. A product could pass every later gate and still be the wrong product. `/validate` is the cheapest anti-waste lever the playbook was missing: days of evidence before months of code.
+- **`commands/validate.md`** - reads the riskiest assumption, north-star metric and JTBD from `#Vision`; restates the assumption as a **falsifiable behaviour**; recommends ONE experiment from a five-rung ladder (desk check · problem interviews · landing page / fake door · concierge · pre-sale), the lowest rung that can falsify *this* assumption; makes the user write a **numeric pass/fail threshold and a time box BEFORE the result**; records the **measured** result and a **proceed / pivot / kill** verdict. A pivot re-runs `/validate` on the new assumption; a kill is the playbook working. Skipping is allowed only as an **explicit dated override** line, never a silent pass. Long-running experiments compose `/loop` / `/schedule` to re-measure.
+- **`templates/PRODUCT.md`** gains a `## Validation` section (append a dated entry per run). `VISION.md` row, `manifest.json` entry, two eval cases.
+- **`/vision`** hands off to `/validate`; **`/playbook`** orients through it (an override counts as filled but is surfaced every time); **`/scope` Step 0** warns when `#Validation` is empty or an override, and carries the untested assumption into the scoping discussion (override allowed - standalone use still works).
+- `tools/check.py` enforces the phase template on `validate` (20 skills).
+
 ## [1.7.0] - 2026-09-06
 
 ### Added - lane mode (the Lanekeeper seam)

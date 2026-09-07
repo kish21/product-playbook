@@ -26,6 +26,11 @@ description: >
 ## Step 0 — Context + prior-gate check
 - Read `PRODUCT.md#Vision`. If it is missing/empty, warn: "`/vision` looks incomplete — scope without
   a vision drifts." Offer to run `/vision` first, but allow override (standalone use).
+- Read `PRODUCT.md#Validation`. If it is empty, or holds an **override** (assumption untested), warn:
+  "The riskiest assumption has not been tested — scoping locks a core feature around an unproven bet."
+  Offer to run `/validate` first (usually days, not weeks), but allow override (standalone use); if the
+  user proceeds, carry the untested assumption into the scope discussion so the core feature is chosen
+  with that risk visible.
 
 ## Step 1 — Apply principles (this phase)
 - **Scope discipline:** the default answer to a new feature is **"not yet — what's the trigger?"**

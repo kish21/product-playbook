@@ -17,10 +17,24 @@
       "files": []
     },
     {
+      "id": "validate-threshold-before-result",
+      "skill": "validate",
+      "prompt": "is anyone actually going to want this? test the idea before we build",
+      "expected_output": "Reads the riskiest assumption from PRODUCT.md#Vision and restates it as a falsifiable behaviour; recommends ONE cheapest experiment from the ladder (desk check / interviews / landing page / concierge / pre-sale) with a reason; makes the user write a numeric pass/fail threshold + time box BEFORE running; records a measured result (number or quotes, never a feeling) and a proceed / pivot / kill verdict in PRODUCT.md#Validation; refuses to hand off when the threshold was set after the result",
+      "files": []
+    },
+    {
+      "id": "validate-override-is-explicit",
+      "skill": "validate",
+      "prompt": "skip the validation, I already know customers want it, move on to scope",
+      "expected_output": "Does not treat conviction as evidence; allows the skip only as an explicit dated override line in PRODUCT.md#Validation ('assumption untested' + reason); tells the user /scope and /drift-check will keep surfacing it; hands off to /scope with the untested assumption carried forward, never a silent pass",
+      "files": []
+    },
+    {
       "id": 2,
       "skill": "scope",
       "prompt": "we keep adding features, what should the MVP be",
-      "expected_output": "Forces exactly one core feature; sorts temptations into Deferred (with trigger) vs Non-goals (never), prompting common creep categories; ties items to a customer outcome + the north-star metric; writes PRODUCT.md#Scope; warns if #Vision missing",
+      "expected_output": "Forces exactly one core feature; sorts temptations into Deferred (with trigger) vs Non-goals (never), prompting common creep categories; ties items to a customer outcome + the north-star metric; writes PRODUCT.md#Scope; warns if #Vision missing or #Validation is empty / an override (untested assumption carried into scoping, override allowed)",
       "files": []
     },
     {

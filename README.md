@@ -1,8 +1,8 @@
 # Product Playbook: Build with Discipline in the AI Era
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.7.0-blue.svg)](CHANGELOG.md)
-![Claude Code skills](https://img.shields.io/badge/Claude%20Code-19%20skills-8A2BE2.svg)
+[![Version](https://img.shields.io/badge/version-1.8.0-blue.svg)](CHANGELOG.md)
+![Claude Code skills](https://img.shields.io/badge/Claude%20Code-20%20skills-8A2BE2.svg)
 
 **A guided path from idea -> shipped that bakes in the engineering discipline most teams learn the hard way.**
 
@@ -27,9 +27,9 @@ Here is exactly how it happened:
 
 To cut short the time of my next project and stay laser-focused, I needed a playbook. Not just a document, but **executable skills with evidence-based gates and checks** that force both me and the AI to maintain engineering discipline.
 
-> 👉 *Short on time? **[Skip the story : jump straight to the 19 skills ->](#skill-reference)***
+> 👉 *Short on time? **[Skip the story : jump straight to the 20 skills ->](#skill-reference)***
 
-`product-playbook` was born from my scars. It turns those lessons into a single, shared rulebook (`PRINCIPLES.md`) and maps them to **19 step-by-step commands (skills)** (17 journey phases + the `/frontend-audit` and `/new-component` UI-suite skills). It forces you to move one phase at a time, checking gates with evidence before writing code, so you get senior-level discipline by default.
+`product-playbook` was born from my scars. It turns those lessons into a single, shared rulebook (`PRINCIPLES.md`) and maps them to **20 step-by-step commands (skills)** (18 journey phases + the `/frontend-audit` and `/new-component` UI-suite skills). It forces you to move one phase at a time, checking gates with evidence before writing code, so you get senior-level discipline by default.
 
 ---
 
@@ -39,7 +39,7 @@ This system relies on three core files to create a structured, sequential, yet s
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/architecture-dark.svg">
-  <img alt="How product-playbook works: PRINCIPLES.md and PRODUCT.md feed the 19 skills, which generate your codebase" src="docs/diagrams/architecture-light.svg">
+  <img alt="How product-playbook works: PRINCIPLES.md and PRODUCT.md feed the 20 skills, which generate your codebase" src="docs/diagrams/architecture-light.svg">
 </picture>
 
 <sub>Diagram source: <a href="docs/diagrams/architecture.mmd"><code>docs/diagrams/architecture.mmd</code></a> (regenerate with <code>sh tools/render-diagrams.sh</code>).</sub>
@@ -57,7 +57,7 @@ The single source of truth for your quality bar. It details:
 *   **Production Safeguards:** Zero-secrets, fail-closed security, observability, and rollback paths.
 
 ### 3. The Commands (`commands/*.md`)
-These are **19 custom Markdown commands** (skills) that you install into Claude Code. Each command (e.g., `/vision`, `/scope`, `/architect`, `/dev-check`) has a strict contract:
+These are **20 custom Markdown commands** (skills) that you install into Claude Code. Each command (e.g., `/vision`, `/scope`, `/architect`, `/dev-check`) has a strict contract:
 
 ```markdown
 ---
@@ -105,7 +105,7 @@ Run `/playbook` to start. It reads your `PRODUCT.md` and guides you step-by-step
 ```
 START -> /playbook (guides you through the phases below)
 
-1. PRODUCT       /vision ──> /scope ──> /plan
+1. PRODUCT       /vision ──> /validate ──> /scope ──> /plan
 2. DEVELOPMENT   /architect ──> /structure ──> /design-system* ──> /foundation ──> /contracts ──> /tickets ──> /build ──> /dev-check
                                               (* if the product has a UI)
 3. TESTING       /test
@@ -122,6 +122,7 @@ ANYTIME          /drift-check (detects scope creep or code-docs drift)
 |---|---|---|---|---|
 | **Start** | `/playbook` | Guided entry-point that orchestrates phases | Routes only | You are starting fresh or unsure of the next step |
 | **Product** | `/vision` | Sharpens who it's for, the problem, and the job they need done : vs the market | `PRODUCT.md` -> **Vision** | Starting a brand-new project |
+| **Product** | `/validate` | Tests the riskiest assumption with the cheapest real-world experiment BEFORE code : threshold set in advance, measured result, proceed / pivot / **kill** | `PRODUCT.md` -> **Validation** | Right after `/vision`, before any scoping or code |
 | **Product** | `/scope` | Locks down **one** core feature; lists Deferred and Non-goals | `PRODUCT.md` -> **Scope** | Defining MVP / fighting feature creep |
 | **Product** | `/plan` | Core-first milestones + concern-area checklists | `PRODUCT.md` -> **Plan** | Creating the roadmap |
 | **Dev** | `/architect` | Chooses stack, records ADRs, wraps externals in adapters | `PRODUCT.md` -> **Architecture** | Before writing any code |
@@ -177,7 +178,7 @@ builds against its tokens and `/frontend-audit` mechanically enforces them. Skip
 
 ## 🚀 Installation and Setup
 
-**Pick one route.** Both give you the same 19 skills. They differ in how you *call* a skill and how you *get updates*.
+**Pick one route.** Both give you the same 20 skills. They differ in how you *call* a skill and how you *get updates*.
 
 | | **A. Plugin** (recommended) | **B. Copy install** |
 |---|---|---|
@@ -209,7 +210,7 @@ Context cost, from `claude plugin details`: ~3.5k tokens always-on per session; 
 | **Global** : from a clone | `git clone https://github.com/kish21/product-playbook ~/product-playbook && cd ~/product-playbook && ./install.sh` |
 | **Project-level** : teammates get it on clone | `./install.sh --project /path/to/project` then commit `<project>/.claude/` |
 
-What it puts where: the 19 skills → `~/.claude/commands/` (or `<project>/.claude/commands/`), plus the companions the skills read (`PRINCIPLES.md`, `VISION.md`, `PRODUCT.md` template) → `~/.claude/product-playbook/` (or `<project>/.claude/product-playbook/`).
+What it puts where: the 20 skills → `~/.claude/commands/` (or `<project>/.claude/commands/`), plus the companions the skills read (`PRINCIPLES.md`, `VISION.md`, `PRODUCT.md` template) → `~/.claude/product-playbook/` (or `<project>/.claude/product-playbook/`).
 
 **Updating:** re-run the exact same command. It overwrites in place. There is no version check : if you want to be told about updates, use route A.
 
@@ -220,7 +221,7 @@ Open a new Claude Code session and type `/playbook` (route A: `/product-playbook
 ### Uninstall
 
 - **A:** `/plugin uninstall product-playbook@product-playbook`, then `/plugin marketplace remove product-playbook`.
-- **B:** delete the 19 skill files/folders from `~/.claude/commands/` (or the project's) and the `product-playbook/` companions folder beside it.
+- **B:** delete the 20 skill files/folders from `~/.claude/commands/` (or the project's) and the `product-playbook/` companions folder beside it.
 
 ---
 
