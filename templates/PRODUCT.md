@@ -16,13 +16,17 @@ Rules:
 # PRODUCT — <product name>
 
 _Last updated: <date> · Stage: <phase> · AI product? <yes/no>_
+_Playbook: <phase order followed — or a dated override line if the canonical order was deliberately departed from>_
 
 ## Vision            <!-- /vision -->
 - **Who it's for:**
 - **Problem (why now):**
 - **Value proposition:**
 - **2026 market / competitor read (verified, not from memory):**
-- **North-star success metric (how we'll know it works):**
+- **North star — target + date (e.g. "400 accounts with 3+ subscriptions by 2027-03-31"):**
+- **North star — 2–3 input metrics (the weekly-moving numbers that drive it):**
+- **North star — 1 guardrail (what must NOT get worse while chasing it):**
+- **North star — instrumentation (how it gets measured; "nothing records this yet" is a finding):**
 - **Job-to-be-done (when <situation>, I want to <motivation>, so I can <outcome>):**
 - **Riskiest assumption this depends on:**
 - **Business model (free / paid / internal):**
@@ -33,18 +37,24 @@ _Last updated: <date> · Stage: <phase> · AI product? <yes/no>_
 - **Pass/fail threshold (written BEFORE the result):**
 - **Measured result (number / quoted evidence · date · raw notes in docs/validation/):**
 - **Verdict (proceed / pivot / kill) + one-line reason:**
-- **Override (only if skipped: date · reason · "assumption untested"):**
+- **Override (only if skipped: date · reason · "assumption untested" · checked against #Vision):**
+  _An override marks the fields above `— not run (override <date>)`; it never deletes them._
 
 ## Scope             <!-- /scope -->
 - **THE core feature (the one thing):**
 - **In scope (now):**
 - **Deferred (out for now + the trigger that would bring it in):**
 - **Non-goals (deliberately never building):**
+- **Table stakes (each: in-scope now / Deferred + trigger / N-A + reason — none may be blank):**
+  - password reset · email verification · account deletion + data export · empty/loading/error states ·
+    privacy policy + terms · accessibility baseline · a way to report a problem
 
 ## Plan              <!-- /plan -->
 - **Phases / milestones (core first):**
 - **Timeline:**
 - **Exit criteria per milestone:**
+- **Four-risks row per milestone (value · usability · feasibility · viability — which this milestone retires and how you'll know; cite evidence for one already retired):**
+- **Usability checkpoint before going public (which milestone, and its exit criterion):**
 - **Concern-area coverage (security · ai · observability · DX · testing · infra · docs · product → now/next/later/N-A + trigger):**
 
 ## Architecture      <!-- /architect -->

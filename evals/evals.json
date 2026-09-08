@@ -297,6 +297,41 @@
       "prompt": "audit the design system — our warning dot looks fine but is it accessible",
       "expected_output": "Computes every status token against the surfaces it sits on in BOTH light and dark; applies 4.5:1 to a status colour used as text and 3:1 only where the token name marks it graphical (-dot/-indicator/-fill/-bar/-chart), so the same value can pass as a dot and fail as a label; ERRORs below the applicable bar naming the ratio, the bar and the fix; skips a token only where it is explicitly declared /* decorative */; reports nothing new for a project that declares no status tokens",
       "files": []
+    },
+    {
+      "id": "vision-north-star-five-parts",
+      "skill": "vision",
+      "prompt": "our north star is more people tracking their subscriptions",
+      "expected_output": "Rejects that as a direction, not a metric, and asks for all five parts: a target number WITH a date, 2-3 input metrics that move weekly and drive it, 1 guardrail that must not get worse, and an instrumentation line saying how it gets measured; treats 'nothing records this yet' as a finding rather than a detail for later; refuses to close the gate on a bare direction because /eval would have nothing to measure against",
+      "files": []
+    },
+    {
+      "id": "validate-override-contradicts-vision",
+      "skill": "validate",
+      "prompt": "skip the validation — it's just for personal use",
+      "expected_output": "Pressure-tests the reason against #Vision BEFORE recording: since the Vision records a public customer, a north star and a business model, names that specific contradicting line, explains that recording the override would leave two incompatible statements in the spine, and offers /vision first — allowing the override if the user still proceeds; a merely deferring reason ('no budget this month') records in one step; either way the experiment scaffold lines stay, marked '— not run (override <date>)', never deleted",
+      "files": []
+    },
+    {
+      "id": "scope-table-stakes-sorted",
+      "skill": "scope",
+      "prompt": "lock the scope — core feature is tracking subscriptions",
+      "expected_output": "Walks the table-stakes checklist (password reset, email verification, account deletion + data export, empty/loading/error states, privacy + terms, accessibility, a way to report a problem) and sorts EVERY item into in-scope now / Deferred + trigger / N-A + reason; adapts the list to the product kind with a recorded reason for each N-A (an account-less CLI has no password reset but still has error states); refuses to close the gate while any item is unsorted",
+      "files": []
+    },
+    {
+      "id": "plan-four-risks-and-usability",
+      "skill": "plan",
+      "prompt": "sequence the milestones for this",
+      "expected_output": "Gives every milestone a four-risks row naming which of value/usability/feasibility/viability it retires and the observable that proves it; cites a passing #Validation entry as evidence for an already-retired value risk rather than repeating it; places a usability checkpoint before anything goes public and writes it as a milestone EXIT CRITERION (five people attempting the core task unaided), not a nice-to-have",
+      "files": []
+    },
+    {
+      "id": "playbook-flags-non-canonical-order",
+      "skill": "playbook",
+      "prompt": "what's next — we already picked the stack but never locked scope",
+      "expected_output": "Compares filled sections against the canonical order and names the inversion in one line (#Architecture filled while #Scope is empty — the stack was chosen before the scope was locked), says what is at risk (recorded decisions may not survive the earlier phase), offers /scope first and allows an override since standalone use is first-class; an in-order spine produces no extra output; a recorded override is read from the header and not re-asked on later runs",
+      "files": []
     }
   ]
 }

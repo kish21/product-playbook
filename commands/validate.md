@@ -30,6 +30,8 @@ description: >
   - [ ] A **measured result** — an actual number or quoted evidence, never "people seemed interested".
   - [ ] A **verdict**: proceed / pivot / kill, with one sentence of reasoning tied to the threshold.
   - [ ] If the user skips the experiment, an **explicit override** line (date + reason) is recorded instead — never a silent pass.
+  - [ ] **The override reason is pressure-tested against `#Vision` before it is recorded.** A reason implying a *different product* than the Vision describes ("personal use", "internal tool", "just for me" — against a Vision with a public customer, a north star and a business model) is a **contradiction, not a deferral**: name the `#Vision` line it contradicts and offer `/vision` first. The override stays allowed, but as an informed choice.
+  - [ ] **An override never deletes the scaffold.** The experiment fields stay in `#Validation`, each marked `— not run (override <date>)`, so the section shows what was skipped rather than a blank.
 
 ## Step 0 — Context + prior-gate check
 - Read `PRODUCT.md#Vision`. If the **riskiest assumption** is missing or vague ("people will like it"),
@@ -93,7 +95,17 @@ Walk the exit criteria. **STOP and do not hand off if:**
 - the "result" is a feeling, a friend's opinion, or the user's own conviction;
 - the verdict contradicts the threshold without a recorded reason.
 If the user wants to skip the experiment entirely: allowed, but **only with an explicit override**
-line in `#Validation` — `Override <date>: <reason> — assumption untested.` `/scope` will surface it
+line in `#Validation` — `Override <date>: <reason> — assumption untested.`
+
+**First, pressure-test the reason against `#Vision`** — one comparison, not an interrogation: does it fit the
+recorded **customer**, **business model** and **north star**? A reason that merely *defers* ("no budget this
+month", "pre-sold to a design partner") records cleanly in one step. A reason that describes a **different
+product** does not — quote the `#Vision` line it contradicts, say plainly that recording it would leave two
+incompatible statements standing in the spine, and offer `/vision` first. If the user proceeds anyway, record it.
+
+**Keep the scaffold.** Writing the override must not blank the experiment fields — leave each present and
+marked `— not run (override <date>)`. A section that shows *what was skipped* is worth far more later than an
+empty one, and both `/scope` and `/drift-check` read it. `/scope` will surface it
 and `/drift-check` treats an untested assumption as a standing finding until it is closed.
 
 ## Step 3c — Contradiction check (before the gate closes)
