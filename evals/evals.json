@@ -290,6 +290,13 @@
       "prompt": "audit this component against our DESIGN.md",
       "expected_output": "Runs audit.py with DESIGN.md AND the component in one invocation so Law 14b can resolve references cross-file; ERRORs on every var(--token) nothing defines, naming them, and explains that CSS drops such declarations silently so no other check catches it; does not flag var(--x, fallback); with no token definitions anywhere in the audited set it WARNs 'unverified' rather than passing or erroring",
       "files": []
+    },
+    {
+      "id": "frontend-audit-status-colour-two-bars",
+      "skill": "frontend-audit",
+      "prompt": "audit the design system — our warning dot looks fine but is it accessible",
+      "expected_output": "Computes every status token against the surfaces it sits on in BOTH light and dark; applies 4.5:1 to a status colour used as text and 3:1 only where the token name marks it graphical (-dot/-indicator/-fill/-bar/-chart), so the same value can pass as a dot and fail as a label; ERRORs below the applicable bar naming the ratio, the bar and the fix; skips a token only where it is explicitly declared /* decorative */; reports nothing new for a project that declares no status tokens",
+      "files": []
     }
   ]
 }

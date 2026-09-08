@@ -105,6 +105,11 @@ recommendation that varies.** Every rule below is tagged with one of:
    especially): **darken the label shade** until it passes on its surface; the status **dot/icon may stay
    brighter** (3:1 graphical). Never ship a colour whose contrast you haven't computed.
    *Check:* compute contrast for every `(--x-foreground on --x)` pair, incl. status labels; none below threshold.
+   **How the gate tells the two bars apart** (so the law and `/frontend-audit` agree): a status token is
+   held to **4.5:1** against `--card`/`--background`/`--popover`/`--muted` unless its **name** marks it as a
+   graphic — `--warning-dot`, `--*-indicator`, `--*-fill`, `--*-bar`, `--*-chart` — which is held to **3:1**.
+   One value can therefore pass as a dot and fail as a label, which is the point. A token that is genuinely
+   never text is opted out **explicitly**, by declaring it `/* decorative */` on its own line — never inferred.
 
 8. **Colour tokens scale lightness predictably (accessible shades + real dark mode).** · `[MEANS]` (recommend OKLCH)
    *Why:* if shades are picked ad-hoc, accessible scales and a real dark mode can't be derived reliably.
