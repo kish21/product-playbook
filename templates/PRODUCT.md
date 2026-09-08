@@ -59,6 +59,10 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 
 ## Architecture      <!-- /architect -->
 - **Stack + tools (and why, 2026 OSS-first):**
+- **Data custody (local/self-hosted · managed-serverless · embedded) + why (privacy/cost/portability/lock-in):**
+- **Runtime target (container-anywhere · PaaS · VPS · user's machine) — decides what `/structure` scaffolds:**
+- **Identity custody (self-hosted auth · vendor auth + RLS) — or N/A:**
+  _Mark any of the three "default taken, not user-chosen" if it was decided without the user._
 - **Dev tooling (hook runner · secret scanner · task runner · formatter/linter · dependency manifest — `/structure` scaffolds exactly these):**
 - **Key decisions / ADRs (patterns applied · anti-patterns avoided):**
 - **Externals behind provider/adapter interfaces (+ resilience strategy each):**
@@ -82,6 +86,7 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Config flows verified (no dead config):**
 - **Fail-loud/fail-closed guards (placeholder rejection · test-datastore refusal) · secret-scan + dependency-vuln scan · CI mirrors prod:**
 - **Isolated test datastore provisioned (variable + teardown) · test runner uses the app's config loader:**
+- **Usable end-to-end (a seeded account can log in) · seed is idempotent + prod-refusing · dev credentials location:**
 - **Commit hooks + CI auto-run (lint/format/secret-scan/tests) · runs in its container · async-safe:**
 - **Observability wired (tracing / error-reporter, even a stub):**
 
@@ -105,6 +110,7 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Isolated test datastore (the target the suite runs against) · bootstrap refuses dev/prod:**
 - **Unit / integration / regression coverage (critical path accounted for):**
 - **Adversarial/security (prompt-injection, authz) cases:**
+- **Real-user-environment (DOM injection · locale/timezone · reduced motion/forced colours/zoom · degraded network):**
 - **Live-path verified (not just isolated units):**
 - **Golden/eval dataset location · tests deterministic · run in CI (red blocks merge):**
 

@@ -346,6 +346,27 @@
       "prompt": "lock the scope",
       "expected_output": "After writing #Scope, applies PRINCIPLES.md Step 3b: updates the Stage:/Last updated: header to this phase, reconciles any count/date/threshold it introduced against #Vision's north star and surfaces a contradiction instead of writing over it, and ends by suggesting a one-line commit message in the repo's existing convention",
       "files": []
+    },
+    {
+      "id": "architect-custody-and-runtime-target",
+      "skill": "architect",
+      "prompt": "pick the stack for this — postgres and next.js probably",
+      "expected_output": "Puts data custody, runtime target and identity custody on the agenda as explicit decisions, not stack trivia: asks where the data lives (local/self-hosted vs managed-serverless vs embedded) with the vision-driven trade-off named, where it runs (this decides what /structure scaffolds), and who holds identity; states the defer-paid-infra bias toward local as a DEFAULT THE USER CAN DECLINE rather than assuming it; records each as an ADR or explicit N/A and marks any decided without user input as 'default taken'; gets a yes/no before any compose file exists",
+      "files": []
+    },
+    {
+      "id": "foundation-usable-not-just-running",
+      "skill": "foundation",
+      "prompt": "the skeleton boots and the health check passes — is foundation done",
+      "expected_output": "For a product with auth, says no: the bar is USABLE end-to-end, not merely running — a health path proves the process booted, not that a human can get in. Requires a seed producing a working dev account, verified by ACTUALLY LOGGING IN; the seed must be idempotent (shown running twice without duplicating), must refuse to run against a production target, and prints obviously-fake dev credentials once; records where those credentials are in #Foundation and names them at handoff",
+      "files": []
+    },
+    {
+      "id": "test-real-user-environment",
+      "skill": "test",
+      "prompt": "the suite is green but users report the login page crashing",
+      "expected_output": "Identifies the coverage class the suite lacks rather than debugging blind: a clean headless browser with zero extensions is not a user's browser. Adds real-user-environment cases — third-party DOM injection (password managers/autofill/accessibility extensions mutating the DOM before hydration), locale/timezone, reduced motion and forced colours and zoom, throttled network and cold cache — with at least one executable check that first interactive paint survives injected DOM on an auth/form surface. Any hydration-suppression escape hatch is scoped to the specific element with a comment naming why, never a blanket default, because mismatches also come from real bugs; wording stays framework-neutral",
+      "files": []
     }
   ]
 }

@@ -22,7 +22,7 @@ description: >
 - **Reads:** `PRODUCT.md#Vision`, `#Scope`, `#Plan`.
 - **Writes:** `PRODUCT.md#Architecture` — stack+tools+why · **dev tooling** · ADRs · externals behind adapters · resilience · perf/cost budget · (AI) prompt-versioning/eval.
 - **Exit criteria (the gate — small: is the section complete?):**
-  - [ ] `#Architecture` is complete and **traces to scope/plan** (no gold-plating): stack+tools+why, every external behind an adapter, key ADRs (incl. patterns applied / anti-patterns avoided), migrations approach, a **Dev tooling** line naming the hook runner · secret scanner · task runner · formatter/linter · dependency manifest (the tools `/structure` will scaffold — leave one unnamed and `/structure` picks it blind), and the **decisions for the concern areas this product needs** — resilience · perf/cost budget · security/no-secret-in-code · observability, **+ (AI) prompt-versioning/eval/tracing** — each recorded or marked **N/A**.
+  - [ ] `#Architecture` is complete and **traces to scope/plan** (no gold-plating): stack+tools+why, every external behind an adapter, key ADRs (incl. patterns applied / anti-patterns avoided), migrations approach, a **custody + runtime target** line (data custody · runtime target · identity custody — each an ADR or an explicit N/A, and a default taken without user input says so), a **Dev tooling** line naming the hook runner · secret scanner · task runner · formatter/linter · dependency manifest (the tools `/structure` will scaffold — leave one unnamed and `/structure` picks it blind), and the **decisions for the concern areas this product needs** — resilience · perf/cost budget · security/no-secret-in-code · observability, **+ (AI) prompt-versioning/eval/tracing** — each recorded or marked **N/A**.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Vision/#Scope/#Plan`. If `#Scope`/`#Plan` are empty, warn and offer to run them first (allow override).
@@ -43,15 +43,28 @@ description: >
    (UI products) or is skipped (backend/API/CLI only).
    Then name the **2–3 design patterns** that fit it and the **2–3 anti-patterns** to avoid (current-year), and how this design honours/avoids them — record the notable ones as ADRs.
 2. **Choose the stack core** (language · framework · datastore · key libs). One-line why each; flag anything paid and its trigger to adopt.
-3. **List every external** and the **adapter interface** it will hide behind (e.g. `LLMProvider`, `Storage`) — *and* its **failure/resilience strategy** (timeouts · retry-transient-only · fallback/circuit-breaker). This is what keeps it swappable, testable, and resilient.
-4. **Set a rough perf/cost budget** where it matters (latency + cost-per-operation), since the stack choice locks it in — or mark **N/A**. **Derive the number from the dominant cost, don't guess it:** name the single most expensive step (a durable fsync, an LLM call, a network hop) and budget from a quick probe of *that* — or, if you can't probe now, write the budget as **explicitly aspirational** and commit to **re-measuring it in `/eval`**. A hard ADR number pulled from a hunch tends to miss by ~2× and erodes trust when `/eval` measures the truth.
-5. **Name the dev tooling** — hook runner (pre-commit · lefthook · husky) · secret scanner · task runner (`make` · npm scripts · just) · formatter/linter · dependency manifest. These look like trivia and are not: `/structure` scaffolds these files next, and an *unrecorded* slot is one it fills from habit rather than from the stack (a Python hook runner landing in a Node repo). Pick them **from the stack you just chose**, one line of why each.
-6. **If it's an AI product:** decide **prompt-versioning**, an **eval harness**, and **LLM tracing/observability** as ADRs (don't let them emerge).
-7. **Record 2–4 ADRs** for the load-bearing choices (decision · why · rejected alternative).
+3. **Custody + runtime target — three questions that are NOT stack trivia.** The deployment target decides
+   whether a compose file is even the right artifact, whether connection strings or a local service get
+   scaffolded, and it is expensive to reverse once `/structure` and `/foundation` have built on it:
+   - **Where does the data live?** Local/self-hosted · managed-serverless · embedded. One line of trade-off
+     each, and name the **vision-driven** consideration (privacy · cost · portability · lock-in).
+   - **Where does this run?** Container-anywhere · a specific PaaS · a VPS · the user's own machine.
+     **This is what tells `/structure` and `/foundation` what to scaffold.**
+   - **Who holds identity?** Self-hosted auth vs the datastore vendor's auth + row-level security. If the
+     user already pays for a platform, the "free" self-hosted option may not be the cheaper one.
+   PRINCIPLES' *defer paid infra until a real need* biases all three toward local — a sensible default, but
+   **it must be a stated default the user can decline, not an unvoiced one.** If the user has no opinion,
+   recommend one with a reason and **record it as "default taken, not user-chosen"**. Get the same yes/no
+   the rest of the stack recommendation gets.
+4. **List every external** and the **adapter interface** it will hide behind (e.g. `LLMProvider`, `Storage`) — *and* its **failure/resilience strategy** (timeouts · retry-transient-only · fallback/circuit-breaker). This is what keeps it swappable, testable, and resilient.
+5. **Set a rough perf/cost budget** where it matters (latency + cost-per-operation), since the stack choice locks it in — or mark **N/A**. **Derive the number from the dominant cost, don't guess it:** name the single most expensive step (a durable fsync, an LLM call, a network hop) and budget from a quick probe of *that* — or, if you can't probe now, write the budget as **explicitly aspirational** and commit to **re-measuring it in `/eval`**. A hard ADR number pulled from a hunch tends to miss by ~2× and erodes trust when `/eval` measures the truth.
+6. **Name the dev tooling** — hook runner (pre-commit · lefthook · husky) · secret scanner · task runner (`make` · npm scripts · just) · formatter/linter · dependency manifest. These look like trivia and are not: `/structure` scaffolds these files next, and an *unrecorded* slot is one it fills from habit rather than from the stack (a Python hook runner landing in a Node repo). Pick them **from the stack you just chose**, one line of why each.
+7. **If it's an AI product:** decide **prompt-versioning**, an **eval harness**, and **LLM tracing/observability** as ADRs (don't let them emerge).
+8. **Record 2–4 ADRs** for the load-bearing choices (decision · why · rejected alternative).
 - Give **one recommendation** for the stack; get a yes/no. Keep it plain — explain *why* for a newcomer.
 
 ## Step 3 — Write back to `PRODUCT.md`
-Fill `#Architecture`: stack+tools+why · **dev tooling** (hook runner · secret scanner · task runner · formatter/linter · dependency manifest) · ADRs (patterns/anti-patterns) · externals behind adapters + resilience · perf/cost budget · migrations approach · (AI) prompt-versioning/eval/tracing.
+Fill `#Architecture`: stack+tools+why · **data custody · runtime target · identity custody** · **dev tooling** (hook runner · secret scanner · task runner · formatter/linter · dependency manifest) · ADRs (patterns/anti-patterns) · externals behind adapters + resilience · perf/cost budget · migrations approach · (AI) prompt-versioning/eval/tracing.
 
 ## Step 3b — Principle-gate: verify the decisions are real, not vague
 Walk this phase's load-bearing principles (Step 1) and confirm each is **concretely decided**, not hand-waved:

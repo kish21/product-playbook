@@ -42,6 +42,10 @@ description: >
 
 ## Step 0 — Context + prior-gate check
 - Read `#Architecture` and `#Vision` (AI?). Take **two** things from `#Architecture`, not one: the **stack** (which decides the folder shape) and the **Dev tooling** line (hook runner · secret scanner · task runner · formatter/linter · dependency manifest) — **which decides every root scaffolding file you are about to write**. Reading only the stack is how a recorded tool choice gets silently overridden one phase later.
+- **Read the recorded runtime target before writing any infra file.** `#Architecture`'s custody + runtime
+  target line decides what is even appropriate: **do not emit a `docker-compose.yml` for a target that does
+  not use one** (managed-serverless data, a PaaS, an embedded datastore). Scaffolding a compose file by
+  habit hands the project an artifact it must later delete, and implies a custody decision nobody made.
 - If `#Architecture` is empty, warn and offer `/architect` first (allow override). Running standalone, detect the stack from the repo and pick tooling that fits it — then record the choice so the next phase inherits it.
 - Brownfield: read the existing tree; propose a clean target layout + a migration note — don't blindly move files.
 

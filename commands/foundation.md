@@ -22,6 +22,18 @@ description: >
 - **Writes:** `PRODUCT.md#Foundation` — runs end-to-end? · config-flow verified · guards/secret-scan/CI.
 - **Exit criteria:**
   - [ ] App **runs end-to-end** with nothing in it (a health check / hello path works).
+  - [ ] **For a product with auth, the bar is USABLE end-to-end, not merely running** — a login actually
+    succeeds. A health path proves the process booted, not that a human can get in; on a real run the app
+    booted perfectly and nobody could log in. The **seed produces a working dev account** and the guard is
+    *logging in*, not *200 OK*.
+  - [ ] **The seed is idempotent and re-runnable** — it is the recovery path after a reset or an isolated-test
+    teardown, so running it twice succeeds and duplicates nothing. **A wiped database is recoverable with one
+    documented command.**
+  - [ ] **The seeder refuses to run against a production target**, and prints its credentials once at the end.
+    They are **obviously-fake documented dev values** (`PRINCIPLES.md` §Secrets never get pushed) — this must
+    never normalise printing real credentials, and the dev account must not be creatable in prod.
+  - [ ] `#Foundation` records **where the dev credentials are**, and the handoff names them — so the next
+    session does not go looking.
   - [ ] Config loads from config/`.env`; **the value actually flows** (verify — no dead/overridden config).
   - [ ] **Fail-loud on misconfig, fail-closed on security**: boot refuses on missing/known-constant secrets.
   - [ ] **Placeholders are rejected BY NAME at boot, not by length or format** — the loader knows the `CHANGE_ME__<VAR>__CHANGE_ME` values `/structure` wrote to `.env.example` and refuses to start on any of them, naming the variable and how to generate a real one. A length/format check is not this: a 48-char placeholder passes `min(32)` and boots the app on a public signing key. **A test proves it** (copy `.env.example` → `.env` unedited → boot fails), and under production (`NODE_ENV`/`APP_ENV`) there is **no override** — see `PRINCIPLES.md` §Production safeguards.
@@ -44,11 +56,14 @@ description: >
 
 ## Step 2 — Build the skeleton
 1. **Dependency manifest: this phase owns its CONTENTS AND PROVABILITY** (`PRINCIPLES.md` §Seam) — `/structure` created the file and its dev/prod split; pin the versions, **actually install**, write the tool config files those scripts reference (`biome.json`, `tsconfig.json`, the test-runner config), and get the first real run to pass. Then a runnable entrypoint with a **health/hello path** (the walking skeleton).
-2. **Config loader** reading `.env`/config; add a **startup guard** (fail-loud on misconfig, fail-closed on security) that holds the placeholder values as a **known-bad list** and rejects them by name, with a message saying how to generate a real value (`openssl rand -base64 32`). Keep the list next to the loader so adding a secret to `.env.example` and forgetting the guard is visible in one file.
-3. **The test datastore + its guard**, alongside the app's own: provision a separate disposable target, wire the runner to the app's config loader, and write the **refuse-to-run guard** before any test exists. Order matters — a suite written first is a suite that has already run once against whatever was configured.
-4. **Structured logging** (no prints) **+ a tracing / error-reporter hook** (even a stub behind an adapter) — wire base infra behind the adapters from `/architect` (DB/LLM/queue), even if stubbed.
-5. **The auto-layer:** dev tooling lint + format + **the commit-hook runner `#Architecture` recorded** running **secret-scan + dependency-vuln scan**; this is what enforces the deterministic checks on every commit so the later skills don't rely on memory. Wire an **automated dependency-update bot** (`.github/dependabot.yml`/Renovate) here too — adding the CVE gate on day one keeps it green from the start; bolting it on later means inheriting a backlog of CVEs that piled up unscanned.
-6. **CI** that installs, bootstraps from the real schema/migrations, runs lint/secret-scan/dep-scan/tests, **builds + runs in the container prod uses**, and **blocks merge on red** — green. CI creates throwaway creds at runtime (no secret in repo).
+2. **The dev seed** (`/structure` named the task-runner target; **this phase makes it real** — the same
+   ownership split as the dependency manifest, `PRINCIPLES.md` §Seam): idempotent, production-refusing, and
+   it prints the fake dev credentials once when it finishes.
+3. **Config loader** reading `.env`/config; add a **startup guard** (fail-loud on misconfig, fail-closed on security) that holds the placeholder values as a **known-bad list** and rejects them by name, with a message saying how to generate a real value (`openssl rand -base64 32`). Keep the list next to the loader so adding a secret to `.env.example` and forgetting the guard is visible in one file.
+4. **The test datastore + its guard**, alongside the app's own: provision a separate disposable target, wire the runner to the app's config loader, and write the **refuse-to-run guard** before any test exists. Order matters — a suite written first is a suite that has already run once against whatever was configured.
+5. **Structured logging** (no prints) **+ a tracing / error-reporter hook** (even a stub behind an adapter) — wire base infra behind the adapters from `/architect` (DB/LLM/queue), even if stubbed.
+6. **The auto-layer:** dev tooling lint + format + **the commit-hook runner `#Architecture` recorded** running **secret-scan + dependency-vuln scan**; this is what enforces the deterministic checks on every commit so the later skills don't rely on memory. Wire an **automated dependency-update bot** (`.github/dependabot.yml`/Renovate) here too — adding the CVE gate on day one keeps it green from the start; bolting it on later means inheriting a backlog of CVEs that piled up unscanned.
+7. **CI** that installs, bootstraps from the real schema/migrations, runs lint/secret-scan/dep-scan/tests, **builds + runs in the container prod uses**, and **blocks merge on red** — green. CI creates throwaway creds at runtime (no secret in repo).
 
 ## Step 3 — Write back to `PRODUCT.md`
 Fill `#Foundation`: runs end-to-end? · config-flow verified (how) · guards (**incl. the placeholder rejection and the test-datastore refuse-to-run guard, each with its test**) · isolated test datastore + how the runner loads config · secret-scan + dep-vuln · hook runner + CI (auto-layer) · container · observability hook.
@@ -56,6 +71,8 @@ Fill `#Foundation`: runs end-to-end? · config-flow verified (how) · guards (**
 ## Step 3b — Principle-gate: verify it RUNS and the guards are real (evidence)
 Walk this phase's principles and prove each — don't assume:
 - runs end-to-end → actually start it / hit the health path (compose `/run`); evidence.
+- **usable end-to-end (auth products) → actually log in with the seeded account**, and show the seed running
+  **twice** without failing or duplicating. "The health check passes" is not this.
 - config flows / no dead config → read a value back at runtime; evidence.
 - **the commit hooks + CI actually run** the deterministic checks (lint/format/secret-scan + dependency-vuln/tests) and **block on red** → show a green run; this is the auto-layer the later skills rely on.
 - fail-loud/fail-closed guard → trigger it with a missing secret and confirm it refuses to boot.
@@ -69,5 +86,5 @@ Walk this phase's principles and prove each — don't assume:
 Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Architecture` (adapters · tool choices · CI approach) and `#Structure`'s map — a skeleton wired to a datastore, hook runner or provider other than the recorded one. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
 
 ## Step 4 — Handoff
-"Skeleton runs and CI is green. Next run **`/contracts`** to define typed models/schemas/migrations
+"Skeleton runs, a seeded account can log in (credentials: <where>), and CI is green. Next run **`/contracts`** to define typed models/schemas/migrations
 BEFORE business logic — so the data shape is right from the start."
