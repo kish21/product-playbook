@@ -1,6 +1,6 @@
 {
   "name": "product-playbook",
-  "version": "1.17.0",
+  "version": "1.18.0",
   "description": "A phased, principle-driven product-building skill set — guides anyone (newcomer or experienced) through the full product lifecycle, sequential but standalone, with hard-won principles baked into each phase. Anti-scope-creep by design.",
   "author": "kish21",
   "license": "MIT",
@@ -28,6 +28,12 @@
       "category": "0-entry",
       "purpose": "Guided entry-point — walk the phases one at a time, pausing at each gate",
       "file": "commands/playbook.md"
+    },
+    {
+      "id": "adopt",
+      "category": "0-entry",
+      "purpose": "Bring an existing half-built project in: an INFERRED PRODUCT.md, confirmed by the owner",
+      "file": "commands/adopt.md"
     },
     {
       "id": "vision",

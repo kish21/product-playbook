@@ -3,6 +3,15 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.18.0] - 2026-09-08
+
+### Added - **`/adopt` - bring an existing, half-built project into the playbook**
+`PRINCIPLES.md` §Spine resolution told every skill how to *read* a project with no `PRODUCT.md` - `CLAUDE.md` -> `README.md` -> `docs/` -> `AGENTS.md`, else infer from code and label it INFERRED. **Nothing ever created that spine.** A user midway through a build got a fresh low-confidence guess on every run and no offer to turn it into a record, and `/playbook`'s brownfield branch only said "enter at `/architect` or `/build`" - which leaves the project spineless, so every later phase re-guesses it. A midway user will not think to run a *guided start*; they will understand **"adopt this project"**.
+- **Reads the repo, drafts, then stops.** Surveys docs, package metadata, entry points, routes, tests and CI, names the files it read, and drafts `PRODUCT.md` filling **only what the repo can evidence**. **Every inferred line is tagged `(inferred - confirm)`**; the owner then walks each section keep / correct / drop, and **nothing is written until that finishes**.
+- **What it refuses to guess.** The north star, the riskiest assumption, the business model and the Non-goals are almost never inferable - code says *what* was built, never *why*, for *whom*, or what was deliberately **not** built. Those sections stay **empty**, which correctly means "this phase's exit criteria are not met yet". **An explicit "not doing" list is a real Non-goal; a feature that merely does not exist is not.** A fabricated spine is far worse than none: every later phase gates against it, and `/drift-check` would measure drift from fiction.
+- **Idempotent and non-destructive** - an existing `PRODUCT.md` is never overwritten; it offers only to fill still-empty sections. Where the project's docs and its code disagree (the most common thing an adoption finds), Step 3c names both sides and records **which was stale**, rather than quietly preferring the code.
+- Registered across every surface: `manifest.json`, `VISION.md` journey row, README table + the skill count (**20 -> 21**), the architecture diagram, and 2 eval cases (50 total). `/playbook`'s brownfield branch now routes here, and §Spine resolution case 3 recommends it as the direct route.
+
 ## [1.17.0] - 2026-09-08
 
 ### Added - **the playbook already knew the answer; now it uses it**

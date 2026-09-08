@@ -388,6 +388,20 @@
       "prompt": "publish the backlog to GitHub",
       "expected_output": "Checks issue, milestone AND label permissions BEFORE publishing anything and degrades or aborts cleanly rather than leaving a half-published backlog; creates missing GitHub milestones with titles derived from #Plan and assigns them on create, reusing existing ones; labels each issue 'lane: <name>' with the space, matching PRINCIPLES Lane mode rule 4 rather than inventing a second spelling; Mode B resolves the parent's real issue number from the dedup index and writes #N, degrading to the plain ID with a stated reason rather than guessing; references the feature doc by path since /build writes it later; a second run creates no duplicate milestone, label or issue",
       "files": []
+    },
+    {
+      "id": "adopt-infers-and-confirms",
+      "skill": "adopt",
+      "prompt": "we're halfway through building this — can you set the playbook up on it",
+      "expected_output": "Surveys the repo in Spine-resolution order (CLAUDE.md, README, docs/, AGENTS.md, CHANGELOG, package metadata, entry points, routes, tests, CI) and names the files it read; drafts PRODUCT.md filling ONLY what the repo evidences, tagging every inferred line '(inferred — confirm)'; leaves north star, riskiest assumption, business model and Non-goals EMPTY because code cannot supply them, and says so plainly rather than guessing; a Non-goal is never inferred from a missing feature; walks the owner section-by-section keep/correct/drop and writes nothing until that finishes; sets 'Stage: adopted <date>' with a provenance note and recommends the next skill from what is still empty",
+      "files": []
+    },
+    {
+      "id": "adopt-never-overwrites-existing-spine",
+      "skill": "adopt",
+      "prompt": "re-adopt this project, the PRODUCT.md is out of date",
+      "expected_output": "Refuses to overwrite the existing PRODUCT.md; offers only to fill sections that are still EMPTY and leaves every filled section untouched, since a hand-written record outranks an inference; where the repo's docs and code disagree it names both sides and asks which is true now (Step 3c) rather than silently preferring the code; a fabricated spine is worse than no spine because every later phase gates against it and /drift-check would measure drift from fiction",
+      "files": []
     }
   ]
 }
