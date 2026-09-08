@@ -121,8 +121,8 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Operational failures (separated from quality):**
 
 ## Ship log          <!-- /ship -->
-| Date | What shipped | Review + /security-review | Docs reconciled | CHANGELOG | Rollback / flag | PR |
-|---|---|---|---|---|---|---|
+| Date | What shipped | Review + /security-review | Skipped phases (none = full chain ran) | Docs reconciled | CHANGELOG | Rollback / flag | PR |
+|---|---|---|---|---|---|---|---|
 
 ## Learnings         <!-- /learn -->
 - **Success metric + result (instrumented, not guessed):**

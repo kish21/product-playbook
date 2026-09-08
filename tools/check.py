@@ -17,7 +17,9 @@ Checks:
   4. Every skill file is under the SKILL line budget (500).
   5. One version everywhere: the newest CHANGELOG release is the source of truth, and
      manifest.json, .claude-plugin/plugin.json and the README badge must all match it.
-  6. A plugin install ships every skill: each directory-form skill's folder is listed under
+  6. Every `#Section` a skill references is a real heading in templates/PRODUCT.md (a skill pointing at
+     a section the template never defines is doc<->code drift inside the toolkit itself).
+  7. A plugin install ships every skill: each directory-form skill's folder is listed under
      `skills` in .claude-plugin/plugin.json (Claude Code only scans skills/ by default).
 """
 from __future__ import annotations
@@ -95,7 +97,9 @@ def main() -> int:
                     fail(f"{c} missing {token!r}")
     # 5. one version across CHANGELOG + manifest + plugin manifest + README badge
     check_versions(manifest)
-    # 6. plugin install ships every skill (directory-form ones need an explicit skills path)
+    # 6. every referenced spine section actually exists in the template
+    check_section_refs(files)
+    # 7. plugin install ships every skill (directory-form ones need an explicit skills path)
     check_plugin_skill_paths(files)
 
     return done(len(cmds))
@@ -128,6 +132,24 @@ def check_versions(manifest: dict) -> None:
     for name, got in surfaces:
         if got != want:
             fail(f"{name} version is {got!r}, but CHANGELOG declares {want!r}")
+
+
+def check_section_refs(files: dict[str, Path]) -> None:
+    """6. A skill may only reference spine sections the PRODUCT.md template actually defines.
+
+    Only `#Capitalised` references of 3+ chars are treated as section names, so a CSS `#hex` or an
+    issue `#N` is not mistaken for one. Caught `/ship` and `/learn` reading `#Eval` against a template
+    that defines `## Evaluation` - a contract that had never matched.
+    """
+    tpl = (ROOT / "templates" / "PRODUCT.md").read_text(encoding="utf-8")
+    headings = {m.group(1).split("<!--")[0].strip()
+                for m in re.finditer(r"^##\s+(.+)$", tpl, re.MULTILINE)}
+    for name, path in files.items():
+        text = path.read_text(encoding="utf-8")
+        for ref in sorted(set(re.findall(r"`#([A-Z][A-Za-z][A-Za-z \-]*?)`", text))):
+            if ref not in headings:
+                fail(f"{name} references `#{ref}`, which templates/PRODUCT.md does not define "
+                     f"(sections: {', '.join(sorted(headings))})")
 
 
 def check_plugin_skill_paths(files: dict[str, Path]) -> None:

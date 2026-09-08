@@ -46,7 +46,7 @@ description: >
   - **offer the earlier phase first, and allow an override.** Skills are standalone by design, so
     out-of-order use is legitimate — it should be *visible*, not blocked.
   An **in-order spine produces no extra output at all**; don't manufacture noise. A user who overrides gets
-  it recorded on the `#Playbook` line of the header — **read that first and do not re-ask** on later runs.
+  it recorded on the `Playbook:` line of the `PRODUCT.md` header — **read that first and do not re-ask** on later runs.
 - **Brownfield (existing code, no `PRODUCT.md`): route to `/adopt`.** It drafts an INFERRED `PRODUCT.md`
   from what the repo actually contains and confirms it with the owner — after which orienting works
   normally. Entering straight at `/architect` or `/build` still works and stays offered, but it leaves the

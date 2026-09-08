@@ -3,6 +3,19 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.20.0] - 2026-09-08
+
+### Fixed - **the last gate before release never asked whether anything was tested**
+Found reviewing a **complete** `/vision`->`/learn` run on a real project. The spine came out with Vision, Validation, Scope, Plan, Architecture, Structure, Design, Foundation, Contracts, Build log, Ship log, Learnings and Drift log all filled - and **`#Dev-complete`, `#Tests` and `#Evaluation` all empty.** Three consecutive phases were skipped, `/ship` shipped anyway, `/learn` wrote a retro on top of it, and **nothing warned.**
+- The cause: `/ship` Step 0 read **`#Eval` only** and never looked at `#Tests` or `#Dev-complete`. Every other phase gates on its predecessor; the one place it matters most gated on the least. It now reads **`#Dev-complete`, `#Tests` and `#Evaluation`**, names each empty one and recommends the phase that fills it.
+- **Shipping is still allowed** - standalone use is first-class - but **an override is now recorded on the release, not implied by an empty section.** The Ship log gains a **Skipped phases** column: `none` when the full chain ran, otherwise the phases and the reason. *An empty `#Tests` is not a disclosure; it is an absence, and absence reads as "not applicable".*
+- **"Allow override for small changes" is now bounded**, because an undefined escape hatch is always taken: `/eval` may be skipped only for a change that touches no product behaviour (docs, typo, revert). Whether a change is "small" is not a judgement the shipper makes about their own work.
+- `/learn` now says so plainly when `#Evaluation` is empty - a retro with no measured result is opinion, and the "decided next" line inherits that weight.
+
+### Fixed - **two skills read a section the template has never defined**
+`/ship` and `/learn` were told to read **`#Eval`**; `templates/PRODUCT.md` defines **`## Evaluation`**. It worked only because the match is loose - and it is exactly the doc<->code drift this toolkit exists to prevent, sitting inside the toolkit. (A third instance was wording added earlier the same day: `/playbook` pointed at a `#Playbook` section that is a header *line*, not a section.)
+- **`tools/check.py` now verifies every `#Section` a skill references against the template's real headings**, so the class cannot recur. Only `#Capitalised` references of 3+ characters count, so a CSS `#hex` or an issue `#N` is not mistaken for a section name.
+
 ## [1.19.0] - 2026-09-08
 
 ### Fixed - **`/design-system` proposed the look before asking what the user wanted**
