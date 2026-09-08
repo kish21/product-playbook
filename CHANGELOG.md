@@ -3,6 +3,15 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.9.0] - 2026-09-08
+
+### Added - `install.sh --only <skills>` (take just the skills you want)
+VISION.md promises "sequential but standalone": any skill runs on its own. That was true at runtime but not at install time - the copy installer shipped all 20 skills or nothing, so someone who already has a process and just wants `/build` and `/ship` had to take the whole journey. The plugin route stays all-or-nothing by design; the copy route no longer is.
+- **`install.sh --only build,ship`** - installs exactly the named skills, flat (`commands/<name>.md`) or directory-form (`commands/<name>/` with its `references/`), **always** plus the companions every skill reads (`PRINCIPLES.md`, `VISION.md`, `templates/PRODUCT.md`). Combines with `--project`. Names normalise, so `/build`, `build` and `build.md` all mean the same skill. An unknown name **installs nothing** and prints the valid ones - a partial install is worse than none.
+- **`--list`** prints the installable skill names; **`--help`** documents every flag; an unrecognised flag exits non-zero instead of being ignored. Flags now parse in any order (`--project` was previously only honoured as the first argument).
+- A subset install closes with the **composition note**: `/build` -> `/code-review`, `/ship` -> `/security-review`, `/drift-check` -> `/doc-audit` live outside this repo; without them the composing skill runs on, minus that step.
+- **README Installation** is now three routes - plugin (everything, auto-update) · copy (everything, re-run to update) · copy `--only` (the skills you pick) - with a *Best for* row so a newcomer takes the guided journey and an experienced user takes the steps they lack. Also fixes a stale version in the "Did it work?" check.
+
 ## [1.8.0] - 2026-09-07
 
 ### Added - `/validate` (Phase 1, between `/vision` and `/scope`)
