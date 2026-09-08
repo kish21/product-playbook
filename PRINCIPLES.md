@@ -107,6 +107,49 @@ Exit criteria:
 - **Runtime self-check (before handoff):** verify every required `PRODUCT.md` field is present, non-empty, and evidenced. **If anything is missing, STOP and report it — do not hand off.**
 - **Prior-gate check (Step 0):** confirm the previous phase's exit criteria were met; if not, warn but allow override (standalone/jump-in still works).
 
+## §Step 3b — closing the loop (every phase that writes)
+
+Each phase runs its own principle gate at Step 3b. Three things belong to *every* one of them, so they
+are defined here rather than repeated (and forgotten) fifteen times. None is optional; all three are
+bookkeeping the skill can do and the user should not have to:
+
+1. **Update the `Stage:` header** to the phase just completed, and `Last updated:` to today. A spine whose
+   header names an earlier phase than its filled sections is lying about where the product is — and
+   `/playbook` orients from it.
+2. **Reconcile every number you just introduced against `#Vision`.** Counts, dates, thresholds and budgets
+   introduced by a later phase can quietly contradict the north star (a plan dated past the target date; a
+   scope that cannot reach the target number). Compare them and **surface the contradiction — never write
+   over it.** (A conflict with a *non-numeric* decision is Step 3c's job; this is the arithmetic.)
+3. **Suggest a one-line commit message**, in the repo's existing convention, for the change you just made
+   — e.g. `docs: lock Scope in PRODUCT.md (core feature, deferred + triggers, non-goals)`. The run's own
+   summary is the best source for it; leaving the user to invent one wastes the context you already have.
+
+## §Re-run semantics — a second run must not erase the first
+
+Re-running a phase is not an edge case: a pivot, a changed constraint, or simply a redo. What gets lost is
+the most expensive thing in the section to reconstruct — **why the other option was rejected.**
+
+- **A run over a *non-empty* section shows what is about to change and asks before replacing it.** Never a
+  silent overwrite. A first run over an empty section is unchanged — no extra prompting.
+- **A reversed decision is dated, not erased.** The superseded ADR / scope item / metric stays, with a
+  `superseded <date>: <why>` line beside it. This is the same record Step 3c writes when it resolves a
+  contradiction, and it is what makes a reversal auditable instead of invisible.
+- **Log-shaped sections keep appending** — `#Validation`, `#Build log`, `#Drift log`, `#Ship log`,
+  `#Learnings`. `/validate`'s "append a new dated entry, never overwrite" is the general case, not a local
+  exception.
+- **A true restart may replace wholesale** — but only as an explicit, recorded choice.
+
+## §Seam — who owns the dependency manifest
+
+Two phases can both plausibly claim it, so the split is fixed here and stated identically in both skills:
+
+- **`/structure` owns its existence and shape** — the file itself, the dev/prod split, project metadata. The
+  dependency lists may be empty or minimal.
+- **`/foundation` owns its contents and provability** — pinned versions, the actual install, the tool config
+  files those scripts reference, and the first run that genuinely passes.
+- **`/structure` may not leave a script that cannot run at the end of its own phase** without marking it as
+  arriving with `/foundation`. A phase that reports green while `make check` fails has reported a lie.
+
 ## §Step 3c — the contradiction check (every phase that writes)
 
 Step 0 checks the *previous* phase's gate; Step 3b checks *this* phase's own criteria. Neither asks the

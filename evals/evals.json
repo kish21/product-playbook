@@ -332,6 +332,20 @@
       "prompt": "what's next — we already picked the stack but never locked scope",
       "expected_output": "Compares filled sections against the canonical order and names the inversion in one line (#Architecture filled while #Scope is empty — the stack was chosen before the scope was locked), says what is at risk (recorded decisions may not survive the earlier phase), offers /scope first and allows an override since standalone use is first-class; an in-order spine produces no extra output; a recorded override is read from the header and not re-asked on later runs",
       "files": []
+    },
+    {
+      "id": "architect-rerun-asks-before-replacing",
+      "skill": "architect",
+      "prompt": "re-run the architecture — we are switching the datastore",
+      "expected_output": "Sees #Architecture is already filled and applies PRINCIPLES.md Re-run semantics: shows what would change and ASKS before replacing, never silently overwriting; the reversed ADR stays with a dated 'superseded <date>: <why>' line rather than being deleted, preserving why the alternative was rejected; a first run over an empty section gets no extra prompting; log-shaped sections keep appending",
+      "files": []
+    },
+    {
+      "id": "scope-closes-the-loop",
+      "skill": "scope",
+      "prompt": "lock the scope",
+      "expected_output": "After writing #Scope, applies PRINCIPLES.md Step 3b: updates the Stage:/Last updated: header to this phase, reconciles any count/date/threshold it introduced against #Vision's north star and surfaces a contradiction instead of writing over it, and ends by suggesting a one-line commit message in the repo's existing convention",
+      "files": []
     }
   ]
 }

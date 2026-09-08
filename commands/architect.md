@@ -28,6 +28,8 @@ description: >
 - Read `#Vision/#Scope/#Plan`. If `#Scope`/`#Plan` are empty, warn and offer to run them first (allow override).
 - Brownfield: detect the existing stack from the repo and record it as the starting point.
 
+- **Re-running this phase (`PRINCIPLES.md` §Re-run semantics):** if the section is already filled, **show what would change and ask before replacing it** — never a silent overwrite — and leave a reversed decision in place with a dated `superseded <date>: <why>` line. A first run over an empty section is unchanged.
+
 ## Step 1 — Apply principles (this phase)
 - **Benchmark to the current year, OSS-first:** pick what leading teams use *now*; prefer open source unless told otherwise. Justify each choice in one line.
 - **Check where approvals attach (the OSS-first blind spot):** for any integration gated by a third party's approval — social/platform publishing APIs, app-store distribution, payment-processor onboarding, healthcare/finance API access — ask *"does the approval attach to the developer app/account, or to the software?"* If it attaches to the app, **self-hosting OSS does not bypass it** (you still register + pass every review yourself — OSS saves code, not compliance), and vendors who rent out their approvals (aggregators) may legitimately beat both OSS and direct builds. Benchmark all three routes with time-to-first-working-result including review/audit wait, not just code effort. (Learned on a shipped video product's distribution stage: IG/TikTok/YouTube app-review wall — unapproved apps fail *silently*, e.g. YouTube force-privates uploads.)
@@ -59,6 +61,8 @@ Walk this phase's load-bearing principles (Step 1) and confirm each is **concret
 - **every dev-tooling slot is named and stack-appropriate** — `/structure` treats this line as the instruction for which files to write.
 **If any is vague or missing, STOP and decide it.** (No code yet, so the evidence is concrete, consistent
 decisions in `#Architecture`; `/build` later re-verifies them in code via `/code-review`.)
+
+**Close the loop (`PRINCIPLES.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention.
 
 ## Step 3c — Contradiction check (before the gate closes)
 Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Scope` and `#Plan` — a stack sized for work that is explicitly out of scope is gold-plating, and a perf/cost budget must not contradict `#Vision`'s business model (paid infra against a free product). On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.

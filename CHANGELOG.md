@@ -3,6 +3,14 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.15.0] - 2026-09-08
+
+### Added - **three shared rules the skills were each half-inventing**
+`PRINCIPLES.md` exists so a rule lives in one place and cannot drift. These three were being re-decided per run, per skill, or not at all.
+- **§Step 3b - closing the loop.** Three omissions repeated by *every* phase, each leaving the user bookkeeping the skill could do itself: the `Stage:` header went stale (and `/playbook` orients from it, so a stale header misroutes the next phase); numbers introduced by a later phase were never reconciled against `#Vision`'s north star, so a plan dated past the target date wrote cleanly; and each skill made a substantial doc change then left the user to invent the commit message, discarding the run's own summary - the best possible source for it. All three now happen at every phase's Step 3b, defined once and referenced by all 15.
+- **§Re-run semantics.** Only `/validate` said what a second run does (append a dated entry, never overwrite). `/vision`, `/scope`, `/plan`, `/architect` and `/contracts` said nothing - and their write step **rewrites the section in place**, so a re-run silently destroyed earlier ADRs, rejected alternatives and the reasoning behind them, discoverable only from `git diff` if you thought to look. Re-running a phase is not an edge case (a pivot, a changed constraint, a redo), and what got lost was the most expensive thing to reconstruct: *why the other option was rejected*. A run over a non-empty section now shows what would change and **asks**; a reversed decision is **dated, not erased**; log-shaped sections keep appending, and `/validate`'s rule becomes the general case instead of a local exception. **That the most recently written skill invented this rule locally was the signal it had no shared home.**
+- **§Seam - who owns the dependency manifest.** `/structure` required one as root scaffolding while `/foundation` existed to install and pin dependencies, and nothing said where the line was - so the outcome depended on how thorough the agent felt. On the test run `/structure` wrote 23 pinned dependencies and 14 scripts pointing at config files that did not exist yet: `make check` failed at the end of a phase that reported green. **`/structure` owns the manifest's existence and shape; `/foundation` owns its contents and provability**, stated in the same words in both skills - and `/structure` may no longer leave a script that cannot run at its own gate. A phase reporting green while `make check` fails has reported a lie.
+
 ## [1.14.0] - 2026-09-08
 
 ### Added - **Phase 1 gates that produce a steerable product, not a slogan**
