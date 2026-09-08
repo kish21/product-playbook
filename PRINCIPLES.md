@@ -189,8 +189,9 @@ spine **flexibly and `PRODUCT.md`-first**, so a greenfield playbook project is n
    package metadata (`package.json`, `pyproject.toml`, manifest, entry points, routes). **Label
    it "INFERRED"** and say plainly what *cannot* be judged without recorded intent (e.g. true
    scope/vision drift). **Never grade against a self-guessed baseline** (no-assumptions /
-   honesty). Recommend bootstrapping a real spine — `/vision`+`/scope`, or a minimal
-   `PRODUCT.md`/`CLAUDE.md`.
+   honesty). Recommend bootstrapping a real spine — **`/adopt`** is the direct route (it drafts the spine from
+   this same evidence and has the owner confirm it); `/vision`+`/scope` suits a project that is really
+   starting over.
 
 A skill that *writes* a section degrades gracefully when there's no `PRODUCT.md`: prefer
 reporting to the user (and offering to create/append a spine) over forcing a `PRODUCT.md` the

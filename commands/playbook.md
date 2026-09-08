@@ -47,7 +47,10 @@ description: >
     out-of-order use is legitimate — it should be *visible*, not blocked.
   An **in-order spine produces no extra output at all**; don't manufacture noise. A user who overrides gets
   it recorded on the `#Playbook` line of the header — **read that first and do not re-ask** on later runs.
-- Brownfield (existing code, no `PRODUCT.md`): say so, and propose entering at `/architect` or `/build`.
+- **Brownfield (existing code, no `PRODUCT.md`): route to `/adopt`.** It drafts an INFERRED `PRODUCT.md`
+  from what the repo actually contains and confirms it with the owner — after which orienting works
+  normally. Entering straight at `/architect` or `/build` still works and stays offered, but it leaves the
+  project with no spine, so every later phase re-guesses it.
 
 ## Step 1 — Explain the map (once, briefly, plain language)
 Show the journey in one screen so the user has the mental model:

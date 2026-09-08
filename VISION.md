@@ -22,6 +22,7 @@ This is distinct from `product-toolkit` (a grab-bag of individual dev/quality sk
 | Phase | Skill | Purpose | Exit criteria (must all be true to hand off) |
 |---|---|---|---|
 | start | `/playbook` | Guided entry-point — orchestrates the phases one at a time, pausing at each gate | user always knows where they are + the next phase; **never skips a gate**; routes only (writes nothing itself) |
+| start | `/adopt` | Entry for a project that already has code — drafts an **INFERRED** `PRODUCT.md` from the repo, confirmed section-by-section by the owner | every inferred line tagged `(inferred — confirm)`; a section with no evidence stays **empty**, never guessed; nothing written before the confirm-loop; never overwrites an existing `PRODUCT.md`; recommends the next skill from what is still empty |
 | 1 Product | `/vision` | Vision, customer, problem, value; benchmark to the 2026 market; metric/JTBD/risk/model | `PRODUCT.md#Vision` has who/problem/value/verified-market-read + north-star metric + job-to-be-done + riskiest assumption + business model, all non-empty |
 | 1 Product | `/validate` | Test the riskiest assumption with the cheapest experiment BEFORE code; threshold set in advance; proceed / pivot / kill | `#Validation` has a falsifiable assumption + one experiment with a time box + a pass/fail threshold recorded **before** the result + a measured result + a verdict — or an explicit dated **override**; never hands off on a feeling |
 | 1 Product | `/scope` | The ONE core feature + Deferred(+trigger) + Non-goals (anti-creep) | `#Scope` names a single core feature, a non-empty **Deferred** list with triggers, **and** a **Non-goals** list |
@@ -56,4 +57,4 @@ security-in-the-build (fail-closed; OWASP LLM Top 10 for AI) · honest docs that
 measure before fixing · evidence-based "done" · generic-not-domain-specific · plain-language
 communication · `.env` is user-owned.
 
-<!-- skills: `/architect` `/build` `/contracts` `/design-system` `/dev-check` `/drift-check` `/eval` `/foundation` `/frontend-audit` `/learn` `/new-component` `/plan` `/playbook` `/scope` `/ship` `/structure` `/test` `/tickets` `/validate` `/vision` -->
+<!-- skills: `/adopt` `/architect` `/build` `/contracts` `/design-system` `/dev-check` `/drift-check` `/eval` `/foundation` `/frontend-audit` `/learn` `/new-component` `/plan` `/playbook` `/scope` `/ship` `/structure` `/test` `/tickets` `/validate` `/vision` -->
