@@ -61,15 +61,16 @@ The names below are **examples, not the contract**. Where `DESIGN.md` records a 
 - No comments unless the WHY is non-obvious
 
 ## Before you hand it back — verify, don't assert
-**Two checks, and the first is the one that matters** — the audit is blind to undefined tokens:
+**Both in one run** — pass `DESIGN.md` alongside the component, or the token check cannot run:
 
-1. **Every token the component references is defined.** List them and compare against `DESIGN.md` §Tokens:
+1. **Every token the component references is defined.** Audit the component **together with `DESIGN.md`**
+   so the two resolve against each other — Law 14b errors on any `var(--token)` nothing defines:
    ```
-   grep -oE 'var\(--[a-z0-9-]+' <the new component> | sort -u
+   python commands/frontend-audit/audit.py DESIGN.md <the new component>
    ```
-   **Any name not in `DESIGN.md` is a defect** — the declaration is dropped at runtime and the component
-   renders without that colour, silently, with no error anywhere.
-2. **`python commands/frontend-audit/audit.py <the new component>` → 0 errors.**
+   Auditing the component **alone** cannot check this and will say so (`tokens-defined: warn`,
+   "unverified"). Passing `DESIGN.md` is what makes it a real check.
+2. **0 errors overall** on that same run.
 
 A token this component genuinely needs but `DESIGN.md` doesn't define is a **contradiction between the
 component and the recorded design system**: name both sides and take it back to `/design-system` to be

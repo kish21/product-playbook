@@ -61,6 +61,11 @@ def contrast(v1, v2):
 # ---------- token + law checks ---------------------------------------------
 
 _TOKEN_RE = re.compile(r"(--[\w-]+)\s*:\s*([^;]+);")
+# A `var(--x)` REFERENCE with no fallback. `var(--x, 1rem)` is excluded on purpose: a declared
+# fallback is a deliberate choice, not a defect. This is the one class the rest of the audit is
+# blind to - CSS drops a declaration whose var() names an undefined token ("invalid at
+# computed-value time"), so the colour silently never arrives and nothing reports it.
+_VAR_REF_RE = re.compile(r"var\(\s*(--[\w-]+)\s*\)")
 # foreground token -> the surface it sits on (by shadcn naming convention)
 PAIRS = [
     ("--foreground", "--background"), ("--card-foreground", "--card"),
@@ -77,6 +82,10 @@ PAIRS = [
 
 def collect_tokens(text):
     return {k: v.strip() for k, v in _TOKEN_RE.findall(text)}
+
+def collect_var_refs(text):
+    """Every `var(--x)` referenced with no fallback."""
+    return set(_VAR_REF_RE.findall(text))
 
 def _block(text, selector):
     """Inner text of the first `selector { ... }` block (token blocks have no nested braces)."""
@@ -229,6 +238,29 @@ def audit_text(path, text, findings):
         findings.append(("ERROR", "Law21-responsive", path,
                          "multi-column/grid layout with no responsive breakpoint (@media min/max-width, @container) - desktop-only"))
 
+def check_token_refs(defined, refs, findings):
+    """Law 14b - a referenced token that nothing defines.
+
+    ERROR when the audited set actually defines tokens (so a missing name is provably orphaned);
+    WARN "unverified" when it defines none at all - the same anti-false-pass convention Law 7 uses,
+    rather than erroring on every component audited without its stylesheet.
+    """
+    if not refs:
+        return
+    if not defined:
+        for path in sorted(refs):
+            findings.append(("WARN", "Law14b-unverified", path,
+                             f"{len(refs[path])} var(--token) references NOT verified - no token "
+                             "definitions in the audited set (pass DESIGN.md or the stylesheet too)"))
+        return
+    for path in sorted(refs):
+        missing = sorted(refs[path] - defined)
+        if missing:
+            findings.append(("ERROR", "Law14b-undefined", path,
+                             f"references {len(missing)} token(s) nothing defines: "
+                             + ", ".join(missing[:8]) + (" ..." if len(missing) > 8 else "")
+                             + " - CSS drops these declarations silently (the value never arrives)"))
+
 # ---------- runner ---------------------------------------------------------
 
 EXTS = (".html", ".htm", ".css", ".tsx", ".jsx", ".vue", ".svelte", ".md")
@@ -246,11 +278,20 @@ def main(argv):
     if not paths:
         print("frontend-audit: no files to scan"); return 0
     findings = []
+    defined, refs = set(), {}
     for p in paths:
         try:
-            audit_text(p, open(p, encoding="utf-8", errors="ignore").read(), findings)
+            text = open(p, encoding="utf-8", errors="ignore").read()
         except OSError:
-            pass
+            continue
+        audit_text(p, text, findings)
+        # Law 14b is cross-file by nature: `audit.py DESIGN.md frontend/` must resolve a component's
+        # tokens against the DESIGN.md in the same run, so collect across the whole file set first.
+        defined |= set(collect_tokens(text))
+        r = collect_var_refs(text)
+        if r:
+            refs[p] = r
+    check_token_refs(defined, refs, findings)
 
     order = {"ERROR": 0, "WARN": 1, "PASS": 2}
     findings.sort(key=lambda f: order.get(f[0], 3))
@@ -264,7 +305,8 @@ def main(argv):
         tag = {"ERROR": "[FAIL]", "WARN": "[WARN]", "PASS": "[PASS]"}[level]
         print(f"  {tag}  [{law}]  {os.path.basename(path)} - {msg}")
     # Per-law roll-up (T5-4) so a clean run shows EVERY law was checked, not just contrast.
-    LAWS = [("Law7", "contrast"), ("Law14", "no-raw-hex"), ("Law12", "motion"), ("Law1", "font"),
+    LAWS = [("Law7", "contrast"), ("Law14", "no-raw-hex"), ("Law14b", "tokens-defined"),
+            ("Law12", "motion"), ("Law1", "font"),
             ("Law3", "type-floor"), ("Law13", "focus"), ("Law21", "responsive"), ("Law22", "theming")]
     roll = []
     for tag, name in LAWS:
