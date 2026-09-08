@@ -198,6 +198,8 @@ Walk the principles and prove each against the files just written — do not ass
   **collision** (STOP: re-split, or name the shared file so Lanekeeper can declare it a `shared:` zone).
   A horizontal milestone has its reason recorded. No `PULL_REQUEST_TEMPLATE.md` was written.
 
+**Close the loop (`PRINCIPLES.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention.
+
 ## Step 3c — Contradiction check (before the gate closes)
 Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Plan` milestones, `#Scope` non-goals and `#Contracts` types — a ticket that builds a non-goal, or names a type the contracts don't define. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
 

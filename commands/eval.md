@@ -54,6 +54,8 @@ it's compared to a **recorded baseline** and a regression **fails**; operational
 **separately** from quality. **If the result is asserted rather than measured, or failures are blended
 into the quality number, STOP and fix it** — an un-measured or contaminated number is worse than none.
 
+**Close the loop (`PRINCIPLES.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention.
+
 ## Step 3c — Contradiction check (before the gate closes)
 Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Vision`'s north star and `#Architecture`'s perf/cost budget — measuring a different metric than the one recorded, or a measured number that silently supersedes an ADR's budget. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
 

@@ -43,7 +43,7 @@ description: >
 - **CI mirrors prod:** bootstrap the same way prod does (real schema/migrations), least-privilege tokens.
 
 ## Step 2 — Build the skeleton
-1. Dependency manifest + a runnable entrypoint with a **health/hello path** (the walking skeleton).
+1. **Dependency manifest: this phase owns its CONTENTS AND PROVABILITY** (`PRINCIPLES.md` §Seam) — `/structure` created the file and its dev/prod split; pin the versions, **actually install**, write the tool config files those scripts reference (`biome.json`, `tsconfig.json`, the test-runner config), and get the first real run to pass. Then a runnable entrypoint with a **health/hello path** (the walking skeleton).
 2. **Config loader** reading `.env`/config; add a **startup guard** (fail-loud on misconfig, fail-closed on security) that holds the placeholder values as a **known-bad list** and rejects them by name, with a message saying how to generate a real value (`openssl rand -base64 32`). Keep the list next to the loader so adding a secret to `.env.example` and forgetting the guard is visible in one file.
 3. **The test datastore + its guard**, alongside the app's own: provision a separate disposable target, wire the runner to the app's config loader, and write the **refuse-to-run guard** before any test exists. Order matters — a suite written first is a suite that has already run once against whatever was configured.
 4. **Structured logging** (no prints) **+ a tracing / error-reporter hook** (even a stub behind an adapter) — wire base infra behind the adapters from `/architect` (DB/LLM/queue), even if stubbed.
@@ -62,6 +62,8 @@ Walk this phase's principles and prove each — don't assume:
 - **test-isolation guard → point it at the dev datastore on purpose** and show it refusing to run, naming both targets. Then confirm the suite's teardown cannot reach the dev data. This one is verified by *attempting the destruction*, because the failure mode is silent until the data is gone.
 - **placeholder guard → replay the real failure:** copy `.env.example` to `.env` **unedited**, start the app, and show it **refusing to boot** with a readable message. If it starts, the guard is decorative and the product ships a public secret.
 **If any is "should" not "shown", STOP and make it real.** Record HOW in `#Foundation`.
+
+**Close the loop (`PRINCIPLES.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention.
 
 ## Step 3c — Contradiction check (before the gate closes)
 Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Architecture` (adapters · tool choices · CI approach) and `#Structure`'s map — a skeleton wired to a datastore, hook runner or provider other than the recorded one. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.

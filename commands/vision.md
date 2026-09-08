@@ -32,6 +32,8 @@ description: >
 - If a codebase exists but no `PRODUCT.md`, skim it to infer what's being built, then confirm with the user.
 - If neither, start fresh from the bundled `PRODUCT.md` template (shipped with this toolkit; see README).
 
+- **Re-running this phase (`PRINCIPLES.md` §Re-run semantics):** if the section is already filled, **show what would change and ask before replacing it** — never a silent overwrite — and leave a reversed decision in place with a dated `superseded <date>: <why>` line. A first run over an empty section is unchanged.
+
 ## Step 1 — Apply principles (this phase)
 - **Verify, don't assume:** do not invent the user's intent — ask. **Benchmark to the current year:** the idea must be judged against how the market solves this *now*, not 3 years ago.
 - Speak in **plain language**; end with **one recommendation**, not a jargon matrix.
@@ -67,6 +69,8 @@ Walk the exit criteria and confirm each is **concrete with evidence** — the co
 named products (not from memory), the metric is a measurable number, the JTBD/risk are specific. **If any
 field is empty or vague, STOP and fill it with the user** — **a north star missing its target, date, input
 metrics, guardrail or instrumentation line is vague by definition** — a fuzzy vision is the root of later drift.
+
+**Close the loop (`PRINCIPLES.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention.
 
 ## Step 3c — Contradiction check (before the gate closes)
 Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: any spine that already exists (`README.md`/`CLAUDE.md` purpose, a prior `#Vision`) — a re-run that quietly changes the customer, the north star or the business model rewrites the premise every later phase was built on. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.

@@ -30,6 +30,8 @@ description: >
 ## Step 0 — Context + prior-gate check
 - Read `#Vision` and `#Scope`. If `#Scope` is missing/empty, warn and offer `/scope` first (allow override).
 
+- **Re-running this phase (`PRINCIPLES.md` §Re-run semantics):** if the section is already filled, **show what would change and ask before replacing it** — never a silent overwrite — and leave a reversed decision in place with a dated `superseded <date>: <why>` line. A first run over an empty section is unchanged.
+
 ## Step 1 — Apply principles (this phase)
 - **Core-first:** the first milestone delivers the one core feature end-to-end (a thin vertical slice),
   not horizontal layers. **Testable "done":** no milestone is "build X" — it's "X works such that <observable>".
@@ -56,6 +58,8 @@ per milestone** (value/usability/feasibility/viability + how you'll know, or the
 ## Step 3b — Self-verify (completeness gate)
 Check the boxes. **If any milestone lacks a testable exit criterion, STOP and add one** — a milestone
 without a verifiable "done" is where "is it finished?" arguments come from.
+
+**Close the loop (`PRINCIPLES.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention.
 
 ## Step 3c — Contradiction check (before the gate closes)
 Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Scope` — every milestone traces to the core feature, and **no milestone delivers a recorded non-goal**. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.

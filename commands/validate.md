@@ -40,6 +40,8 @@ description: >
 - If `#Validation` already has a result, you are **re-validating** (a pivot, or a stale result) — read
   it, and do not overwrite the earlier record; append a new dated entry.
 
+- **Re-running this phase (`PRINCIPLES.md` §Re-run semantics):** if the section is already filled, **show what would change and ask before replacing it** — never a silent overwrite — and leave a reversed decision in place with a dated `superseded <date>: <why>` line. A first run over an empty section is unchanged.
+
 ## Step 1 — Apply principles (this phase)
 - **Verify, don't assume:** the user's confidence is not evidence. Neither is yours. Only people
   outside the building count.
@@ -107,6 +109,8 @@ incompatible statements standing in the spine, and offer `/vision` first. If the
 marked `— not run (override <date>)`. A section that shows *what was skipped* is worth far more later than an
 empty one, and both `/scope` and `/drift-check` read it. `/scope` will surface it
 and `/drift-check` treats an untested assumption as a standing finding until it is closed.
+
+**Close the loop (`PRINCIPLES.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention.
 
 ## Step 3c — Contradiction check (before the gate closes)
 Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Vision` — the assumption you tested must be the **riskiest** one recorded there, and a skip override whose reason implies a different user or business model contradicts `#Vision` itself. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
