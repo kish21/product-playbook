@@ -34,6 +34,11 @@
 
 - **Security baseline** — no secrets in source (secret-scan clean); check authorization / tenant-isolation on **every** data path; validate inputs; **fail-CLOSED** on security/auth.
 - **Secrets never get pushed** — tests/imports use **obviously-fake placeholder keys** (`sk-fake-...`); the secret-scan config allowlists *only those documented fakes by name* (a real key still fails CI); CI generates throwaway creds at runtime; real secrets live only in gitignored `.env` (and its backups — `.env.bak`, `*.env.local` — never `.env.example`).
+- **Placeholders must FAIL the boot, never pass a check** — every value in `.env.example` is written in an
+  unmistakable form (`CHANGE_ME__<VAR>__CHANGE_ME`) and **rejected by name** at startup, not merely length- or
+  format-checked. A 48-character `replace-me-with-32-plus-random-characters` placeholder passes `min(32)` and boots
+  the app on a session-signing key that is public in git. The boot failure names the variable and how to generate a
+  real value; under production (`NODE_ENV`/`APP_ENV`) there is **no override**.
 - **AI-specific security (when the product uses LLMs)** — defend against **prompt injection**, jailbreaks, data exfiltration via outputs, secret/PII leakage, tool/over-agency abuse. Benchmark to the **OWASP LLM Top 10**.
 - **Observability & audit** — structured logging; trace every external/LLM/agent step; an audit record for state changes.
 - **Fail-safe errors** — graceful fallbacks; never silently swallow errors; retry only *transient* failures.
@@ -95,6 +100,28 @@ Exit criteria:
 - **Authoring:** the skill is not "done" until it satisfies its own exit criteria.
 - **Runtime self-check (before handoff):** verify every required `PRODUCT.md` field is present, non-empty, and evidenced. **If anything is missing, STOP and report it — do not hand off.**
 - **Prior-gate check (Step 0):** confirm the previous phase's exit criteria were met; if not, warn but allow override (standalone/jump-in still works).
+
+## §Step 3c — the contradiction check (every phase that writes)
+
+Step 0 checks the *previous* phase's gate; Step 3b checks *this* phase's own criteria. Neither asks the
+question that matters most: **does what I just produced contradict a decision that is already recorded?**
+A phase can satisfy every box on its own list and still silently overrule an ADR made one phase earlier —
+that is doc↔code drift *created by the playbook itself*, and creating it is worse than missing it. So
+before any phase that writes closes its gate:
+
+1. **Compare** the artefacts + spine section this phase just wrote against the decisions already recorded
+   in earlier sections — ADRs, **tool choices**, the stack, scope items and non-goals, budgets, contracts,
+   `DESIGN.md` tokens. Each skill names its own comparison set in its `## Step 3c`.
+2. **On a conflict, name both sides explicitly** — "`#Architecture` records **lefthook**; this phase
+   scaffolded `.pre-commit-config.yaml`" — and **ask which one wins**. Never resolve it silently.
+3. **Update the loser.** Either fix the artefact, or amend the earlier section with a dated
+   `superseded by <phase>, <date> — <reason>` line. A contradiction is **never left standing in two
+   places**: a reversal is fine, an *unrecorded* reversal is the bug.
+
+**Not a contradiction** (don't cry wolf): a phase that merely *adds detail* to an earlier decision
+(`#Architecture` says "Postgres", `/contracts` picks the column types), or fills in something the earlier
+section marked N/A. Only a claim that cannot be true at the same time as a recorded one counts. This is a
+pre-gate check *inside* each phase — it does not replace `/drift-check`'s cross-cutting sweep.
 
 ## Spine resolution — what "`PRODUCT.md`" means (greenfield · brownfield · code-only)
 

@@ -96,6 +96,9 @@ If the user wants to skip the experiment entirely: allowed, but **only with an e
 line in `#Validation` — `Override <date>: <reason> — assumption untested.` `/scope` will surface it
 and `/drift-check` treats an untested assumption as a standing finding until it is closed.
 
+## Step 3c — Contradiction check (before the gate closes)
+Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Vision` — the assumption you tested must be the **riskiest** one recorded there, and a skip override whose reason implies a different user or business model contradicts `#Vision` itself. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
+
 ## Step 4 — Handoff
 - **Proceed:** "Assumption tested and recorded in `PRODUCT.md#Validation` (result vs threshold).
   Next run **`/scope`** to lock the ONE core feature — now with evidence about what the user actually does."

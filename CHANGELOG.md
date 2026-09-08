@@ -3,6 +3,28 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.10.0] - 2026-09-08
+
+### Added - **Step 3c, the contradiction check** (every phase that writes)
+Step 0 checks the *previous* phase's gate; Step 3b checks *this* phase's own criteria. Neither ever asked the question that matters most: **does what I just produced contradict a decision already recorded?** A phase could satisfy every box on its own list and still silently overrule an ADR made one phase earlier - doc<->code drift created *inside* the playbook, left for `/drift-check` to find later, if anyone ran it.
+- **`PRINCIPLES.md` §Step 3c** defines it once: compare this phase's output against the decisions already recorded (ADRs, **tool choices**, stack, scope items and non-goals, budgets, contracts, `DESIGN.md` tokens); on a conflict **name both sides**, ask which wins, and **update the loser** - fix the artefact, or add a dated `superseded by` line to the earlier section. A contradiction is never left standing in two places; a reversal is fine, an *unrecorded* reversal is the bug. Adding detail to an earlier decision is explicitly **not** a contradiction, so the check doesn't cry wolf.
+- **All 15 phase skills** carry a `## Step 3c` naming their own comparison set - `/plan` against `#Scope`'s non-goals, `/build` against `#Contracts` + adapters + `DESIGN.md`, `/test` against the datastore `#Foundation` recorded, `/learn` against the non-goals a "what we learned" proposal tends to reopen.
+- **`tools/check.py`** enforces the token in the phase template (verified by removing it: the check fails on `plan missing 'Step 3c'`). `/drift-check` now treats a conflict carrying no `superseded by` line as evidence a phase skipped its Step 3c.
+
+### Fixed - **`/structure` hardcoded a tool where it meant a capability**
+A no-hardcoding toolkit hardcoding a tool name, in the most visible place it has. `/structure`'s exit criteria demanded `.pre-commit-config.yaml` **by name** for every project regardless of stack. On a real run `/architect` had recorded **lefthook**; `/structure` scaffolded the Python framework into a Node/pnpm repo anyway, wired `make hooks` to `pre-commit install`, and listed it in `STRUCTURE.md` - so the recorded ADR trail described a tool the repo did not use, and a Node contributor needed Python tooling to commit. Neither skill noticed.
+- Root scaffolding is now named as a **capability** filled by the tool `#Architecture` chose: secret-scan config · commit-hook runner · task runner · dependency manifest. The playbook no longer dictates filenames.
+- **The actual hole is fixed in Step 0:** `/structure` reads `#Architecture` for **tool choices**, not just the stack. With no tool recorded it recommends one that fits the *detected* stack, says why, and records it back - never defaulting to the Python one on a Node repo.
+- **`/architect` Step 2 gains a Dev tooling decision** (hook runner · secret scanner · task runner · formatter/linter · dependency manifest), and `templates/PRODUCT.md#Architecture` a line to record it - an unnamed slot is one `/structure` fills from habit. Swept the same tool-vs-capability confusion out of `/foundation`, `/build`, the PR template and the README.
+
+### Fixed - **`.env.example` placeholders that pass a length check and boot the app**
+Found on the same run, and the more dangerous of the two. `/structure` mandates a committed `.env.example` but never said its placeholders must be **rejected at boot**. The one it produced - `BETTER_AUTH_SECRET=replace-me-with-32-plus-random-characters-abcd` - is 48 characters, so `z.string().min(32)` **passes**; `make setup` copies the example to `.env`; the app starts happily on a session-signing key that is public in git, and anyone who can read the repo can forge a session. Length checks feel like validation and are not.
+- **`PRINCIPLES.md` §Production safeguards** carries the rule once, so `/build` and `/ship` inherit it: placeholders are written in an unmistakable form (`CHANGE_ME__<VAR>__CHANGE_ME`) and **rejected by name**, never by length or shape.
+- **`/structure`** writes only that form, one comment per placeholder on how to generate the real value; **`/foundation`**'s startup guard holds them as a known-bad list, refuses to boot naming the variable and the command to generate a real one, and has **no override under production**. Step 3b proves it by replaying the failure - copy `.env.example` to `.env` unedited, show the app refusing to start. A guard that is claimed rather than shown is decorative.
+- **`/ship`**'s security checklist gains the line: a release that boots on a committed secret is a live incident, not a finding.
+
+Closes #78, #79, #81. Three eval cases added (31 total).
+
 ## [1.9.0] - 2026-09-08
 
 ### Added - `install.sh --only <skills>` (take just the skills you want)

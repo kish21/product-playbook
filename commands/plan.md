@@ -47,6 +47,9 @@ Fill `#Plan`: phases/milestones (core-first) · timeline · exit criteria per mi
 Check the boxes. **If any milestone lacks a testable exit criterion, STOP and add one** — a milestone
 without a verifiable "done" is where "is it finished?" arguments come from.
 
+## Step 3c — Contradiction check (before the gate closes)
+Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Scope` — every milestone traces to the core feature, and **no milestone delivers a recorded non-goal**. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
+
 ## Step 4 — Handoff
 "Plan set, core-first, each milestone with a testable done. Development starts next: run **`/architect`**
 to choose the stack + tools before you lay out folders."

@@ -28,6 +28,7 @@ description: >
   - [ ] **Tracker reconciled after merge:** the linked issue is **Closed** and (if a project board exists) its card moved to **Done** — *verified against the tracker*, not assumed from "shipped". See `github-pr-flow` Step 7.
   - [ ] A **CHANGELOG / release note** entry (+ a **semver** bump where versioned).
   - [ ] Security checklist cleared: dependency-vuln scan, CORS prod domain, cookie-based auth (not localStorage), and data-deletion/GDPR for data products.
+  - [ ] **No placeholder can boot this build** — `.env.example`'s values are still rejected by name at startup (the `/foundation` guard and its test are intact, with no production override). A release that boots on a committed secret is a live incident, not a finding.
   - [ ] **Rollout safety:** a stated **rollback path** (revert PR / migration-down / flag-off); risky changes behind a **flag / staged rollout**; the **post-deploy signal to watch** named.
   - [ ] **(Lane mode — PRINCIPLES.md §Lane mode)** `lanekeeper check` passed before the PR was opened; the PR carries exactly one `lane: <name>` label; the `#Ship log` + CHANGELOG entries were written **on the base branch after merge**, never from inside the lane.
 
@@ -59,6 +60,9 @@ Append a `#Ship log` row: date · what shipped · review+security · docs reconc
 ## Step 3b — Self-verify (completeness gate)
 Check the boxes. **If review/security/docs aren't actually done, or a doc claim doesn't match the
 code, STOP — do not open the PR.** Shipping a false claim is the exact failure to avoid.
+
+## Step 3c — Contradiction check (before the gate closes)
+Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: the whole spine against what actually shipped — docs claiming a capability the code lacks, and the version in the CHANGELOG against every manifest surface. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
 
 ## Step 4 — Handoff
 "Shipped: reviewed, security-checked, docs reconciled, PR open, confidence recorded, **issue closed +

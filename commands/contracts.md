@@ -53,6 +53,9 @@ contracts have a **versioning** approach; persisted entities carry a **tenant ke
 **idempotency key**; PII is classified. **If schema and code disagree, or a boundary's units are unstated,
 STOP and fix it** — a scale mismatch across a boundary is a silent wrong-answer bug that looks healthy.
 
+## Step 3c — Contradiction check (before the gate closes)
+Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Architecture` (datastore · migrations approach) and `#Scope` — types for an entity no scoped feature needs, or a schema that bypasses the recorded migration path. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
+
 ## Step 4 — Handoff
 "Typed contracts and migrations are in place. Now build features against them: run **`/build`** — one
 feature at a time, security in the definition-of-done."

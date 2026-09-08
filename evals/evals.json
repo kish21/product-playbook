@@ -248,6 +248,27 @@
         "Does not append to PRODUCT.md#Build log; writes the row as a '## Build log row' section in docs/features/checkout.md",
         "Step 3b evidence includes git diff --name-only against the base showing only ALLOW paths, and a passing lanekeeper check"
       ]
+    },
+    {
+      "id": "structure-honours-recorded-hook-runner",
+      "skill": "structure",
+      "prompt": "set up the project structure — PRODUCT.md#Architecture records Next.js + pnpm and a Dev tooling line naming lefthook as the hook runner",
+      "expected_output": "Step 0 reads #Architecture for TOOL CHOICES as well as the stack; scaffolds lefthook (lefthook.yml) and NEVER writes .pre-commit-config.yaml; root scaffolding is named as capabilities (secret-scan config, commit-hook runner, task runner) rather than fixed filenames; with no tool recorded it recommends one fitting the detected stack and records it back; Step 3c compares the scaffolded tooling against #Architecture and reports no conflict",
+      "files": []
+    },
+    {
+      "id": "foundation-placeholder-fails-the-boot",
+      "skill": "foundation",
+      "prompt": "wire up the config loader and startup guard for a Node app whose .env.example ships BETTER_AUTH_SECRET",
+      "expected_output": "Startup guard rejects .env.example placeholders BY NAME (the CHANGE_ME__<VAR>__CHANGE_ME known-bad list), never by length or format; refuses to boot naming the variable and how to generate a real value; no override under NODE_ENV/APP_ENV=production; a test copies .env.example to .env unedited and asserts the boot FAILS; Step 3b replays that failure as evidence instead of claiming the guard works",
+      "files": []
+    },
+    {
+      "id": "architect-step3c-contradiction-resolved",
+      "skill": "architect",
+      "prompt": "we already recorded lefthook, but structure just scaffolded .pre-commit-config.yaml — what now",
+      "expected_output": "Applies PRINCIPLES.md Step 3c: names BOTH sides explicitly (#Architecture records lefthook vs the scaffolded .pre-commit-config.yaml), asks which one wins rather than resolving silently, then updates the LOSER — fixes the artefact or adds a dated 'superseded by' line to #Architecture — leaving exactly one recorded decision; does not flag added detail as a contradiction",
+      "files": []
     }
   ]
 }

@@ -1,7 +1,7 @@
 # Product Playbook: Build with Discipline in the AI Era
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.9.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.10.0-blue.svg)](CHANGELOG.md)
 ![Claude Code skills](https://img.shields.io/badge/Claude%20Code-20%20skills-8A2BE2.svg)
 
 **A guided path from idea -> shipped that bakes in the engineering discipline most teams learn the hard way.**
@@ -130,7 +130,7 @@ ANYTIME          /drift-check (detects scope creep or code-docs drift)
 | **Dev** | `/design-system` | (UI products) Derives design principles -> confirmed sample page -> archetype-correct `DESIGN.md` (shadcn tokens). Kills the generic AI look; fixes too-small fonts | `DESIGN.md` + sample page + `PRODUCT.md` -> **Design** | Before building any screens |
 | **Dev / UI** | `/frontend-audit` | (UI products) Mechanically enforces the design-system laws : a real OKLCH->WCAG contrast engine + token/motion/font/responsive checks; CI-friendly | Pass/warn/error scorecard (exits non-zero on error) | After building or changing UI, or in CI |
 | **UI suite** | `/new-component` | (bundled support skill) Builds/skins ONE React component against the `DESIGN.md` tokens : CSS-vars, interactive states, a11y; reuses shadcn/ui + 21st.dev | Component file | Building any UI component |
-| **Dev** | `/foundation` | Builds walking skeleton with logging, config, pre-commit and CI | Running app + CI workflows | Bootstrapping the codebase |
+| **Dev** | `/foundation` | Builds walking skeleton with logging, config, commit hooks and CI | Running app + CI workflows | Bootstrapping the codebase |
 | **Dev** | `/contracts` | Writes typed schemas/migrations BEFORE business logic | Schema files + migrations | Writing data layers |
 | **Dev** | `/tickets` | Splits each milestone into 2-4 independently mergeable tickets : **vertical** thin end-to-end slices (each demoable on merge) or **horizontal** layer tickets : recommended per milestone and confirmed by you. Exact file paths, typed in/out, security DoD. Given a description instead, logs ONE ad-hoc bug against the owning file | `docs/issues/*` + issue/PR templates | After `/contracts`, before building; or any time you spot a bug |
 | **Dev** | `/build` | Implements feature with testable exit criteria and docs | Feature code + `docs/features/*` | Building feature-by-feature |
@@ -225,7 +225,7 @@ Skills stay runnable on their own, but a few **call other skills** when they are
 
 ### Did it work?
 
-Open a new Claude Code session and type `/playbook` (route A: `/product-playbook:playbook`). It should be offered as a command and greet you with the journey. Route A users can also run `/plugin list` and expect `product-playbook@product-playbook · Version: 1.9.0 · enabled`.
+Open a new Claude Code session and type `/playbook` (route A: `/product-playbook:playbook`). It should be offered as a command and greet you with the journey. Route A users can also run `/plugin list` and expect `product-playbook@product-playbook · Version: 1.10.0 · enabled`.
 
 ### Uninstall
 

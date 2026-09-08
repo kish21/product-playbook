@@ -3,8 +3,9 @@ name: structure
 description: >
   Phase 2 (Development), step 2 of product-playbook — the FIRST thing you build. Set up a clean,
   industry-standard folder structure (backend / frontend / full-stack) and explain what each folder is
-  for and why, plus the root scaffolding every project needs (.gitignore, .env.example, .gitleaks.toml,
-  pre-commit, Makefile) and a prompts/ YAML folder for AI. Use when starting to code, or run /structure
+  for and why, plus the root scaffolding every project needs (ignore rules, .env.example, a secret-scan
+  config, a commit-hook runner, a task runner) using the TOOLS #Architecture chose, and a prompts/ YAML
+  folder for AI. Use when starting to code, or run /structure
   "set up the project", "folder structure", "where does this go". Writes STRUCTURE.md + the Structure
   section of PRODUCT.md. Run /foundation next.
 ---
@@ -24,19 +25,22 @@ description: >
 
 ## Contract
 - **Purpose:** a clean, explained, stack-appropriate layout + the root scaffolding files + (AI) `prompts/`.
-- **Reads:** `PRODUCT.md#Architecture` (stack decides the layout), `#Vision` (AI product?).
+- **Reads:** `PRODUCT.md#Architecture` — the **stack** (decides the layout) *and* the **Dev tooling** line (decides which tool fills each scaffolding slot), `#Vision` (AI product?).
 - **Writes:** `STRUCTURE.md` (folder→purpose map) + `PRODUCT.md#Structure` (summary).
 - **Exit criteria:**
   - [ ] A folder tree matching the chosen shape (**backend / frontend / full-stack**), layered, no god-files.
   - [ ] `STRUCTURE.md` explains **what each folder is for and why**, in plain language.
   - [ ] **`STRUCTURE.md`'s map and the real tree agree BOTH ways:** every folder drawn in the map exists on disk (create it — even with just an `__init__.py`/`.gitkeep`), and every folder on disk is in the map. A drawn-but-missing folder is silent doc↔code drift.
-  - [ ] Root scaffolding present: `README.md` · `.gitignore` · `.env.example` · `.gitleaks.toml` · `.pre-commit-config.yaml` · task runner (`Makefile`/npm scripts) · dependency manifest (dev/prod split) · `SECURITY.md` (responsible-disclosure policy) · `CHANGELOG.md` (Keep a Changelog format, seeded with `[Unreleased]`).
-  - [ ] **The config-layering files are actually scaffolded** (not just an empty `config/`): `config/loader.py` (typed) + `config/platform.yaml` (engine knobs) + `config/product.yaml` (product knobs) reading `.env` — the no-hardcoding engine.
-  - [ ] `.gitignore` ignores `.env` **and its variants/backups** (`.env.bak`, `*.env.local`); only `.env.example` is committed. **No secret in any code file.**
+  - [ ] Root scaffolding present — each named as a **capability**, filled by the tool `#Architecture` recorded (the playbook never dictates the tool): `README.md` · ignore rules · `.env.example` · **secret-scan config** · **commit-hook runner** · **task runner** · **dependency manifest** (dev/prod split) · `SECURITY.md` (responsible-disclosure policy) · `CHANGELOG.md` (Keep a Changelog format, seeded with `[Unreleased]`).
+  - [ ] **Every scaffolded tool matches `#Architecture`'s Dev tooling line.** Scaffolding `.pre-commit-config.yaml` into a Node repo whose ADR chose lefthook makes the recorded trail describe a tool the repo does not use — and forces a Node contributor to install Python tooling to commit. If `#Architecture` names no tool for a slot, **recommend one that fits the detected stack, say why, and record it back** — never default to the Python one on a Node repo.
+  - [ ] **The config-layering files are actually scaffolded** (not just an empty `config/`): a **typed loader** in the project's own language (`config/loader.py` · `config/loader.ts` — follow the stack, not this example) + `config/platform.yaml` (engine knobs) + `config/product.yaml` (product knobs) reading `.env` — the no-hardcoding engine.
+  - [ ] Ignore rules cover `.env` **and its variants/backups** (`.env.bak`, `*.env.local`); only `.env.example` is committed. **No secret in any code file.**
+  - [ ] **`.env.example` holds only unmistakable placeholders** — `CHANGE_ME__<VAR>__CHANGE_ME`, never a realistic-looking string that happens to be long enough (`replace-me-with-32-plus-random-characters` is 48 chars and **passes** `min(32)`, so a copied `.env` boots the app on a signing key that is public in git). Each placeholder carries a one-line comment on how to generate the real value. `/foundation` then **rejects these by name** at boot — see `PRINCIPLES.md` §Production safeguards.
   - [ ] For AI products: a **`prompts/` YAML folder as a backend sub-package** (`app/prompts/` when there's an `app/` package; root `prompts/` only if there's no backend package) — prompts never inline in code.
 
 ## Step 0 — Context + prior-gate check
-- Read `#Architecture` (stack) and `#Vision` (AI?). If `#Architecture` is empty, warn and offer `/architect` first (allow override).
+- Read `#Architecture` and `#Vision` (AI?). Take **two** things from `#Architecture`, not one: the **stack** (which decides the folder shape) and the **Dev tooling** line (hook runner · secret scanner · task runner · formatter/linter · dependency manifest) — **which decides every root scaffolding file you are about to write**. Reading only the stack is how a recorded tool choice gets silently overridden one phase later.
+- If `#Architecture` is empty, warn and offer `/architect` first (allow override). Running standalone, detect the stack from the repo and pick tooling that fits it — then record the choice so the next phase inherits it.
 - Brownfield: read the existing tree; propose a clean target layout + a migration note — don't blindly move files.
 
 ## Step 1 — Apply principles (this phase)
@@ -80,12 +84,15 @@ frontend/
 ```
 **Full-stack** = backend `app/` and `frontend/` side by side.
 
-**Root (every shape):** `README.md` · `.gitignore` · `.env.example` · `CONTRIBUTING.md` ·
-`.gitleaks.toml` (secret-scan: `useDefault=true`, allowlist only documented dev fakes + `.env.example`)
-· `.pre-commit-config.yaml` (lint + format + secret-scan) · `SECURITY.md` (how to report a vuln —
+**Root (every shape) — the *capability*, filled by the tool `#Architecture` chose:** `README.md` ·
+ignore rules · `.env.example` (unmistakable `CHANGE_ME__<VAR>__CHANGE_ME` placeholders only) ·
+`CONTRIBUTING.md` · **secret-scan config** (e.g. `.gitleaks.toml`: `useDefault=true`, allowlist only
+documented dev fakes + `.env.example`) · **commit-hook runner** running lint + format + secret-scan
+(`.pre-commit-config.yaml` for Python · `lefthook.yml` · `.husky/` for Node — whichever the ADR names)
+· `SECURITY.md` (how to report a vuln —
 enables GitHub's "Report a vulnerability"; cheap on day one, annoying to retrofit) · `CHANGELOG.md`
-(Keep a Changelog format, start with an `[Unreleased]` section) · `Makefile` (or npm scripts) ·
-dependency manifest with **dev/prod split** · `tests/` · `docs/` (will hold PRODUCT.md, STRUCTURE.md,
+(Keep a Changelog format, start with an `[Unreleased]` section) · **task runner** (`Makefile` · npm
+scripts · `just` — whichever the ADR names) · dependency manifest with **dev/prod split** · `tests/` · `docs/` (will hold PRODUCT.md, STRUCTURE.md,
 docs/features/*) · `tools/`|`scripts/`. **When relevant:** `Dockerfile`+`docker-compose.yml`+
 `.dockerignore` · CI workflow · `.github/dependabot.yml` (or Renovate) · migrations config ·
 observability config · `benchmark/`|`evals/` (AI).
@@ -100,9 +107,14 @@ Write **`STRUCTURE.md`** (one line per folder — *what goes here and why*, plai
 ## Step 3b — Self-verify (completeness gate)
 Check the boxes. **STOP and fix if:** a folder is unexplained; **a folder drawn in `STRUCTURE.md`
 doesn't exist on disk, or a folder on disk is absent from the map** (the map↔tree must match BOTH
-directions — a drawn-but-uncreated folder is silent doc↔code drift); `.gitignore` doesn't cover `.env*`;
-`.gitleaks.toml`/pre-commit secret-scan is missing; a secret sits in a code file; or an AI product has
-no `prompts/` folder. An unexplained layout decays into god-files; a leaked `.env` is a real incident.
+directions — a drawn-but-uncreated folder is silent doc↔code drift); ignore rules don't cover `.env*`;
+the secret-scan config or the commit-hook runner is missing; **`.env.example` holds any value that would
+survive a plausible validity check** (it must be an unmistakable placeholder — see the criterion above);
+a secret sits in a code file; or an AI product has no `prompts/` folder. An unexplained layout decays
+into god-files; a leaked `.env` is a real incident.
+
+## Step 3c — Contradiction check (before the gate closes)
+Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Architecture` — **especially its Dev tooling line**: every scaffolding file you wrote must be the tool recorded there (this check exists because a run scaffolded `.pre-commit-config.yaml` into a Node repo whose ADR chose lefthook, and nothing noticed). On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
 
 ## Step 4 — Handoff
 "Clean structure + root scaffolding in place and explained in `STRUCTURE.md`.

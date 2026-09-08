@@ -50,6 +50,9 @@ it's compared to a **recorded baseline** and a regression **fails**; operational
 **separately** from quality. **If the result is asserted rather than measured, or failures are blended
 into the quality number, STOP and fix it** — an un-measured or contaminated number is worse than none.
 
+## Step 3c — Contradiction check (before the gate closes)
+Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Vision`'s north star and `#Architecture`'s perf/cost budget — measuring a different metric than the one recorded, or a measured number that silently supersedes an ADR's budget. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
+
 ## Step 4 — Handoff
 "Quality measured honestly, with a confidence score. Next run **`/ship`** — deep review, security
 review, reconcile the docs, open the PR, and hand off."

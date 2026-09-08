@@ -198,6 +198,9 @@ Walk the principles and prove each against the files just written — do not ass
   **collision** (STOP: re-split, or name the shared file so Lanekeeper can declare it a `shared:` zone).
   A horizontal milestone has its reason recorded. No `PULL_REQUEST_TEMPLATE.md` was written.
 
+## Step 3c — Contradiction check (before the gate closes)
+Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Plan` milestones, `#Scope` non-goals and `#Contracts` types — a ticket that builds a non-goal, or names a type the contracts don't define. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
+
 ## Step 4 — Handoff
 "Backlog decomposed — each ticket assignable to a different developer and mergeable on its own. Vertical
 slices go in order (slice 1 is the walking skeleton); horizontal tickets go contract-first (layer 1 → 2 → 3,
