@@ -21,6 +21,9 @@ description: >
   - [ ] Milestones ordered **core-first** (the core feature ships before nice-to-haves).
   - [ ] A rough timeline (relative is fine: M1, M2… or weeks).
   - [ ] **Every milestone has a testable exit criterion** (a definition of done you could verify).
+  - [ ] **Every milestone carries a four-risks row** — which of **value · usability · feasibility · viability** it retires, and how you will know. A plan that sequences only "can we build it" ships something buildable that nobody wants, nobody can use, or the business cannot sustain.
+  - [ ] **At least one pre-public milestone has a usability exit criterion** — even five people attempting the core task unaided. Usability is the risk discovered *after* launch, when it is most expensive to fix.
+  - [ ] A risk already retired **cites its evidence** (a `#Validation` entry, a prior milestone) instead of repeating the work.
   - [ ] Out-of-scope items remain out (referenced, not scheduled).
   - [ ] A **concern-area coverage checklist** (security · ai-specific · observability · developer-experience · testing · infra · documentation · product) — each marked **now / next / later / N-A** with a trigger.
 
@@ -36,12 +39,19 @@ description: >
 1. **Slice the core feature into a thin end-to-end milestone** (M1): the smallest thing a user can actually do.
 2. **Sequence the rest core-first:** what must exist for M1; what builds on it (M2, M3…). Keep it short.
 3. For **each milestone**, write a one-line **exit criterion** — an observable, testable "done".
-4. Add a **rough timeline** (relative is fine). Flag any milestone that needs paid infra and record the trigger.
-5. **Concern-area coverage:** walk the production-readiness areas in `PRINCIPLES.md` (security, ai-specific, observability, DX, testing, infra, documentation, product) and mark each now / next / later / N-A with a trigger — so nothing is missed by accident (a product-grade, interview-worthy artifact).
+4. **Add the four-risks row to each milestone.** The four product risks are **value** (do they want it),
+   **usability** (can they use it), **feasibility** (can we build it) and **viability** (can the business
+   sustain it) — a plan that sequences only feasibility has three blind spots. For each milestone, name which
+   risks it retires and the observable that proves it. Where a risk is **already retired**, point at the
+   evidence — a passing `#Validation` entry retires value; don't re-run it. **Put a usability checkpoint
+   before anything goes public**, written as a milestone exit criterion, not a nice-to-have.
+5. Add a **rough timeline** (relative is fine). Flag any milestone that needs paid infra and record the trigger.
+6. **Concern-area coverage:** walk the production-readiness areas in `PRINCIPLES.md` (security, ai-specific, observability, DX, testing, infra, documentation, product) and mark each now / next / later / N-A with a trigger — so nothing is missed by accident (a product-grade, interview-worthy artifact).
 - Optionally compose `/doc-create` to scaffold a fuller `ROADMAP.md`; keep `PRODUCT.md#Plan` as the summary.
 
 ## Step 3 — Write back to `PRODUCT.md`
-Fill `#Plan`: phases/milestones (core-first) · timeline · exit criteria per milestone.
+Fill `#Plan`: phases/milestones (core-first) · timeline · exit criteria per milestone · **the four-risks row
+per milestone** (value/usability/feasibility/viability + how you'll know, or the evidence that retired it).
 
 ## Step 3b — Self-verify (completeness gate)
 Check the boxes. **If any milestone lacks a testable exit criterion, STOP and add one** — a milestone

@@ -19,7 +19,8 @@ description: >
 - **Reads:** `PRODUCT.md#Vision`, `#Scope`, `#Plan` (the goal), `#Tests`.
 - **Writes:** `PRODUCT.md#Evaluation` — measured result · metrics + confidence · separated failures.
 - **Exit criteria:**
-  - [ ] A measurable definition of "good" tied to the vision/goal (a metric or a rubric).
+  - [ ] A measurable definition of "good" tied to the vision/goal (a metric or a rubric) — **for a product with a north star, that definition IS `#Vision`'s target + date**, not a fresh rubric invented here.
+  - [ ] **The guardrail metric is measured too, and reported alongside.** A north-star number that improved while the guardrail got worse is not a pass — say so plainly.
   - [ ] **Measured** against real or representative inputs (not asserted from vibes).
   - [ ] **Operational failures (errored/blocked/dropped) are separated** from genuine low quality.
   - [ ] An honest **confidence score (0–100%)** with solid / risky-untested / to-raise-it lines.
@@ -27,7 +28,10 @@ description: >
   - [ ] Result compared to a **recorded baseline** — a regression below threshold **fails** (gates as config, not hardcoded).
 
 ## Step 0 — Context + prior-gate check
-- Read `#Vision/#Scope/#Plan` for the goal and `#Tests` for what's covered. If the goal is fuzzy, sharpen it first.
+- Read `#Vision/#Scope/#Plan` for the goal and `#Tests` for what's covered. Take the **target + date**, the
+  **input metrics** and the **guardrail** from `#Vision`'s north star — that is the measurement baseline, and
+  the **instrumentation line** says how to read it. If the north star is a direction rather than a target,
+  the goal is fuzzy: sharpen it with the user (or send them back to `/vision`) before measuring anything.
 
 ## Step 1 — Apply principles (this phase)
 - **Measure first:** judge against real/representative inputs; a scary or great number alike must be reproduced, not assumed (beware display/measurement artifacts).

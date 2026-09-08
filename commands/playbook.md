@@ -35,6 +35,18 @@ description: >
   *(Design = run `/design-system`; it fills `PRODUCT.md#Design`. **Skip it for backend/API/CLI products** —
   the has-UI flag from `/architect`/`/structure` decides. Validate = run `/validate`; it fills
   `PRODUCT.md#Validation`. An **override** line there counts as filled but is surfaced every time you orient.)*
+- **Check the order, not just the frontier.** The first-unfilled rule is silent when the chain was walked
+  out of order — a project with `#Architecture` filled and `#Scope` empty gets pointed at Scope with no
+  hint that stack decisions already exist which may not survive it. Compare the filled sections against
+  the canonical order above and, for each **later section filled while an earlier one is empty**:
+  - **name the inversion in one line** — "`#Architecture` is filled but `#Scope` is empty: the stack was
+    chosen before the scope was locked";
+  - **say what is at risk** — decisions taken without the earlier phase's input may not survive it
+    (`/architect` traces to scope; a scope change can invalidate the stack);
+  - **offer the earlier phase first, and allow an override.** Skills are standalone by design, so
+    out-of-order use is legitimate — it should be *visible*, not blocked.
+  An **in-order spine produces no extra output at all**; don't manufacture noise. A user who overrides gets
+  it recorded on the `#Playbook` line of the header — **read that first and do not re-ask** on later runs.
 - Brownfield (existing code, no `PRODUCT.md`): say so, and propose entering at `/architect` or `/build`.
 
 ## Step 1 — Explain the map (once, briefly, plain language)

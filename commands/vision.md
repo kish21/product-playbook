@@ -23,7 +23,8 @@ description: >
   - [ ] Named target user + the concrete problem they have, and **why now**.
   - [ ] A value proposition stating how this is better/different.
   - [ ] A current-year market/competitor read with at least one sharpening insight.
-  - [ ] A **north-star success metric**, the **job-to-be-done**, the **riskiest assumption**, and the **business model** (free/paid/internal) captured.
+  - [ ] A **north-star metric with all five parts** — a **target number + date**, **2–3 input metrics**, **1 guardrail**, and an **instrumentation line**. A direction ("more people tracking subscriptions") is a slogan, not a metric, and **fails this gate**: `/eval` would have nothing to measure against.
+  - [ ] The **job-to-be-done**, the **riskiest assumption**, and the **business model** (free/paid/internal) captured.
   - [ ] Recorded whether this is an **AI product** (uses LLMs) — flags the AI-security layer downstream.
 
 ## Step 0 — Context + prior-gate check
@@ -40,7 +41,13 @@ Ask these one block at a time; wait for answers. Keep it short — a newcomer sh
 1. **In one line, what is this product and who is it for?**
 2. **What painful problem does it solve, and why is now the right time?** (regulation, tech shift, cost, new behaviour)
 3. **How do people solve this today, and why is that not good enough?**
-4. **How will you know it's working?** — one **north-star metric** (plain: "the one number that means it's succeeding").
+4. **How will you know it's working?** — the **north star, in five parts**. Ask for them together; a bare
+   direction is the usual answer and is not yet a metric:
+   - **Target + date** — "400 accounts with 3+ subscriptions by 2027-03-31", not "growth".
+   - **2–3 input metrics** — the weekly-moving numbers that *drive* it. A north star moves too slowly to steer by.
+   - **1 guardrail** — what must NOT get worse while chasing it (churn, p95 latency, support load).
+   - **Instrumentation** — *how* it gets measured, named now. **If nothing can currently record it, that is a
+     finding, not a detail for later** — say so plainly.
 5. **What's the riskiest assumption** this depends on? And is it **free, paid, or internal**?
 6. **Will it use AI / LLMs?** (yes flags the AI-security layer in later phases)
 
@@ -51,13 +58,15 @@ Then **benchmark to the current year** — and actually check, don't guess (comp
 - Give **one clear recommendation** on the crispest framing; get a yes/no. Keep it plain — no jargon.
 
 ## Step 3 — Write back to `PRODUCT.md`
-Fill `#Vision`: who · problem (why now) · value proposition · verified market/competitor read · north-star
-metric · job-to-be-done · riskiest assumption · business model. Set the header `AI product? <yes/no>`.
+Fill `#Vision`: who · problem (why now) · value proposition · verified market/competitor read · north star
+(**target+date · input metrics · guardrail · instrumentation**) · job-to-be-done · riskiest assumption ·
+business model. Set the header `AI product? <yes/no>`.
 
 ## Step 3b — Principle-gate: verify it's sharp, not fuzzy
 Walk the exit criteria and confirm each is **concrete with evidence** — the competitor read cites *real*
 named products (not from memory), the metric is a measurable number, the JTBD/risk are specific. **If any
-field is empty or vague, STOP and fill it with the user** — a fuzzy vision is the root of later drift.
+field is empty or vague, STOP and fill it with the user** — **a north star missing its target, date, input
+metrics, guardrail or instrumentation line is vague by definition** — a fuzzy vision is the root of later drift.
 
 ## Step 3c — Contradiction check (before the gate closes)
 Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: any spine that already exists (`README.md`/`CLAUDE.md` purpose, a prior `#Vision`) — a re-run that quietly changes the customer, the north star or the business model rewrites the premise every later phase was built on. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.

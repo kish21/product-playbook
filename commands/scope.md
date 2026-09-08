@@ -22,6 +22,7 @@ description: >
   - [ ] A short in-scope list, each item tied to the vision's value proposition **and** plausibly moving the north-star metric.
   - [ ] A **non-empty Deferred list**, each item with the **trigger** that would bring it in — **and** a **Non-goals** list (things we deliberately will *never* build).
   - [ ] Each in-scope item traces to a customer outcome, not a feature wish.
+  - [ ] **The table-stakes checklist is fully sorted** — every item explicitly **in-scope now**, **Deferred (with trigger)** or **N/A (with reason)**. **No item may be left unsorted**: an unsorted item fails this gate, because these are the things nobody proposes and everybody expects.
 
 ## Step 0 — Context + prior-gate check
 - Read `PRODUCT.md#Vision`. If it is missing/empty, warn: "`/vision` looks incomplete — scope without
@@ -45,12 +46,22 @@ Ask, one block at a time:
 3. **What are you tempted to add that is NOT needed for the core?** If the user is unsure, prompt with the
    usual creep categories — auth/multi-user, admin dashboard, integrations, mobile, analytics, settings.
    Sort each into **Deferred** (with the **trigger/signal** that would justify it) or **Non-goal** (never).
-4. Tie each in-scope item to **a customer outcome** ("user can X in minutes"), not a feature name — and check it plausibly moves the north-star metric.
+4. **Walk the table-stakes checklist** — the boring items nobody proposes and everybody expects. They do not
+   get deferred, they get *forgotten*, and they resurface at ship time as "we can't launch without this":
+   the exact scope shock this skill exists to prevent. Sort **every** one into **in-scope now / Deferred
+   (+trigger) / N-A (+reason)**:
+   password reset · email verification · account deletion **+ data export** (often a legal duty, not a
+   feature) · empty / loading / error states · privacy policy + terms · accessibility baseline · a way for a
+   user to report a problem.
+   **Adapt the list to the product kind** — an account-less CLI has no password reset (N-A: "no accounts"),
+   but it still has error states and a licence. Adapting the list is expected; leaving an item unsorted is not.
+5. Tie each in-scope item to **a customer outcome** ("user can X in minutes"), not a feature name — and check it plausibly moves the north-star metric.
 
 Give **one recommendation** on the tightest viable core; get a yes/no.
 
 ## Step 3 — Write back to `PRODUCT.md`
-Fill `#Scope`: THE core feature · in-scope (now) · Deferred (each with its trigger) · Non-goals (never).
+Fill `#Scope`: THE core feature · in-scope (now) · Deferred (each with its trigger) · Non-goals (never) ·
+**Table stakes** (every item with its in / deferred+trigger / N-A+reason verdict).
 
 ## Step 3b — Self-verify (completeness gate)
 Check the boxes. **If the Deferred list is empty, or there are no Non-goals, STOP** — an empty
