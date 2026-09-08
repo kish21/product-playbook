@@ -25,7 +25,7 @@ description: >
   - [ ] **Docs reconciled to reality** (`/doc-audit`) — no false capability/security claims.
   - [ ] **Confidence score (0–100%)** reported (solid / risky-untested / to-raise-it).
   - [ ] PR opened (`github-pr-flow`) with **`Closes #N`** in the body where a tracked issue exists; a smooth **handoff** written; user told to start a fresh session.
-  - [ ] **Tracker reconciled after merge:** the linked issue is **Closed** and (if a project board exists) its card moved to **Done** — *verified against the tracker*, not assumed from "shipped". See `github-pr-flow` Step 7.
+  - [ ] **Tracker reconciled after merge:** the linked issue is **Closed** and (if a project board exists) its card moved to **Done** — **if the project keeps a board**; the playbook does not create one, so audit what exists rather than a structure nothing here provisions — *verified against the tracker*, not assumed from "shipped". See `github-pr-flow` Step 7.
   - [ ] A **CHANGELOG / release note** entry (+ a **semver** bump where versioned).
   - [ ] Security checklist cleared: dependency-vuln scan, CORS prod domain, cookie-based auth (not localStorage), and data-deletion/GDPR for data products.
   - [ ] **No placeholder can boot this build** — `.env.example`'s values are still rejected by name at startup (the `/foundation` guard and its test are intact, with no production override). A release that boots on a committed secret is a live incident, not a finding.

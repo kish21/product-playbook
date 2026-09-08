@@ -75,7 +75,11 @@ description: >
      *"Tickets written to `docs/issues/`. No remote is linked — run `git remote add origin <url>`, then `/tickets` again to publish."*
    - **Remote present:** check `gh auth status` and `gh repo view`. If either fails, keep the local files and
      tell the user to run `gh auth login`. **Do not run `gh repo create`.**
-3. **Dedup index.** With a verified remote, fetch once:
+3. **Capability pre-flight — a half-published backlog is worse than none.** Creating issues, milestones and
+   labels are *separate* permissions. Check all three **before publishing anything**; if the token can create
+   issues but not milestones or labels, either **degrade to plain issues with a stated warning** or publish
+   nothing — the user chooses. Never discover the gap halfway through the backlog.
+4. **Dedup index.** With a verified remote, fetch once:
    `gh issue list --state all --limit 100 --json number,title`
    Match a planned ticket to an existing issue by its **ID tag** (`[M2-SLICE-01]`, `[M2-TICK-01]`, `[ADHOC-07]`)
    first, exact title second. On a match: skip and log `Skipping [M2-TICK-01]: exists as #<num>`. Never edit
@@ -164,6 +168,19 @@ Fill the provisioned `feature_ticket.md` template for each ticket:
 
 Write each to `docs/issues/<id>_<slug>.md`, then publish the non-duplicates with `gh issue create`.
 
+### Mirror the plan structure onto GitHub (the playbook already knows it)
+`#Plan` → milestones → lanes → tickets has a native GitHub equivalent at every level, and a flat list uses
+none of it: the Milestone column stays empty, tickets cannot be filtered by feature, and ad-hoc bugs never
+link back to the feature they belong to. On publish:
+- **Milestone** — parse `PRODUCT.md#Plan`, create each **missing** GitHub milestone (titles derived from
+  `#Plan`, never invented) and pass it on `gh issue create`.
+- **Lane label** — the ticket's `Lane` field becomes a label in the **`lane: <name>`** form required by
+  `PRINCIPLES.md` §Lane mode rule 4. Do not invent a second spelling; the gate depends on that one.
+- **Feature doc — reference the PATH, not a link.** `/build` writes `docs/features/<feature>.md` *after* the
+  ticket exists, so a markdown link would 404 on day one. `/build` may add a live link when it creates the file.
+- **Idempotent like the issues already are.** `gh milestone`/`gh label create` error on an existing name, so a
+  re-run must **reuse, not fail**. Running `/tickets` twice creates no duplicate milestone, label or issue.
+
 ## Step 3B — Mode B: ad-hoc issue capture
 Triggered mid-build by `/tickets "Bug: Gemini API timeout is unhandled on slow 3G"`. **Fast path — touch nothing else.**
 1. **Classify** the text: `bug` · `edge-case` · `tech-debt` · `security`. Security items are never downgraded.
@@ -174,7 +191,10 @@ Triggered mid-build by `/tickets "Bug: Gemini API timeout is unhandled on slow 3
    expected vs actual · reproduction or trigger condition · affected file(s) · suspected cause · a DoD that
    includes a **regression test proving the fix**.
 4. **Publish** it as a single issue with the classification as a label, subject to the same dedup and remote
-   guards from Step 2.
+   guards from Step 2, **plus a real parent reference**: resolve the parent ticket's *issue number* from the
+   dedup index already fetched in Step 2 and write `#N`, so GitHub renders the bidirectional timeline link.
+   **A parent with no published issue degrades to the plain ID with the reason stated — never a guessed
+   number**, which would link the bug to an unrelated issue.
 5. **Do not** read `#Plan`, regenerate, renumber or modify any milestone ticket. One invocation, one issue.
 
 ## Step 3b — Principle-gate: verify the tickets hold (evidence)
@@ -190,6 +210,9 @@ Walk the principles and prove each against the files just written — do not ass
 - **IDs unique.** Every ID appears exactly once across `docs/issues/` and the fetched GitHub issues.
 - **Dedup ran.** Confirm `gh issue list` was fetched before any `gh issue create`, and that no remote
   repository was created.
+- **Structure mirrored + idempotent.** Every published ticket carries its milestone and its `lane: <name>`
+  label; a second run created no duplicate milestone, label or issue (**re-run it and show that**); no link
+  points at a feature doc that does not exist yet; permissions were checked **before** the first create.
 - **Security DoD present** on every ticket, including the ad-hoc ones.
 - **Independently mergeable.** For each ticket ask: could one developer open a PR containing only these
   files and have it reviewed on its own? **If not, the split is wrong — STOP and re-split before publishing.**

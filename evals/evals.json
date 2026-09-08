@@ -367,6 +367,27 @@
       "prompt": "the suite is green but users report the login page crashing",
       "expected_output": "Identifies the coverage class the suite lacks rather than debugging blind: a clean headless browser with zero extensions is not a user's browser. Adds real-user-environment cases — third-party DOM injection (password managers/autofill/accessibility extensions mutating the DOM before hydration), locale/timezone, reduced motion and forced colours and zoom, throttled network and cold cache — with at least one executable check that first interactive paint survives injected DOM on an auth/form surface. Any hydration-suppression escape hatch is scoped to the specific element with a comment naming why, never a blanket default, because mismatches also come from real bugs; wording stays framework-neutral",
       "files": []
+    },
+    {
+      "id": "new-component-discovers-pending-from-ticket",
+      "skill": "new-component",
+      "prompt": "/new-component",
+      "expected_output": "Invoked bare, resolves the active milestone from docs/issues/ + PRODUCT.md#Plan, takes exact component paths from the ticket's Target files by reusing the reading /build already does for its ALLOW list (no second parser), diffs against disk and presents a built-vs-pending menu asking which ONE to build; never offers a batch 'generate all pending' path because that routes around /build's definition-of-done gate; directories come from STRUCTURE.md, never a hardcoded src/components/ui/; a malformed ticket fails loudly naming the file rather than yielding an empty menu that reads as 'nothing pending'",
+      "files": []
+    },
+    {
+      "id": "new-component-standalone-fallback",
+      "skill": "new-component",
+      "prompt": "/new-component a pricing card with three tiers",
+      "expected_output": "Works from the plain description without requiring docs/issues/ — discovery is a fallback, never a dependency (the playbook is sequential but standalone); with no tickets or no active milestone it says so in one line and continues, never erroring or dead-ending; still resolves the token vocabulary from DESIGN.md and the target directory from STRUCTURE.md",
+      "files": []
+    },
+    {
+      "id": "tickets-mirrors-plan-onto-github",
+      "skill": "tickets",
+      "prompt": "publish the backlog to GitHub",
+      "expected_output": "Checks issue, milestone AND label permissions BEFORE publishing anything and degrades or aborts cleanly rather than leaving a half-published backlog; creates missing GitHub milestones with titles derived from #Plan and assigns them on create, reusing existing ones; labels each issue 'lane: <name>' with the space, matching PRINCIPLES Lane mode rule 4 rather than inventing a second spelling; Mode B resolves the parent's real issue number from the dedup index and writes #N, degrading to the plain ID with a stated reason rather than guessing; references the feature doc by path since /build writes it later; a second run creates no duplicate milestone, label or issue",
+      "files": []
     }
   ]
 }

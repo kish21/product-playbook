@@ -222,7 +222,11 @@ every phase skill honours in lane mode — defined once here, referenced by the 
    base branch (`/dev-check` for the Build log, `/ship` for the Ship log + CHANGELOG). The alternative —
    a declared `shared:` zone for the spine with `merge=union` — is the user's explicit choice, never a
    default.
-4. **The PR carries its lane.** Every lane PR is labelled `lane: <name>` and passes `lanekeeper check`
+4. **The PR carries its lane — and so does the issue.** The label form is **`lane: <name>`, with a space**,
+   on **both** the issue (`/tickets` applies it at publish) and the PR. One spelling, stated here, because
+   Lanekeeper's gate fails closed without exactly one label and therefore cannot move: a second spelling
+   (`lane:auth`) would split filtering in half and risk the gate not seeing what issues carry.
+   Every lane PR is labelled `lane: <name>` and passes `lanekeeper check`
    before it is opened; the gate fails closed without exactly one label. Lanekeeper owns the
    **PR template** and the gate workflow; product-playbook owns the **issue template**. Neither
    overwrites the other's file.
