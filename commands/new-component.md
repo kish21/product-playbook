@@ -20,6 +20,7 @@ $ARGUMENTS
 - **Reads:** `DESIGN.md` (tokens · type scale · motion · depth ladder) and `PRODUCT.md#Design`; `STRUCTURE.md` for where components live.
 - **Writes:** one component file (path confirmed with the user).
 - **Exit criteria:**
+  - [ ] Invoked bare, the **pending components for the active milestone are offered** (built vs pending) and exactly **one** is chosen; with no tickets, it falls back to a description and says why.
   - [ ] **Every `var(--token)` the component references is defined in `DESIGN.md`** — checked mechanically (see the verification step). An undefined token does **not** fail `/frontend-audit`: CSS drops the declaration silently, so the colour simply never arrives. Nothing else catches this.
   - [ ] No raw hex, no literal font string, no invented token name. A token this component needs but `DESIGN.md` lacks is a **gap to raise**, not one to improvise.
   - [ ] Every interactive element has **hover · focus-visible · active**; focus is never suppressed without a visible replacement.
@@ -27,7 +28,41 @@ $ARGUMENTS
   - [ ] Typed props; no `font-size` below the floor `DESIGN.md` sets (12px absolute minimum).
   - [ ] **`/frontend-audit` reports 0 errors** on the file — the gate `/build` runs. Necessary, not sufficient: it checks the tokens that *are* defined, not the ones you referenced.
 
-## Step 0 — Resolve the token vocabulary (do this BEFORE writing a line)
+## Step 0a — Scope discovery (only when invoked with NO arguments)
+Nobody remembers exact file paths, and **the playbook already wrote them down**: `/tickets` requires each
+ticket's Target files to be exact paths derived from `STRUCTURE.md`, so every UI file a milestone needs is
+recorded, machine-readably, before this skill ever runs. Offer that instead of asking the user to retype it:
+
+1. Resolve the active milestone from `docs/issues/` (+ `PRODUCT.md#Plan`).
+2. Take the component paths from that ticket's **Target files** — **reuse the reading `/build` already does**
+   for its ALLOW list; do not grow a second parser here.
+3. Diff against what exists on disk.
+4. Show the scoped menu and ask which one to build:
+
+```
+Current scope: [M1-SLICE-03] Dashboard experience
+- [x] button.tsx            (built)
+- [ ] input.tsx             (pending)
+- [ ] dashboard-summary.tsx (pending)
+Which should we build next?
+```
+
+**Three constraints that keep this honest:**
+- **Discovery is a fallback, never a dependency.** The playbook is *sequential but standalone*: with no
+  `docs/issues/` or no active milestone, **say so in one line and continue from a plain description**. Never
+  an error, never a dead end.
+- **One component per invocation.** There is no "generate all pending" path, deliberately: `/build` builds
+  one thing against a definition-of-done, and a batch generator in a leaf skill routes around that gate and
+  emits N files nothing has reviewed.
+- **Directories come from `STRUCTURE.md`**, never a hardcoded `src/components/ui/` — the playbook does not
+  get to assume a layout it told the user to choose.
+
+**A ticket is a parsed document, and a parsed document is a boundary** (see
+`references/case-files-contracts.md`). A malformed or hand-edited ticket **fails loudly, naming the file and
+what would not parse** — never a silently empty menu, which reads as "nothing pending" and is the worst
+possible answer.
+
+## Step 0b — Resolve the token vocabulary (do this BEFORE writing a line)
 The names below are **examples, not the contract**. Where `DESIGN.md` records a name, **that name wins**.
 
 1. **`DESIGN.md` exists** → read §Tokens and use those names verbatim. `/design-system` emits
