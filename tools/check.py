@@ -10,8 +10,10 @@ Checks:
   2. manifest.json + evals/evals.json are valid JSON (so are the plugin manifests, if present).
   3. Every canonical PHASE skill (the vision->learn chain) has the template structure
      (Contract · Exit criteria · PRINCIPLES.md · Step 3b · Step 3c · Step 4 Handoff). The entry (playbook),
-     cross-cutting (drift-check) and the UI suite (design-system, frontend-audit, new-component)
-     have their own formats — they get registration + line-budget checks only.
+     cross-cutting (drift-check) and the UI suite are not phases in that chain, so the full template
+     does not apply — but every skill that a build step DEPENDS ON must still declare a contract and
+     name its principles, so design-system and new-component are checked for those two. frontend-audit
+     stays exempt: its contract is enforced by audit.py's exit code, not by prose.
   4. Every skill file is under the SKILL line budget (500).
   5. One version everywhere: the newest CHANGELOG release is the source of truth, and
      manifest.json, .claude-plugin/plugin.json and the README badge must all match it.
@@ -31,6 +33,8 @@ errors: list[str] = []
 # Canonical phase-template skills (the vision->learn chain /playbook walks).
 TEMPLATE = {"vision", "validate", "scope", "plan", "architect", "structure", "foundation", "contracts",
             "tickets", "build", "dev-check", "test", "eval", "ship", "learn"}
+# Not phases, but load-bearing for a build step -> must still declare a contract + name their principles.
+CONTRACTED = {"design-system", "new-component"}
 
 
 def fail(msg: str) -> None:
@@ -80,6 +84,10 @@ def main() -> int:
         n = len(text.splitlines())
         if n > LINE_BUDGET:
             fail(f"{c} is {n} lines (> {LINE_BUDGET})")
+        if c in CONTRACTED:
+            for token in ("## Contract", "PRINCIPLES.md"):
+                if token not in text:
+                    fail(f"{c} missing {token!r} (a skill /build depends on must declare its contract)")
         if c in TEMPLATE:
             for token in ("## Contract", "Exit criteria", "PRINCIPLES.md", "Step 3b", "Step 3c", "Step 4 - Handoff"):
                 # match the literal heading regardless of hyphen/dash style
