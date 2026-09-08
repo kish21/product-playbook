@@ -55,6 +55,13 @@ The names below are **examples, not the contract**. Where `DESIGN.md` records a 
 8. **Status colours are semantic** — the success/warning/destructive tokens from Step 0 (shadcn default: `--success` · `--warning` · `--destructive`). Never a raw colour for state.
 9. **Depth** — follow `DESIGN.md`'s layering ladder: base (`--background`) → raised (`--card` + `--shadow-sm`) → floating (`--shadow-lg` + border). Never everything on one z-plane.
 
+10. **Third-party DOM injection** — form and auth surfaces receive attributes and nodes from password
+    managers, autofill and accessibility extensions before the framework hydrates. Where your framework
+    offers a hydration-mismatch escape hatch, apply it **to the specific element that receives them, with a
+    comment naming why** — **never as a default across every input**. A blanket suppression silences genuine
+    mismatches (clock/random values, locale drift, branch divergence) that are real bugs. `/test`'s
+    real-user-environment class is what proves the surface actually survives it.
+
 ## Output format
 - Full TypeScript component with correct prop types
 - Export at bottom (`export default` or named export)

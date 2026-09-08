@@ -25,6 +25,12 @@ description: >
   - [ ] **The suite can name its isolated target, and the bootstrap enforces it.** Real boundaries plus a teardown hook is a destructive combination: an integration suite pointed at the development datastore will truncate it. The target is the disposable one `/foundation` provisioned (or per-test transaction rollback), and the bootstrap **refuses to run** against the dev or production target — a suite that cannot name its isolated target **does not pass this gate**.
   - [ ] **Live-path check:** the path the product actually runs is exercised end-to-end (not just isolated units).
   - [ ] **Adversarial/security** cases: authz/tenant-isolation; for AI, prompt-injection & jailbreak (OWASP LLM Top 10).
+  - [ ] **Real-user-environment** cases (products with a browser UI) — the environments a clean headless run
+    never reproduces: **third-party DOM injection** (password managers, autofill, translation and
+    accessibility extensions mutating the DOM before/during hydration) · **locale, timezone and date
+    formatting** · **reduced motion, forced colours, zoom, small viewports** · **throttled network and a cold
+    cache**. At minimum, one executable check that **first interactive paint survives injected DOM on an
+    auth/form surface**, run against a profile that is not pristine.
   - [ ] A regression case for any bug fixed.
   - [ ] A **golden / eval dataset** for quality-critical or AI behaviour (known inputs → expected outputs), so quality is measurable and regressions are caught.
   - [ ] Tests use **fake placeholder keys**, never real secrets.
@@ -37,6 +43,11 @@ description: >
 - **Independent test plan:** unit = isolated/mocked; integration = real contracts with neighbours. If a unit can't be tested in isolation, the seams are wrong — fix them.
 - **Tests passing ≠ it works:** add at least one test on the **live path** the product runs (compose `/run`+`/verify`), and trace that the feature is actually wired in (the "green tests, dead feature" trap).
 - **Isolation before coverage:** confirm what the suite is pointed at *before* writing a destructive hook, and confirm the runner loads config through the app's own loader. This is not tidiness — on a real run, an `afterAll` truncate against a shared URL left the developer stranded at `/login` with no accounts.
+- **A clean headless browser is not a user's browser.** "The path the product actually runs" has quietly
+  meant "the path our runner runs". On a real run every test was green while the login page threw for real
+  users: a password-manager extension injected DOM nodes into the form before the framework hydrated. The
+  suite ran headless, clean profile, zero extensions — it could not have seen it. **Test the environment, not
+  just the code.**
 - **Security is testable:** add authz/tenant-isolation cases; for AI, real injection/jailbreak inputs.
 
 ## Step 2 — Build the suite
@@ -44,7 +55,17 @@ description: >
 2. **Integration** tests across real boundaries/contracts from `/contracts` — **against the isolated test datastore**, verified by reading back the target the bootstrap resolved, not by trusting the variable's name.
 3. **Live-path** test: exercise the real end-to-end path (`/run`+`/verify`); confirm the feature is reachable in the running product.
 4. **Adversarial/security:** cross-tenant AND **within-tenant** access attempts (one user must not see another user's resources inside the same org — tenant-id/RLS only stops cross-tenant). Assert the per-resource access check on **every resource-returning endpoint individually, including streaming ones** (SSE/WebSocket/`StreamingResponse` handlers routinely skip the guard their REST siblings call). For AI, prompt-injection/jailbreak prompts that must be refused/neutralised.
-5. **Regression:** lock in any fixed bug with a test.
+5. **Real-user-environment** (browser UI): drive the auth/form surfaces with **injected third-party DOM** and
+   assert first interactive paint survives; then vary locale/timezone, reduced motion and forced colours, a
+   small viewport, and a throttled cold-cache load.
+   **On absorbing third-party injection:** where a framework offers a hydration-mismatch escape hatch, it is
+   **scoped and justified** — applied to the specific element known to receive third-party attributes, with a
+   comment naming why. **Never a blanket default across a component library:** mismatches also come from real
+   bugs (clock/random values, locale drift, server-client branch divergence), and suppressing them wholesale
+   silences a correctness signal in a toolkit whose principles are *fail-loud* and *no swallowed errors*. The
+   capability wanted is **"third-party DOM injection must not break first paint"**; how a given framework
+   absorbs that is the framework's business.
+6. **Regression:** lock in any fixed bug with a test.
 
 ## Step 3 — Write back to `PRODUCT.md`
 Fill `#Tests`: coverage (unit/integration/regression) · security cases · note the live-path verification.

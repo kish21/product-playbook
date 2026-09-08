@@ -83,7 +83,9 @@ A serious product consciously covers — or *deliberately defers with a trigger*
 - **ai-specific** (AI products) — prompt-injection defence, LLM fallback, scoring-bias, prompt version pinning (OWASP LLM Top 10).
 - **observability** — structured logging, dashboards, alerting rules, cost-per-run reporting.
 - **developer-experience** — README/CONTRIBUTING, API docs (OpenAPI), CHANGELOG, task runner.
-- **testing** — unit + integration + regression + adversarial + a golden/eval dataset.
+- **testing** — unit + integration + regression + adversarial + a golden/eval dataset + **the real user's
+  environment** (browser UI: third-party DOM injection, locale/timezone, reduced motion and forced colours,
+  degraded network) — a clean headless run reproduces none of these.
 - **infra** — CI (mirrors prod), migrations (not raw schema), containerization, backup/restore.
 - **documentation** — ADRs, architecture, ops runbook, the PRODUCT.md/STRUCTURE.md/feature-docs surface.
 - **product** — a sharp vision (named customer + **job-to-be-done**, why-now), a **north-star success metric**, the **riskiest assumption** named, business-model awareness (free/paid/internal), scope discipline, roadmap. A vague vision is the root of later drift.
