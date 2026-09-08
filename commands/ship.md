@@ -33,7 +33,15 @@ description: >
   - [ ] **(Lane mode — PRINCIPLES.md §Lane mode)** `lanekeeper check` passed before the PR was opened; the PR carries exactly one `lane: <name>` label; the `#Ship log` + CHANGELOG entries were written **on the base branch after merge**, never from inside the lane.
 
 ## Step 0 — Context + prior-gate check
-- Read `#Eval` and the diff. If quality wasn't evaluated, warn and offer `/eval` first (allow override for small changes).
+- Read `#Dev-complete`, `#Tests`, `#Evaluation` and the diff. **Name every one of them that is empty** and
+  recommend the specific phase that fills it (`/dev-check` → `/test` → `/eval`). Shipping is still allowed —
+  standalone use is first-class — but **an override here is recorded on the release, not implied by an empty
+  section**: write the skipped phases into the Ship log's *Skipped* column with the reason.
+- **The exception is bounded, not vague.** A change may skip `/eval` only when it touches no product
+  behaviour — a docs/typo/comment change, or a revert. **Anything that changes what the product does needs
+  its tests recorded**; "small" is not a judgement the shipper makes about their own change.
+- *(On a real run this gate read the evaluation section alone and shipped a product whose `#Dev-complete`, `#Tests` and
+  `#Evaluation` were all empty — the last gate before release never asked whether anything was tested.)*
 
 ## Step 1 — Apply principles (this phase)
 - **Reviews are DEEP:** trace the change to its real callers; hunt the "green tests, dead in the live path" bug. **Verify any review/audit finding against the real code** — don't rubber-stamp; some findings are already done or misdiagnosed.
@@ -55,7 +63,10 @@ description: >
 7. **Reconcile the tracker (post-merge):** verify the linked issue actually **Closed** and the project-board card moved to **Done** (`github-pr-flow` Step 7) — close/move manually if the keyword or board workflow was missing. A "shipped" note is not proof; check the tracker. **Lane mode:** now, on the base branch, write the `#Ship log` row + CHANGELOG entry the lane PR could not carry (one writer for the spine), and if a Lanekeeper board exists confirm the card's Lane/Seat fields still match `lanes.yaml`.
 
 ## Step 3 — Write back to `PRODUCT.md`
-Append a `#Ship log` row: date · what shipped · review+security · docs reconciled? · CHANGELOG · rollback/flag · PR link.
+Append a `#Ship log` row: date · what shipped · review+security · **skipped phases** (write `none` when the
+full chain ran; otherwise name them, e.g. `/test, /eval — <reason>`) · docs reconciled? · CHANGELOG ·
+rollback/flag · PR link. **A release whose test phase was skipped must say so on the release record** — an
+empty `#Tests` section is not a disclosure, it is an absence, and absence reads as "not applicable".
 
 ## Step 3b — Self-verify (completeness gate)
 Check the boxes. **If review/security/docs aren't actually done, or a doc claim doesn't match the

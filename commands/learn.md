@@ -16,7 +16,7 @@ description: >
 
 ## Contract
 - **Purpose:** learn whether what shipped worked, and decide the next move from evidence — not gut.
-- **Reads:** `PRODUCT.md#Vision`, `#Scope`, `#Eval`, `#Ship log`.
+- **Reads:** `PRODUCT.md#Vision`, `#Scope`, `#Evaluation`, `#Ship log`.
 - **Writes:** `PRODUCT.md#Learnings` — success metric + result · retro · decided next (from evidence).
 - **Exit criteria:**
   - [ ] A **success metric** named and its actual result captured (measured, not guessed).
@@ -30,7 +30,10 @@ description: >
   - [ ] **Reusable learning harvested:** any *generic* pattern, gotcha, or process fix surfaced this cycle is pushed back into the toolkit (a `product-toolkit` skill/scaffold, or a `product-playbook` phase skill) — or explicitly "nothing reusable this cycle". Generic learnings compound across future projects; project-specific ones stay in the project.
 
 ## Step 0 — Context + prior-gate check
-- Read `#Vision/#Scope/#Eval/#Ship log`. If nothing has shipped yet, this is premature — say so.
+- Read `#Vision/#Scope/#Evaluation/#Ship log`. If nothing has shipped yet, this is premature — say so.
+- **If `#Evaluation` is empty, say so before drawing conclusions:** a retro written with no measured result
+  is opinion, and the "decided next" line it produces carries that weight. Continue if the user wants, but
+  label the basis honestly.
 
 ## Step 1 — Apply principles (this phase)
 - **Measure, then decide:** base the next move on the metric, not enthusiasm. **Re-check the vision:** does the evidence still support the direction? **Defer:** don't pull OUT-OF-SCOPE items in without a real signal.
