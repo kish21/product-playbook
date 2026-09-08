@@ -7,7 +7,7 @@ description: >
   Use after /structure when the product has a user-facing UI, or run /design-system "design the UI",
   "what should it look like", "make a design system", "my UI looks AI-generated / fonts too small".
   Thinks like a 2026 senior designer and explains the why for a non-designer. Derives principles from
-  the product's vision, proposes an archetype (asks for your own idea too), builds ONE real sample page,
+  the product's vision, asks for your own look first and then proposes an archetype, builds ONE real sample page,
   STOPS to confirm and iterates until you like it, THEN emits DESIGN.md. Spine-optional: runs standalone.
   Reads PRINCIPLES.md + references/universal-laws.md (the enforced quality floor). Run /foundation next.
 ---
@@ -47,7 +47,7 @@ description: >
   - [ ] The vision was located (spine) or discovered (standalone), and the **UI gate** was applied — if the
     product has no user-facing UI, **nothing is written** and the skill stops with the reason.
   - [ ] **4–6 design principles** derived from the product's purpose + audience, each with a plain-language *why*.
-  - [ ] An **archetype proposed as a default** AND the user explicitly asked for their own idea/reference.
+  - [ ] **The user was asked for their own reference BEFORE any archetype family was named**, and answered the 3-question picker themselves (each with a recommended answer offered). A proposal made first and an ask made second **does not pass this gate** — it anchors the answer. An archetype is then proposed as the default, and the user's own idea wins over it.
   - [ ] **Concrete foundations** chosen: font pairing (no default-only face), a real type scale with an
     archetype-correct base size, colour roles, spacing/density, depth — all from `archetypes.md`.
   - [ ] **ONE real sample page** built in the project's stack (or a standalone preview), **real content not
@@ -94,13 +94,24 @@ product's **purpose + audience**. Write **4–6 short principle statements** —
 Show them; **let the user adjust**. These principles constrain every later token. (They become
 `DESIGN.md` §1 and `PRODUCT.md#Design`.)
 
-## Step 2 — Propose an archetype, stay flexible
+## Step 2 — Ask what they want, THEN propose
 
-Load `references/archetypes.md`. Map the principles to one of the **13 aesthetic families** using the
-**3-question picker** (read- vs scan-heavy · user type · calm vs bold). **Propose ONE as the default
-with a plain-language why** — then **ask the user**: *"Do you already have a look in mind — a product you
-admire, or bold vs minimal?"* **The user's idea/reference wins;** otherwise your proposal stands. Confirm
-the archetype before moving on.
+**Order matters here, and it is the opposite of `/architect`'s.** For a stack you hold knowledge the user
+may not, so one recommendation and a yes/no is right. For **aesthetics the user's taste is the primary
+input** — you have no privileged view of what they like, and a design they did not choose is one they will
+fight for the rest of the project. A confident proposal made *first* anchors them: they answer "yours is
+fine" because they were never handed a blank page.
+
+1. **Before naming any family, ask for their own reference:** *"Do you have a look in mind — a product you
+   admire, or bold vs minimal?"* Ask it plainly and wait. A named reference is the strongest signal you
+   will get all session.
+2. **Run the 3-question picker WITH them** (`references/archetypes.md`) — read- vs scan-heavy · who uses
+   it and where · calm authority vs bold energy. These are questions about **their** product and users, so
+   they answer them; **offer a recommended answer to each** so it stays one short exchange, not an
+   interrogation. A user with no opinion just takes your recommendations and the step still costs one turn.
+3. **Now propose ONE of the 13 aesthetic families** as the default, with a plain-language why that
+   references what they just told you.
+4. **The user's idea/reference wins;** otherwise your proposal stands. Confirm the archetype before moving on.
 
 ## Step 3 — Concrete foundations from the archetype
 

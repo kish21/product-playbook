@@ -402,6 +402,13 @@
       "prompt": "re-adopt this project, the PRODUCT.md is out of date",
       "expected_output": "Refuses to overwrite the existing PRODUCT.md; offers only to fill sections that are still EMPTY and leaves every filled section untouched, since a hand-written record outranks an inference; where the repo's docs and code disagree it names both sides and asks which is true now (Step 3c) rather than silently preferring the code; a fabricated spine is worse than no spine because every later phase gates against it and /drift-check would measure drift from fiction",
       "files": []
+    },
+    {
+      "id": "design-system-asks-before-proposing",
+      "skill": "design-system",
+      "prompt": "design the UI for this app",
+      "expected_output": "Asks for the user's own reference BEFORE naming any aesthetic family ('a product you admire, bold vs minimal?') and waits; has the USER answer the 3-question picker (read- vs scan-heavy, who uses it and where, calm vs bold) rather than inferring the answers from the principles, offering a recommended answer to each so it stays one short exchange; only THEN proposes one of the 13 families as a default, with a why that references what the user just said; the user's own reference wins over the proposal; a user with no opinion still gets a confident default without extra turns",
+      "files": []
     }
   ]
 }

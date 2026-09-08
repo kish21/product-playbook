@@ -17,7 +17,12 @@
 
 ---
 
-## The 3-question picker (decide the archetype FOR the user)
+## The 3-question picker (decide the archetype WITH the user)
+
+**The user answers these three — you do not answer them on their behalf from the principles.** They are
+questions about *their* product and *their* users. Offer a recommended answer to each so it stays one
+short exchange; a user with no opinion takes your recommendations and nothing slows down. Ask them
+**before** you name any family (`SKILL.md` Step 2) — proposing first anchors the answer.
 
 Ask the user — plain language, one recommended answer each:
 
