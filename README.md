@@ -1,7 +1,7 @@
 # Product Playbook: Build with Discipline in the AI Era
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.8.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.9.0-blue.svg)](CHANGELOG.md)
 ![Claude Code skills](https://img.shields.io/badge/Claude%20Code-20%20skills-8A2BE2.svg)
 
 **A guided path from idea -> shipped that bakes in the engineering discipline most teams learn the hard way.**
@@ -178,14 +178,16 @@ builds against its tokens and `/frontend-audit` mechanically enforces them. Skip
 
 ## 🚀 Installation and Setup
 
-**Pick one route.** Both give you the same 20 skills. They differ in how you *call* a skill and how you *get updates*.
+**Pick one route.** All three run the same skills : they differ in how you *call* a skill, how you *get updates*, and how many skills you take.
 
-| | **A. Plugin** (recommended) | **B. Copy install** |
-|---|---|---|
-| Call a skill as | `/product-playbook:vision` | `/vision` (the bare names used throughout this README) |
-| Updates | Automatic, once you enable it (step 3 below) | Nothing tracks the copy : re-run the installer |
-| Lives in | Claude Code's plugin cache, per scope | `~/.claude/commands/` (or `<project>/.claude/commands/`) |
-| Needs | Claude Code ≥ 2.0.70 | `bash` : on Windows, run from **Git Bash** |
+| | **A. Plugin** (recommended) | **B. Copy install** | **C. Copy install `--only`** |
+|---|---|---|---|
+| You get | all 20 skills | all 20 skills | just the skills you name |
+| Best for | new to product work : take the whole guided journey | you want everything, without the plugin system | you already have a process and want a few steps of it |
+| Call a skill as | `/product-playbook:vision` | `/vision` (the bare names used throughout this README) | `/vision` |
+| Updates | Automatic, once you enable it (step 3 below) | Nothing tracks the copy : re-run the installer | Same : re-run with the same `--only` |
+| Lives in | Claude Code's plugin cache, per scope | `~/.claude/commands/` (or `<project>/.claude/commands/`) | same as B |
+| Needs | Claude Code ≥ 2.0.70 | `bash` : on Windows, run from **Git Bash** | `bash` : on Windows, run from **Git Bash** |
 
 ### A. Plugin (recommended)
 
@@ -209,14 +211,21 @@ Context cost, from `claude plugin details`: ~3.5k tokens always-on per session; 
 | **Global** : one line, no clone | `curl -fsSL https://raw.githubusercontent.com/kish21/product-playbook/master/install.sh \| bash` |
 | **Global** : from a clone | `git clone https://github.com/kish21/product-playbook ~/product-playbook && cd ~/product-playbook && ./install.sh` |
 | **Project-level** : teammates get it on clone | `./install.sh --project /path/to/project` then commit `<project>/.claude/` |
+| **Subset** : only the skills you name | `./install.sh --only build,ship` (remote: `curl -fsSL …/install.sh \| bash -s -- --only build,ship`) |
 
 What it puts where: the 20 skills → `~/.claude/commands/` (or `<project>/.claude/commands/`), plus the companions the skills read (`PRINCIPLES.md`, `VISION.md`, `PRODUCT.md` template) → `~/.claude/product-playbook/` (or `<project>/.claude/product-playbook/`).
 
 **Updating:** re-run the exact same command. It overwrites in place. There is no version check : if you want to be told about updates, use route A.
 
+#### C. Copy install, subset (`--only`)
+
+`--only` takes a comma-separated list of skill names : `./install.sh --only build,ship,drift-check`. It installs exactly those (flat skills and directory-form ones like `design-system`, with their `references/`) **plus the companions every skill reads** (`PRINCIPLES.md`, `VISION.md`, the `PRODUCT.md` template), which are never optional. It combines with `--project`. An unknown name installs nothing and prints the valid ones; `./install.sh --list` prints them on demand. Add more skills later by re-running with a new list : nothing already installed is removed.
+
+Skills stay runnable on their own, but a few **call other skills** when they are present : `/build` → `/code-review`, `/ship` → `/security-review`, `/drift-check` → `/doc-audit`. Those live outside this repo; if they are not installed, the composing skill runs without that step rather than failing.
+
 ### Did it work?
 
-Open a new Claude Code session and type `/playbook` (route A: `/product-playbook:playbook`). It should be offered as a command and greet you with the journey. Route A users can also run `/plugin list` and expect `product-playbook@product-playbook · Version: 1.7.0 · enabled`.
+Open a new Claude Code session and type `/playbook` (route A: `/product-playbook:playbook`). It should be offered as a command and greet you with the journey. Route A users can also run `/plugin list` and expect `product-playbook@product-playbook · Version: 1.9.0 · enabled`.
 
 ### Uninstall
 

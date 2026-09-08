@@ -1,6 +1,6 @@
 {
   "name": "product-playbook",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "description": "A phased, principle-driven product-building skill set — guides anyone (newcomer or experienced) through the full product lifecycle, sequential but standalone, with hard-won principles baked into each phase. Anti-scope-creep by design.",
   "author": "kish21",
   "license": "MIT",
@@ -11,6 +11,7 @@
     "from": "commands/*.md + directory-form commands/<name>/ (SKILL.md + references/) (+ PRINCIPLES.md, VISION.md, templates/PRODUCT.md)",
     "to": "~/.claude/commands/",
     "one_liner": "curl -fsSL https://raw.githubusercontent.com/kish21/product-playbook/master/install.sh | bash",
+    "subset": "./install.sh --only build,ship  (or: curl -fsSL .../install.sh | bash -s -- --only build,ship) — named skills + companions only; ./install.sh --list shows the names",
     "plugin": {
       "marketplace": "/plugin marketplace add kish21/product-playbook",
       "install": "/plugin install product-playbook@product-playbook",
