@@ -25,6 +25,8 @@ description: >
   - [ ] Config loads from config/`.env`; **the value actually flows** (verify — no dead/overridden config).
   - [ ] **Fail-loud on misconfig, fail-closed on security**: boot refuses on missing/known-constant secrets.
   - [ ] **Placeholders are rejected BY NAME at boot, not by length or format** — the loader knows the `CHANGE_ME__<VAR>__CHANGE_ME` values `/structure` wrote to `.env.example` and refuses to start on any of them, naming the variable and how to generate a real one. A length/format check is not this: a 48-char placeholder passes `min(32)` and boots the app on a public signing key. **A test proves it** (copy `.env.example` → `.env` unedited → boot fails), and under production (`NODE_ENV`/`APP_ENV`) there is **no override** — see `PRINCIPLES.md` §Production safeguards.
+  - [ ] **An isolated, disposable test datastore is provisioned** — its own variable (`TEST_DATABASE_URL` or the chosen datastore's equivalent) in `.env.example`, created and torn down by the task runner. Per-test transaction rollback is an acceptable alternative; **sharing the development datastore is not.** The test bootstrap **fails closed**: handed the dev or production target, it refuses to run, names both, and exits non-zero — verified by pointing it at the dev one on purpose.
+  - [ ] **The test runner loads config the same way the app does** (same loader, same precedence) — not whatever happened to be exported into the shell. A runner with its own config path is dead config on the test side, and it is how a suite ends up pointed at the wrong datastore.
   - [ ] Structured logging (no stray prints); dev tooling wired — lint/format + the **commit-hook runner and secret scanner `#Architecture` chose** (not a tool this skill picks).
   - [ ] **CI is in place and mirrors the prod bootstrap** (builds/migrates/tests from the real schema), green — a must, not optional.
   - [ ] CI runs **both secret-scan AND dependency-vulnerability scan** (e.g. `pip-audit`/`npm audit`), **fail-closed on a known CVE**; CI creates throwaway creds at runtime (no literal secret in the repo).
@@ -43,12 +45,13 @@ description: >
 ## Step 2 — Build the skeleton
 1. Dependency manifest + a runnable entrypoint with a **health/hello path** (the walking skeleton).
 2. **Config loader** reading `.env`/config; add a **startup guard** (fail-loud on misconfig, fail-closed on security) that holds the placeholder values as a **known-bad list** and rejects them by name, with a message saying how to generate a real value (`openssl rand -base64 32`). Keep the list next to the loader so adding a secret to `.env.example` and forgetting the guard is visible in one file.
-3. **Structured logging** (no prints) **+ a tracing / error-reporter hook** (even a stub behind an adapter) — wire base infra behind the adapters from `/architect` (DB/LLM/queue), even if stubbed.
-4. **The auto-layer:** dev tooling lint + format + **the commit-hook runner `#Architecture` recorded** running **secret-scan + dependency-vuln scan**; this is what enforces the deterministic checks on every commit so the later skills don't rely on memory. Wire an **automated dependency-update bot** (`.github/dependabot.yml`/Renovate) here too — adding the CVE gate on day one keeps it green from the start; bolting it on later means inheriting a backlog of CVEs that piled up unscanned.
-5. **CI** that installs, bootstraps from the real schema/migrations, runs lint/secret-scan/dep-scan/tests, **builds + runs in the container prod uses**, and **blocks merge on red** — green. CI creates throwaway creds at runtime (no secret in repo).
+3. **The test datastore + its guard**, alongside the app's own: provision a separate disposable target, wire the runner to the app's config loader, and write the **refuse-to-run guard** before any test exists. Order matters — a suite written first is a suite that has already run once against whatever was configured.
+4. **Structured logging** (no prints) **+ a tracing / error-reporter hook** (even a stub behind an adapter) — wire base infra behind the adapters from `/architect` (DB/LLM/queue), even if stubbed.
+5. **The auto-layer:** dev tooling lint + format + **the commit-hook runner `#Architecture` recorded** running **secret-scan + dependency-vuln scan**; this is what enforces the deterministic checks on every commit so the later skills don't rely on memory. Wire an **automated dependency-update bot** (`.github/dependabot.yml`/Renovate) here too — adding the CVE gate on day one keeps it green from the start; bolting it on later means inheriting a backlog of CVEs that piled up unscanned.
+6. **CI** that installs, bootstraps from the real schema/migrations, runs lint/secret-scan/dep-scan/tests, **builds + runs in the container prod uses**, and **blocks merge on red** — green. CI creates throwaway creds at runtime (no secret in repo).
 
 ## Step 3 — Write back to `PRODUCT.md`
-Fill `#Foundation`: runs end-to-end? · config-flow verified (how) · guards (**incl. the placeholder rejection + its test**) · secret-scan + dep-vuln · hook runner + CI (auto-layer) · container · observability hook.
+Fill `#Foundation`: runs end-to-end? · config-flow verified (how) · guards (**incl. the placeholder rejection and the test-datastore refuse-to-run guard, each with its test**) · isolated test datastore + how the runner loads config · secret-scan + dep-vuln · hook runner + CI (auto-layer) · container · observability hook.
 
 ## Step 3b — Principle-gate: verify it RUNS and the guards are real (evidence)
 Walk this phase's principles and prove each — don't assume:
@@ -56,6 +59,7 @@ Walk this phase's principles and prove each — don't assume:
 - config flows / no dead config → read a value back at runtime; evidence.
 - **the commit hooks + CI actually run** the deterministic checks (lint/format/secret-scan + dependency-vuln/tests) and **block on red** → show a green run; this is the auto-layer the later skills rely on.
 - fail-loud/fail-closed guard → trigger it with a missing secret and confirm it refuses to boot.
+- **test-isolation guard → point it at the dev datastore on purpose** and show it refusing to run, naming both targets. Then confirm the suite's teardown cannot reach the dev data. This one is verified by *attempting the destruction*, because the failure mode is silent until the data is gone.
 - **placeholder guard → replay the real failure:** copy `.env.example` to `.env` **unedited**, start the app, and show it **refusing to boot** with a readable message. If it starts, the guard is decorative and the product ships a public secret.
 **If any is "should" not "shown", STOP and make it real.** Record HOW in `#Foundation`.
 

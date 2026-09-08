@@ -3,6 +3,16 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.11.0] - 2026-09-08
+
+### Fixed - **the playbook permitted an integration suite to wipe the developer's database** (it did)
+The severest defect found so far, and it destroyed real data on the 2026-09-08 Phase 3 test run: `test:integration` ran against the same datastore URL the dev server used, its teardown hook truncated the tables, and the developer was left stranded at `/login` with no accounts. **This was not a project mistake - the playbook asked for the conditions that caused it.** `/test` required integration tests "across real contracts/boundaries (not all mocked)" and required them deterministic and CI-gating; **nothing anywhere required the test target to be a different datastore.** `/foundation` never provisioned one and `/structure` never scaffolded the variable, so a suite satisfying every one of `/test`'s exit criteria was permitted to point at the developer's database and truncate it. A toolkit that mandates real-boundary integration tests and stays silent on test-data isolation ships a data-destroying default.
+- **`PRINCIPLES.md` §Production safeguards** states it once, so every phase inherits it: tests run against an **isolated, disposable datastore** (a separate target, or per-test transaction rollback) - sharing the dev one is not an option - and the isolation is enforced by a **fail-closed bootstrap**, not a convention.
+- **`/foundation` provisions it as a deliverable:** its own variable, created and torn down by the task runner, plus the **refuse-to-run guard** written *before any test exists* - a suite written first is one that has already run once against whatever was configured. Step 3b verifies it **by attempting the destruction**: point the bootstrap at the dev target and show it refusing, naming both. The failure mode is silent until the data is gone.
+- **The test runner loads config the way the app does** (same loader, same precedence) - a runner with its own config path is dead config on the test side, and it is how a suite ends up aimed at the wrong datastore.
+- **`/structure`** declares the test-datastore variable in `.env.example`, distinct from the development one; **`/test`** gains the exit criterion - a suite that cannot name its isolated target does not pass the gate - and proves the target by reading back what the bootstrap resolved rather than trusting the variable's name.
+- Wording names no specific database, test runner or package manager (the tool-vs-capability rule from v1.10.0).
+
 ## [1.10.1] - 2026-09-08
 
 ### Fixed - **`/new-component` spoke a token vocabulary no other skill knew**
