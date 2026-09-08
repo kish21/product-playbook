@@ -3,6 +3,15 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.13.0] - 2026-09-08
+
+### Added - **Law 7b: status colours are checked against both WCAG bars**
+Found on the `/design-system` test run. The audit reported the sample dashboard **12 pass, 1 warn, 0 error** - and missed a colour that fails the bar the page itself cites. `--warning-dot` measures **2.27:1** against `--card` in light mode, under the 3:1 minimum for a meaningful graphic (WCAG 1.4.11), while the page's own token comment claimed *"the DOT stays brighter (3:1 graphical is enough)"*. The design asserted a bar it did not meet and the gate had no opinion. The cause: `PAIRS` checked shadcn foreground/surface pairs and a few aliases, and **never checked semantic status colours at all** - neither as text (4.5:1) nor as graphics (3:1). A status colour is the single most common place a palette drifts below AA: the shade is picked for *brightness* so the dot reads as "amber", then reused as a label.
+- **Both bars, chosen by the token's role.** Every status token is checked against `--card`/`--background`/`--popover`/`--muted` in **both modes**: **4.5:1** as text, or **3:1** where the name marks it a graphic (`-dot`, `-indicator`, `-fill`, `-bar`, `-chart`). One value can now pass as a dot and fail as a label - the single-bar output could not express that.
+- **Miss-by-design beats silence:** below its bar is an ERROR naming the ratio, the bar and the fix. A token that is genuinely never text opts out **explicitly** (`/* decorative */` on its declaration) - never inferred.
+- `references/universal-laws.md` Law 7 now states how the gate tells the bars apart, so the law and its enforcement agree.
+- Verified by replaying the sample: the `--warning-dot` failure is reported at **2.27:1**, matching the by-hand measurement exactly, while **all 12 originally-passing pairs still pass** (45 pass / 1 warn / 3 error). A project declaring no status tokens gains no findings.
+
 ## [1.12.0] - 2026-09-08
 
 ### Added - **Law 14b: `/frontend-audit` flags token references nothing defines**

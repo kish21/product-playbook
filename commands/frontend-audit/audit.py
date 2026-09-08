@@ -80,6 +80,49 @@ PAIRS = [
     ("--muted", "--surface"), ("--fg", "--bg"), ("--text-secondary", "--surface"),
 ]
 
+# --- Law 7, the two bars ---------------------------------------------------
+# WCAG has two thresholds and a status palette straddles them: 4.5:1 for text, 3:1 for a
+# "meaningful graphic" (1.4.11). A status colour is the single most common place a palette drifts
+# below AA - the value is picked for BRIGHTNESS so the dot reads as "amber", then reused as a label.
+STATUS_ROLES = ("success", "warning", "destructive", "danger", "error", "info")
+STATUS_SURFACES = ("--card", "--background", "--popover", "--muted")
+# A token whose NAME marks it as a graphic (dot / indicator / fill / bar / chart) is held to 3:1;
+# anything else carrying a status role is held to the 4.5:1 text bar.
+_GRAPHICAL_RE = re.compile(r"-(?:dot|indicator|fill|bar|chart)(?:-[\w-]+)?$")
+# Explicit opt-out: `--x: <value>;  /* decorative */` - a declaration, never an inference.
+_DECORATIVE_RE = re.compile(r"(--[\w-]+)\s*:[^;]+;\s*/\*[^*]*\bdecorative\b[^*]*\*/", re.I)
+
+def decorative_tokens(text):
+    return set(_DECORATIVE_RE.findall(text))
+
+def status_findings(path, mode, tokens, decorative, findings):
+    """Law 7 - status colours against the surfaces they sit on, at the bar their ROLE implies."""
+    surfaces = [s for s in STATUS_SURFACES if s in tokens]
+    if not surfaces:
+        return
+    for name, value in sorted(tokens.items()):
+        if not any(role in name for role in STATUS_ROLES):
+            continue
+        if name.endswith("-foreground") or name in decorative:
+            continue  # -foreground is text ON the status colour - covered by PAIRS
+        graphic = bool(_GRAPHICAL_RE.search(name))
+        bar, kind = (3.0, "non-text 3:1") if graphic else (4.5, "text 4.5:1")
+        for surf in surfaces:
+            ratio = contrast(value, tokens[surf])
+            if ratio is None:
+                continue
+            if ratio >= bar:
+                findings.append(("PASS", "Law7-status", path,
+                                 f"[{mode}] {name} on {surf} = {ratio:.2f}:1 (meets {kind})"))
+            else:
+                hint = ""
+                if not graphic and ratio >= 3.0:
+                    hint = (" - passes 3:1 as a graphic but fails the text bar; if this token is never "
+                            "used as text, mark it `/* decorative */` or name it --...-dot")
+                findings.append(("ERROR", "Law7-status", path,
+                                 f"[{mode}] {name} on {surf} = {ratio:.2f}:1 - below the {kind} bar"
+                                 f" for a {'graphical indicator' if graphic else 'status colour used as text'}{hint}"))
+
 def collect_tokens(text):
     return {k: v.strip() for k, v in _TOKEN_RE.findall(text)}
 
@@ -100,8 +143,10 @@ def audit_text(path, text, findings):
     if dark_raw:
         dark = dict(root); dark.update(collect_tokens(dark_raw))
         modes.append(("dark", dark))
+    decorative = decorative_tokens(text)
     checked_any = False
     for mode, tokens in modes:
+        status_findings(path, mode, tokens, decorative, findings)
         for fg, bg in PAIRS:
             if fg in tokens and bg in tokens:
                 ratio = contrast(tokens[fg], tokens[bg])
