@@ -269,6 +269,13 @@
       "prompt": "we already recorded lefthook, but structure just scaffolded .pre-commit-config.yaml — what now",
       "expected_output": "Applies PRINCIPLES.md Step 3c: names BOTH sides explicitly (#Architecture records lefthook vs the scaffolded .pre-commit-config.yaml), asks which one wins rather than resolving silently, then updates the LOSER — fixes the artefact or adds a dated 'superseded by' line to #Architecture — leaving exactly one recorded decision; does not flag added detail as a contradiction",
       "files": []
+    },
+    {
+      "id": "new-component-uses-recorded-tokens",
+      "skill": "new-component",
+      "prompt": "create a StatusChip component — the project has a DESIGN.md emitted by /design-system",
+      "expected_output": "Step 0 reads DESIGN.md and uses its recorded token names verbatim (shadcn OKLCH: --card, --muted, --destructive, --ring), never a private --color-* vocabulary; with no DESIGN.md it says so, recommends /design-system and falls back to shadcn defaults; verification lists every var(--token) the component references and confirms each is defined in DESIGN.md — because an undefined token does NOT fail /frontend-audit, CSS silently drops the declaration; a needed-but-undefined token goes back to /design-system rather than being invented here",
+      "files": []
     }
   ]
 }

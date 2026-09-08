@@ -3,6 +3,16 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.10.1] - 2026-09-08
+
+### Fixed - **`/new-component` spoke a token vocabulary no other skill knew**
+The three UI skills disagreed about what a design token is called. `/design-system` emits **shadcn-compatible OKLCH tokens** into `DESIGN.md` (`--primary`, `--muted-foreground`, `--destructive`); `/new-component` hardcoded its own (`--color-success`, `--color-surface-hover`, `--transition`, and the font constants `FONT`/`DISPLAY`/`MONO`) and **never read `DESIGN.md` at all**. It was also the only skill in `commands/` with no contract block, no `PRINCIPLES.md` line and no spine read - 27 lines of styling rules - so nothing had ever flagged it.
+- **Step 0 resolves the vocabulary before a line is written:** `DESIGN.md` §Tokens wins verbatim; with no `DESIGN.md` it says so, recommends `/design-system`, and falls back to the **shadcn defaults the ecosystem shares** - never to a private vocabulary. Concrete token names in the skill are now marked as *examples*; the nine styling rules keep their intent and stop dictating the names.
+- **Contract block + `PRINCIPLES.md` line added**, and `tools/check.py` now enforces both on the skills a build step depends on (`design-system`, `new-component`) via a new `CONTRACTED` set - phases keep the full template, `frontend-audit` stays exempt because its contract is `audit.py`'s exit code, not prose. Recorded, not left as a note.
+
+### Changed - the verification, because the premise turned out to be wrong
+The ticket said a private-vocabulary component "can fail the audit `/build` gates on". **Verified: it does not.** The same component written twice - shadcn tokens vs private tokens - both audit **0 errors**, and the private one still passes when `DESIGN.md` is handed to the audit in the same run. CSS drops a `var()` referencing an undefined token *silently*, so the colour never arrives and nothing reports it. The skill now says that plainly and verifies with a `grep` of every referenced `var(--…)` against `DESIGN.md` - the check that actually catches it - with the audit as the second, explicitly insufficient, gate. **Filed #92** for the real net: `/frontend-audit` should flag orphaned token references.
+
 ## [1.10.0] - 2026-09-08
 
 ### Added - **Step 3c, the contradiction check** (every phase that writes)
