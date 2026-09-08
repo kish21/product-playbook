@@ -47,6 +47,8 @@ description: >
 - **Docs match reality:** a claim in the docs that the code doesn't support is drift too.
 
 ## Step 2 — Check for drift
+> Each phase now runs its own **Step 3c** contradiction check before its gate closes (`PRINCIPLES.md` §Step 3c), so a contradiction *between* two spine sections should be rare and dated. This sweep is what catches the ones that escaped — and a conflict you find here that carries **no `superseded by` line** means a phase skipped its Step 3c: report that as drift in its own right.
+
 1. **Scope creep:** list features in the code/build log not justified by `#Scope`; flag anything built that's a **Non-goal** or a **Deferred** item whose trigger never fired. Also flag the inverse: a deliberate pivot the spine never recorded → recommend updating `#Scope`/`#Vision`, not cutting code.
 2. **Vision drift:** is the current direction still serving `#Vision` and its north-star metric? Surface any quiet pivot. If `#Validation` is empty or holds an **override** while code exists, that is a **standing finding** — the product is being built on an untested riskiest assumption; recommend `/validate` (still cheaper than the next feature).
 3. **Plan / concern-area drift:** milestones skipped or reordered off core-first? Re-read `#Plan`'s concern-area checklist — any "now" still unbuilt, any "next" overdue?

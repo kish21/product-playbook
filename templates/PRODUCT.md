@@ -49,6 +49,7 @@ _Last updated: <date> · Stage: <phase> · AI product? <yes/no>_
 
 ## Architecture      <!-- /architect -->
 - **Stack + tools (and why, 2026 OSS-first):**
+- **Dev tooling (hook runner · secret scanner · task runner · formatter/linter · dependency manifest — `/structure` scaffolds exactly these):**
 - **Key decisions / ADRs (patterns applied · anti-patterns avoided):**
 - **Externals behind provider/adapter interfaces (+ resilience strategy each):**
 - **Resilience · perf/cost budget · migrations approach:**
@@ -70,7 +71,7 @@ _Last updated: <date> · Stage: <phase> · AI product? <yes/no>_
 - **Runs end-to-end (walking skeleton):**
 - **Config flows verified (no dead config):**
 - **Fail-loud/fail-closed guards · secret-scan + dependency-vuln scan · CI mirrors prod:**
-- **pre-commit + CI auto-run (lint/format/secret-scan/tests) · runs in its container · async-safe:**
+- **Commit hooks + CI auto-run (lint/format/secret-scan/tests) · runs in its container · async-safe:**
 - **Observability wired (tracing / error-reporter, even a stub):**
 
 ## Contracts         <!-- /contracts -->

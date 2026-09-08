@@ -72,6 +72,9 @@ happens, the move is an **explicit recorded reversal, never silent drift**:
 If the assistant notices work quietly contradicting a Non-goal without this protocol, that is
 drift — surface it (`/drift-check` treats an unrecorded reversal as a finding, not a decision).
 
+## Step 3c — Contradiction check (before the gate closes)
+Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Vision` (customer · job-to-be-done · north star) and `#Validation`'s verdict — a core feature that serves nobody in `#Vision`, or scope written as if a failed validation had passed. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
+
 ## Step 4 — Handoff
 "Scope locked — one core feature, with an explicit out-of-scope list. `/drift-check` will hold you to
 it later. Next run **`/plan`** to sequence the build core-first."

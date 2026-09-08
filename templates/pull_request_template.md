@@ -15,7 +15,7 @@
 <!-- Run the project's own gate — the `check` target in the Makefile / package scripts (see STRUCTURE.md) — and paste the command you ran. -->
 - [ ] Tests pass — command: `        `
 - [ ] Build / type-check passes — command: `        `
-- [ ] Secret-scan clean (the pre-commit hook from `/foundation`)
+- [ ] Secret-scan clean (the commit hook from `/foundation`)
 - [ ] No hardcoded values — new endpoints, keys, model names, thresholds live in config / `.env`
 - [ ] Feature doc `docs/features/<feature>.md` matches the code
 - [ ] UI changes verified against `DESIGN.md` (`/frontend-audit` 0 errors) — or N/A

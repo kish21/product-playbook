@@ -54,6 +54,9 @@ least one **integration + live-path** test (compose `/verify`+`/run`), not only 
 **golden/eval dataset** exists. **If only isolated units exist, or the suite isn't a CI gate, STOP and
 add them** — that's exactly the gap that ships broken-but-green code.
 
+## Step 3c — Contradiction check (before the gate closes)
+Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Contracts` and `#Architecture` — a suite that asserts a shape the contracts don't declare, or **points a real-boundary test at the datastore `#Foundation` recorded for development**. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
+
 ## Step 4 — Handoff
 "Suite covers units, integration, the live path, and adversarial cases. Next run **`/eval`** to judge
 whether it's actually *good*, measured — not just whether it runs."

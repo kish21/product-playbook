@@ -126,7 +126,10 @@ Walk **this phase's load-bearing principles (Step 1)** and confirm each is real 
 - (lane mode) inside-the-lane → `git diff --name-only <base>` shows only `ALLOW` paths and no spine file;
   `lanekeeper check --lane <name> --base <base>` passes.
 
-**If any named principle is only claimed, not evidenced, STOP — the feature is not done.** Record the *how-verified* per principle in `#Build log` (evidence, not "done"). (Deterministic checks also run via pre-commit + CI from `/foundation`; this gate is the judgment layer.)
+**If any named principle is only claimed, not evidenced, STOP — the feature is not done.** Record the *how-verified* per principle in `#Build log` (evidence, not "done"). (Deterministic checks also run via the commit hooks + CI from `/foundation`; this gate is the judgment layer.)
+
+## Step 3c — Contradiction check (before the gate closes)
+Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Contracts` (types crossing boundaries), `#Architecture` (adapters — no vendor SDK in logic), `#Scope` (non-goals) and `DESIGN.md` (UI tokens) — the richest surface for contradiction, because this is the phase that writes real code. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
 
 ## Step 4 — Handoff
 "Feature done, verified, and documented. Build the next core-scope feature with `/build`, or when the

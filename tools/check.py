@@ -9,7 +9,7 @@ Checks:
      (flat `commands/*.md` AND directory-form `commands/<name>/SKILL.md`).
   2. manifest.json + evals/evals.json are valid JSON (so are the plugin manifests, if present).
   3. Every canonical PHASE skill (the vision->learn chain) has the template structure
-     (Contract · Exit criteria · PRINCIPLES.md · Step 3b · Step 4 Handoff). The entry (playbook),
+     (Contract · Exit criteria · PRINCIPLES.md · Step 3b · Step 3c · Step 4 Handoff). The entry (playbook),
      cross-cutting (drift-check) and the UI suite (design-system, frontend-audit, new-component)
      have their own formats — they get registration + line-budget checks only.
   4. Every skill file is under the SKILL line budget (500).
@@ -81,7 +81,7 @@ def main() -> int:
         if n > LINE_BUDGET:
             fail(f"{c} is {n} lines (> {LINE_BUDGET})")
         if c in TEMPLATE:
-            for token in ("## Contract", "Exit criteria", "PRINCIPLES.md", "Step 3b", "Step 4 - Handoff"):
+            for token in ("## Contract", "Exit criteria", "PRINCIPLES.md", "Step 3b", "Step 3c", "Step 4 - Handoff"):
                 # match the literal heading regardless of hyphen/dash style
                 if token not in text and token.replace(" - ", " — ") not in text:
                     fail(f"{c} missing {token!r}")

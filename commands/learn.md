@@ -50,6 +50,9 @@ Fill `#Learnings`: metric + result (instrumented) · user signal · retro · dec
 Check the boxes. **If the next step isn't backed by evidence, or it quietly pulls in an OUT-OF-SCOPE
 item without a trigger, STOP and reconsider** — that's how the next cycle starts drifting.
 
+## Step 3c — Contradiction check (before the gate closes)
+Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Vision`'s north star against what you measured, and next-cycle proposals against `#Scope`'s non-goals — 'what we learned we should build' is the most common way a non-goal comes back unrecorded. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
+
 ## Step 4 — Handoff
 "Learnings captured and the next move is evidence-based. Start the next cycle: run **`/scope`** (or
 **`/plan`**) for the next feature — and **`/drift-check`** anytime you suspect creep."

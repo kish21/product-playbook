@@ -59,6 +59,9 @@ Walk the exit criteria and confirm each is **concrete with evidence** — the co
 named products (not from memory), the metric is a measurable number, the JTBD/risk are specific. **If any
 field is empty or vague, STOP and fill it with the user** — a fuzzy vision is the root of later drift.
 
+## Step 3c — Contradiction check (before the gate closes)
+Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: any spine that already exists (`README.md`/`CLAUDE.md` purpose, a prior `#Vision`) — a re-run that quietly changes the customer, the north star or the business model rewrites the premise every later phase was built on. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
+
 ## Step 4 — Handoff
 "Vision captured in `PRODUCT.md`. Next run **`/validate`** to test the riskiest assumption you just
 named with the cheapest real-world experiment — days of evidence before months of code. Then

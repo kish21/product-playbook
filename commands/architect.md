@@ -20,9 +20,9 @@ description: >
 ## Contract
 - **Purpose:** choose the stack/tools/decisions before any folders exist, aligned to the product.
 - **Reads:** `PRODUCT.md#Vision`, `#Scope`, `#Plan`.
-- **Writes:** `PRODUCT.md#Architecture` — stack+tools+why · ADRs · externals behind adapters · resilience · perf/cost budget · (AI) prompt-versioning/eval.
+- **Writes:** `PRODUCT.md#Architecture` — stack+tools+why · **dev tooling** · ADRs · externals behind adapters · resilience · perf/cost budget · (AI) prompt-versioning/eval.
 - **Exit criteria (the gate — small: is the section complete?):**
-  - [ ] `#Architecture` is complete and **traces to scope/plan** (no gold-plating): stack+tools+why, every external behind an adapter, key ADRs (incl. patterns applied / anti-patterns avoided), migrations approach, and the **decisions for the concern areas this product needs** — resilience · perf/cost budget · security/no-secret-in-code · observability, **+ (AI) prompt-versioning/eval/tracing** — each recorded or marked **N/A**.
+  - [ ] `#Architecture` is complete and **traces to scope/plan** (no gold-plating): stack+tools+why, every external behind an adapter, key ADRs (incl. patterns applied / anti-patterns avoided), migrations approach, a **Dev tooling** line naming the hook runner · secret scanner · task runner · formatter/linter · dependency manifest (the tools `/structure` will scaffold — leave one unnamed and `/structure` picks it blind), and the **decisions for the concern areas this product needs** — resilience · perf/cost budget · security/no-secret-in-code · observability, **+ (AI) prompt-versioning/eval/tracing** — each recorded or marked **N/A**.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Vision/#Scope/#Plan`. If `#Scope`/`#Plan` are empty, warn and offer to run them first (allow override).
@@ -43,20 +43,25 @@ description: >
 2. **Choose the stack core** (language · framework · datastore · key libs). One-line why each; flag anything paid and its trigger to adopt.
 3. **List every external** and the **adapter interface** it will hide behind (e.g. `LLMProvider`, `Storage`) — *and* its **failure/resilience strategy** (timeouts · retry-transient-only · fallback/circuit-breaker). This is what keeps it swappable, testable, and resilient.
 4. **Set a rough perf/cost budget** where it matters (latency + cost-per-operation), since the stack choice locks it in — or mark **N/A**. **Derive the number from the dominant cost, don't guess it:** name the single most expensive step (a durable fsync, an LLM call, a network hop) and budget from a quick probe of *that* — or, if you can't probe now, write the budget as **explicitly aspirational** and commit to **re-measuring it in `/eval`**. A hard ADR number pulled from a hunch tends to miss by ~2× and erodes trust when `/eval` measures the truth.
-5. **If it's an AI product:** decide **prompt-versioning**, an **eval harness**, and **LLM tracing/observability** as ADRs (don't let them emerge).
-6. **Record 2–4 ADRs** for the load-bearing choices (decision · why · rejected alternative).
+5. **Name the dev tooling** — hook runner (pre-commit · lefthook · husky) · secret scanner · task runner (`make` · npm scripts · just) · formatter/linter · dependency manifest. These look like trivia and are not: `/structure` scaffolds these files next, and an *unrecorded* slot is one it fills from habit rather than from the stack (a Python hook runner landing in a Node repo). Pick them **from the stack you just chose**, one line of why each.
+6. **If it's an AI product:** decide **prompt-versioning**, an **eval harness**, and **LLM tracing/observability** as ADRs (don't let them emerge).
+7. **Record 2–4 ADRs** for the load-bearing choices (decision · why · rejected alternative).
 - Give **one recommendation** for the stack; get a yes/no. Keep it plain — explain *why* for a newcomer.
 
 ## Step 3 — Write back to `PRODUCT.md`
-Fill `#Architecture`: stack+tools+why · ADRs (patterns/anti-patterns) · externals behind adapters + resilience · perf/cost budget · migrations approach · (AI) prompt-versioning/eval/tracing.
+Fill `#Architecture`: stack+tools+why · **dev tooling** (hook runner · secret scanner · task runner · formatter/linter · dependency manifest) · ADRs (patterns/anti-patterns) · externals behind adapters + resilience · perf/cost budget · migrations approach · (AI) prompt-versioning/eval/tracing.
 
 ## Step 3b — Principle-gate: verify the decisions are real, not vague
 Walk this phase's load-bearing principles (Step 1) and confirm each is **concretely decided**, not hand-waved:
 - every external actually has an adapter interface **and** a resilience strategy (no raw vendor SDK in logic);
 - patterns/anti-patterns are *addressed by the design*, not just listed;
-- secrets go to `.env` (none in code); a migrations approach exists for any datastore.
+- secrets go to `.env` (none in code); a migrations approach exists for any datastore;
+- **every dev-tooling slot is named and stack-appropriate** — `/structure` treats this line as the instruction for which files to write.
 **If any is vague or missing, STOP and decide it.** (No code yet, so the evidence is concrete, consistent
 decisions in `#Architecture`; `/build` later re-verifies them in code via `/code-review`.)
+
+## Step 3c — Contradiction check (before the gate closes)
+Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Scope` and `#Plan` — a stack sized for work that is explicitly out of scope is gold-plating, and a perf/cost budget must not contradict `#Vision`'s business model (paid infra against a free product). On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
 
 ## Step 4 — Handoff
 "Stack and decisions recorded. Now build the **first concrete thing**: run **`/structure`** to lay
