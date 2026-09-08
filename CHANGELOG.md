@@ -3,6 +3,15 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.12.0] - 2026-09-08
+
+### Added - **Law 14b: `/frontend-audit` flags token references nothing defines**
+Found while verifying #84, which claimed a component written to a private token vocabulary "can fail the audit `/build` gates on". It does not - and the truth is worse. The same component written twice, shadcn tokens vs private `--color-*` ones, both audited **0 errors**; the private one still passed when `DESIGN.md` was handed to the audit **in the same run**. Every one of its nine tokens was undefined. CSS treats `color: var(--color-success)` with no such token as invalid at computed-value time and **drops the declaration**, so the value silently inherits: the component looks almost right, the colour never arrives, and nothing reports it - not the build, not the audit, not the console. v1.10.1 fixed the cause; this is the net.
+- **Cross-file by construction** - `audit.py DESIGN.md frontend/` collects definitions across the whole audited set before resolving references, so a component is checked against the design system it is audited with.
+- **ERROR** when the set defines tokens (the reference is provably orphaned), naming each one. **WARN "unverified"** when the set defines none at all - the same anti-false-pass convention Law 7 already uses, so auditing a component without its stylesheet says so instead of quietly passing. `var(--x, fallback)` is exempt: a declared fallback is a deliberate choice.
+- **`/new-component`'s verification is now this check** rather than the hand-rolled `grep` v1.10.1 shipped, and it says to pass `DESIGN.md` alongside the component - auditing the component alone cannot verify tokens and now admits it.
+- Verified on the real 725-line `/design-system` sample: **12 pass · 1 warn · 0 error**, unchanged - no false positives on a page whose tokens are all defined.
+
 ## [1.11.0] - 2026-09-08
 
 ### Fixed - **the playbook permitted an integration suite to wipe the developer's database** (it did)

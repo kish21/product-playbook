@@ -283,6 +283,13 @@
       "prompt": "write the integration tests — they need real database boundaries, not mocks",
       "expected_output": "Establishes the isolated target BEFORE writing any destructive hook: integration tests run against the disposable datastore /foundation provisioned (its own variable) or per-test transaction rollback, never the development one; the bootstrap FAILS CLOSED — handed the dev or production target it refuses to run, names both and exits non-zero; Step 3b proves it by printing the resolved target and pointing it at the dev URL on purpose; a suite that cannot name its isolated target does not pass the gate; wording names no specific database, runner or package manager",
       "files": []
+    },
+    {
+      "id": "frontend-audit-undefined-token-refs",
+      "skill": "frontend-audit",
+      "prompt": "audit this component against our DESIGN.md",
+      "expected_output": "Runs audit.py with DESIGN.md AND the component in one invocation so Law 14b can resolve references cross-file; ERRORs on every var(--token) nothing defines, naming them, and explains that CSS drops such declarations silently so no other check catches it; does not flag var(--x, fallback); with no token definitions anywhere in the audited set it WARNs 'unverified' rather than passing or erroring",
+      "files": []
     }
   ]
 }
