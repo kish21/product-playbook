@@ -70,7 +70,8 @@ _Last updated: <date> · Stage: <phase> · AI product? <yes/no>_
 ## Foundation        <!-- /foundation -->
 - **Runs end-to-end (walking skeleton):**
 - **Config flows verified (no dead config):**
-- **Fail-loud/fail-closed guards · secret-scan + dependency-vuln scan · CI mirrors prod:**
+- **Fail-loud/fail-closed guards (placeholder rejection · test-datastore refusal) · secret-scan + dependency-vuln scan · CI mirrors prod:**
+- **Isolated test datastore provisioned (variable + teardown) · test runner uses the app's config loader:**
 - **Commit hooks + CI auto-run (lint/format/secret-scan/tests) · runs in its container · async-safe:**
 - **Observability wired (tracing / error-reporter, even a stub):**
 
@@ -91,6 +92,7 @@ _Last updated: <date> · Stage: <phase> · AI product? <yes/no>_
 - [ ] Scope re-check — nothing crept in
 
 ## Tests             <!-- /test -->
+- **Isolated test datastore (the target the suite runs against) · bootstrap refuses dev/prod:**
 - **Unit / integration / regression coverage (critical path accounted for):**
 - **Adversarial/security (prompt-injection, authz) cases:**
 - **Live-path verified (not just isolated units):**

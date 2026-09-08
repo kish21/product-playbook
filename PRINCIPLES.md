@@ -39,6 +39,12 @@
   format-checked. A 48-character `replace-me-with-32-plus-random-characters` placeholder passes `min(32)` and boots
   the app on a session-signing key that is public in git. The boot failure names the variable and how to generate a
   real value; under production (`NODE_ENV`/`APP_ENV`) there is **no override**.
+- **Tests never touch the developer's or production data** — an integration suite runs against an
+  **isolated, disposable datastore** (a separate URL, or per-test transaction rollback); sharing the dev
+  one is not an option, because "real boundaries" plus a teardown hook is a truncate away from real data.
+  The isolation is enforced by a **fail-closed bootstrap**, not a convention: if the target it was handed
+  is the dev or production one, the suite **refuses to run**, names both, and exits non-zero. A destructive
+  hook must never be one copied `.env` away from the real thing.
 - **AI-specific security (when the product uses LLMs)** — defend against **prompt injection**, jailbreaks, data exfiltration via outputs, secret/PII leakage, tool/over-agency abuse. Benchmark to the **OWASP LLM Top 10**.
 - **Observability & audit** — structured logging; trace every external/LLM/agent step; an audit record for state changes.
 - **Fail-safe errors** — graceful fallbacks; never silently swallow errors; retry only *transient* failures.

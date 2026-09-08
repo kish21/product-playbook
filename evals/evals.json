@@ -276,6 +276,13 @@
       "prompt": "create a StatusChip component — the project has a DESIGN.md emitted by /design-system",
       "expected_output": "Step 0 reads DESIGN.md and uses its recorded token names verbatim (shadcn OKLCH: --card, --muted, --destructive, --ring), never a private --color-* vocabulary; with no DESIGN.md it says so, recommends /design-system and falls back to shadcn defaults; verification lists every var(--token) the component references and confirms each is defined in DESIGN.md — because an undefined token does NOT fail /frontend-audit, CSS silently drops the declaration; a needed-but-undefined token goes back to /design-system rather than being invented here",
       "files": []
+    },
+    {
+      "id": "test-isolated-datastore-fails-closed",
+      "skill": "test",
+      "prompt": "write the integration tests — they need real database boundaries, not mocks",
+      "expected_output": "Establishes the isolated target BEFORE writing any destructive hook: integration tests run against the disposable datastore /foundation provisioned (its own variable) or per-test transaction rollback, never the development one; the bootstrap FAILS CLOSED — handed the dev or production target it refuses to run, names both and exits non-zero; Step 3b proves it by printing the resolved target and pointing it at the dev URL on purpose; a suite that cannot name its isolated target does not pass the gate; wording names no specific database, runner or package manager",
+      "files": []
     }
   ]
 }
