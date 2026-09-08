@@ -3,6 +3,15 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.19.0] - 2026-09-08
+
+### Fixed - **`/design-system` proposed the look before asking what the user wanted**
+Reported from a real `/design-system` run. The cause was not an ordering nit - **three statements described three behaviours**: `references/archetypes.md` headed its picker *"decide the archetype **FOR** the user"* and then, **one line later**, said *"**Ask the user** - plain language, one recommended answer each"*; `SKILL.md` Step 2 followed the heading (*"map the principles to one of the 13 families"*), so the agent answered all three questions on the user's behalf and the user was never asked them.
+- **The ordering compounded it.** Step 2 read *"propose ONE as the default ... **then** ask the user 'do you already have a look in mind?'"*, and the exit criterion required both the proposal and the ask but **said nothing about their order** - so anchoring was compliant. A user handed a confident, well-argued recommendation says "yours is fine", not because they have no taste but because they were never given a blank page to answer from.
+- **Step 2 is now ask-first:** the user's own reference is requested **before any family is named**, they answer the 3-question picker themselves (each with a recommended answer offered, so it stays one short exchange), and only then is one of the 13 families proposed - with a why that references what they just said. Their idea still wins. **A user with no opinion still gets a confident default in one turn**; the change adds no steps for them.
+- **The exit criterion now states the order**, so proposal-then-ask no longer passes the gate, and `archetypes.md` stops contradicting its own next line.
+- **Why this differs from `/architect`'s "one recommendation, get a yes/no":** for a stack the skill holds knowledge the user may lack, so leading with a recommendation is right. For **aesthetics the user's taste is the primary input** - the skill has no privileged view of what they like, and a design the user did not choose is one they will fight for the rest of the project.
+
 ## [1.18.0] - 2026-09-08
 
 ### Added - **`/adopt` - bring an existing, half-built project into the playbook**
