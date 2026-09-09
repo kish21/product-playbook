@@ -4,15 +4,49 @@
 [![Version](https://img.shields.io/badge/version-1.20.0-blue.svg)](CHANGELOG.md)
 ![Claude Code skills](https://img.shields.io/badge/Claude%20Code-21%20skills-8A2BE2.svg)
 
-**A guided path from idea -> shipped that bakes in the engineering discipline most teams learn the hard way.**
+**A guided path from idea → shipped that bakes in the engineering discipline most teams learn the hard way.**
+
+`product-playbook` is **21 Claude Code skills** that walk a product through six phases — Product → Development → Testing → Evaluation → Ship → Learn — **one gate at a time**. Each skill reads what the phase before it decided, does its own step, writes the result into one file at your repo root (`PRODUCT.md`), then **stops and waits for your confirmation**. Nothing advances on a vibe: every gate is checked against evidence in the repo, not against what the last session remembers.
+
+**Requirements:** Claude Code (≥ 2.0.70 for the plugin route). Language- and framework-agnostic — it drives your process, not your stack.
+
+## ⚡ Quick start
+
+```
+/plugin marketplace add kish21/product-playbook
+/plugin install product-playbook@product-playbook
+```
+
+Then, in a new Claude Code session:
+
+| Your situation | Type this |
+|---|---|
+| Brand-new idea, nothing built | `/product-playbook:playbook` — it asks where you are and runs the right phase |
+| You already have code, but no plan written down | `/product-playbook:adopt` — drafts a `PRODUCT.md` from the repo and confirms it with you |
+| You have a process already, want one step of it | Any skill on its own, e.g. `/product-playbook:tickets` or `/product-playbook:ship` |
+| Not sure the project is still on track | `/product-playbook:drift-check` |
+
+If the install summary says `Run /reload-plugins to activate.`, run it first. Prefer plain `/vision`-style names (no plugin prefix), a project-local install, or just a few of the skills? See [Installation and Setup](#install).
+
+## Contents
+
+- [The personal story: the vibe coding trap](#story) — why this exists
+- [How it works: the files and principles](#how-it-works) — `PRODUCT.md`, `PRINCIPLES.md`, the commands, the templates
+- [The playbook journey](#journey) — the phase map
+- [Skill reference](#skill-reference) — all 21 skills, what each writes
+- [Installation and setup](#install) — three install routes, updating, uninstalling
+- [Contributing](#contributing)
 
 ---
 
-## 📖 The Personal Story: The Vibe Coding Trap
+<a id="story"></a>
+<details>
+<summary><strong>📖 The personal story: the vibe coding trap</strong> — click to read why this playbook exists</summary>
+
 
 In this AI era, everyone is building a product. I did too.
 
-Armed with tools like Claude Code, Cursor, and Copilot, I was coding at 100mph. I felt like a superhero. I was spinning up files, adding features in minutes, and generating entire modules with single prompts. We call it "vibe coding." It feels like magic:until the vibe fades and reality hits.
+Armed with tools like Claude Code, Cursor, and Copilot, I was coding at 100mph. I felt like a superhero. I was spinning up files, adding features in minutes, and generating entire modules with single prompts. We call it "vibe coding." It feels like magic—until the vibe fades and reality hits.
 
 Suddenly, I found myself staring at a product that was slipping away from me. I was completely lost.
 
@@ -23,15 +57,19 @@ Here is exactly how it happened:
 4.  **I hardcoded vendor APIs directly into my business logic:** I let the AI wire code straight to a specific vendor's SDK. When I needed to swap providers, I had to touch and refactor half the codebase.
 5.  **I accidentally exposed secrets and skipped tenant isolation:** A missing security filter almost let users see another customer's data, and placeholder keys were constantly in danger of being committed.
 
-**The Lesson I Learned:** AI is an incredible *execution engine*, but it is not a *discipline engine*. If you build without guardrails, AI doesn't just build your product:it multiplies the entropy, debt, and chaos at 100mph.
+**The Lesson I Learned:** AI is an incredible *execution engine*, but it is not a *discipline engine*. If you build without guardrails, AI doesn't just build your product—it multiplies the entropy, debt, and chaos at 100mph.
 
 To cut short the time of my next project and stay laser-focused, I needed a playbook. Not just a document, but **executable skills with evidence-based gates and checks** that force both me and the AI to maintain engineering discipline.
 
-> 👉 *Short on time? **[Skip the story : jump straight to the 21 skills ->](#skill-reference)***
+> 👉 *Short on time? **[Skip the story — jump straight to the 21 skills ->](#skill-reference)***
 
 `product-playbook` was born from my scars. It turns those lessons into a single, shared rulebook (`PRINCIPLES.md`) and maps them to **21 step-by-step commands (skills)** (18 journey phases + `/adopt` for projects that already have code + the `/frontend-audit` and `/new-component` UI-suite skills). It forces you to move one phase at a time, checking gates with evidence before writing code, so you get senior-level discipline by default.
 
+</details>
+
 ---
+
+<a id="how-it-works"></a>
 
 ## ⚙️ How it Works: The Files and Principles
 
@@ -52,7 +90,7 @@ Every project gets a single file at its root called `PRODUCT.md` (instantiated f
 
 ### 2. The Rulebook (`PRINCIPLES.md`)
 The single source of truth for your quality bar. It details:
-*   **The 5-Step Spine:** Architect first , Verify assumptions , No hardcoding , Benchmark to the current year , Self-review.
+*   **The 5-Step Spine:** Architect first → Verify assumptions → No hardcoding → Benchmark to the current year → Self-review.
 *   **Per-Feature Contracts:** Explicit exit criteria, interaction maps, and independent test plans.
 *   **Production Safeguards:** Zero-secrets, fail-closed security, observability, and rollback paths.
 
@@ -64,7 +102,7 @@ These are **21 custom Markdown commands** (skills) that you install into Claude 
 name: vision
 description: Phase 1 (Product) of product-playbook.
 ---
-# `/vision` : Phase 1 , Product
+# `/vision` — Phase 1, Product
 
 ## Contract
 - **Purpose:** turn a rough idea into a sharp, benchmarked product vision.
@@ -76,7 +114,7 @@ description: Phase 1 (Product) of product-playbook.
   - [ ] North-star success metric.
   - [ ] Verified current-year market read.
 ```
-*(Abridged : the real skill also captures the value proposition, riskiest assumption, business model, and whether it's an AI product.)*
+*(Abridged — the real skill also captures the value proposition, riskiest assumption, business model, and whether it's an AI product.)*
 
 When you run `/playbook` or an individual command, the AI is instructed to:
 1.  Verify the prior gate's exit criteria.
@@ -91,12 +129,14 @@ Think of a template as a printed form with blank boxes. A skill fills the boxes 
 | Form | File | Who fills it | What its boxes ask |
 |---|---|---|---|
 | **The product spine** | `templates/PRODUCT.md` | Every phase skill, one section each | Vision, Scope, Plan, Architecture, and so on. An empty section means that phase is not done yet. |
-| **The ticket form** | `templates/feature_ticket_template.md` | `/tickets`, one copy per ticket | The goal; how the work was cut (a thin end-to-end slice, a single layer, or a one-off bug); the feature it belongs to (the optional *Lane*); the **exact files it may touch** : the box that keeps a ticket small and lets two people work without colliding; what data it takes in and hands out; which tickets must come first; what a reviewer can *see working* after merge; a short task list; a definition of done with security built in; the one command that proves it works. |
+| **The ticket form** | `templates/feature_ticket_template.md` | `/tickets`, one copy per ticket | The goal; how the work was cut (a thin end-to-end slice, a single layer, or a one-off bug); the feature it belongs to (the optional *Lane*); the **exact files it may touch** — the box that keeps a ticket small and lets two people work without colliding; what data it takes in and hands out; which tickets must come first; what a reviewer can *see working* after merge; a short task list; a definition of done with security built in; the one command that proves it works. |
 | **The pull request form** | `templates/pull_request_template.md` | GitHub shows it on every PR | Which issue it closes, a summary, the files changed, and a checklist of what was verified using the project's own test command. |
 
-How they fit together: the spine says *what* to build, the ticket form turns that into small bounded pieces, and the pull request form is how each finished piece is checked back in. (When [Lanekeeper](https://github.com/kish21/parallel-agents) is present it supplies its own pull request form, so `/tickets` leaves that one alone : see `PRINCIPLES.md` §Lane mode.)
+How they fit together: the spine says *what* to build, the ticket form turns that into small bounded pieces, and the pull request form is how each finished piece is checked back in. (When [Lanekeeper](https://github.com/kish21/parallel-agents) is present it supplies its own pull request form, so `/tickets` leaves that one alone — see `PRINCIPLES.md` §Lane mode.)
 
 ---
+
+<a id="journey"></a>
 
 ## 🗺️ The Playbook Journey
 
@@ -121,19 +161,19 @@ ANYTIME          /drift-check (detects scope creep or code-docs drift)
 | Group | Skill | What it does | Output produced | Use it when |
 |---|---|---|---|---|
 | **Start** | `/playbook` | Guided entry-point that orchestrates phases | Routes only | You are starting fresh or unsure of the next step |
-| **Product** | `/vision` | Sharpens who it's for, the problem, and the job they need done : vs the market | `PRODUCT.md` -> **Vision** | Starting a brand-new project |
+| **Product** | `/vision` | Sharpens who it's for, the problem, and the job they need done — vs the market | `PRODUCT.md` -> **Vision** | Starting a brand-new project |
 | **Start** | `/adopt` | Brings an **existing, half-built** project in: drafts an INFERRED `PRODUCT.md` from the repo (docs, package metadata, routes, tests, CI), tags every inferred line, and confirms it with you section by section before writing | `PRODUCT.md` (`Stage: adopted`) | You already have code but no spine |
-| **Product** | `/validate` | Tests the riskiest assumption with the cheapest real-world experiment BEFORE code : threshold set in advance, measured result, proceed / pivot / **kill** | `PRODUCT.md` -> **Validation** | Right after `/vision`, before any scoping or code |
+| **Product** | `/validate` | Tests the riskiest assumption with the cheapest real-world experiment BEFORE code — threshold set in advance, measured result, proceed / pivot / **kill** | `PRODUCT.md` -> **Validation** | Right after `/vision`, before any scoping or code |
 | **Product** | `/scope` | Locks down **one** core feature; lists Deferred and Non-goals | `PRODUCT.md` -> **Scope** | Defining MVP / fighting feature creep |
 | **Product** | `/plan` | Core-first milestones + concern-area checklists | `PRODUCT.md` -> **Plan** | Creating the roadmap |
 | **Dev** | `/architect` | Chooses stack, records ADRs, wraps externals in adapters | `PRODUCT.md` -> **Architecture** | Before writing any code |
 | **Dev** | `/structure` | Scaffolds directory layout + root scaffolding; `app/prompts/` for AI | File tree + `STRUCTURE.md` | The first coding step |
 | **Dev** | `/design-system` | (UI products) Derives design principles -> confirmed sample page -> archetype-correct `DESIGN.md` (shadcn tokens). Kills the generic AI look; fixes too-small fonts | `DESIGN.md` + sample page + `PRODUCT.md` -> **Design** | Before building any screens |
-| **Dev / UI** | `/frontend-audit` | (UI products) Mechanically enforces the design-system laws : a real OKLCH->WCAG contrast engine + token/motion/font/responsive checks; CI-friendly | Pass/warn/error scorecard (exits non-zero on error) | After building or changing UI, or in CI |
-| **UI suite** | `/new-component` | (bundled support skill) Builds/skins ONE React component against the `DESIGN.md` tokens : CSS-vars, interactive states, a11y; reuses shadcn/ui + 21st.dev | Component file | Building any UI component |
+| **Dev / UI** | `/frontend-audit` | (UI products) Mechanically enforces the design-system laws — a real OKLCH->WCAG contrast engine + token/motion/font/responsive checks; CI-friendly | Pass/warn/error scorecard (exits non-zero on error) | After building or changing UI, or in CI |
+| **UI suite** | `/new-component` | (bundled support skill) Builds/skins ONE React component against the `DESIGN.md` tokens — CSS-vars, interactive states, a11y; reuses shadcn/ui + 21st.dev | Component file | Building any UI component |
 | **Dev** | `/foundation` | Builds walking skeleton with logging, config, commit hooks and CI | Running app + CI workflows | Bootstrapping the codebase |
 | **Dev** | `/contracts` | Writes typed schemas/migrations BEFORE business logic | Schema files + migrations | Writing data layers |
-| **Dev** | `/tickets` | Splits each milestone into 2-4 independently mergeable tickets : **vertical** thin end-to-end slices (each demoable on merge) or **horizontal** layer tickets : recommended per milestone and confirmed by you. Exact file paths, typed in/out, security DoD. Given a description instead, logs ONE ad-hoc bug against the owning file | `docs/issues/*` + issue/PR templates | After `/contracts`, before building; or any time you spot a bug |
+| **Dev** | `/tickets` | Splits each milestone into 2-4 independently mergeable tickets — **vertical** thin end-to-end slices (each demoable on merge) or **horizontal** layer tickets — recommended per milestone and confirmed by you. Exact file paths, typed in/out, security DoD. Given a description instead, logs ONE ad-hoc bug against the owning file | `docs/issues/*` + issue/PR templates | After `/contracts`, before building; or any time you spot a bug |
 | **Dev** | `/build` | Implements feature with testable exit criteria and docs | Feature code + `docs/features/*` | Building feature-by-feature |
 | **Dev** | `/dev-check` | Verifies exit criteria and security DoD with evidence | `PRODUCT.md` -> **Dev-complete** | Prior to testing |
 | **Testing** | `/test` | Performs unit/integration/regression and adversarial tests | Test suites | Post-development check |
@@ -143,7 +183,7 @@ ANYTIME          /drift-check (detects scope creep or code-docs drift)
 | **Cross-Cut** | `/drift-check` | Compares current code and docs vs. original scope | Drift Report | Anytime you suspect creep |
 
 > **Sibling repo:** [`product-toolkit`](https://github.com/kish21/product-toolkit) is the à-la-carte
-> **build-and-ship** engineering skills (scaffold, audit, quality-gate, PR-flow, UI) : reach for one
+> **build-and-ship** engineering skills (scaffold, audit, quality-gate, PR-flow, UI) — reach for one
 > when you know what you need. **product-playbook is the guided journey that composes tools like those**
 > across the whole product arc (vision -> learn).
 >
@@ -151,18 +191,19 @@ ANYTIME          /drift-check (detects scope creep or code-docs drift)
 > coding agents on one repo without collisions. *product-playbook writes the work down; Lanekeeper divides it
 > up.* Each `/tickets` ticket's **Target Files** list is the lane Lanekeeper enforces on every PR. When a
 > project is in **lane mode** (a `.lanekeeper/` policy or a `.lane` file is present), `/tickets`, `/build`,
-> `/dev-check` and `/ship` follow the four rules in `PRINCIPLES.md` §Lane mode : ticket = boundary, lanes are
-> features not layers, the spine has one writer, the PR carries its lane.
+> `/dev-check` and `/ship` follow the four rules in `PRINCIPLES.md` §Lane mode — ticket = boundary, lanes are
+> features not layers, the spine has one writer, the PR carries its lane. The design note behind that seam is
+> [`docs/lane-mode.md`](docs/lane-mode.md).
 >
-> **Single-master rule for the UI suite.** The UI suite : `/design-system`, `/frontend-audit`, and
-> `/new-component` : is **mastered here in product-playbook** (they're coupled through `DESIGN.md`, so one
+> **Single-master rule for the UI suite.** The UI suite — `/design-system`, `/frontend-audit`, and
+> `/new-component` — is **mastered here in product-playbook** (they're coupled through `DESIGN.md`, so one
 > master = one place to fix bugs). `/new-component` is **bundled in this repo** so product-playbook installs
 > **fully standalone** (no product-toolkit needed). Any copy elsewhere (e.g. in product-toolkit) is a
-> **one-way synced, read-only copy** : edit it here, then re-sync.
+> **one-way synced, read-only copy** — edit it here, then re-sync.
 
 ### How `DESIGN.md` is derived (the UI suite)
 
-For UI products, `/design-system` turns your vision into one concrete, reusable design spec : **`DESIGN.md`** : which
+For UI products, `/design-system` turns your vision into one concrete, reusable design spec — **`DESIGN.md`** — which
 the other two UI skills then consume. So the look is *decided once, confirmed by you, and enforced everywhere*:
 
 <picture>
@@ -177,29 +218,31 @@ builds against its tokens and `/frontend-audit` mechanically enforces them. Skip
 
 ---
 
+<a id="install"></a>
+
 ## 🚀 Installation and Setup
 
-**Pick one route.** All three run the same skills : they differ in how you *call* a skill, how you *get updates*, and how many skills you take.
+**Pick one route.** All three run the same skills — they differ in how you *call* a skill, how you *get updates*, and how many skills you take.
 
 | | **A. Plugin** (recommended) | **B. Copy install** | **C. Copy install `--only`** |
 |---|---|---|---|
 | You get | all 21 skills | all 21 skills | just the skills you name |
-| Best for | new to product work : take the whole guided journey | you want everything, without the plugin system | you already have a process and want a few steps of it |
+| Best for | new to product work — take the whole guided journey | you want everything, without the plugin system | you already have a process and want a few steps of it |
 | Call a skill as | `/product-playbook:vision` | `/vision` (the bare names used throughout this README) | `/vision` |
-| Updates | Automatic, once you enable it (step 3 below) | Nothing tracks the copy : re-run the installer | Same : re-run with the same `--only` |
+| Updates | Automatic, once you enable it (step 3 below) | Nothing tracks the copy — re-run the installer | Same — re-run with the same `--only` |
 | Lives in | Claude Code's plugin cache, per scope | `~/.claude/commands/` (or `<project>/.claude/commands/`) | same as B |
-| Needs | Claude Code ≥ 2.0.70 | `bash` : on Windows, run from **Git Bash** | `bash` : on Windows, run from **Git Bash** |
+| Needs | Claude Code ≥ 2.0.70 | `bash` — on Windows, run from **Git Bash** | `bash` — on Windows, run from **Git Bash** |
 
 ### A. Plugin (recommended)
 
-1. **Add the marketplace, then install** : inside Claude Code:
+1. **Add the marketplace, then install** — inside Claude Code:
    ```
    /plugin marketplace add kish21/product-playbook
    /plugin install product-playbook@product-playbook
    ```
    Choose a scope when asked: **User** (all your projects) · **Project** (everyone who clones this repo, via `.claude/settings.json`) · **Local** (you only, this repo). From a shell instead: `claude plugin install product-playbook@product-playbook --scope user`.
-2. **Activate** : if the install summary says `Run /reload-plugins to activate.`, run `/reload-plugins`.
-3. **Turn on updates** : third-party marketplaces do **not** auto-update by default. `/plugin` → **Marketplaces** → `product-playbook` → **Enable auto-update**. Claude Code then checks after each session start and tells you to `/reload-plugins` when a new version lands.
+2. **Activate** — if the install summary says `Run /reload-plugins to activate.`, run `/reload-plugins`.
+3. **Turn on updates** — third-party marketplaces do **not** auto-update by default. `/plugin` → **Marketplaces** → `product-playbook` → **Enable auto-update**. Claude Code then checks after each session start and tells you to `/reload-plugins` when a new version lands.
    To update by hand: `/plugin marketplace update product-playbook`, then from a shell `claude plugin update product-playbook@product-playbook`.
 
 Skills are **namespaced by the plugin**: wherever this README says `/vision`, type `/product-playbook:vision` (same for `/playbook`, `/build`, …).
@@ -209,20 +252,20 @@ Context cost, from `claude plugin details`: ~3.5k tokens always-on per session; 
 
 | Scope | Command |
 |---|---|
-| **Global** : one line, no clone | `curl -fsSL https://raw.githubusercontent.com/kish21/product-playbook/master/install.sh \| bash` |
-| **Global** : from a clone | `git clone https://github.com/kish21/product-playbook ~/product-playbook && cd ~/product-playbook && ./install.sh` |
-| **Project-level** : teammates get it on clone | `./install.sh --project /path/to/project` then commit `<project>/.claude/` |
-| **Subset** : only the skills you name | `./install.sh --only build,ship` (remote: `curl -fsSL …/install.sh \| bash -s -- --only build,ship`) |
+| **Global** — one line, no clone | `curl -fsSL https://raw.githubusercontent.com/kish21/product-playbook/master/install.sh \| bash` |
+| **Global** — from a clone | `git clone https://github.com/kish21/product-playbook ~/product-playbook && cd ~/product-playbook && ./install.sh` |
+| **Project-level** — teammates get it on clone | `./install.sh --project /path/to/project` then commit `<project>/.claude/` |
+| **Subset** — only the skills you name | `./install.sh --only build,ship` (remote: `curl -fsSL …/install.sh \| bash -s -- --only build,ship`) |
 
 What it puts where: the 21 skills → `~/.claude/commands/` (or `<project>/.claude/commands/`), plus the companions the skills read (`PRINCIPLES.md`, `VISION.md`, `PRODUCT.md` template) → `~/.claude/product-playbook/` (or `<project>/.claude/product-playbook/`).
 
-**Updating:** re-run the exact same command. It overwrites in place. There is no version check : if you want to be told about updates, use route A.
+**Updating:** re-run the exact same command. It overwrites in place. There is no version check — if you want to be told about updates, use route A.
 
 #### C. Copy install, subset (`--only`)
 
-`--only` takes a comma-separated list of skill names : `./install.sh --only build,ship,drift-check`. It installs exactly those (flat skills and directory-form ones like `design-system`, with their `references/`) **plus the companions every skill reads** (`PRINCIPLES.md`, `VISION.md`, the `PRODUCT.md` template), which are never optional. It combines with `--project`. An unknown name installs nothing and prints the valid ones; `./install.sh --list` prints them on demand. Add more skills later by re-running with a new list : nothing already installed is removed.
+`--only` takes a comma-separated list of skill names — `./install.sh --only build,ship,drift-check`. It installs exactly those (flat skills and directory-form ones like `design-system`, with their `references/`) **plus the companions every skill reads** (`PRINCIPLES.md`, `VISION.md`, the `PRODUCT.md` template), which are never optional. It combines with `--project`. An unknown name installs nothing and prints the valid ones; `./install.sh --list` prints them on demand. Add more skills later by re-running with a new list — nothing already installed is removed.
 
-Skills stay runnable on their own, but a few **call other skills** when they are present : `/build` → `/code-review`, `/ship` → `/security-review`, `/drift-check` → `/doc-audit`. Those live outside this repo; if they are not installed, the composing skill runs without that step rather than failing.
+Skills stay runnable on their own, but a few **call other skills** when they are present — `/build` → `/code-review`, `/ship` → `/security-review`, `/drift-check` → `/doc-audit`. Those live outside this repo; if they are not installed, the composing skill runs without that step rather than failing.
 
 ### Did it work?
 
@@ -235,9 +278,12 @@ Open a new Claude Code session and type `/playbook` (route A: `/product-playbook
 
 ---
 
+<a id="contributing"></a>
+
 ## 🛠️ Contributing
 
-1.  Add or modify a command in `commands/<name>.md` : or directory-form `commands/<name>/SKILL.md` (+ `references/`) for skills that carry references. Keep them concise and single-purpose.
+1.  Add or modify a command in `commands/<name>.md` — or directory-form `commands/<name>/SKILL.md` (+ `references/`) for skills that carry references. Keep them concise and single-purpose.
 2.  Register it in **all three**: `VISION.md`, `manifest.json`, and `evals/evals.json` (the CI gate checks they stay in sync).
-3.  Run `python tools/check.py` (the CI consistency gate: every skill registered + structured + under the 500-line budget), then `./install.sh`, commit, and open a PR (master requires the `check` to pass).
-4.  Run `/drift-check` on this repo to verify nothing drifted.
+3.  If a rule earned its place from a real incident, keep the skill file to the **bold one-line rule** and put the war story in `references/case-files-<skill>.md`, pointed to as `(case file: <heading>)`.
+4.  Run `python tools/check.py` (the CI consistency gate: every skill registered + structured + under the 500-line budget), then `./install.sh`, commit, and open a PR (master requires the `check` to pass).
+5.  Run `/drift-check` on this repo to verify nothing drifted.
