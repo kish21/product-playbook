@@ -11,7 +11,7 @@
 1. **Architect first** — think how it *should* be built and where it fits, before writing code.
 2. **Verify** — confirm assumptions/root cause against the real code + running system. Never act on a stale note or a guess.
 3. **No hardcoding** — every value (weights, thresholds, endpoints, model names, prompts, credentials) lives in **config / `.env` / a prompt file**, never baked into source.
-4. **Benchmark to the current year** — ask "is this how leading product companies do it *now*?" and prefer the **best open-source tool** (open source over proprietary unless told otherwise).
+4. **Benchmark to the current year, then optimise for the project's constraints — not for an ideology** — ask "is this how leading product companies do it *now*?", then judge the candidates on **fit**: reliability, operational burden, team size, cost, compatibility, maturity, and **lock-in — portability and exit cost stay explicit criteria**. Record *why the winner won*. A managed service that saves a two-person team twenty hours a month can beat self-hosting; so can the boring, stable option. "Open source by default" pre-decides a trade-off the project's constraints should decide.
 5. **Self-review** — run the project's review (`/code-review`, `/security-review` on auth/data) and check quality/perf/tests before calling it done.
 
 ## Per-feature contract (agree BEFORE building a feature)

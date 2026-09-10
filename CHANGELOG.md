@@ -3,6 +3,33 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.27.0] - 2026-09-10
+
+### Changed — **"prefer the best open-source tool" pre-decided a trade-off the project should decide** (#129)
+`PRINCIPLES.md:14` told `/architect` to prefer open source "unless told otherwise" — an escape hatch that
+puts the burden on a user who often does not know they should push back, applied to *their* project rather
+than to ours. The concrete failure it caused: a solo builder pushed toward self-hosting infrastructure whose
+operational cost dwarfs the licence saving. The rule is now **benchmark to the current year, then optimise
+for the project's constraints** — reliability, operational burden, team size, cost, compatibility, maturity,
+and lock-in — with **portability and exit cost kept as explicit criteria**, since lock-in is what
+"open source" was really standing in for. Current-year benchmarking, the load-bearing half, is untouched.
+`/architect` moves with it and now **records the constraint set each choice was optimised against** in
+`#Architecture`, so a decision can be re-judged when a constraint changes; the "OSS-first blind spot" note
+about third-party approvals is renamed to the self-host blind spot it always described. No file still
+asserts open-source-first.
+
+### Fixed — **the orchestrator never named 2 of the 21 skills** (#117)
+`/playbook` bills itself as the skill that saves you from remembering the others, and
+`grep "frontend-audit\|new-component" commands/playbook.md` returned nothing. A user on the guided path
+built UI via `/design-system` and never learned that `/frontend-audit` mechanically enforces the laws it had
+just set — **the enforcement gate for the design system was unreachable from the orchestrator that set the
+design system up.** `/drift-check` is named twice precisely because it is off-chain; these two are off-chain
+in the same way and got no such treatment. Both are now named in Step 1's map (one clause), offered in
+Step 3 as anytime tools, and `/frontend-audit` is *proposed* in Step 0 once a has-UI project's `#Build log`
+contains UI work. **Neither enters the canonical phase order:** they write no `PRODUCT.md` section, so the
+first-unfilled frontier cannot look for one, and a backend/API/CLI project sees no mention of either — a new
+eval case asserts that silence, alongside one for the UI branch.
+
 ## [1.26.0] - 2026-09-10
 
 ### Changed — **the playbook now names its own target user** (#132)
