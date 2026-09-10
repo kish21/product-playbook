@@ -1,7 +1,7 @@
 # Product Playbook: Build with Discipline in the AI Era
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.33.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.34.0-blue.svg)](CHANGELOG.md)
 ![Claude Code skills](https://img.shields.io/badge/Claude%20Code-21%20skills-8A2BE2.svg)
 
 **AI writes code faster than anyone can reason about it. `product-playbook` puts the gates in between.**
@@ -54,7 +54,7 @@ If the install summary says `Run /reload-plugins to activate.`, run it first. Pr
 **Without a playbook**
 
 ```
-idea ──▶ "sure, I'll build that" ──▶ ~500 files later ──▶ ???
+idea  -->  "sure, I'll build that"  -->  ~500 files later  -->  ???
 ```
 
 Four questions nobody can answer — and the section of `PRODUCT.md` that answers each:
@@ -66,33 +66,18 @@ Four questions nobody can answer — and the section of `PRODUCT.md` that answer
 | *Does this actually work?* | **#Tests** + **#Evaluation** — live-path and adversarial cases, measured |
 | *Can we safely ship this?* | **#Ship log** — security review, rollback path, post-deploy signal |
 
-**With it** — three tiers over six phases, and a gate between each:
+**With it** — three tiers over the six phases, and a gate between each:
 
-```
- ①  PRODUCT THINKING          /vision ─▶ /validate ─▶ /scope ─▶ /plan
-    decide what is worth
-    building                  ↓ ✓ evidence: a named user + job, a measured
-                              │   experiment, ONE core feature, non-goals
-                              │
- ②  ENGINEERING DISCIPLINE    /architect ─▶ /structure ─▶ /design-system*
-    build it so it holds      ─▶ /foundation ─▶ /contracts ─▶ /tickets
-                              ─▶ /build ─▶ /dev-check
-                              ↓ ✓ evidence: it RUNS; every feature's
-                              │   definition-of-done met, with HOW it was verified
-                              │
- ③  SHIPPING & LEARNING       /test ─▶ /eval ─▶ /ship ─▶ /learn
-    prove it, ship it,        ↓ ✓ evidence: measured against a baseline,
-    find out if it worked         security-reviewed, metric instrumented
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/journey-dark.svg">
+  <img alt="The playbook journey: three tiers over six phases. Tier 1 Product thinking — /vision, /validate, /scope, /plan — then an evidence gate: a named user and job-to-be-done, a measured experiment, ONE core feature, non-goals. Tier 2 Engineering discipline — /architect, /structure, /design-system (UI only), /foundation, /contracts, /tickets, /build, /dev-check — then an evidence gate: it runs end to end, every feature's definition-of-done met with how it was verified. Tier 3 Shipping and learning — /test, /eval, /ship, /learn — then an evidence gate: measured against a baseline, security-reviewed with a rollback path, metric instrumented." src="docs/diagrams/journey-light.svg">
+</picture>
 
- ┃ carried through ALL three, never a phase of their own:
- ┃    security · verification · scope integrity — they live in every
- ┃    definition-of-done, not in a stage you pass once
+<sub>Diagram source: <a href="docs/diagrams/journey.mmd"><code>docs/diagrams/journey.mmd</code></a> (regenerate with <code>sh tools/render-diagrams.sh</code>). The three tiers are a way to hold the map in your head; the <strong>six phases</strong> are what the skills are numbered by.</sub>
 
-    any time ─────────▶  /drift-check   are we still building the vision?
-    code already? ────▶  /adopt         drafts the spine from your repo
-    building UI? ─────▶  /new-component to build · /frontend-audit to enforce
-                         (* /design-system runs only if the product has a UI)
-```
+**Security, verification and scope integrity are carried through all three tiers — never a phase of their own.** They live in `/scope`'s non-goals, `/build`'s definition-of-done, `/dev-check`, `/test` and `/ship`'s security review. A stage you pass once would be the opposite of the position this playbook takes.
+
+Three skills sit outside the chain, on purpose: **`/drift-check`** any time (*are we still building the vision?*), **`/adopt`** if you already have code (it drafts the spine from your repo), and — for UI products — **`/new-component`** to build against `DESIGN.md` with **`/frontend-audit`** to enforce it.
 
 ### The one file: `PRODUCT.md`
 

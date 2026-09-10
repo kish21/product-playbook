@@ -3,6 +3,32 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.34.0] - 2026-09-10
+
+### Fixed — **the journey panel was ASCII art, and it rendered badly** (#119, #123 follow-up)
+The three-tier journey shipped in v1.26.0 as a fenced ASCII block. On GitHub it fell apart: the circled
+tier numbers ①②③ collapsed to one repeated glyph in the monospace fallback, the `─▶` arrows lost their
+box-drawing dashes and rendered as a stray hyphen, and tier 2's eight skills wrapped across three ragged
+lines. Alignment held only in the font it was written in — the one property ASCII art cannot promise.
+
+It is now a **pre-rendered SVG in both themes**, generated from `docs/diagrams/journey.mmd` by the same
+`sh tools/render-diagrams.sh` the other two diagrams use, and embedded with `<picture>` like them. The
+first-screen visual count is unchanged: the diagram replaces the block it came from. The cross-cutting
+note (security · verification · scope integrity) and the three off-chain skills moved from inside the
+picture into prose beneath it, where they read better and cost no diagram width. A full alt-text
+description ships with it, which the ASCII block never had.
+
+**Four layout constraints are recorded in the `.mmd` source**, each found by measuring the output rather
+than reading the source, and each silent until then:
+- Edges must be drawn **subgraph-to-subgraph**, never member-to-member — mermaid ignores a subgraph's
+  `direction` as soon as one of its nodes has an edge crossing the boundary, which collapsed the first
+  attempt into a 672×2407 column.
+- A **bare `%%` line is a parse error**, reported against line 1 rather than against itself.
+- Gates are **rectangles, not circles** — a circle sized its text badly and the last line escaped the
+  outline.
+- **Horizontal bands, not vertical columns**: as columns, tier 2's eight skills made the picture 1225px
+  tall with tiers 1 and 3 floating in whitespace beside it. Final: 1536×764.
+
 ## [1.33.0] - 2026-09-10
 
 ### Added — **two lessons harvested from the audit sweep** (`LESSONS.md`)
