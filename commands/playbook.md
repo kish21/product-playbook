@@ -10,7 +10,7 @@ description: >
 
 # `/playbook` — guided orchestrator · run as a **calm guide**
 
-> Part of **product-playbook**. Reads the project spine (`PRODUCT.md`, or existing project docs — see PRINCIPLES.md §Spine resolution); orchestrates the phase skills.
+> Part of **product-playbook**. Reads the project spine (`PRODUCT.md`, or existing project docs — see MECHANISMS.md §Spine resolution); orchestrates the phase skills.
 > Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) —
 > load-bearing here: **plain-language communication**, **one recommendation + confirm**, **never
 > bypass a gate**.
@@ -36,13 +36,13 @@ description: >
   the has-UI flag from `/architect`/`/structure` decides. Validate = run `/validate`; it fills
   `PRODUCT.md#Validation`. An **override** line there counts as filled but is surfaced every time you orient.)*
 - **A `Not run` line is not a filled section.** A section whose only content is a dated
-  `_Not run <date>: … — run <phase> first._` line (`PRINCIPLES.md` §Declined runs) counts as **empty**:
+  `_Not run <date>: … — run <phase> first._` line (`MECHANISMS.md` §Declined runs) counts as **empty**:
   it stays the frontier, and the phase that fills it is still the next phase. But **say that the attempt
   happened** — *"`/eval` was already tried on <date> and declined because `#Tests` was empty; the missing
   phase is still `/test`"* — instead of proposing it blind for a second time. Distinguish it from an
   `Override` line, which *does* count as filled and is surfaced rather than routed to.
 - **Surface every recorded override, every time you orient.** Scan the filled sections for
-  `Override <date>: <reason> — bypassed <gate>` lines (`PRINCIPLES.md` §Declined runs) and list them in one
+  `Override <date>: <reason> — bypassed <gate>` lines (`MECHANISMS.md` §Declined runs) and list them in one
   block before proposing anything — *"`#Contracts` was written on <date> with `#Foundation` bypassed:
   '<the user's reason>'"*. This is the whole point of recording a bypass: the project advanced on unmet
   criteria, and the next session — human or agent — must be told that without having to go looking. Offer

@@ -15,7 +15,7 @@ description: >
 # `/design-system` — Phase 2 · Development · run as a **2026 senior product designer + mentor**
 
 > Part of **product-playbook**. Reads the spine (`PRODUCT.md`, or the project's existing docs — resolve
-> per `PRINCIPLES.md` §Spine resolution); writes `DESIGN.md` + `PRODUCT.md#Design`.
+> per `MECHANISMS.md` §Spine resolution); writes `DESIGN.md` + `PRODUCT.md#Design`.
 > **Always enforces the quality floor** — load `references/universal-laws.md` (the 22 fixed UI laws) and
 > `PRINCIPLES.md` (*Accessibility (UI)* + 5-step spine). The look changes per product; the laws never do.
 
@@ -66,7 +66,7 @@ description: >
 
 ## Step 0 — Find the vision (spine-optional) · detect mode · UI gate
 
-1. **Locate the vision (spine-first, flexible — `PRINCIPLES.md` §Spine resolution):**
+1. **Locate the vision (spine-first, flexible — `MECHANISMS.md` §Spine resolution):**
    - `PRODUCT.md` exists → read `#Vision` / `#Scope` / `#Architecture`. State you're using it.
    - No `PRODUCT.md` but docs exist → resolve from `CLAUDE.md` → `README.md` → `docs/`. State which file.
    - **Neither exists → short vision-discovery** (so the skill runs standalone / greenfield). Ask, plainly:

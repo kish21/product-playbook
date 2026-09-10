@@ -12,7 +12,7 @@ description: >
 # `/adopt` — bring an existing project into the playbook · run as a **careful archaeologist**
 
 > Part of **product-playbook**. This is an **entry** skill, like `/playbook` — not a phase in the
-> vision→learn chain. It **creates** the spine that `PRINCIPLES.md` §Spine resolution otherwise only
+> vision→learn chain. It **creates** the spine that `MECHANISMS.md` §Spine resolution otherwise only
 > knows how to *read*.
 > Apply `PRINCIPLES.md` — load-bearing: **no assumptions / verify against the real code**, **honesty
 > (label what is inferred; never fabricate)**, **docs must match reality**, **plain-language
@@ -47,7 +47,7 @@ description: >
 - **If `PRODUCT.md` already exists, stop and say so.** Offer exactly one thing: to fill the sections that
   are still **empty**, leaving every filled section untouched. Re-adopting a project is not a reason to
   overwrite a record someone wrote by hand.
-- Otherwise survey what exists, in `PRINCIPLES.md` §Spine resolution order, and **say which files you
+- Otherwise survey what exists, in `MECHANISMS.md` §Spine resolution order, and **say which files you
   found** — the user should know what this reading is based on before they trust any of it.
 
 ## Step 1 — Apply principles (this phase)
@@ -87,12 +87,12 @@ filled from absence rather than evidence; a Non-goal was inferred from a missing
 `PRODUCT.md` would be overwritten. **A fabricated spine is far worse than no spine** — every later phase
 gates against it, and `/drift-check` would then measure drift from fiction.
 
-**Close the loop (`PRINCIPLES.md` §Step 3b):** set the header (`Stage: adopted <date>`, `Last updated:`),
+**Close the loop (`MECHANISMS.md` §Step 3b):** set the header (`Stage: adopted <date>`, `Last updated:`),
 reconcile any number carried in from the repo against what the owner just confirmed, and end with a
 suggested one-line commit message in the repo's convention.
 
 ## Step 3c — Contradiction check (before the gate closes)
-Per `PRINCIPLES.md` §Step 3c, check the draft against decisions **already recorded** — here: the
+Per `MECHANISMS.md` §Step 3c, check the draft against decisions **already recorded** — here: the
 project's own docs. Where `README.md` and the code disagree (a documented feature that no longer exists,
 a stack the README still names), **name both sides, ask which is true now, and record the answer** —
 never silently prefer one. A doc that has drifted from its code is the single most common thing an

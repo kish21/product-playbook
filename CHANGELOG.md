@@ -3,6 +3,48 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.29.0] - 2026-09-10
+
+### Changed — **`PRINCIPLES.md` was 25.8KB against its own ~15KB prune rule** (#127)
+The rule is in the file: *"Skills are loaded verbatim into every session that runs them, so their size is
+a per-session cost and an attention cost… run a prune pass when a skill file passes ~15KB."*
+`PRINCIPLES.md` set that threshold and exempted itself by 72% — and unlike any single skill it is loaded
+by **every** skill, making it the largest per-session attention cost in the system. The stated rationale
+applies harder to it than to anything it governs. Measured by line count: **88% of it was mechanism, 12%
+was principle**, and the 5-step spine everyone quotes was **7 lines out of 310**.
+
+**This is a relocation, not a reduction — nothing was deleted.** The same audit praised these mechanisms
+as "the difference between a philosophy document and an actual engineering system"; a naive cut to 15
+principles would have deleted the asset. The nine `§` sections were already pre-declared separable units
+(skills have always referenced them by name), which made the migration mechanical:
+
+| File | Contents | Size |
+|---|---|---|
+| `PRINCIPLES.md` | the rules only | 25.8KB → **11.4KB** |
+| `references/mechanisms.md` (`MECHANISMS.md`) | §Step 3b · §Step 3c · §Re-run semantics · §Declined runs · §Seam · §Spine resolution · §Lane mode | **12.7KB** |
+| `references/lessons.md` (`LESSONS.md`) | §Lessons baked in · §Lesson format | **4.9KB** |
+
+Lessons split from mechanisms because they are harvested rather than derived, they grow every time
+something breaks, and §Lesson format is the rule that governs how the list above it is written.
+**~100 pointers across 21 files were rewritten**, and both new files install as companions beside
+`PRINCIPLES.md` — an installed user whose pointers dangled would be the exact failure this refactor
+exists to prevent.
+
+### Added — `check.py` check 10: a `§` pointer resolves, or the build fails
+A dangling cross-reference is worse than the fat file it came from. Every `PRINCIPLES.md §X` /
+`MECHANISMS.md §X` / `LESSONS.md §X` pointer must name a real heading — or a real **bold bullet**, since
+`PRINCIPLES.md §Secrets never get pushed` addresses one. A bare `§Name` is deliberately not checked: it
+also addresses a product's own `DESIGN.md §Tokens`, and appears mid-sentence as ordinary prose.
+**Proven to fail first** in the scenario it guards — renaming `## §Seam` in `MECHANISMS.md` went red on
+three pointers in `/foundation` and `/structure` before it was restored.
+
+### Added — `check.py` check 11: the prune rule applies to the file that wrote it
+`PRINCIPLES.md`, `MECHANISMS.md`, `LESSONS.md` and every skill file are checked against ~15KB.
+**Proven to fail first** — padding `PRINCIPLES.md` to 16.3KB went red before the pad was removed.
+Three skill files are over it today (`build` 24.5KB, `tickets` 21.3KB, `design-system` 19.6KB) and are
+**exempted by name with a reason** rather than by lowering the bar, so the exception is visible and
+tracked in #138.
+
 ## [1.28.0] - 2026-09-10
 
 ### Fixed — **10 of 14 gates could be bypassed leaving no trace** (#128)

@@ -15,7 +15,7 @@ description: >
 
 # `/tickets` — Phase 2 · Development ④b · run as a **tech lead / project engineer**
 
-> Part of **product-playbook**. Reads the project spine (`PRODUCT.md`, `STRUCTURE.md`, `#Contracts` — resolve per PRINCIPLES.md §Spine resolution).
+> Part of **product-playbook**. Reads the project spine (`PRODUCT.md`, `STRUCTURE.md`, `#Contracts` — resolve per MECHANISMS.md §Spine resolution).
 > Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing:
 > **modular / single-responsibility** (one ticket = one concern), **layered & decoupled** (a ticket respects
 > the layer boundaries even when it crosses them), **typed contracts** at every seam a ticket exposes,
@@ -40,19 +40,19 @@ description: >
   - [ ] Ticket IDs are **globally unique** across milestones (`[M2-SLICE-01]`, `[M2-TICK-01]`), so dedup is reliable on re-run.
   - [ ] **Mode B:** an ad-hoc issue is filed against the owning file with a reproduction, and **no backlog ticket is created, renumbered or modified**.
   - [ ] **Pre-flight remote verification executed** — no remote repository is ever created.
-  - [ ] **Lane mode** (PRINCIPLES.md §Lane mode — Lanekeeper present): every ticket's Target Files include **everything the build writes** (feature doc + tests) and **never a spine file**; a horizontal strategy carries a **recorded reason**; the playbook's PR template is **not** written (Lanekeeper owns it).
+  - [ ] **Lane mode** (MECHANISMS.md §Lane mode — Lanekeeper present): every ticket's Target Files include **everything the build writes** (feature doc + tests) and **never a spine file**; a horizontal strategy carries a **recorded reason**; the playbook's PR template is **not** written (Lanekeeper owns it).
 
 ## Step 0 — Context + prior-gate check
 - Read `#Plan`, `#Contracts`, `#Architecture` and `STRUCTURE.md`. If `#Contracts` is empty, warn (tickets
   would invent their own types) but allow override.
-- **An override is RECORDED, never a verbal "yes"** (`PRINCIPLES.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Plan` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
+- **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Plan` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
 - Brownfield: read the existing tree and `docs/issues/` first — extend the numbering, never restart it.
 - **Dispatch on the argument — this is the whole mode decision:**
   - **No argument**, or a planning phrase (`"break down plan"`, `"decompose milestones"`, `"sprint backlog"`) → **Mode A** (Step 3A).
   - **`"vertical"` / `"horizontal"`** (alone or with a planning phrase) → **Mode A** with the strategy already chosen; skip the proposal.
   - **Any other free-text argument** describing a defect, gap or debt item → **Mode B** (Step 3B).
   - Ambiguous? Ask. Do **not** silently regenerate a backlog when the user meant to log one bug.
-- **If the gate is unmet and the run stops here, record that it stopped (`PRINCIPLES.md` §Declined runs):** this phase owns no spine section, so its trace is ONE dated line at the top of `docs/issues/README.md` (create it if absent) — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and no ticket files are written. A backlog that does not exist must still be distinguishable from one nobody ever attempted; the next attempt **replaces** that line rather than appending to it.
+- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** this phase owns no spine section, so its trace is ONE dated line at the top of `docs/issues/README.md` (create it if absent) — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and no ticket files are written. A backlog that does not exist must still be distinguishable from one nobody ever attempted; the next attempt **replaces** that line rather than appending to it.
 
 ## Step 1 — Apply principles (this phase)
 - **One ticket = one concern.** Concern is *not* a synonym for layer. Vertically, the concern is one thin
@@ -177,7 +177,7 @@ link back to the feature they belong to. On publish:
 - **Milestone** — parse `PRODUCT.md#Plan`, create each **missing** GitHub milestone (titles derived from
   `#Plan`, never invented) and pass it on `gh issue create`.
 - **Lane label** — the ticket's `Lane` field becomes a label in the **`lane: <name>`** form required by
-  `PRINCIPLES.md` §Lane mode rule 4. Do not invent a second spelling; the gate depends on that one.
+  `MECHANISMS.md` §Lane mode rule 4. Do not invent a second spelling; the gate depends on that one.
 - **Feature doc — reference the PATH, not a link.** `/build` writes `docs/features/<feature>.md` *after* the
   ticket exists, so a markdown link would 404 on day one. `/build` may add a live link when it creates the file.
 - **Idempotent like the issues already are.** `gh milestone`/`gh label create` error on an existing name, so a
@@ -223,10 +223,10 @@ Walk the principles and prove each against the files just written — do not ass
   **collision** (STOP: re-split, or name the shared file so Lanekeeper can declare it a `shared:` zone).
   A horizontal milestone has its reason recorded. No `PULL_REQUEST_TEMPLATE.md` was written.
 
-**Close the loop (`PRINCIPLES.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention.
+**Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention.
 
 ## Step 3c — Contradiction check (before the gate closes)
-Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Plan` milestones, `#Scope` non-goals and `#Contracts` types — a ticket that builds a non-goal, or names a type the contracts don't define. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
+Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Plan` milestones, `#Scope` non-goals and `#Contracts` types — a ticket that builds a non-goal, or names a type the contracts don't define. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
 
 ## Step 4 — Handoff
 "Backlog decomposed — each ticket assignable to a different developer and mergeable on its own. Vertical

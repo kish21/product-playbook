@@ -28,7 +28,12 @@ Checks:
      `#Section`, offers an override, AND requires that override to be RECORDED with a reason.
      Offering a way through is half the rule; a bypass nobody can see afterwards turns a gated
      workflow into an advisory one, so the heading can never again stand in for the behaviour.
- 10. One skill COUNT everywhere: every "N skills" / "N commands" claim in README.md (badge and prose)
+ 10. Every `§Section` pointer RESOLVES: a skill saying "`MECHANISMS.md` §Declined runs" must name a
+     heading that file really has. ~100 pointers were rewritten when the mechanisms moved out of
+     PRINCIPLES.md, and a dangling cross-reference is worse than the fat file it came from.
+ 11. No governing file is over the SIZE threshold it sets for everyone else. PRINCIPLES.md reached
+     25.8KB against its own ~15KB prune rule, because a rule with no check is a suggestion.
+ 12. One skill COUNT everywhere: every "N skills" / "N commands" claim in README.md (badge and prose)
      and the VISION.md skills comment must equal the real number of skills in commands/. The repo
      description on GitHub quoted a stale 18 for months while the README said 21 - a wrong count on
      a project whose thesis is docs-match-reality. The description lives outside the repo, but the
@@ -138,7 +143,11 @@ def main() -> int:
     check_eval_cases(evals)
     # 9. a Step 0 titled "prior-gate check" actually gates
     check_prior_gates(files)
-    # 10. every stated skill count matches the real one
+    # 10. every `§Section` pointer resolves to a real heading
+    check_section_pointers(files)
+    # 11. no governing file is over the size threshold it sets
+    check_file_sizes(files)
+    # 12. every stated skill count matches the real one
     check_skill_count(len(cmds), files)
 
     return done(len(cmds))
@@ -281,6 +290,87 @@ COUNT_PATTERNS = (
     r"\b(\d+)\s+(?:Claude Code\s+)?skills?\b",
     r"\b(\d+)\s+(?:step-by-step|custom Markdown)\s+commands\b",
 )
+
+
+# Where a `§`-pointer's file name resolves to on disk. Skills name the INSTALLED filename (companions
+# land beside each other in ~/.claude/product-playbook/), not the repo path.
+POINTER_FILES = {"PRINCIPLES.md": "PRINCIPLES.md", "MECHANISMS.md": "references/mechanisms.md",
+                 "LESSONS.md": "references/lessons.md"}
+# ~15KB is the prune threshold MECHANISMS.md §Lesson format sets for everyone; it is enforced on the two
+# governing files every session loads. Three skill files are over it today and are exempted BY NAME with
+# a reason, so the exception is visible rather than a silent hole (tracked in #138).
+SIZE_LIMIT = 15 * 1024
+SIZE_EXEMPT = {
+    "build": "24.5KB - the per-feature loop carries the most harvested lessons; prune pass owed (#138)",
+    "tickets": "21.3KB - two modes (backlog + ad-hoc) in one file; prune pass owed (#138)",
+    "design-system": "19.6KB - the confirm-loop lives in SKILL.md; prune pass owed (#138)",
+}
+POINTER_RE = re.compile(r"`?(PRINCIPLES\.md|MECHANISMS\.md)`?\s+§([^\n]{2,60})")
+
+
+def headings(path: Path) -> set[str]:
+    """`## §Name — trailing prose` -> the pointer-addressable name, with and without the marker."""
+    out: set[str] = set()
+    text = path.read_text(encoding="utf-8")
+    names = [m.group(1) for m in re.finditer(r"^##\s+(.+)$", text, re.MULTILINE)]
+    # a pointer may also name a BULLET rule inside a section - `PRINCIPLES.md §Secrets never get pushed`
+    # is one of the Production-safeguards bullets, not a heading of its own.
+    names += [m.group(1) for m in re.finditer(r"^\s*-\s+\*\*(.+?)\*\*", text, re.MULTILINE)]
+    for name in names:
+        name = name.strip()
+        for form in (name, name.split(" — ")[0].split(" (")[0].strip()):
+            out.add(form)
+            out.add(form.lstrip("§"))
+    return out
+
+
+def check_section_pointers(files: dict[str, Path]) -> None:
+    """10. A `<FILE>.md §Name` pointer names a heading that file actually has.
+
+    The mechanisms moved out of PRINCIPLES.md into MECHANISMS.md and ~100 pointers were rewritten. A
+    pointer is matched by PREFIX against the real headings, because skills write them inline ("per
+    `MECHANISMS.md` §Step 3c, check what this phase produced...") - the text after the marker runs on
+    into the sentence, so it can never be matched whole.
+    """
+    known: dict[str, set[str]] = {}
+    for label, rel in POINTER_FILES.items():
+        path = ROOT / rel
+        if not path.exists():
+            fail(f"{rel} is missing, but skills point at it as {label}")
+            return
+        known[label] = headings(path)
+    extra = {ROOT / "README.md", ROOT / "VISION.md", ROOT / "PRINCIPLES.md",
+             ROOT / "references" / "mechanisms.md"}
+    for path in sorted(set(files.values()) | extra):
+        text = path.read_text(encoding="utf-8")
+        where = path.relative_to(ROOT).as_posix()
+        for m in POINTER_RE.finditer(text):
+            label, rest = m.group(1), m.group(2)
+            if not any(rest.startswith(h) for h in known[label] if h):
+                fail(f"{where} points at {label} §{rest.split(',')[0].strip()!r}, which that file "
+                     f"has no heading for - a dangling pointer is worse than the fat file it came from")
+        # A BARE `§Name` is deliberately not checked: it also addresses other documents (a product's
+        # own `DESIGN.md` §Tokens) and appears mid-sentence as ordinary prose. Only a pointer that
+        # names one of the governing files is a claim this repo can be held to.
+
+
+def check_file_sizes(files: dict[str, Path]) -> None:
+    """11. The ~15KB prune rule applies to the file that wrote it.
+
+    PRINCIPLES.md set the threshold and exempted itself, reaching 25.8KB - and unlike any single skill it
+    is loaded by EVERY skill, so its size is the per-session attention cost of the whole system. A rule
+    with no check is how it got there.
+    """
+    for rel in ("PRINCIPLES.md", "references/mechanisms.md", "references/lessons.md"):
+        size = (ROOT / rel).stat().st_size
+        if size > SIZE_LIMIT:
+            fail(f"{rel} is {size / 1024:.1f}KB (> {SIZE_LIMIT // 1024}KB) - the prune rule it defines "
+                 f"applies to it first: move mechanism into references/, or condense")
+    for name, path in sorted(files.items()):
+        size = path.stat().st_size
+        if size > SIZE_LIMIT and name not in SIZE_EXEMPT:
+            fail(f"{name} is {size / 1024:.1f}KB (> {SIZE_LIMIT // 1024}KB) - run a prune pass, or add "
+                 f"a named exemption with a reason to SIZE_EXEMPT")
 
 
 def check_skill_count(n: int, files: dict[str, Path]) -> None:

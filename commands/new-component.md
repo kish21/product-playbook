@@ -10,7 +10,7 @@ Create a new React component for your project's frontend.
 $ARGUMENTS
 
 > Part of **product-playbook**. Reads `DESIGN.md` (+ `PRODUCT.md#Design`) — resolve per
-> `PRINCIPLES.md` §Spine resolution; writes one component file.
+> `MECHANISMS.md` §Spine resolution; writes one component file.
 > Apply `PRINCIPLES.md` — load-bearing: **no-hardcoding (tokens/fonts come from `DESIGN.md`, never
 > baked into the component)**, **accessibility (keyboard · focus · contrast · semantic markup) is part
 > of the definition-of-done**, **intention-revealing naming**, **docs match reality**.
@@ -116,4 +116,4 @@ The names below are **examples, not the contract**. Where `DESIGN.md` records a 
 
 A token this component genuinely needs but `DESIGN.md` doesn't define is a **contradiction between the
 component and the recorded design system**: name both sides and take it back to `/design-system` to be
-added there — never invent it here (`PRINCIPLES.md` §Step 3c).
+added there — never invent it here (`MECHANISMS.md` §Step 3c).
