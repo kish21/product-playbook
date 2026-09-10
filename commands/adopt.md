@@ -90,7 +90,10 @@ gates against it, and `/drift-check` would then measure drift from fiction.
 
 **Close the loop (`MECHANISMS.md` §Step 3b):** set the header (`Stage: adopted <date>`, `Last updated:`),
 reconcile any number carried in from the repo against what the owner just confirmed, and end with a
-suggested one-line commit message in the repo's convention.
+suggested one-line commit message in the repo's convention. Then **run the transition guard** (`MECHANISMS.md`
+§Step 3b, item 4): re-run any `evidence:` line this draft carried in and report a verdict for every
+criterion — an inferred spine is *full* of claims nobody has re-measured, so `UNVERIFIED` will be the
+common answer here, and saying so is the point — and check the transition is legal.
 
 ## Step 3c — Contradiction check (before the gate closes)
 Per `MECHANISMS.md` §Step 3c, check the draft against decisions **already recorded** — here: the

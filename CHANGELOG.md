@@ -3,6 +3,42 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.36.0] - 2026-09-10
+
+### Added — **the transition guard: every phase reconciles intended against actual before it closes** (#145)
+
+`docs/state-model.md` §4 deferred this one piece of the audit's model, for a stated reason: a guard needs
+a re-runnable record before it has anything to check, and #131 had not shipped one yet. #131 landed §2f's
+evidence line and §2g's four verdicts, **so the condition the deferral named came true** — this reopens it
+deliberately, and the deferral and its trigger stay in §4 rather than being erased.
+
+The gap it closes: a section could go `empty ──▶ filled` carrying an `evidence:` line nobody had re-run
+since the day it was typed, and nothing noticed until a human remembered to run `/drift-check`. **A gate
+that only runs when you remember it is not a gate.**
+
+- **`MECHANISMS.md` §Step 3b gains a fourth item**, defined once — the phase re-runs *its own* evidence
+  lines, classifies each with §2g's four verdicts, checks the transition against §2b's table, and reports
+  every criterion including the unevidenced ones.
+- **One implementation, two moments.** It is `/drift-check`'s Step 0b claim-to-evidence pass, scoped to the
+  criteria the phase just wrote. No second evidence format, no new skill, no state engine — §2h and §5 both
+  hold.
+- **`UNVERIFIED` never blocks.** No evidence line, or a command that cannot run *here* (absent tooling,
+  credentials, a live service), completes the phase honestly. It stays distinct from `CONTRADICTED`, which
+  means a measurement was taken and disagreed.
+- **`filled ──▶ declined` is now refused** — §2b declared it illegal and nothing enforced it. The refusal is
+  in `MECHANISMS.md` §Declined runs, **not** in the guard: that transition is produced by a *declining* run,
+  which stops early and never reaches Step 3b. Only an unfilled section may take the Not-run line; a filled
+  one that needs redoing goes through §Re-run semantics.
+- **check 16 enforces participation**: all 17 skills that write the spine — `/adopt` included, since an
+  inferred spine is where unmeasured claims collect — invoke the guard *in the region where they close
+  their gate*, point beside the clause at where it is defined, and state that `UNVERIFIED` does not block.
+  `/drift-check` is the one exemption — it owns the pass, so pointing it at itself says nothing.
+  Proven to fail first, four ways: clause removed → red; clause removed but the guard *mentioned* elsewhere
+  in the file → still red; pointer dropped → red; `UNVERIFIED` dropped → red.
+- **`/design-system` was pruned to make room** (check 11's ~15KB limit, `SIZE_EXEMPT` empty since v1.35.0):
+  its Step 0 restated §Re-run semantics and §Declined runs at length, and now points at them — the same
+  define-once rule this release is about.
+
 ## [1.35.1] - 2026-09-10
 
 ### Fixed — **upgrading to v1.35.0 left two copies of `/build` and `/tickets`** (#138 follow-up)

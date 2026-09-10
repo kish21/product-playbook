@@ -36,6 +36,10 @@ description: >
 
 ## Step 0b — Claim-to-evidence pass (re-verify, don't re-read)
 
+> **One pass, two moments.** Every phase now runs this same pass at its own transition, scoped to the
+> criteria it just wrote (`MECHANISMS.md` §Step 3b, item 4 — the transition guard). This sweep is the
+> cross-cutting one: every claim in the spine, including the ones written before the guard existed.
+
 Every `- [x]` in the spine is a claim. **A checked box and a checked box with fabricated justification are
 indistinguishable to any later reader, human or agent** — unless the claim points at something re-runnable.
 So for each one:
