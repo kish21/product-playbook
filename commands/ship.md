@@ -42,6 +42,7 @@ description: >
   its tests recorded**; "small" is not a judgement the shipper makes about their own change.
 - *(On a real run this gate read the evaluation section alone and shipped a product whose `#Dev-complete`, `#Tests` and
   `#Evaluation` were all empty — the last gate before release never asked whether anything was tested.)*
+- **If the gate is unmet and the run stops here, record that it stopped (`PRINCIPLES.md` §Declined runs):** write ONE dated line at the top of `#Ship log` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
 
 ## Step 1 — Apply principles (this phase)
 - **Reviews are DEEP:** trace the change to its real callers; hunt the "green tests, dead in the live path" bug. **Verify any review/audit finding against the real code** — don't rubber-stamp; some findings are already done or misdiagnosed.

@@ -35,6 +35,12 @@ description: >
   *(Design = run `/design-system`; it fills `PRODUCT.md#Design`. **Skip it for backend/API/CLI products** —
   the has-UI flag from `/architect`/`/structure` decides. Validate = run `/validate`; it fills
   `PRODUCT.md#Validation`. An **override** line there counts as filled but is surfaced every time you orient.)*
+- **A `Not run` line is not a filled section.** A section whose only content is a dated
+  `_Not run <date>: … — run <phase> first._` line (`PRINCIPLES.md` §Declined runs) counts as **empty**:
+  it stays the frontier, and the phase that fills it is still the next phase. But **say that the attempt
+  happened** — *"`/eval` was already tried on <date> and declined because `#Tests` was empty; the missing
+  phase is still `/test`"* — instead of proposing it blind for a second time. Distinguish it from an
+  `Override` line, which *does* count as filled and is surfaced rather than routed to.
 - **Check the order, not just the frontier.** The first-unfilled rule is silent when the chain was walked
   out of order — a project with `#Architecture` filled and `#Scope` empty gets pointed at Scope with no
   hint that stack decisions already exist which may not survive it. Compare the filled sections against

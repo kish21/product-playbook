@@ -7,6 +7,10 @@ to understand the whole product: what it is, why, what's built, and what's next.
 
 Rules:
 - A section that is empty/missing = that phase's exit criteria are not yet met.
+- A section whose only content is a dated `_Not run <date>: <what was missing> — run <phase> first._`
+  line is STILL empty: that phase was attempted and correctly declined. One line, replaced on the next
+  attempt, scaffold untouched (PRINCIPLES.md §Declined runs). An `Override <date>:` line is different —
+  it is a deliberate skip, and it DOES count as filled.
 - Keep entries short and honest. Record HOW something was verified, not just "done".
 - Anything explicitly OUT OF SCOPE stays out until the recorded trigger fires.
 - Every skill, when it writes back, UPDATES the header line below — bump `Stage:` to its phase

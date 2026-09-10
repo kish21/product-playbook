@@ -450,6 +450,27 @@
       "prompt": "run the retro for what we just shipped",
       "expected_output": "Reads #Evaluation (the section name the template actually defines) and, finding it empty, says so before drawing conclusions — a retro with no measured result is opinion, and the 'decided next' line inherits that weight; continues if the user wants but labels the basis honestly rather than presenting it as evidence-based",
       "files": []
+    },
+    {
+      "id": "eval-declined-run-leaves-a-trace",
+      "skill": "eval",
+      "prompt": "run /eval on this project",
+      "expected_output": "Finds #Tests (and #Dev-complete) empty, declines to measure, and — instead of leaving the repo byte-identical — writes ONE dated line at the top of #Evaluation (_Not run <date>: #Tests is empty — run /dev-check and /test first._) with every scaffold field left untouched, per PRINCIPLES.md §Declined runs; the section still counts as UNFILLED so /playbook keeps routing to the missing phase, and a second declined run REPLACES that line rather than appending a second one",
+      "files": []
+    },
+    {
+      "id": "playbook-reads-a-declined-run-note",
+      "skill": "playbook",
+      "prompt": "what's next? I think I already tried the evaluation step",
+      "expected_output": "Treats a section holding only a dated _Not run_ line as EMPTY — it stays the frontier and the phase that fills it is still the next phase — but names the earlier attempt instead of proposing it blind (/eval was tried on <date> and declined because #Tests was empty, so the missing phase is /test); distinguishes it from an Override line, which does count as filled and is surfaced rather than routed to",
+      "files": []
+    },
+    {
+      "id": "validate-override-is-the-deliberate-skip-shape",
+      "skill": "validate",
+      "prompt": "we're not going to validate this, record that and move on",
+      "expected_output": "Records the skip as an Override <date>: <reason> line — the deliberate-skip shape of PRINCIPLES.md §Declined runs, not a separate local rule — pressure-tested against #Vision first; keeps every experiment field present and marked '— not run (override <date>)' rather than blanking the section; unlike a _Not run_ note an override DOES count as filled (the phase is no longer owed) and /scope and /drift-check surface it every time they orient",
+      "files": []
     }
   ]
 }

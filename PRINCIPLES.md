@@ -141,6 +141,36 @@ the most expensive thing in the section to reconstruct — **why the other optio
   exception.
 - **A true restart may replace wholesale** — but only as an explicit, recorded choice.
 
+## §Declined runs — a phase that stops still leaves a trace
+
+§Re-run semantics governs a phase *rewriting* its section. This governs a phase **declining to write
+one**. A skill that correctly stops at an unmet prior gate leaves the repo byte-identical — so from the
+repo alone, *"I ran `/eval` and it correctly declined"* is indistinguishable from *"I never ran
+`/eval`"*. The user cannot tell, the next session cannot tell, and `/playbook` — which orients purely
+by which sections are filled — keeps proposing the same phase with no memory that it was already
+attempted and declined for a good reason.
+
+**A phase that declines to run records that it declined.** One dated line at the top of its own
+section, in this form, with nothing else in the section touched:
+
+`_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._`
+
+- **The scaffold stays intact and visibly unfilled.** Blanking or half-filling the fields is the
+  §Re-run failure wearing new clothes: the note is orientation, not content.
+- **It does not count as the section being filled.** `/playbook`, `/drift-check` and the next session
+  still route to the missing phase — the note only tells them the detour was already noticed, so they
+  can say *"attempted <date>, declined because X"* instead of proposing it blind.
+- **One line, replaced on the next attempt — never appended.** An append-only log of every early
+  invocation is noise, and noise trains people to skip the line that mattered.
+- **Only a *declined* run writes it.** A phase that runs to completion writes its section normally; a
+  phase nobody invoked writes nothing. This line means exactly *"attempted, and stopped for a reason"*.
+
+**A deliberate skip is the same rule's other shape.** Where a phase is not merely *early* but is being
+**skipped on purpose** — `/validate`'s untested assumption, `/ship`'s skipped phases — the line reads
+`Override <date>: <reason>`, it *does* count as filled, and later phases surface it every time they
+orient. Both are dated, both are one line, both keep the scaffold; they differ only in whether the
+phase is still owed. `/validate`'s override rule is this rule's specific case, not a separate one.
+
 ## §Seam — who owns the dependency manifest
 
 Two phases can both plausibly claim it, so the split is fixed here and stated identically in both skills:
