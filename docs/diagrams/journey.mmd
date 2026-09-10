@@ -1,0 +1,44 @@
+%% The playbook journey: three tiers over the six phases, with the evidence gate between them.
+%% Tiers are a DISPLAY grouping only - the six phase numbers are load-bearing in 15 skill
+%% frontmatters and must never be renumbered to match this picture (see #123).
+%% Layout constraints, each found by measuring the SVG rather than by reading the source:
+%%  1. Edges are drawn SUBGRAPH-to-subgraph, never member-to-member. Mermaid silently ignores a
+%%     subgraph's `direction` the moment one of its nodes has an edge crossing the boundary, which
+%%     collapsed this into a 672x2407 column.
+%%  2. A bare `%%` line is a PARSE ERROR ("Expecting NEWLINE, SPACE, GRAPH") reported against
+%%     line 1 rather than against itself. Every comment line carries text.
+%%  3. Gates are rectangles, not circles: a circle is sized from its text badly and the last line
+%%     of the label escaped the outline.
+%%  4. Horizontal bands, not vertical columns. As columns, tier 2's eight skills made the picture
+%%     1225px tall with tiers 1 and 3 floating in whitespace beside it.
+%%  5. wrappingWidth is raised so a gate reads as a WIDE BAR spanning the picture. At the 200px
+%%     default each gate wrapped into a narrow tall block that looked like a fourth phase column
+%%     rather than a barrier across the flow.
+%% Regenerate with: sh tools/render-diagrams.sh
+%%{init: {"flowchart": {"wrappingWidth": 820, "padding": 10}}}%%
+flowchart TB
+    subgraph T1[" ①  PRODUCT THINKING · decide what is worth building "]
+        direction LR
+        V["/vision"] --> VA["/validate"] --> SC["/scope"] --> PL["/plan"]
+    end
+
+    G1["<b>✓ evidence</b> — a named user + job-to-be-done · a measured experiment · ONE core feature · non-goals"]
+
+    subgraph T2[" ②  ENGINEERING DISCIPLINE · build it so it holds "]
+        direction LR
+        AR["/architect"] --> ST["/structure"] --> DS["/design-system<br/><i>UI only</i>"] --> FO["/foundation"] --> CO["/contracts"] --> TI["/tickets"] --> BU["/build"] --> DC["/dev-check"]
+    end
+
+    G2["<b>✓ evidence</b> — it RUNS end to end · every feature's definition-of-done met, with HOW it was verified"]
+
+    subgraph T3[" ③  SHIPPING &amp; LEARNING · prove it, ship it, find out if it worked "]
+        direction LR
+        TE["/test"] --> EV["/eval"] --> SH["/ship"] --> LE["/learn"]
+    end
+
+    G3["<b>✓ evidence</b> — measured against a baseline · security-reviewed, rollback path ready · metric instrumented"]
+
+    T1 --> G1 --> T2 --> G2 --> T3 --> G3
+
+    classDef gate fill:#e6f4ea,stroke:#137333,stroke-width:2px,color:#0d652d;
+    class G1,G2,G3 gate;

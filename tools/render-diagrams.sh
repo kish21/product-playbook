@@ -13,7 +13,7 @@ set -eu
 
 DIR="$(cd "$(dirname "$0")/.." && pwd)/docs/diagrams"
 
-for name in architecture design-system; do
+for name in architecture design-system journey; do
   npx -y @mermaid-js/mermaid-cli \
     -i "$DIR/$name.mmd" -o "$DIR/$name-light.svg" -t default -b transparent
   npx -y @mermaid-js/mermaid-cli \
