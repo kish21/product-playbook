@@ -3,6 +3,22 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.35.1] - 2026-09-10
+
+### Fixed — **upgrading to v1.35.0 left two copies of `/build` and `/tickets`** (#138 follow-up)
+`install.sh` removes a stale directory before copying a directory-form skill, but never removed the
+stale **flat file**. So an install made before v1.35.0 kept `~/.claude/commands/build.md` (the old
+24.5KB version) sitting next to the new `~/.claude/commands/build/SKILL.md` — two forms of one skill in
+`commands/`, and an ambiguous slash command. `/tickets` had the same problem.
+
+The installer now removes **whichever form the skill is not** before copying, in both directions: a
+directory-form install drops a leftover `<name>.md`, and a flat install drops a leftover `<name>/`, so a
+skill that moves either way upgrades cleanly.
+
+Reproduced before fixing: install v1.34.0 into a temp project → upgrade with master's installer →
+`build`, `build.md`, `tickets`, `tickets.md` all present. With the fix, the same upgrade leaves only
+`build` and `tickets`.
+
 ## [1.35.0] - 2026-09-10
 
 ### Changed — **the prune rule applies to every skill: `SIZE_EXEMPT` is now empty** (#138)
