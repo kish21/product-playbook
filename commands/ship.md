@@ -76,7 +76,7 @@ empty `#Tests` section is not a disclosure, it is an absence, and absence reads 
 Check the boxes. **If review/security/docs aren't actually done, or a doc claim doesn't match the
 code, STOP — do not open the PR.** Shipping a false claim is the exact failure to avoid.
 
-**Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention.
+**Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention. Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal.
 
 ## Step 3c — Contradiction check (before the gate closes)
 Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: the whole spine against what actually shipped — docs claiming a capability the code lacks, and the version in the CHANGELOG against every manifest surface. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.

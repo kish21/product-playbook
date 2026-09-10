@@ -73,7 +73,7 @@ named products (not from memory), the metric is a measurable number, the JTBD/ri
 field is empty or vague, STOP and fill it with the user** — **a north star missing its target, date, input
 metrics, guardrail or instrumentation line is vague by definition** — a fuzzy vision is the root of later drift.
 
-**Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention.
+**Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention. Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal.
 
 ## Step 3c — Contradiction check (before the gate closes)
 Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: any spine that already exists (`README.md`/`CLAUDE.md` purpose, a prior `#Vision`) — a re-run that quietly changes the customer, the north star or the business model rewrites the premise every later phase was built on. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.

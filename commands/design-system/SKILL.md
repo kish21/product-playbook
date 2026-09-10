@@ -78,17 +78,12 @@ description: >
 3. **UI gate (mirror the existing AI-product conditional):** ask/decide — *"does this product have or need
    a user-facing UI?"* If the answer is **no** (pure backend/API/CLI/library) → **explain why a design
    system doesn't apply, write nothing, and stop.** Hand back to `/foundation`.
-4. **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** if `#Design` is already filled, **show what
-   would change and ask before replacing it** — never a silent overwrite. A redesign that quietly discards the
-   archetype you rejected loses the most expensive thing in the section, so the superseded archetype, palette or
-   type pairing stays with a dated `superseded <date>: <why>` line beside it. A first run over an empty section
-   is unchanged.
-5. **If the run stops at an unmet gate, record that it stopped (`MECHANISMS.md` §Declined runs):** write ONE
-   dated line at the top of `#Design` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it>
-   first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so
-   `/playbook` still routes here; the next attempt **replaces** that line rather than appending to it. This does
-   **not** apply to the UI gate at (3): a backend product is not *owed* a design system, so it writes nothing at
-   all — declining and being inapplicable are different states.
+4. **Re-running this phase — apply `MECHANISMS.md` §Re-run semantics to `#Design` in full.** A redesign that
+   quietly discards the archetype you rejected loses the most expensive thing in the section: the superseded
+   archetype, palette or type pairing stays with its dated `superseded <date>: <why>` line.
+5. **A run that stops at an unmet gate records that it stopped — `MECHANISMS.md` §Declined runs, in full.**
+   The one local rule: this does **not** apply to the UI gate at (3). A backend product is not *owed* a design
+   system, so it writes nothing at all — declining and being inapplicable are different states.
 
 ## Step 1 — Design principles FIRST (think like a 2026 senior designer)
 
@@ -172,7 +167,10 @@ each. **If any law fails, STOP and fix it** — the floor is non-negotiable.
 ### Step 3b — close the loop (`MECHANISMS.md` §Step 3b)
 Update the spine's `Stage:` header to this phase and `Last updated:` to today; **reconcile every number this
 phase introduced against `#Vision`** (a type scale or density that cannot serve the audience the vision names is
-a contradiction, not a detail); and **suggest a one-line commit message** in the repo's convention.
+a contradiction, not a detail); and **suggest a one-line commit message** in the repo's convention. Then **run the transition
+guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines (here, the
+`/frontend-audit` behind the sample) and report a verdict for every exit criterion — `UNVERIFIED` is a
+normal outcome, silence is not — and check the transition is legal.
 
 ### Step 3c — contradiction check (`MECHANISMS.md` §Step 3c)
 Compare what this phase just produced against decisions already recorded — `#Vision` (who it is for, and the

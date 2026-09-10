@@ -49,6 +49,13 @@ Checks:
      description on GitHub quoted a stale 18 for months while the README said 21 - a wrong count on
      a project whose thesis is docs-match-reality. The description lives outside the repo, but the
      number it quotes now has exactly one source.
+ 16. Every skill that writes a spine section (/adopt included) RUNS THE TRANSITION GUARD where it closes
+     its gate: a clause naming the guard, pointing beside itself at MECHANISMS.md 3b item 4 where it is
+     defined once, and saying UNVERIFIED does not block. Read in the Step 3b->3c region and in a window
+     around the phrase, because both words already occur elsewhere. /drift-check is the one exemption -
+     it OWNS the claim-to-evidence pass the guard runs, so a pointer back to itself would be circular. The
+     guard was deferred (docs/state-model.md 4) until 131 made evidence re-runnable; a guard nobody
+     invokes is the opt-in /drift-check it was meant to stop relying on, so participation is checked.
 """
 from __future__ import annotations
 import json
@@ -166,6 +173,8 @@ def main() -> int:
     check_evidence_lines(files)
     # 15. every stated skill count matches the real one
     check_skill_count(len(cmds), files)
+    # 16. every section-writing skill actually invokes the transition guard at its Step 3b
+    check_transition_guard(files)
 
     return done(len(cmds))
 
@@ -494,8 +503,68 @@ def check_evidence_lines(files: dict[str, Path]) -> None:
                      f"is `command -> result · artefact · date` (docs/state-model.md §2f)")
 
 
+# The guard is DEFINED once in MECHANISMS.md 3b item 4 and INVOKED by every skill that writes a spine
+# section - /adopt included: it writes the whole spine from repo evidence, so reconciling intended against
+# actual is its subject matter, not an extra. /drift-check is the ONE exemption, and the reason is that it
+# OWNS the claim-to-evidence pass the guard re-uses (docs/state-model.md 2h): a pointer back to itself
+# would say nothing.
+GUARD_DECLARING = (STATE_DECLARING | {"adopt"}) - {"drift-check"}
+GUARD_POINTER = "§Step 3b"
+# How far from the phrase the pointer may sit. Every gate-closing region ALREADY says "Close the loop
+# (MECHANISMS.md §Step 3b)", so searching the whole region for the pointer would pass no matter what the
+# guard clause itself said - a check that cannot fail. It is read beside the phrase instead.
+GUARD_POINTER_WINDOW = 160
+# The clause itself runs longer than that, so the obligation it most often loses in the shortening -
+# "UNVERIFIED does not block" - is read in a wider window. Both are windows rather than region-wide greps
+# for the same reason: the words already occur elsewhere in some gate-closing regions.
+GUARD_CLAUSE_WINDOW = 400
+
+
+def check_transition_guard(files: dict[str, Path]) -> None:
+    """16. A phase that writes a section reconciles intended against actual before it closes.
+
+    docs/state-model.md 4 deferred this because a guard needs a re-runnable record to check; 131 shipped
+    one, so the deferral was reopened deliberately rather than left to rot. The failure it ends: a section
+    goes empty -> filled carrying an evidence line nobody has re-run since it was typed, and nothing
+    notices until a human remembers to run /drift-check. A gate that only runs when you remember it is not
+    a gate - so the invocation is checked, not hoped for.
+    """
+    for name in sorted(GUARD_DECLARING):
+        text = files[name].read_text(encoding="utf-8")
+        # The GATE-CLOSING REGION: Step 3b's heading through Step 3c's (or the end of the file). Not
+        # Step 3b's own block - /scope and others carry a sub-section between the two and close the loop
+        # after it. Reading a region rather than the whole file is what separates a skill that RUNS the
+        # guard from one that merely mentions it somewhere: check 9's lesson, that a heading is not a
+        # behaviour, applies to the clause that names one too.
+        start = re.search(r"^#{2,4}\s*Step 3b\b", text, re.MULTILINE)
+        if not start:
+            fail(f"{name} writes a spine section but has no `Step 3b` block to close its gate in")
+            continue
+        rest = text[start.end():]
+        stop = re.search(r"^#{2,4}\s*Step 3c\b", rest, re.MULTILINE)
+        # the clause is read as prose: markdown wraps it mid-sentence, so lines mean nothing here
+        body = " ".join(rest[: stop.start() if stop else len(rest)].split())
+        hits = [m.end() for m in re.finditer(r"transition\s*\**\s*guard", body, re.IGNORECASE)]
+        if not hits:
+            fail(f"{name} writes a spine section but never runs the **transition guard** where it closes "
+                 f"its gate (Step 3b) - "
+                 f"its evidence lines would then be re-checked only when someone opts into /drift-check "
+                 f"(MECHANISMS.md §Step 3b item 4, docs/state-model.md §4)")
+            continue
+        if not any(GUARD_POINTER in body[max(0, i - GUARD_POINTER_WINDOW):i + GUARD_POINTER_WINDOW]
+                   for i in hits):
+            fail(f"{name} names the transition guard but does not point at {GUARD_POINTER}, where it is "
+                 f"defined once - a restated gate drifts from the definition it copied")
+        # Read in the same window as the pointer, and for the same reason: the word appears elsewhere in
+        # some gate-closing regions, so a region-wide grep would pass a clause that had dropped it.
+        if not any("UNVERIFIED" in body[max(0, i - GUARD_CLAUSE_WINDOW):i + GUARD_CLAUSE_WINDOW]
+                   for i in hits):
+            fail(f"{name} runs the guard without saying that `UNVERIFIED` is a normal outcome - a guard "
+                 f"read as a hard block gets skipped wherever measurement is legitimately impossible")
+
+
 def check_skill_count(n: int, files: dict[str, Path]) -> None:
-    """10. Nobody states a skill count that disagrees with commands/.
+    """15. Nobody states a skill count that disagrees with commands/.
 
     The GitHub repo description said "18 commands" while the README said 21 in five places. That one
     is a setting, not a file - but the number has one true source (commands/), so every place in the

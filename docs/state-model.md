@@ -169,9 +169,9 @@ default is honoured.
 - A 22nd top-level skill would directly contradict #116 and #123, which are about the surface already
   being intimidating. That cost is real and buys nothing here.
 
-**This also supplies the transition guard §4 deferred.** Once evidence is re-runnable, reconciling
-*intended* against *actual* at a transition is a small addition to Step 3b rather than a new subsystem —
-still deferred, but no longer blocked.
+**This also supplied the transition guard §4 deferred.** Once evidence is re-runnable, reconciling
+*intended* against *actual* at a transition is a small addition to Step 3b rather than a new subsystem.
+That is exactly how it shipped in #145 — see §4.
 
 ### 2d. Gate types — classified by where the answer lives
 
@@ -230,21 +230,31 @@ reversal with the reasoning recorded** — not a silent re-introduction.
 
 ---
 
-## 4. The transition guard — DEFERRED, with reasons
+## 4. The transition guard — SHIPPED (#145), after a deferral that was reopened on its trigger
 
 The audit's model makes **evidence reconciliation a transition guard**: every advance compares
-*intended* state against *actual* repository state. Today nothing does that automatically —
-`/drift-check` does intended-vs-actual but is opt-in, and Step 3c compares recorded decisions against
-*other recorded decisions* (docs vs docs, not docs vs repo).
+*intended* state against *actual* repository state. Nothing did that automatically — `/drift-check`
+does intended-vs-actual but is opt-in, and Step 3c compares recorded decisions against *other recorded
+decisions* (docs vs docs, not docs vs repo). **A gate that only runs when you remember it is not a gate.**
 
-**Deferred, not rejected.** It is the largest behavioural change in the area and it is the subject of
-#131, which needs a re-runnable evidence record before a guard has anything to check. Declaring the
-state set and enforcing participation is worth shipping on its own and does not block it.
+**It shipped as a fourth item in `MECHANISMS.md` §Step 3b**, not a new subsystem and not a new skill —
+§2h had already made and recorded that surface-cost decision. At every transition the phase re-runs its
+own `evidence:` lines through `/drift-check`'s Step 0b pass, classifies each with §2g's four verdicts,
+and checks the transition against §2b's table. `UNVERIFIED` — no measurement possible here — stays a
+normal outcome and never blocks a phase, or the guard would punish exactly the environments that
+legitimately cannot measure.
 
-**Reopen trigger — now met:** #131 landed the re-runnable evidence record in §2f. The guard is now a
-small addition to Step 3b rather than a new subsystem, and is the next thing to pick up here. It stays
-deferred in this release only because it changes when every phase does work, and that deserves its own
-run at its own gate.
+**The one illegal transition is refused where it is produced.** `filled ──▶ declined` comes from a
+*declining* run, which stops early and never reaches Step 3b — so the refusal lives in
+`MECHANISMS.md` §Declined runs (only an unfilled section may take the Not-run line), not in a gate that
+path never executes. A guard placed where the failure cannot occur is a heading, not a behaviour.
+
+**The deferral, kept rather than erased** (§Re-run semantics: date the reversal, do not erase it). It was
+deferred as the largest behavioural change in the area, and blocked on #131, which had to land a
+re-runnable evidence record before a guard had anything to check. **Reopen trigger, met 2026-09-10:**
+#131 shipped §2f, so the guard became a small addition to Step 3b rather than a new subsystem, and #145
+picked it up at its own gate. Nothing about the original reasoning was wrong; the condition it named
+came true.
 
 ---
 
@@ -270,5 +280,14 @@ guard rail: everything here is a line of Markdown in a file in the repo.
 - **check 13** — every skill that writes a spine section declares its **State model**: the section it
   writes, and `declined` / `override` / `superseded` each either implemented or marked `n/a` **with a
   reason**. A missing declaration fails; so does an exemption with no reason.
+- **check 16** — every skill that writes a spine section actually **runs the transition guard** in the
+  region where it closes its gate (Step 3b through Step 3c), points at `MECHANISMS.md` §Step 3b where the
+  guard is defined once, and says there that `UNVERIFIED` is a normal outcome. Reading the region rather
+  than the file is deliberate: a skill that *mentions* the guard elsewhere and never runs it would
+  otherwise pass, which is check 9's lesson (a heading is not a behaviour) applied to the clause that
+  names one. `/drift-check` is the single exemption: it *owns* the claim-to-evidence pass the guard
+  re-uses, so a pointer back to itself would say nothing. `/adopt` participates too — it drafts the whole
+  spine from repo evidence, so reconciling intended against actual is its subject matter, and an inferred
+  spine is precisely where unmeasured claims collect.
 
-Both were proven to fail before they passed.
+All three were proven to fail before they passed.

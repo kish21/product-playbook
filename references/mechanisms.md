@@ -15,9 +15,9 @@
 ## §Step 3b — closing the loop (every phase that writes)
 
 
-Each phase runs its own principle gate at Step 3b. Three things belong to *every* one of them, so they
-are defined here rather than repeated (and forgotten) fifteen times. None is optional; all three are
-bookkeeping the skill can do and the user should not have to:
+Each phase runs its own principle gate at Step 3b. Four things belong to *every* one of them, so they
+are defined here rather than repeated (and forgotten) fifteen times. None is optional; the first three are
+bookkeeping the skill can do and the user should not have to, and the fourth is the gate itself:
 
 1. **Update the `Stage:` header** to the phase just completed, and `Last updated:` to today. A spine whose
    header names an earlier phase than its filled sections is lying about where the product is — and
@@ -29,6 +29,23 @@ bookkeeping the skill can do and the user should not have to:
 3. **Suggest a one-line commit message**, in the repo's existing convention, for the change you just made
    — e.g. `docs: lock Scope in PRODUCT.md (core feature, deferred + triggers, non-goals)`. The run's own
    summary is the best source for it; leaving the user to invent one wastes the context you already have.
+4. **Run the transition guard — reconcile *intended* against *actual* before the section changes state.**
+   The other three compare docs against docs; this compares the spine against the repository, at the last
+   moment the phase can still fix what it finds. `/drift-check` stays the deeper sweep — but it is opt-in,
+   and **a gate that only runs when you remember it is not a gate.**
+   - **Re-run this phase's own evidence.** For each exit criterion this run just wrote with an `evidence:`
+     line, execute the command it names and check the artefact it names — `/drift-check`'s Step 0b
+     §Claim-to-evidence pass, not duplicated, just run at the transition over this phase's own claims.
+     **No second format**: `docs/state-model.md` §2f's one line, here as everywhere.
+   - **Classify each with `docs/state-model.md` §2g's four verdicts** and say which. **`UNVERIFIED` never blocks a phase** — no
+     evidence line, or a command that cannot run *here* (absent tooling, credentials, a live service), and
+     the phase still completes. Never call that CONTRADICTED, which means a measurement was taken and
+     disagreed: absence of evidence is not evidence of absence, and the two send people to different places.
+   - **Check the transition is legal** against `docs/state-model.md` §2b — the state the section was in, and the one this run
+     leaves it in. (The illegal one, `filled ──▶ declined`, comes from a *declining* run, which never
+     reaches Step 3b; it is refused where it happens, in §Declined runs.)
+   - **Report, never silently pass.** Every criterion gets a verdict, the unevidenced ones included: green
+     over something nobody measured spends the user's trust on a box that was never checked.
 
 ## §Re-run semantics — a second run must not erase the first
 
@@ -70,6 +87,11 @@ section, in this form, with nothing else in the section touched:
   invocation is noise, and noise trains people to skip the line that mattered.
 - **Only a *declined* run writes it.** A phase that runs to completion writes its section normally; a
   phase nobody invoked writes nothing. This line means exactly *"attempted, and stopped for a reason"*.
+- **Only an *unfilled* section can take it — `filled ──▶ declined` is refused** (`docs/state-model.md` §2b:
+  a phase that ran does not un-run). A stop over an **already filled** section leaves it exactly as it is and
+  says so; a filled section that needs redoing goes `filled ──▶ filled` through §Re-run semantics. The
+  Not-run line over real content would destroy the phase's output *and* route `/playbook` back to a phase
+  that is not owed.
 
 **A deliberate skip is the same rule's other shape.** Where a phase is not merely *early* but is being
 **skipped on purpose** — `/validate`'s untested assumption, `/ship`'s skipped phases — or where a prior

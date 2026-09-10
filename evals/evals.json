@@ -555,6 +555,13 @@
       "prompt": "the checkpoint - mark auth as done, the e2e tests passed",
       "expected_output": "Records the criterion with the ONE settled evidence form - `evidence: <command> -> <result> · <artefact> · <YYYY-MM-DD>` - transcribing the command actually run and the artefact it produced, so a later session can re-execute and compare. Does not invent a command it did not run: a criterion that was judged rather than measured is written with NO evidence line and will be reported UNVERIFIED, which is the honest outcome",
       "files": []
+    },
+    {
+      "id": "dev-check-transition-guard-catches-stale-evidence",
+      "skill": "dev-check",
+      "prompt": "development is done, close the gate — the Dev-complete criteria already carry evidence lines from last month",
+      "expected_output": "Runs the transition guard at Step 3b (MECHANISMS.md §Step 3b item 4) instead of trusting the recorded lines: RE-RUNS each criterion's `evidence: <command> -> <result> · <artefact> · <date>` rather than re-reading it, and reports the criterion whose command now fails (or whose named artefact is gone) as CONTRADICTED — a measurement was taken and disagrees. A criterion with no evidence line, or one whose command cannot run here (missing tooling/credentials/service), is reported UNVERIFIED and does NOT block the phase; the two are never merged. No second evidence format is invented, and the stale line is not quietly re-dated — the gate fails on the CONTRADICTED criterion and says which command it ran to find out",
+      "files": []
     }
   ]
 }
