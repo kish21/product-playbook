@@ -478,6 +478,27 @@
       "prompt": "we're not going to validate this, record that and move on",
       "expected_output": "Records the skip as an Override <date>: <reason> line — the deliberate-skip shape of PRINCIPLES.md §Declined runs, not a separate local rule — pressure-tested against #Vision first; keeps every experiment field present and marked '— not run (override <date>)' rather than blanking the section; unlike a _Not run_ note an override DOES count as filled (the phase is no longer owed) and /scope and /drift-check surface it every time they orient",
       "files": []
+    },
+    {
+      "id": "playbook-names-the-ui-suite-on-a-ui-project",
+      "skill": "playbook",
+      "prompt": "we're building a web app with a UI; I've finished a couple of screens - what now?",
+      "expected_output": "Names /frontend-audit as the way to mechanically check the built UI against the laws /design-system set, and /new-component as the way to add a component against DESIGN.md - presented as anytime UI-suite TOOLS, not as phases: neither writes a PRODUCT.md section, so neither is ever proposed as 'the next phase' and the first-unfilled frontier is unchanged by ignoring them",
+      "files": []
+    },
+    {
+      "id": "playbook-stays-silent-about-ui-tools-on-a-backend-project",
+      "skill": "playbook",
+      "prompt": "guide me - it's a CLI tool, no interface at all",
+      "expected_output": "Mentions neither /frontend-audit nor /new-component nor /design-system: the has-UI flag is false, so the UI suite is not part of this user's journey and naming it would be pure noise; routes only through the canonical chain",
+      "files": []
+    },
+    {
+      "id": "architect-records-the-constraints-not-an-ideology",
+      "skill": "architect",
+      "prompt": "pick the stack - it's just me, and I have no time to run infrastructure",
+      "expected_output": "Benchmarks current-year options first, then chooses on FIT rather than open-source-by-default: weighs reliability, operational burden, team size, cost, compatibility, maturity and lock-in/exit cost, and can pick a managed service over self-hosting when a one-person team's operating cost dwarfs the licence saving. Records in #Architecture the constraint set each choice was optimised against and why the winner won, so the decision is auditable when a constraint changes",
+      "files": []
     }
   ]
 }

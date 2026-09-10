@@ -53,6 +53,12 @@ description: >
     out-of-order use is legitimate — it should be *visible*, not blocked.
   An **in-order spine produces no extra output at all**; don't manufacture noise. A user who overrides gets
   it recorded on the `Playbook:` line of the `PRODUCT.md` header — **read that first and do not re-ask** on later runs.
+- **UI projects only — recommend the enforcement tool, never gate on it.** If the has-UI flag is set and
+  `#Build log` already contains UI work, say once that `/frontend-audit` mechanically checks that UI against
+  the laws `/design-system` set (real contrast computation, not an opinion). It is a **recommendation, not a
+  phase**: it writes no `PRODUCT.md` section, so the first-unfilled frontier must never look for one, and a
+  user who ignores it is not behind on anything. For a backend/API/CLI product (has-UI false) say nothing —
+  neither UI-suite skill exists for that user.
 - **Brownfield (existing code, no `PRODUCT.md`): route to `/adopt`.** It drafts an INFERRED `PRODUCT.md`
   from what the repo actually contains and confirms it with the owner — after which orienting works
   normally. Entering straight at `/architect` or `/build` still works and stays offered, but it leaves the
@@ -60,7 +66,8 @@ description: >
 
 ## Step 1 — Explain the map (once, briefly, plain language)
 Show the journey in one screen so the user has the mental model:
-`vision → validate → scope → plan` (Product) · `architect → structure → design-system* → foundation → contracts → tickets → build → dev-check` (*UI only)
+`vision → validate → scope → plan` (Product) · `architect → structure → design-system* → foundation → contracts → tickets → build → dev-check` (*UI only —
+UI products also get `/new-component` to build one against `DESIGN.md` and `/frontend-audit` to check it; tools, not steps)
 (Development) · `test` · `eval` · `ship` · `learn` · `/drift-check` anytime. Note: each step asks a few
 questions and ends with a check before moving on — you stay in control.
 
@@ -73,7 +80,9 @@ questions and ends with a check before moving on — you stay in control.
    running `/playbook` again (it re-orients from `PRODUCT.md`).
 
 ## Step 3 — Anytime
-Remind the user they can run **`/drift-check`** whenever they suspect scope creep, and that they can
+Remind the user they can run **`/drift-check`** whenever they suspect scope creep, and — **on a UI product
+only** — **`/frontend-audit`** after building or changing UI, or before shipping. Both are anytime tools, not
+phases in the chain: neither fills a `PRODUCT.md` section, so neither can ever be "the next phase". They can
 also run any single phase skill directly (e.g. `/test`) without `/playbook`.
 
 ## Handoff

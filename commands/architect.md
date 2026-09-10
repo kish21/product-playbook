@@ -2,8 +2,8 @@
 name: architect
 description: >
   Phase 2 (Development), step 1 of product-playbook. Decide the tech stack + tools + key
-  architecture decisions, benchmarked to the best current-year open-source options, aligned
-  to the product. Use at the start of building, or run /architect "what stack", "tech
+  architecture decisions, benchmarked to current-year options and chosen against the project's
+  own constraints. Use at the start of building, or run /architect "what stack", "tech
   decisions", "how should we build this". Writes the Architecture section of PRODUCT.md.
   Run /structure next.
 ---
@@ -12,7 +12,7 @@ description: >
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per PRINCIPLES.md §Spine resolution).
 > Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing this phase:
-> **benchmark best-2026-OSS**, **patterns & anti-patterns**, **provider/adapter for externals**,
+> **benchmark 2026 then optimise for constraints (incl. lock-in)**, **patterns & anti-patterns**, **provider/adapter for externals**,
 > **resilience strategy**, **perf/cost budget**, **migrations (not raw schema)**, **no-hardcoding /
 > no secret in code**, **typed-contracts intent**, **layered/decoupled**. (Depth lives in Step 2 +
 > PRINCIPLES; the gate below just confirms it's recorded and real.)
@@ -22,7 +22,7 @@ description: >
 - **Reads:** `PRODUCT.md#Vision`, `#Scope`, `#Plan`.
 - **Writes:** `PRODUCT.md#Architecture` — stack+tools+why · **dev tooling** · ADRs · externals behind adapters · resilience · perf/cost budget · (AI) prompt-versioning/eval.
 - **Exit criteria (the gate — small: is the section complete?):**
-  - [ ] `#Architecture` is complete and **traces to scope/plan** (no gold-plating): stack+tools+why, every external behind an adapter, key ADRs (incl. patterns applied / anti-patterns avoided), migrations approach, a **custody + runtime target** line (data custody · runtime target · identity custody — each an ADR or an explicit N/A, and a default taken without user input says so), a **Dev tooling** line naming the hook runner · secret scanner · task runner · formatter/linter · dependency manifest (the tools `/structure` will scaffold — leave one unnamed and `/structure` picks it blind), and the **decisions for the concern areas this product needs** — resilience · perf/cost budget · security/no-secret-in-code · observability, **+ (AI) prompt-versioning/eval/tracing** — each recorded or marked **N/A**.
+  - [ ] `#Architecture` is complete and **traces to scope/plan** (no gold-plating): stack+tools+why **and the constraint set each choice was optimised against** (reliability · operational burden · team size · cost · compatibility · maturity · lock-in/exit cost), every external behind an adapter, key ADRs (incl. patterns applied / anti-patterns avoided), migrations approach, a **custody + runtime target** line (data custody · runtime target · identity custody — each an ADR or an explicit N/A, and a default taken without user input says so), a **Dev tooling** line naming the hook runner · secret scanner · task runner · formatter/linter · dependency manifest (the tools `/structure` will scaffold — leave one unnamed and `/structure` picks it blind), and the **decisions for the concern areas this product needs** — resilience · perf/cost budget · security/no-secret-in-code · observability, **+ (AI) prompt-versioning/eval/tracing** — each recorded or marked **N/A**.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Vision/#Scope/#Plan`. If `#Scope`/`#Plan` are empty, warn and offer to run them first (allow override).
@@ -32,8 +32,8 @@ description: >
 - **If the gate is unmet and the run stops here, record that it stopped (`PRINCIPLES.md` §Declined runs):** write ONE dated line at the top of `#Architecture` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
 
 ## Step 1 — Apply principles (this phase)
-- **Benchmark to the current year, OSS-first:** pick what leading teams use *now*; prefer open source unless told otherwise. Justify each choice in one line.
-- **Check where approvals attach (the OSS-first blind spot):** for any integration gated by a third party's approval — social/platform publishing APIs, app-store distribution, payment-processor onboarding, healthcare/finance API access — ask *"does the approval attach to the developer app/account, or to the software?"* If it attaches to the app, **self-hosting OSS does not bypass it** (you still register + pass every review yourself — OSS saves code, not compliance), and vendors who rent out their approvals (aggregators) may legitimately beat both OSS and direct builds. Benchmark all three routes with time-to-first-working-result including review/audit wait, not just code effort. (Learned on a shipped video product's distribution stage: IG/TikTok/YouTube app-review wall — unapproved apps fail *silently*, e.g. YouTube force-privates uploads.)
+- **Benchmark to the current year, then choose on constraints:** find what leading teams use *now* — that half is load-bearing and stops the AI reaching for a stale default. Then pick on **fit, not ideology**: reliability, operational burden, **the size of the team that has to run it**, cost, compatibility, maturity, and **lock-in (portability + exit cost)**. Open source often wins on the last one; it does not win automatically, and self-hosting infrastructure whose operating cost dwarfs the licence saving is a real failure mode for a solo builder. **Record the constraint set you optimised against** and why the winner won — one line each, in `#Architecture`, so the decision is auditable when a constraint changes.
+- **Check where approvals attach (the self-host blind spot):** for any integration gated by a third party's approval — social/platform publishing APIs, app-store distribution, payment-processor onboarding, healthcare/finance API access — ask *"does the approval attach to the developer app/account, or to the software?"* If it attaches to the app, **self-hosting OSS does not bypass it** (you still register + pass every review yourself — OSS saves code, not compliance), and vendors who rent out their approvals (aggregators) may legitimately beat both OSS and direct builds. Benchmark all three routes with time-to-first-working-result including review/audit wait, not just code effort. (Learned on a shipped video product's distribution stage: IG/TikTok/YouTube app-review wall — unapproved apps fail *silently*, e.g. YouTube force-privates uploads.)
 - **Patterns & anti-patterns awareness:** know the established design patterns for this kind of system *and* its common anti-patterns (e.g. god-objects, tight coupling to a vendor, dead config, N+1 / blocking the event loop, distributed-monolith). Apply the right patterns; consciously avoid the anti-patterns — adapted to *this* project, not cargo-culted.
 - **Provider/adapter for every external:** no vendor SDK in business logic — wrap it behind a config-selected interface so it's swappable via `.env`.
 - **No-hardcoding & typed contracts:** decisions must keep values in config and payloads typed.
