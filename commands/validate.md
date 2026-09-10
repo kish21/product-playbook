@@ -37,6 +37,7 @@ description: >
 - Read `PRODUCT.md#Vision`. If the **riskiest assumption** is missing or vague ("people will like it"),
   warn: "`/vision` looks incomplete — there is nothing testable to validate." Offer to run `/vision`
   first, but allow override (standalone use): ask the user to state the assumption now.
+- **An override is RECORDED, never a verbal "yes"** (`PRINCIPLES.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Validation` before continuing. This is the same rule the experiment-skip override in Step 3 already follows; the prior gate gets it too.
 - If `#Validation` already has a result, you are **re-validating** (a pivot, or a stale result) — read
   it, and do not overwrite the earlier record; append a new dated entry.
 

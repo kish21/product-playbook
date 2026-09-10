@@ -34,6 +34,7 @@ description: >
 
 ## Step 0 — Context + prior-gate check
 - Read `#Scope/#Plan/#Contracts`. **Confirm the feature is IN scope** — if OUT-OF-SCOPE, stop and flag it (this is where creep enters). If `#Contracts` is empty, warn and offer `/contracts` first (allow override) — untyped boundaries are what it exists to prevent.
+- **An override is RECORDED, never a verbal "yes"** (`PRINCIPLES.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Build log` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
 - **Lane mode: read `.lane` first, and treat `ALLOW`/`DENY` as the file-level scope gate.** `TASK` is the
   ticket; `ALLOW` is every path this session may write. A file you need that is outside `ALLOW` is **creep at
   file level** — the same finding `/scope` makes at feature level: **STOP and flag it** (widen the ticket's

@@ -27,6 +27,7 @@ description: >
 
 ## Step 0 — Context + prior-gate check
 - Read `#Scope/#Architecture/#Structure`. If `#Foundation` isn't done, warn (you need a place to run migrations) but allow override.
+- **An override is RECORDED, never a verbal "yes"** (`PRINCIPLES.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Contracts` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
 - Brownfield: read existing models/migrations; extend, don't duplicate.
 
 - **Re-running this phase (`PRINCIPLES.md` §Re-run semantics):** if the section is already filled, **show what would change and ask before replacing it** — never a silent overwrite — and leave a reversed decision in place with a dated `superseded <date>: <why>` line. A first run over an empty section is unchanged.

@@ -499,6 +499,20 @@
       "prompt": "pick the stack - it's just me, and I have no time to run infrastructure",
       "expected_output": "Benchmarks current-year options first, then chooses on FIT rather than open-source-by-default: weighs reliability, operational burden, team size, cost, compatibility, maturity and lock-in/exit cost, and can pick a managed service over self-hosting when a one-person team's operating cost dwarfs the licence saving. Records in #Architecture the constraint set each choice was optimised against and why the winner won, so the decision is auditable when a constraint changes",
       "files": []
+    },
+    {
+      "id": "contracts-records-the-bypass-it-was-granted",
+      "skill": "contracts",
+      "prompt": "just write the schemas - I know foundation isn't set up, skip it, I'll wire the DB later this week",
+      "expected_output": "Warns that #Foundation is empty and offers /foundation first, then - because the user proceeds anyway - treats it as an OVERRIDE rather than a verbal yes: names the gate being bypassed, captures the reason in the user's own words ('I'll wire the DB later this week'), says it will be written down, and writes `Override <date>: <reason> - bypassed <gate>` at the top of #Contracts before continuing. Never advances on a spoken 'yes' that reaches no file",
+      "files": []
+    },
+    {
+      "id": "playbook-surfaces-a-recorded-override-on-orient",
+      "skill": "playbook",
+      "prompt": "where are we?",
+      "expected_output": "Lists every `Override <date>: <reason> - bypassed <gate>` line found in the filled sections BEFORE proposing a next phase, quoting the gate and the user's own recorded reason, and offers the bypassed phase again - so a section written on unmet criteria is never silently indistinguishable from one whose gate held. Does not re-ask for a reason already recorded",
+      "files": []
     }
   ]
 }
