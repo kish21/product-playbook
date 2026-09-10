@@ -3,6 +3,34 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.21.0] - 2026-09-10
+
+### Fixed - **the eval file that proves the skills was itself unproven**
+`VISION.md` claimed *"`evals/evals.json` proves each skill matches this VISION"*. Nothing read it. CI
+parsed the file for JSON validity and compared the **set of skill names** against `commands/` — and
+never once looked at a `prompt` or an `expected_output`. Fifty-three assertions, green forever, and
+this is failure mode #3 from this repo's own README (*"green tests while the app was dead in
+production"*) sitting inside the repo that preaches against it.
+- **What the blind spot was already hiding: two schemas in one file.** Six cases — the five `/tickets`
+  cases and `build-lane-mode` — had drifted to `assertions` + `expected_artifacts` and carried **no
+  `expected_output` at all**, the one field skill-creator's schema requires. They had been merged,
+  released and cached in three plugin versions without anything noticing, because the only field CI
+  ever compared was the skill's name. All six are migrated: `assertions` is `expectations` (the
+  upstream name, so an executor can one day read them), and each gained the `expected_output` it
+  never had.
+- **`tools/check.py` gains check 8**, a structural gate on every case: the required fields exist and
+  are non-empty, ids are unique, list fields are lists, **no field name has drifted** (the allow-list
+  is what caught `assertions`), and **every skill carries at least two cases** — which the file's own
+  note had promised all along while `contracts`, `dev-check` and `eval` each shipped exactly one. All
+  three now have the second case, covering the behaviour a single happy-path case never reached: the
+  boundary units/scale trap and the refusal to accept a hand-edited schema, the dev-complete gate
+  **failing** on a "done" recorded without evidence, and `#Vision`'s north star being the definition
+  of good rather than a rubric invented at eval time.
+- **The claim is now scoped to what is true.** `VISION.md` says CI gates the file's *structure*, not
+  its verdicts, and that executing the cases is still manual — so a green build means the assertions
+  are **well-formed, not met**. `docs/lane-mode.md` keeps the open item for the half that stands.
+  Overclaiming a guarantee is worse than not having it: it stops anyone from going to look.
+
 ## [1.20.0] - 2026-09-08
 
 ### Fixed - **the last gate before release never asked whether anything was tested**

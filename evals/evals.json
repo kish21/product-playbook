@@ -1,6 +1,6 @@
 {
   "skill_collection": "product-playbook",
-  "note": "2-3 trigger/behaviour checks per skill (skill-creator convention). Each expected_output names the PRODUCT.md section + exit criteria the skill must satisfy. Re-run on change to catch drift from VISION.md.",
+  "note": "2-3 trigger/behaviour checks per skill (skill-creator convention). Schema per skill-creator references/schemas.md: id + skill + prompt + expected_output are REQUIRED; files (input fixtures), expectations (individually gradeable statements) and expected_artifacts (paths the run must write) are optional. Each expected_output names the PRODUCT.md section + exit criteria the skill must satisfy. tools/check.py gates this structure; it does not execute the cases. Re-run on change to catch drift from VISION.md.",
   "evals": [
     {
       "id": 0,
@@ -73,6 +73,13 @@
       "files": []
     },
     {
+      "id": "contracts-boundary-units-and-migrations",
+      "skill": "contracts",
+      "prompt": "the scorer returns 0-1 but the dashboard renders it out of 10, and someone added the column straight to the database",
+      "expected_output": "Runs the boundary audit: states the units/scale/shape BOTH sides expect at each boundary and reconciles the mismatch now, writing the unit into the field name where ambiguous (score_0_10); refuses the hand-edited schema and requires a migration instead, then verifies the column the code reads actually exists (schema<->code); defines the write path's idempotency/natural key; since #Contracts is already filled, shows what would change and asks before replacing it, leaving a dated 'superseded' line rather than a silent overwrite; updates PRODUCT.md#Contracts",
+      "files": []
+    },
+    {
       "id": 8,
       "skill": "build",
       "prompt": "build the login feature",
@@ -87,6 +94,13 @@
       "files": []
     },
     {
+      "id": "dev-check-gate-fails-on-missing-evidence",
+      "skill": "dev-check",
+      "prompt": "everything on the plan is built, mark development complete so we can move to testing",
+      "expected_output": "FAILS the gate and stops rather than passing on the claim: names every core-scope feature with no #Build log row, no spot-run of the live path, or a 'done' recorded without HOW it was verified; checks the security DoD is actually present rather than promised; re-checks the built features against OUT-OF-SCOPE and flags creep; refuses to hand off to /test until each box is met with evidence, and writes the unmet items into PRODUCT.md#Dev-complete rather than leaving the section empty",
+      "files": []
+    },
+    {
       "id": 10,
       "skill": "test",
       "prompt": "write tests for this",
@@ -98,6 +112,13 @@
       "skill": "eval",
       "prompt": "is the output actually good",
       "expected_output": "Defines a measurable 'good'; measures against representative inputs; separates operational failures from quality; cost-per-run (+ AI bias check); emits a confidence score; writes PRODUCT.md#Evaluation",
+      "files": []
+    },
+    {
+      "id": "eval-north-star-is-the-definition-of-good",
+      "skill": "eval",
+      "prompt": "the accuracy number came out great, are we good to ship",
+      "expected_output": "Takes the definition of good from #Vision's north-star target + date instead of inventing a fresh rubric; measures the GUARDRAIL metric too and reports it alongside, calling a north star that improved while the guardrail worsened not a pass; separates operational failures (errored/blocked/dropped) from genuine low quality so the headline number does not lie; compares to the recorded baseline and fails a regression below the configured threshold; reports cost-per-run and an honest confidence score with solid / risky-untested / to-raise-it lines; writes PRODUCT.md#Evaluation",
       "files": []
     },
     {
@@ -160,11 +181,12 @@
       "id": "tickets-strategy-proposed-and-confirmed",
       "skill": "tickets",
       "prompt": "Break down the milestones in PRODUCT.md into GitHub issue tickets",
+      "expected_output": "Recommends a slice strategy (vertical or horizontal) per milestone with a one-line reason and STOPS for confirmation before writing; naming the strategy in the invocation skips the proposal and records it on every ticket of that milestone; emits 2-4 milestone-scoped tickets (M<n>-SLICE-<nn> / M<n>-TICK-<nn>), each mergeable as an isolated PR with exact target file paths, typed inputs/outputs and a security definition of done; verifies the remote and dedups against `gh issue list` before any `gh issue create`",
       "expected_artifacts": [
         "docs/issues/*.md",
         ".github/ISSUE_TEMPLATE/feature_ticket.md"
       ],
-      "assertions": [
+      "expectations": [
         "A slice strategy (vertical or horizontal) is RECOMMENDED per milestone with a one-line reason, and the run STOPS for confirmation before writing tickets",
         "Naming the strategy in the invocation (/tickets \"vertical\") skips the proposal",
         "The chosen strategy is recorded on every ticket of that milestone",
@@ -179,10 +201,11 @@
       "id": "tickets-vertical-slicing",
       "skill": "tickets",
       "prompt": "/tickets \"vertical\"",
+      "expected_output": "Splits each milestone into 2-4 thin end-to-end slices that cross layers on purpose, slice 1 being a walking skeleton that runs on its own; every slice states an observable Demo, and a slice with no observable outcome is rejected as a layer wearing a slice id and re-sliced or moved to horizontal; emits no separate test slice - each slice's DoD carries the tests for the layers it touched",
       "expected_artifacts": [
         "docs/issues/*.md"
       ],
-      "assertions": [
+      "expectations": [
         "Each milestone is split into 2-4 thin end-to-end slices, each crossing layers on purpose",
         "Every slice states an observable Demo - what a reviewer can see working after it merges",
         "Slice 1 is a walking skeleton that runs end to end on its own",
@@ -194,10 +217,11 @@
       "id": "tickets-horizontal-slicing",
       "skill": "tickets",
       "prompt": "/tickets \"horizontal\"",
+      "expected_output": "Emits one ticket per architectural layer with no ticket listing files from two layers, and only for layers the project actually has; keeps layer 4 for cross-layer work alone (integration across the real seam, adversarial/security), leaving per-layer unit tests in each layer ticket's DoD; each ticket exposes the typed contract its dependants build against, so layers can start before their dependency merges",
       "expected_artifacts": [
         "docs/issues/*.md"
       ],
-      "assertions": [
+      "expectations": [
         "Each milestone yields one ticket PER architectural layer, and no ticket lists files from two layers",
         "Only layers the project actually has are emitted - a backend/CLI product with no src/components/ gets no UI ticket",
         "Layer 4 holds ONLY cross-layer work (integration across the real seam, adversarial/security); per-layer unit tests stay in each layer ticket's DoD",
@@ -208,10 +232,11 @@
       "id": "tickets-adhoc-issue-capture",
       "skill": "tickets",
       "prompt": "/tickets \"Bug: Gemini API timeout is unhandled on slow 3G networks\"",
+      "expected_output": "Creates exactly ONE issue without reading, regenerating or renumbering the milestone backlog; resolves the owning file from STRUCTURE.md rather than guessing it; classifies and labels the issue (bug / edge-case / tech-debt / security); requires a regression test that fails without the fix; applies the same remote-verification and dedup guards before publishing",
       "expected_artifacts": [
         "docs/issues/*.md"
       ],
-      "assertions": [
+      "expectations": [
         "Exactly ONE issue is created - the milestone backlog is not read, regenerated or renumbered",
         "The owning file is resolved from STRUCTURE.md (e.g. src/providers/llm/geminiProvider.ts) rather than guessed",
         "The issue is classified (bug / edge-case / tech-debt / security) and labelled accordingly",
@@ -223,11 +248,12 @@
       "id": "tickets-lane-mode",
       "skill": "tickets",
       "prompt": "/tickets  (project has .lanekeeper/config.yaml and a Lanekeeper task.yml issue form)",
+      "expected_output": "Detects Lanekeeper and recommends VERTICAL slicing, recording the reason on every ticket of a milestone if the user insists on horizontal; fills each ticket's Lane heading with a feature name (never a layer) and lists docs/features/<feature>.md plus its tests under Target Files, never PRODUCT.md, CHANGELOG.md or STRUCTURE.md; leaves .github/PULL_REQUEST_TEMPLATE.md to Lanekeeper, which owns the PR template and the gate; links two tickets naming the same file through Depends On or flags the collision before publishing",
       "expected_artifacts": [
         "docs/issues/*.md",
         ".github/ISSUE_TEMPLATE/feature_ticket.md"
       ],
-      "assertions": [
+      "expectations": [
         "Recommends VERTICAL slicing and, if the user insists on horizontal, records the reason on every ticket of that milestone",
         "Every ticket fills the Lane heading with a feature name (never a layer) and lists docs/features/<feature>.md plus its tests under Target Files",
         "No ticket lists PRODUCT.md, CHANGELOG.md or STRUCTURE.md under Target Files",
@@ -239,10 +265,11 @@
       "id": "build-lane-mode",
       "skill": "build",
       "prompt": "/build \"#12 checkout: cart to confirmed order\"  (worktree contains a .lane file with ALLOW='src/checkout/** tests/checkout/** docs/features/checkout.md')",
+      "expected_output": "Reads .lane before touching code and treats ALLOW/DENY as the file-level scope gate, stopping and flagging a needed file outside ALLOW as file-level creep instead of silently editing it; writes the build row as a '## Build log row' section in docs/features/checkout.md rather than appending to PRODUCT.md#Build log; Step 3b evidence includes `git diff --name-only` against the base showing only ALLOW paths, plus a passing lanekeeper check",
       "expected_artifacts": [
         "docs/features/checkout.md"
       ],
-      "assertions": [
+      "expectations": [
         "Reads .lane before touching code and treats ALLOW/DENY as the file-level scope gate",
         "Stops and flags a needed file outside ALLOW as file-level creep instead of silently editing it",
         "Does not append to PRODUCT.md#Build log; writes the row as a '## Build log row' section in docs/features/checkout.md",
