@@ -18,6 +18,8 @@ description: >
 - **Purpose:** learn whether what shipped worked, and decide the next move from evidence — not gut.
 - **Reads:** `PRODUCT.md#Vision`, `#Scope`, `#Evaluation`, `#Ship log`.
 - **Writes:** `PRODUCT.md#Learnings` — success metric + result · retro · decided next (from evidence).
+- **Gate type:** `input` — the metric is evidence, but iterate-or-kill is the user's call and is the phase's output. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
+- **State model** (`docs/state-model.md` §2c): writes `#Learnings` · `declined` ✓ · `override` ✓ · `superseded` n/a — append-only log: one entry per cycle
 - **Exit criteria:**
   - [ ] A **success metric** named and its actual result captured (measured, not guessed).
   - [ ] A short retro: what worked · what to change.

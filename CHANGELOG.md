@@ -3,6 +3,69 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.31.0] - 2026-09-10
+
+### Added — **`PRODUCT.md`'s state machine is declared, and gates are classified by where the answer lives** (#126, #121)
+Filed as two tickets, shipped as one: both declare something the repo already did implicitly, both enforce
+the declaration in `tools/check.py` in the style of check 9, and two declaration syntaxes in one skill file
+would be worse than none. Design note: **`docs/state-model.md`**, following the `docs/lane-mode.md`
+precedent.
+
+**The state set was never written down.** `Not run` lines (v1.23.0), `Override` lines, `superseded <date>`,
+the frontier `/playbook` computes, out-of-order inversion warnings — those *are* states and transitions,
+accreted one release at a time. An undeclared vocabulary grown ad hoc has holes nobody can see, and it did:
+
+| Marker | Before | After |
+|---|---|---|
+| `Not run` (declined) | 15/16 | **16/16** |
+| Step 3b / Step 3c | 15/16 | **16/16** |
+| §Re-run semantics | **6/16** | **16/16 declared** — 11 implement it, 5 are exempt **with a recorded reason** |
+
+- **The 6/16 gap is resolved, and the resolution is the point.** Some omissions were correct — an
+  append-only log cannot erase its own history — but with no declared rule, an intentional omission and a
+  hole were indistinguishable, and *that ambiguity was the defect*. `/validate`, `/build`, `/ship`,
+  `/learn` and `/drift-check` are now exempt **by name, with the reason** (log-shaped: a second run
+  appends); `/structure`, `/foundation`, `/dev-check`, `/test` and `/eval` gained the marker they were
+  missing.
+- **`/design-system` was outside the state model entirely** — zero of four — while still writing
+  `#Design`. Resolved as a **full participant**, not an exemption: a redesign that silently discards the
+  archetype you rejected loses the most expensive thing in the section. It gains `Not run`, §Re-run
+  semantics, Step 3b and Step 3c. The UI gate is explicitly *not* a declined run — a backend product is
+  not *owed* a design system, and inapplicable is a different state from declined.
+- **Five states, seven legal transitions**, with `filled → declined` declared illegal: a phase that ran
+  does not un-run.
+
+**Gates now declare where their answer lives** — `input` (only in the human: `/vision`, `/validate`,
+`/scope`, `/plan`, `/architect`, `/design-system`, `/learn`, `/adopt`) · `derivation` (computable from
+prior sections) · `verification` (pass/fail on repo evidence, stops on red). Two assignments are not the
+audit's and carry their reasoning: **`/architect` is `input`**, because since #129 the stack is chosen
+against the project's constraints — team size, operational appetite, budget, tolerable lock-in — which
+live in the human; and **`/learn` is `input`**, because *iterate or kill* is the human's call.
+
+**`/playbook --auto` is REJECTED, with the reasoning recorded** in `docs/state-model.md` §3 so a future
+session finds it before re-proposing it cold: it would let the agent author the product premise (Phase 1
+has no derivable answer); it deletes the session-cost mechanism, since the per-phase stops *are* the
+session boundaries; and the escape hatch already exists, because every skill runs standalone. Batching
+within `derivation` and `verification` runs delivers most of what was asked for and grants no authority to
+invent product decisions. **The transition guard is DEFERRED, not rejected**, with a reopen trigger: it
+needs #131's re-runnable evidence record before it has anything to check.
+
+### Changed — an interview is not an approval
+`README.md` described every stop as *"wait for your explicit confirmation"*, which makes an **interview**
+sound like a **signature** — a reader budgets eighteen approval clicks before running anything. That
+framing was ours, and it is the largest single source of the "bureaucratic" reading. The README now
+distinguishes the three kinds of stop, and `PRINCIPLES.md` carries the rule.
+
+### Added — `check.py` checks 12 and 13
+**12** — every phase skill declares a valid gate type, and an `input` gate must declare that it is **never
+batched**. **13** — every section-writing skill declares its state-model participation, with each marker
+implemented or `n/a` **plus a reason**; a bare `n/a` fails. Gate type is a property of the gate, which is
+why it can be enforced at all — a global `--auto` flag is unenforceable by construction, being a mode that
+merely hopes each skill behaves. **All four failure modes proven first:** a missing gate-type declaration ·
+an `input` gate claiming to be batchable · a missing state-model declaration · an exemption with no reason.
+`/frontend-audit` is listed as a verification gate but excluded from check 12 — it carries no `## Contract`
+block by design, and a prose declaration there would reintroduce what that exemption exists to avoid.
+
 ## [1.30.0] - 2026-09-10
 
 ### Added — **a worked example: the playbook auditing a project it built** (#134)

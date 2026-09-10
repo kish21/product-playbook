@@ -23,6 +23,8 @@ description: >
 - **Purpose:** falsify (or survive) the riskiest assumption with the cheapest experiment that can, and decide from the measured result.
 - **Reads:** `PRODUCT.md#Vision` — riskiest assumption · north-star metric · job-to-be-done · target user · business model.
 - **Writes:** `PRODUCT.md#Validation` — fields: assumption under test · experiment (type, who, time box) · pass/fail threshold (set before) · measured result · verdict (proceed / pivot / kill) · override (if any).
+- **Gate type:** `input` — the assumption, the threshold and the verdict are the user's, not derivable. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
+- **State model** (`docs/state-model.md` §2c): writes `#Validation` · `declined` ✓ · `override` ✓ · `superseded` n/a — append-only log: a new dated entry per run, so a second run cannot erase the first
 - **Exit criteria:**
   - [ ] The assumption under test is stated as a **falsifiable sentence** ("<user> will <behaviour> because <reason>"), copied from `#Vision` or sharpened with the user.
   - [ ] **One experiment** chosen, the cheapest that can falsify it — with the real people it reaches and a **time box** (days, not months).

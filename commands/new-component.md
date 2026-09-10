@@ -19,6 +19,7 @@ $ARGUMENTS
 - **Purpose:** one React component, written in **the token vocabulary this project actually uses**.
 - **Reads:** `DESIGN.md` (tokens · type scale · motion · depth ladder) and `PRODUCT.md#Design`; `STRUCTURE.md` for where components live.
 - **Writes:** one component file (path confirmed with the user).
+- **Gate type:** `derivation` — the component is computable from `DESIGN.md`'s tokens plus the chosen ticket; the only preference in it (the file path) is confirmed, not invented. Batchable - several components may be built and reviewed together. Writes no spine section, so it declares no state model. (`docs/state-model.md` §2d)
 - **Exit criteria:**
   - [ ] Invoked bare, the **pending components for the active milestone are offered** (built vs pending) and exactly **one** is chosen; with no tickets, it falls back to a description and says why.
   - [ ] **Every `var(--token)` the component references is defined in `DESIGN.md`** — checked mechanically (see the verification step). An undefined token does **not** fail `/frontend-audit`: CSS drops the declaration silently, so the colour simply never arrives. Nothing else catches this.

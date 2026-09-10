@@ -33,7 +33,14 @@ Checks:
      PRINCIPLES.md, and a dangling cross-reference is worse than the fat file it came from.
  11. No governing file is over the SIZE threshold it sets for everyone else. PRINCIPLES.md reached
      25.8KB against its own ~15KB prune rule, because a rule with no check is a suggestion.
- 12. One skill COUNT everywhere: every "N skills" / "N commands" claim in README.md (badge and prose)
+ 12. Every phase skill declares its GATE TYPE - input (the answer lives only in the user's head, so it
+     can never be batched) - derivation (computable from prior sections) - verification (pass/fail on
+     repo evidence). Declared per skill because it is a property of the gate; a global '--auto' flag
+     would be a mode that merely hopes each skill behaves. Rejected with reasons in docs/state-model.md.
+ 13. Every skill that writes a spine section declares its STATE-MODEL participation - declined,
+     override, superseded - each implemented or marked n/a WITH A REASON. Re-run semantics covered 6 of
+     16 skills and nobody could tell which gaps were intentional; that ambiguity was the defect.
+ 14. One skill COUNT everywhere: every "N skills" / "N commands" claim in README.md (badge and prose)
      and the VISION.md skills comment must equal the real number of skills in commands/. The repo
      description on GitHub quoted a stale 18 for months while the README said 21 - a wrong count on
      a project whose thesis is docs-match-reality. The description lives outside the repo, but the
@@ -147,7 +154,11 @@ def main() -> int:
     check_section_pointers(files)
     # 11. no governing file is over the size threshold it sets
     check_file_sizes(files)
-    # 12. every stated skill count matches the real one
+    # 12. every phase skill declares where its answer lives
+    check_gate_types(files)
+    # 13. every section-writing skill declares its state-model participation
+    check_state_model(files)
+    # 14. every stated skill count matches the real one
     check_skill_count(len(cmds), files)
 
     return done(len(cmds))
@@ -371,6 +382,69 @@ def check_file_sizes(files: dict[str, Path]) -> None:
         if size > SIZE_LIMIT and name not in SIZE_EXEMPT:
             fail(f"{name} is {size / 1024:.1f}KB (> {SIZE_LIMIT // 1024}KB) - run a prune pass, or add "
                  f"a named exemption with a reason to SIZE_EXEMPT")
+
+
+# Skills that must declare a gate type. frontend-audit is a verification gate by nature but carries no
+# `## Contract` block by design (check 3 exempts it — its contract is audit.py's exit code, not prose), so
+# requiring a prose declaration there would reintroduce exactly what that exemption avoids. See
+# docs/state-model.md §2d.
+GATE_DECLARING = TEMPLATE | CONTRACTED | {"adopt"}
+GATE_TYPES = ("input", "derivation", "verification")
+# Skills that write a PRODUCT.md section must declare their state-model participation. /playbook writes
+# nothing (it routes); /new-component and /frontend-audit write code and a scorecard, not the spine.
+STATE_DECLARING = TEMPLATE | {"design-system", "drift-check"}
+STATE_MARKERS = ("`declined`", "`override`", "`superseded`")
+
+
+def check_gate_types(files: dict[str, Path]) -> None:
+    """12. Every phase skill declares WHERE ITS ANSWER LIVES, and an input gate declares it never batches.
+
+    The distinction is not user experience level, it is derivability: /vision's answers exist only in the
+    user's head, so autopiloting it does not skip a confirmation - it has the agent invent the product's
+    premise. That is a property of the gate, so it is declared once per skill and checked here; a global
+    `--auto` flag would be unenforceable by construction, being a mode that merely hopes each skill behaves
+    (rejected, with reasons, in docs/state-model.md §3).
+    """
+    for name in sorted(GATE_DECLARING):
+        text = files[name].read_text(encoding="utf-8")
+        m = re.search(r"^- \*\*Gate type:\*\*\s*`([a-z]+)`(.*)$", text, re.MULTILINE)
+        if not m:
+            fail(f"{name} declares no `**Gate type:**` - an undeclared gate cannot be batched safely, "
+                 f"because nothing says whether its answer is derivable (docs/state-model.md §2d)")
+            continue
+        kind, rest = m.group(1), m.group(2).lower()
+        if kind not in GATE_TYPES:
+            fail(f"{name} declares gate type {kind!r}, which is not one of {GATE_TYPES}")
+        elif kind == "input" and "never batched" not in rest:
+            fail(f"{name} is an `input` gate but does not declare that it is NEVER BATCHED - skipping an "
+                 f"input gate fabricates the product's premise, so the ban is asserted, not assumed")
+
+
+def check_state_model(files: dict[str, Path]) -> None:
+    """13. Every skill that writes a spine section declares which state markers it implements.
+
+    Re-run semantics covered 6 of 16 skills. Some of those omissions were correct - an append-only log
+    cannot erase its own history - but with no declared rule, an intentional omission and a hole were
+    indistinguishable, and THAT ambiguity was the defect. A marker is now either implemented or marked
+    `n/a` with a reason; a bare `n/a` fails.
+    """
+    for name in sorted(STATE_DECLARING):
+        text = files[name].read_text(encoding="utf-8")
+        m = re.search(r"^- \*\*State model\*\*.*$", text, re.MULTILINE)
+        if not m:
+            fail(f"{name} writes a spine section but declares no `**State model**` - an omission and a "
+                 f"deliberate exemption must never look the same (docs/state-model.md §2c)")
+            continue
+        line = m.group(0)
+        for marker in STATE_MARKERS:
+            if marker not in line:
+                fail(f"{name} State model declares nothing for {marker}")
+                continue
+            after = line.split(marker, 1)[1]
+            claim = after.split("·")[0]
+            if "n/a" in claim and "—" not in claim.split("n/a", 1)[1]:
+                fail(f"{name} marks {marker} n/a with no reason - an exemption without one is a hole "
+                     f"wearing an exemption's clothes")
 
 
 def check_skill_count(n: int, files: dict[str, Path]) -> None:

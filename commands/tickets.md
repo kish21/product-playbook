@@ -29,6 +29,8 @@ description: >
   - `docs/issues/*.md` — one file per ticket.
   - `.github/ISSUE_TEMPLATE/feature_ticket.md` and `.github/PULL_REQUEST_TEMPLATE.md` (scaffolded from bundled `templates/` if missing).
   - GitHub issues — **ONLY IF** a remote origin is verified and `gh` is authenticated.
+- **Gate type:** `derivation` — computable from `#Plan` + `#Contracts`. Batchable - a `derivation` run may chain with its neighbours and end in ONE review. (`docs/state-model.md` §2d)
+- **State model** (`docs/state-model.md` §2c): writes no spine section · `declined` ✓ · `override` ✓ · `superseded` n/a — writes `docs/issues/*`, not a spine section; a re-run skips tickets that already exist, so there is nothing in the spine to erase
 - **Exit criteria:**
   - [ ] **Mode A:** every milestone in `#Plan` is decomposed into 2–4 tickets under a **stated slice strategy** (vertical or horizontal), recommended with a reason and **confirmed by the user** before anything is written.
   - [ ] Every ticket names **exact target file paths** (`src/services/quoteEngine.ts`), never a bare folder.

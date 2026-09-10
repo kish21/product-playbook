@@ -17,6 +17,8 @@ description: >
 - **Purpose:** sequence the work core-first, each milestone with a testable exit criterion.
 - **Reads:** `PRODUCT.md#Vision`, `#Scope`.
 - **Writes:** `PRODUCT.md#Plan` — fields: phases/milestones (core first) · timeline · exit criteria per milestone.
+- **Gate type:** `input` — the timeline and the ordering are the user's constraints. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
+- **State model** (`docs/state-model.md` §2c): writes `#Plan` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria:**
   - [ ] Milestones ordered **core-first** (the core feature ships before nice-to-haves).
   - [ ] A rough timeline (relative is fine: M1, M2… or weeks).
