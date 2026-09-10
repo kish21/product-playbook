@@ -51,6 +51,7 @@ description: >
   - **`"vertical"` / `"horizontal"`** (alone or with a planning phrase) → **Mode A** with the strategy already chosen; skip the proposal.
   - **Any other free-text argument** describing a defect, gap or debt item → **Mode B** (Step 3B).
   - Ambiguous? Ask. Do **not** silently regenerate a backlog when the user meant to log one bug.
+- **If the gate is unmet and the run stops here, record that it stopped (`PRINCIPLES.md` §Declined runs):** this phase owns no spine section, so its trace is ONE dated line at the top of `docs/issues/README.md` (create it if absent) — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and no ticket files are written. A backlog that does not exist must still be distinguishable from one nobody ever attempted; the next attempt **replaces** that line rather than appending to it.
 
 ## Step 1 — Apply principles (this phase)
 - **One ticket = one concern.** Concern is *not* a synonym for layer. Vertically, the concern is one thin

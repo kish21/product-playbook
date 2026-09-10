@@ -31,7 +31,7 @@ description: >
   - [ ] A **verdict**: proceed / pivot / kill, with one sentence of reasoning tied to the threshold.
   - [ ] If the user skips the experiment, an **explicit override** line (date + reason) is recorded instead — never a silent pass.
   - [ ] **The override reason is pressure-tested against `#Vision` before it is recorded.** A reason implying a *different product* than the Vision describes ("personal use", "internal tool", "just for me" — against a Vision with a public customer, a north star and a business model) is a **contradiction, not a deferral**: name the `#Vision` line it contradicts and offer `/vision` first. The override stays allowed, but as an informed choice.
-  - [ ] **An override never deletes the scaffold.** The experiment fields stay in `#Validation`, each marked `— not run (override <date>)`, so the section shows what was skipped rather than a blank.
+  - [ ] **The override follows `PRINCIPLES.md` §Declined runs** — the *deliberate-skip* shape of that rule: one dated line, the experiment fields kept and each marked `— not run (override <date>)`, never a blanked section. (Unlike a `Not run` note, an override **does** count as filled — the phase is not still owed — and every later phase surfaces it.)
 
 ## Step 0 — Context + prior-gate check
 - Read `PRODUCT.md#Vision`. If the **riskiest assumption** is missing or vague ("people will like it"),
@@ -41,6 +41,7 @@ description: >
   it, and do not overwrite the earlier record; append a new dated entry.
 
 - **Re-running this phase (`PRINCIPLES.md` §Re-run semantics):** if the section is already filled, **show what would change and ask before replacing it** — never a silent overwrite — and leave a reversed decision in place with a dated `superseded <date>: <why>` line. A first run over an empty section is unchanged.
+- **If the gate is unmet and the run stops here, record that it stopped (`PRINCIPLES.md` §Declined runs):** write ONE dated line at the top of `#Validation` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
 
 ## Step 1 — Apply principles (this phase)
 - **Verify, don't assume:** the user's confidence is not evidence. Neither is yours. Only people
@@ -105,10 +106,10 @@ month", "pre-sold to a design partner") records cleanly in one step. A reason th
 product** does not — quote the `#Vision` line it contradicts, say plainly that recording it would leave two
 incompatible statements standing in the spine, and offer `/vision` first. If the user proceeds anyway, record it.
 
-**Keep the scaffold.** Writing the override must not blank the experiment fields — leave each present and
-marked `— not run (override <date>)`. A section that shows *what was skipped* is worth far more later than an
-empty one, and both `/scope` and `/drift-check` read it. `/scope` will surface it
-and `/drift-check` treats an untested assumption as a standing finding until it is closed.
+**Keep the scaffold** (`PRINCIPLES.md` §Declined runs — the deliberate-skip shape). Writing the override
+must not blank the experiment fields: leave each present and marked `— not run (override <date>)`. Both
+`/scope` and `/drift-check` read it — `/scope` surfaces it, and `/drift-check` treats an untested
+assumption as a standing finding until it is closed.
 
 **Close the loop (`PRINCIPLES.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention.
 

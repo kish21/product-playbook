@@ -28,6 +28,7 @@ description: >
 
 ## Step 0 — Context + prior-gate check
 - Read `#Scope/#Plan/#Build log`. Cross-check the planned core features against what's actually in the build log.
+- **If the gate is unmet and the run stops here, record that it stopped (`PRINCIPLES.md` §Declined runs):** write ONE dated line at the top of `#Dev-complete` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
 
 ## Step 1 — Apply principles (this phase)
 - **Verify, don't assume:** re-run / re-check; "should pass" is not "passes". **Surface gaps honestly** — a half-done feature listed as done is the "thought it was done" trap.

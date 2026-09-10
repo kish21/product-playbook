@@ -32,6 +32,7 @@ description: >
   **input metrics** and the **guardrail** from `#Vision`'s north star — that is the measurement baseline, and
   the **instrumentation line** says how to read it. If the north star is a direction rather than a target,
   the goal is fuzzy: sharpen it with the user (or send them back to `/vision`) before measuring anything.
+- **If the gate is unmet and the run stops here, record that it stopped (`PRINCIPLES.md` §Declined runs):** write ONE dated line at the top of `#Evaluation` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
 
 ## Step 1 — Apply principles (this phase)
 - **Measure first:** judge against real/representative inputs; a scary or great number alike must be reproduced, not assumed (beware display/measurement artifacts).

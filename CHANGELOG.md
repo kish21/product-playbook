@@ -3,6 +3,31 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.23.0] - 2026-09-10
+
+### Added - **a phase that declines to run leaves a trace**
+A skill that correctly stops at an unmet prior gate left the repo byte-identical, so from the repo
+alone *"I ran `/eval` and it correctly declined"* was indistinguishable from *"I never ran `/eval`"*.
+The user could not tell, the next session could not tell, and `/playbook` — which orients purely by
+which sections are filled — kept proposing the same phase with no memory that it had already been
+attempted and declined for a good reason.
+- **`PRINCIPLES.md` §Declined runs is new.** A phase that declines to run records that it declined:
+  ONE dated line at the top of its own section — `_Not run <date>: <what was missing> — run <phase>
+  first._` — scaffold untouched, section still visibly **unfilled**, replaced (never appended to) on
+  the next attempt. §Re-run semantics governed a phase *rewriting* its section; nothing governed a
+  phase *declining to write one*.
+- **All 15 phase skills reference it from Step 0.** `/tickets`, which owns no spine section, writes
+  its trace to `docs/issues/README.md` instead.
+- **`/playbook` now reads the note.** A section holding only a `Not run` line still counts as empty —
+  it stays the frontier and the missing phase is still next — but the earlier attempt is *named*
+  rather than proposed blind, and it is distinguished from an `Override` line, which does count as
+  filled.
+- **`/validate`'s override is reconciled, not duplicated** — it is now stated as the *deliberate-skip*
+  shape of the general rule (dated, one line, scaffold kept), differing only in that the phase is no
+  longer owed. The same generalisation v1.15.0 made of its append rule.
+- Three eval cases; `templates/PRODUCT.md` states the empty-vs-`Not run`-vs-`Override` distinction in
+  its own rules block.
+
 ## [1.22.0] - 2026-09-10
 
 ### Added - **a guarantee that nothing executes decays silently**

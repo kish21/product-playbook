@@ -48,6 +48,7 @@ description: >
 ## Step 0 — Context + prior-gate check
 - Read `#Architecture/#Structure`. If `#Structure` is empty, warn and offer `/structure` first (allow override).
 - Brownfield: detect what already exists (CI, config, logging) and fill only the gaps.
+- **If the gate is unmet and the run stops here, record that it stopped (`PRINCIPLES.md` §Declined runs):** write ONE dated line at the top of `#Foundation` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
 
 ## Step 1 — Apply principles (this phase)
 - **No-hardcoding:** every endpoint/secret/threshold from config/`.env`. **Prove it flows** — read a value back at runtime; a setting silently overridden upstream is "dead config" and a real bug.
