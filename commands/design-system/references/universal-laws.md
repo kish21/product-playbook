@@ -277,3 +277,18 @@ the `[PROCESS]` laws.** The floors make it impossible to ship something generic,
 single-mode-by-accident — regardless of what the user wanted to build; the principles and means make it *this*
 product's own. A rule is only a *law* if it holds no matter the stack, aesthetic, or motion level — anything that
 names a specific tool or look is a recommendation, and is tagged as such.
+
+## §Self-check digest — what `/design-system` Step 6 walks
+
+The laws that fail most often, and what "holds" means for each:
+
+**Before handing off, walk `references/universal-laws.md` and confirm all 22 hold** for the sample +
+`DESIGN.md` — especially: distinctive font (1), body ≥ min (3), one accent (5), AA contrast *computed* (7),
+elevation ladder not flat shadows (9), grid spacing (10), archetype layout (11), no `transition: all` +
+motion tier within the archetype ceiling + a `prefers-reduced-motion` fallback for any Tier ≥ 1 motion + the
+**archetype's craft signature present** — expressive families ship the real wired move (≥1 signature moment, not a
+stub) in a voice derived for THIS product (not a clone of an exemplar), restraint families have NO decorative/scroll
+motion (`craft.md`) (12), all
+interactive states (13), tokens-not-hex (14), accessible primitives — focus/ARIA/keyboard, reused from the registry on React (15), confirmed via sample (16), real
+content (18), table header/cell alignment + dot-not-pill status (20), mobile-first responsive at 3 widths (21),
+light+dark+system shipped (22). **If any law fails, STOP and fix it** — the floor is non-negotiable.

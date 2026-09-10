@@ -30,17 +30,16 @@ description: >
 > it never replaces the reasoning. **Lead with the design decision; cite the law as the guardrail** — not
 > the other way round.
 
-> **What this skill is — and isn't.** Its edge is **real apps**: enterprise, dense, data-heavy, existing
-> codebases, disciplined builds — the unglamorous *concrete, archetype-correct* defaults the popular
-> tools omit. It does **not** out-design the ecosystem on palettes/components — it **reuses** shadcn/ui +
-> 21st.dev + the open DESIGN.md standard and wires them into the build lifecycle. **Honesty boundary
-> (Law 19):** for a *simple* pretty marketing/brochure page, say so and point the user to Anthropic's
+> **What this skill is — and isn't.** Its edge is **real apps** — the concrete, archetype-correct
+> defaults the popular tools omit — and it **reuses** shadcn/ui + 21st.dev rather than out-designing
+> them (`references/build-loop.md` §What this skill is — and isn't). **Honesty boundary (Law 19):**
+> for a *simple* pretty marketing/brochure page, say so and point the user to Anthropic's
 > `frontend-design` instead.
 
 ## Contract
 - **Purpose:** principles → confirmed sample page → a concrete, archetype-correct `DESIGN.md` harness.
 - **Reads:** spine `#Vision`/`#Scope`/`#Architecture` (or discovers the vision if there's none);
-  `references/universal-laws.md`, `references/archetypes.md`, `references/design-md-template.md`, `references/page-patterns.md`, `references/palettes.md`, `references/craft.md`, `references/theme-studio.md`.
+  `references/universal-laws.md`, `references/archetypes.md`, `references/design-md-template.md`, `references/page-patterns.md`, `references/palettes.md`, `references/craft.md`, `references/theme-studio.md`, `references/build-loop.md`.
 - **Writes:** `DESIGN.md` (9-section standard, shadcn CSS-variable tokens) · one approved **sample page**
   · `PRODUCT.md#Design` (principles + archetype + token summary + paths).
 - **Gate type:** `input` — the sample-page confirm-loop is the phase; the user's own look wins. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
@@ -59,10 +58,9 @@ description: >
     symptoms (a real type scale → no tiny fonts; a layout/density spec; an archetype + Do/Don't list → no generic AI look).
   - [ ] All **22 universal laws** satisfied (run the principle-gate, Step 6 self-check).
 
-> **Scope of this version: greenfield core loop.** Lightweight brand-input (re-skin to given colours/reference)
-> is in; **deep** image/code token-extraction (the user's `UI_to_Prompt`), full retrofit (rewrite existing pages),
-> and the component-gallery page are documented follow-ups (`/frontend-audit` is the separate enforcement skill).
-> If an existing UI is detected, say so and proceed greenfield for new screens.
+> **Scope of this version: greenfield core loop** — brand re-skin is in; deep token-extraction, full
+> retrofit and the component gallery are documented follow-ups (`references/build-loop.md` §Scope of
+> this version). If an existing UI is detected, say so and proceed greenfield for new screens.
 
 ---
 
@@ -109,11 +107,9 @@ Show them; **let the user adjust**. These principles constrain every later token
 
 ## Step 2 — Ask what they want, THEN propose
 
-**Order matters here, and it is the opposite of `/architect`'s.** For a stack you hold knowledge the user
-may not, so one recommendation and a yes/no is right. For **aesthetics the user's taste is the primary
-input** — you have no privileged view of what they like, and a design they did not choose is one they will
-fight for the rest of the project. A confident proposal made *first* anchors them: they answer "yours is
-fine" because they were never handed a blank page.
+**Order matters here, and it is the opposite of `/architect`'s** — for aesthetics the user's taste is the
+primary input, so you ask before you propose. A confident proposal made *first* anchors them
+(`references/build-loop.md` §Why ask before proposing).
 
 1. **Before naming any family, ask for their own reference:** *"Do you have a look in mind — a product you
    admire, or bold vs minimal?"* Ask it plainly and wait. A named reference is the strongest signal you
@@ -130,18 +126,10 @@ fine" because they were never handed a blank page.
 
 From the chosen family's preset (in `archetypes.md`), decide the **concrete** values — *this is the part
 the popular skills omit, and the fix for "fonts too small / artsy-but-wrong":*
-- **Font pairing** (display / body / mono) — **never a default-only face** (Law 1).
-- **A real type scale** with an **archetype-correct base size** (enterprise 14–16px body, 13px tables,
-  ~1.2 ratio, 4–8px grid; consumer 16–18px, 1.25–1.333, bolder) — Law 3.
-- **Colour roles** (one dominant + one accent; semantic status) in **OKLCH**, **WCAG-AA verified** — Laws 5–8.
-- **Spacing / density**, **depth ladder** (`--shadow-sm/-lg`, `--radius`), **layout pattern**, **motion**
-  defaults (transform/opacity only) + the archetype's **motion tier/library ceiling** (CSS → Framer → GSAP →
-  Three.js; `archetypes.md`) — Laws 9–12.
-- **Light + dark by default (Law 22):** derive both token sets now (dark is not inverted light — give it its own
-  AA-checked values); the archetype's natural mode is the default, the other is the alternate.
-- **Brand input (optional — decide-for-them otherwise):** if the user has a brand — colours, a logo, a marketing
-  screenshot, or a *"make it like <site>"* reference — extract its palette + type and **re-skin the tokens to it**.
-  The archetype is the strong default; the brand *personalises* it; the laws + AA contrast still hold.
+**The decided value for each — and the why — is in `references/build-loop.md` §Concrete foundations:**
+font pairing (no default-only face) · a real type scale at an archetype-correct base size · colour roles
+in OKLCH, AA-verified · spacing and density · the depth ladder · layout pattern · motion tier and library
+ceiling · **light AND dark derived now (Law 22)** · an optional brand re-skin over the archetype.
 Give each as a **decided default + one-line why**; let the user tweak.
 
 ## Step 4 — Build ONE sample page · STOP · iterate until liked  *(the non-negotiable loop)*
@@ -149,44 +137,9 @@ Give each as a **decided default + one-line why**; let the user tweak.
 Generate **a single, representative screen of THIS product** using the Step-3 foundations:
 - **In the project's stack** if one exists (a real page/route); otherwise a **standalone preview HTML**
   the user can open in a browser.
-- **Interactive primitives must meet the accessibility floor** (Law 15 — focus management, ARIA, keyboard
-  nav, all states). On a React stack the recommended means is **reuse a shadcn/ui + 21st.dev primitive or
-  two**, re-skinned with the tokens — never re-author what the registry already solved.
-- **Real content from the product's domain — never lorem** (Law 18).
-- **Apply the craft layer (load `references/craft.md`).** Route the confirmed archetype through its index:
-  **restraint families (Bucket A) get the precision signature and NO decorative motion** — adding scroll
-  reveals/parallax/count-ups here breaks trust; **expressive families (Bucket B) WIRE THE REAL signature
-  move(s)** for their tier — line-mask reveal, scrub parallax, count-up, spring-stagger, glass/WebGL hero —
-  **never stubbed in a comment.** Ship the gesture *with* its `prefers-reduced-motion` fallback + lazy-load
-  attached, at/below the family's `archetypes.md` ceiling. The non-motion craft (display type, radius,
-  full-bleed structure, italic-serif accent) matters as much as the motion — a generic layout sinks an
-  expressive page even with perfect animation. **Shared grammar, distinct voice (craft.md):** the *moves*
-  are reusable, but derive the *voice* (fonts/palette/texture) **for this product** — never clone one
-  exemplar's identity. Every **expressive** page earns **≥1 signature moment**; **restraint** pages earn none.
-- **Note the page inventory first** (which page TYPES this app needs — auth, dashboard, billing, settings, landing…
-  from the vision; see `references/page-patterns.md`), then build the *most representative* one (a dashboard's main
-  view, the consumer app's home — not a login). The other pages' patterns get recorded in `DESIGN.md` §5 — we don't build them all now.
-- **Build it mobile-first and responsive (Law 21):** design the **phone view first** — lead with the user's
-  #1 mobile job (content priority), collapse the archetype's layout (sidebar → drawer, table → stacked cards,
-  detail → sheet, KPIs reflow), tap targets ≥44px — *then* scale up to tablet/desktop. Never a fixed desktop
-  grid that can't collapse.
-- **Preview caveat:** a standalone preview (no stack) **can't import shadcn/21st.dev** (they're React) — say
-  so. This does NOT exempt it from Law 15: the **floor is accessible components, not the library**, so any
-  interactive primitive in the preview (button/input/dialog/menu) **still ships focus-visible + ARIA +
-  keyboard nav** via vanilla — don't hand-roll an inaccessible one and call it "just a preview." Mirror the
-  `DESIGN.md` tokens exactly. **For an expressive archetype the preview still ships real motion** — load
-  GSAP/Framer from a CDN (the wrapper in `craft.md`), gated behind `prefers-reduced-motion`; do not fall back
-  to a comment stub.
-- **Confirm on the user's real display:** subtle choices (canvas tint, status-label colour, table alignment)
-  render differently across screens — pick **clearly visible** values and verify on the user's monitor, not just code.
-- **Ship it as an INTERACTIVE sample (the visualization moat):** inject `references/theme-studio.md` (the drop-in editor)
-  before `</body>`, wrap the page content in `<div id="ts_stage">…</div>`, size readable text in **rem** with
-  `html { font-size: var(--font-size-base,16px) }`, and replace the studio's `PRESETS` with 3–5 vetted palettes for the
-  archetype (from `palettes.md`). Now the user **tweaks colour / theme / type-size / responsive LIVE, AA-guarded** —
-  not "agent regenerates". Dev-only: stripped from the real build; only the finalized tokens persist.
-  **For the studio to actually work:** give `#ts_stage` `container-type:inline-size` and write the page's responsive with
-  **`@container` queries (not `@media`)** so the width buttons reflow (T5-1); use the `.light`/`.dark` **escape-hatch** dark
-  pattern (template §2) so manual mode beats the OS (T5-6); load the font via `<link>` in the preview (T5-7).
+
+**Load `references/build-loop.md` §Build the sample page and follow it** — page inventory, the craft layer,
+mobile-first, the accessibility floor a preview does *not* escape, and the Theme Studio wiring.
 
 Then **STOP. Show it and confirm.** Describe what they should see, and (if possible) screenshot it and
 compare pixel-level: spacing, weight, exact colours, radius, alignment. **Confirm it at THREE widths —
@@ -202,37 +155,19 @@ Load `references/design-md-template.md` and write **`DESIGN.md`** filling all **
 *concrete approved values* (replace every placeholder — ship nothing un-filled):
 *1 Visual Theme · 2 Color & Roles · 3 Typography · 4 Components · 5 Layout · 6 Depth/Elevation ·
 7 Motion · 8 Do's & Don'ts · 9 Responsive & Agent Guide.*
-- Tokens are **shadcn/ui-compatible CSS variables in OKLCH** (rebrand = change values; plugs into
-  shadcn/21st.dev with no theme provider/build step).
-- **Emit light AND dark token sets + system switch** (`:root` + `.dark` + `prefers-color-scheme`) — Law 22.
-  *(If the user used the Theme Studio **Export**, those tokens — both modes + `--font-size-base` — ARE §2; paste them in.)*
-- **Record the page inventory** in §5 (each page type → its layout pattern from `page-patterns.md`).
-- **Re-run the WCAG-AA contrast check** on every foreground/surface pair, **in both modes**, before writing (Laws 7 & 22).
-- **Audit timing (T1-c) — actually RUN it, don't just cite it:** the floor is mechanically enforced, not
-  asserted. Run the engine on the **approved sample** at confirm-time (Step 4) and on **`DESIGN.md` after**
-  it's emitted here (never `DESIGN.md` before approval — Law 16):
-  ```
-  python commands/frontend-audit/audit.py <approved-sample> DESIGN.md
-  ```
-  **Read the output and act on it:** fix every `[FAIL]` (the floor is non-negotiable) and triage `[WARN]`
-  before handing off — a `Law7-unverified` warn means contrast was NOT checked (rename tokens so it can be),
-  not that it passed. Do not emit a "passes the laws" claim you didn't run the engine to back.
+The per-section rules — OKLCH shadcn-compatible tokens, light **and** dark, the page inventory, the
+AA re-check before writing — are in `references/build-loop.md` §Emit `DESIGN.md`.
+- **Audit timing (T1-c) — actually RUN the engine, never just cite it.** `python commands/frontend-audit/audit.py <approved-sample> DESIGN.md` — on the approved sample at
+  confirm-time (Step 4) and on `DESIGN.md` **after** it is emitted here, never before approval (Law 16).
+  Fix every `[FAIL]`, triage every `[WARN]` before handing off, and **emit no "passes the laws" claim
+  you did not run the engine to back** (`references/build-loop.md` §Audit timing).
 - The **Agent Guide** (§9) tells every later build step how to obey this file.
-*(Greenfield: `DESIGN.md` is now the harness for new pages. Retrofit-rewrite of existing pages is the
-documented follow-up.)*
 
 ## Step 6 — Principle-gate self-check, then handoff
 
 **Before handing off, walk `references/universal-laws.md` and confirm all 22 hold** for the sample +
-`DESIGN.md` — especially: distinctive font (1), body ≥ min (3), one accent (5), AA contrast *computed* (7),
-elevation ladder not flat shadows (9), grid spacing (10), archetype layout (11), no `transition: all` +
-motion tier within the archetype ceiling + a `prefers-reduced-motion` fallback for any Tier ≥ 1 motion + the
-**archetype's craft signature present** — expressive families ship the real wired move (≥1 signature moment, not a
-stub) in a voice derived for THIS product (not a clone of an exemplar), restraint families have NO decorative/scroll
-motion (`craft.md`) (12), all
-interactive states (13), tokens-not-hex (14), accessible primitives — focus/ARIA/keyboard, reused from the registry on React (15), confirmed via sample (16), real
-content (18), table header/cell alignment + dot-not-pill status (20), mobile-first responsive at 3 widths (21),
-light+dark+system shipped (22). **If any law fails, STOP and fix it** — the floor is non-negotiable.
+`DESIGN.md` — its **§Self-check digest** names the ones that fail most often and what "holds" means for
+each. **If any law fails, STOP and fix it** — the floor is non-negotiable.
 
 ### Step 3b — close the loop (`MECHANISMS.md` §Step 3b)
 Update the spine's `Stage:` header to this phase and `Last updated:` to today; **reconcile every number this

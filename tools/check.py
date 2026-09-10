@@ -313,15 +313,14 @@ COUNT_PATTERNS = (
 # land beside each other in ~/.claude/product-playbook/), not the repo path.
 POINTER_FILES = {"PRINCIPLES.md": "PRINCIPLES.md", "MECHANISMS.md": "references/mechanisms.md",
                  "LESSONS.md": "references/lessons.md"}
-# ~15KB is the prune threshold MECHANISMS.md §Lesson format sets for everyone; it is enforced on the two
-# governing files every session loads. Three skill files are over it today and are exempted BY NAME with
-# a reason, so the exception is visible rather than a silent hole (tracked in #138).
+# ~15KB is the prune threshold MECHANISMS.md §Lesson format sets for everyone; it is enforced on the
+# governing files every session loads AND on every skill file. The exemption set is EMPTY (#138): build,
+# tickets and design-system were the three holdouts, and each was pruned by moving on-demand mechanism
+# into its own `references/` companion rather than by widening the rule. A directory-form skill's
+# references/ is deliberately NOT size-checked - that is the whole point of moving mechanism there: it
+# ships with the skill but is opened only when the situation calls for it.
 SIZE_LIMIT = 15 * 1024
-SIZE_EXEMPT = {
-    "build": "24.5KB - the per-feature loop carries the most harvested lessons; prune pass owed (#138)",
-    "tickets": "21.3KB - two modes (backlog + ad-hoc) in one file; prune pass owed (#138)",
-    "design-system": "19.6KB - the confirm-loop lives in SKILL.md; prune pass owed (#138)",
-}
+SIZE_EXEMPT: dict[str, str] = {}
 POINTER_RE = re.compile(r"`?(PRINCIPLES\.md|MECHANISMS\.md)`?\s+§([^\n]{2,60})")
 
 
