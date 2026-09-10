@@ -1,6 +1,6 @@
 # Case files — `/build`
 
-War stories behind the rules in `commands/build.md`. Each heading is pointed to from the rule it
+War stories behind the rules in `commands/build/SKILL.md` and its `references/`. Each heading is pointed to from the rule it
 evidences as `(case file: <heading>)`. Stories are verbatim; where a rule's longer mechanism prose
 was condensed in `build.md`, the full text is kept here under *Full rule context*.
 

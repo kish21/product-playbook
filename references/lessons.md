@@ -53,6 +53,7 @@ skimmed. Therefore every harvested lesson is written in two parts:
   to act on, nothing more.
 - **In `references/case-files-<skill>.md`:** the full war story, verbatim, under its own heading,
   pointed to from the rule as `(case file: <heading>)`. Opened on demand, never auto-loaded.
+- **A rule that applies only SOMETIMES moves into the skill's OWN `commands/<skill>/references/`, never into a case file.** A case file is repo-only evidence — `install.sh` does not ship it — so a rule parked there is gone for every installed user, while a directory-form skill's `references/` installs beside `SKILL.md` and is size-exempt precisely because it is opened on demand. (case file: The prune that would have deleted the rules)
 
 Gardening cadence: roughly every 10 merged lessons (or when a skill file passes ~15KB), run a prune
 pass — condense, merge overlapping rules, retire ones that stopped earning their place. A lesson

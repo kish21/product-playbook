@@ -3,6 +3,48 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.35.0] - 2026-09-10
+
+### Changed — **the prune rule applies to every skill: `SIZE_EXEMPT` is now empty** (#138)
+Three skills were over the ~15KB threshold `LESSONS.md` §Lesson format sets, and exempted by name in
+`tools/check.py` so the hole was at least visible: `build` (24.5KB), `tickets` (21.3KB),
+`design-system` (19.6KB). All three are now under it and the exemption set is empty.
+
+The pass did **not** follow the standing instruction literally, because reading the files first showed
+the instruction was wrong for this case. The bulk of `build.md` was not war stories but *rules* — ten
+for building a gate, six for an async job, two for a latency fix, seven for trust boundaries — already
+distilled to one bold line each, with nothing left to condense. And `install.sh` ships no
+`references/case-files-*.md` at all, so moving those rules into a case file would have deleted them for
+every installed user while `check.py` went green.
+
+So `build` and `tickets` are now **directory-form skills**, like `design-system` and `frontend-audit`
+already were. A directory-form skill's `references/` folder installs beside its `SKILL.md`, and is
+deliberately not size-checked — that is the point of moving mechanism there: it ships with the skill and
+is opened only when the situation calls for it.
+
+| Skill | Was | Now | Moved into `references/` |
+|---|---|---|---|
+| `build` | 24.5KB | 12.8KB | `feature-archetypes.md` (gates · async jobs · latency · trust boundaries) · `live-path-checks.md` |
+| `tickets` | 21.3KB | 14.4KB | `slicing.md` (Mode A: strategy · vertical · horizontal · per-ticket content) · `publishing.md` (provisioning · guards · dedup · mirroring the plan onto GitHub) |
+| `design-system` | 19.6KB | 14.8KB | `build-loop.md` (Steps 2–5 mechanics) · the Step 6 law digest into `universal-laws.md` |
+
+**No rule was lost, and that is checked rather than asserted:** every bold span in each original file
+was diffed against the union of its new `SKILL.md` + `references/`. Three spans differ across all three
+skills, each a re-worded *trigger* line (`If the feature is a GATE …` → `the feature is a GATE …`), and
+every `(case file: …)` pointer survives. In each skill the *guards* stayed inline — never create a
+remote, never overwrite a template, never claim an audit you did not run — and only the procedure behind
+them moved.
+
+The size gate was proved to still fire by lowering `SIZE_LIMIT` to 13KB and watching three skills go
+red, then restoring it. `install.sh --project` was run end to end: 21 skills, with both new
+`references/` folders shipped.
+
+### Added — **§Lesson format now distinguishes a case file from a reference**
+The rule that made this ticket a trap is now written down: a rule that applies only *sometimes* moves
+into the skill's own `commands/<skill>/references/`, never into a case file. **A case file holds
+evidence; a reference holds rules — and only one of the two ships.** Case file:
+`references/case-files-principles.md` §The prune that would have deleted the rules.
+
 ## [1.34.0] - 2026-09-10
 
 ### Fixed — **the journey panel was ASCII art, and it rendered badly** (#119, #123 follow-up)

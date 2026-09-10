@@ -1,7 +1,7 @@
 # Product Playbook: Build with Discipline in the AI Era
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.34.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.35.0-blue.svg)](CHANGELOG.md)
 ![Claude Code skills](https://img.shields.io/badge/Claude%20Code-21%20skills-8A2BE2.svg)
 
 **AI writes code faster than anyone can reason about it. `product-playbook` puts the gates in between.**
@@ -157,7 +157,9 @@ declined run and a recorded override leave a trace, how the spine is resolved in
 mode — live in [`references/mechanisms.md`](references/mechanisms.md), and the harvested war-story rules
 live in [`references/lessons.md`](references/lessons.md). Both install as companions and are read on
 demand, by name (`MECHANISMS.md §Declined runs`). `tools/check.py` fails a pointer that resolves to
-nothing, and fails any of the three files over the ~15KB threshold `LESSONS.md` §Lesson format sets.
+nothing, and fails any governing file **or skill** over the ~15KB threshold `LESSONS.md` §Lesson
+format sets — a skill goes under it by moving conditional mechanism into its own installed
+`references/`, not by widening the rule.
 
 ### 3. The Commands (`commands/*.md`)
 These are plain **Markdown commands** (skills) that you install into Claude Code. Each command (e.g., `/vision`, `/scope`, `/architect`, `/dev-check`) has a strict contract:

@@ -72,3 +72,28 @@ override. Written before the fix, it went red on three skills, not one — `/bui
 with no override, and `/dev-check` had no prior-gate at all, so a checkpoint run over an empty
 `#Build log` passed by having nothing to fail. The bug the ticket described was real; it was also
 one instance of a class, and only a check that ignored headings could see the other two.
+
+## The prune that would have deleted the rules
+
+**product-playbook #138, 2026-09-10.** Three skills sat over the ~15KB prune threshold and were
+exempted by name in `check.py`: `build` (24.5KB), `tickets` (21.3KB), `design-system` (19.6KB). The
+ticket's instruction was the standing one from §Lesson format — run a prune pass, war story verbatim
+into `references/case-files-<skill>.md`.
+
+Reading `build.md` before moving anything showed the premise was wrong twice over. First, the bulk was
+not war stories: ~7KB of it was *rules* — ten for building a gate, six for an async job, two for a
+latency fix, seven for trust boundaries — each already distilled to one bold line. There was nothing
+left to condense. Second, and worse: `install.sh` copies only `PRINCIPLES.md`, `MECHANISMS.md`,
+`LESSONS.md`, `VISION.md` and the `PRODUCT.md` template into `~/.claude/product-playbook/`. Nothing
+under `references/case-files-*.md` is installed at all. Following the instruction literally would have
+moved 7KB of load-bearing rules into a file no installed user has — and `check.py` would have gone
+green on it, because it measures the skill file, not what the skill still knows.
+
+The fix was the structure the repo already used for `design-system`: convert `build` and `tickets` to
+directory form, so their `references/` folder installs beside `SKILL.md`. Conditional rules moved
+there; the triggers stayed in the skill. `SIZE_EXEMPT` is now empty. The size check was proved to
+still fire by lowering the threshold and watching three skills go red.
+
+The generalisation is the distinction the original rule never drew: **a case file holds evidence, a
+reference holds rules.** Only one of the two ships.
+
