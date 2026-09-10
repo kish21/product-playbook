@@ -3,6 +3,43 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.28.0] - 2026-09-10
+
+### Fixed — **10 of 14 gates could be bypassed leaving no trace** (#128)
+Two rules inside `PRINCIPLES.md`, sixty lines apart, disagreed and never cross-referenced each other.
+`:110` — the Step 0 rule the skills actually implement — said *"warn but allow override"*: no reason
+required, no record required. `:170`, inside §Declined runs, required an `Override <date>: <reason>` line
+that later phases surface every time they orient. Skills implemented `:110`. Measured: **14 skills offered
+an override, 4 mentioned recording it, 1 (`/validate`) had the full reason-and-record pattern.**
+
+That is the failure the audit named — *"the user says 'yes continue' and your supposedly gated workflow
+becomes an advisory workflow"* — and it contradicted what v1.23.0 shipped. §Declined runs made a phase's
+**refusal** traceable while a **bypass** — the strictly more consequential event, because it advances the
+project on unmet criteria — stayed silent. A later session reading `PRODUCT.md` could not tell a gate that
+held from a gate that was waved through.
+
+- **One rule, one home.** `:110` now points at §Declined runs instead of contradicting it, and §Declined
+  runs carries the single definition: **which gate** was bypassed, **a reason in the user's own words**
+  (not the agent's paraphrase, and not "user said continue"), and **the date**.
+- **Warning is not override.** A warning is informational and needs no ceremony. An override names the
+  gate, captures the reason, states that it will be recorded, and only then proceeds.
+- **Rolled out to all 14 skills**, matching `/validate`'s existing implementation — it remains the
+  reference, not a new invention. The recorded line goes in that phase's own section.
+- **`/playbook` surfaces every recorded override on orient**, quoting the gate and the user's own reason
+  before proposing anything, and offers the bypassed phase again without re-asking for a reason already
+  written down.
+- **The override is NOT removed.** Standalone and jump-in use is first-class; a gate the user cannot pass
+  is a wall. The fix makes a bypass visible and attributable, not impossible.
+
+### Changed — `check.py` check 9 now enforces the whole rule, not half of it
+Check 9 verified only that an override was *offered* (`OVERRIDE_PHRASES`) — the half that keeps a gate from
+becoming a wall, and none of the half that keeps it from becoming advisory. A Step 0 that offers an
+override must now also require the recorded form and the user's own reason.
+**Proven to fail first**, both halves independently: stripping the clause from `/plan` went red on
+`missing 'Override <date>'` *and* on the reason; keeping the record but generalising "the reason in the
+user's own words" to "the reason" went red on the reason alone. Eval cases added for a bypass that leaves
+a trace and for `/playbook` surfacing it.
+
 ## [1.27.0] - 2026-09-10
 
 ### Changed — **"prefer the best open-source tool" pre-decided a trade-off the project should decide** (#129)

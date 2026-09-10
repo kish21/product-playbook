@@ -47,6 +47,7 @@ description: >
   not use one** (managed-serverless data, a PaaS, an embedded datastore). Scaffolding a compose file by
   habit hands the project an artifact it must later delete, and implies a custody decision nobody made.
 - If `#Architecture` is empty, warn and offer `/architect` first (allow override). Running standalone, detect the stack from the repo and pick tooling that fits it — then record the choice so the next phase inherits it.
+- **An override is RECORDED, never a verbal "yes"** (`PRINCIPLES.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Structure` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
 - Brownfield: read the existing tree; propose a clean target layout + a migration note — don't blindly move files.
 - **If the gate is unmet and the run stops here, record that it stopped (`PRINCIPLES.md` §Declined runs):** write ONE dated line at the top of `#Structure` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
 

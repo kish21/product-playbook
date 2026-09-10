@@ -34,6 +34,7 @@ description: >
   then `/test` — but allow override (standalone use). A product mid-Build has nothing to evaluate, and
   a score measured over an untested build reads as a quality verdict on work that was never claimed
   finished. *(A real run stopped here correctly — on judgement, because the skill never asked.)*
+- **An override is RECORDED, never a verbal "yes"** (`PRINCIPLES.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Evaluation` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
 - Take the **target + date**, the
   **input metrics** and the **guardrail** from `#Vision`'s north star — that is the measurement baseline, and
   the **instrumentation line** says how to read it. If the north star is a direction rather than a target,

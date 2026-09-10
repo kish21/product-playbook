@@ -31,6 +31,7 @@ description: >
 - **If `#Build log` is empty, this checkpoint is premature** — there is nothing built to check. Warn and
   offer `/build` first (allow override): a checkpoint run over an empty log passes by having nothing to
   fail, which is the opposite of a gate.
+- **An override is RECORDED, never a verbal "yes"** (`PRINCIPLES.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Dev-complete` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
 - **If the gate is unmet and the run stops here, record that it stopped (`PRINCIPLES.md` §Declined runs):** write ONE dated line at the top of `#Dev-complete` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
 
 ## Step 1 — Apply principles (this phase)

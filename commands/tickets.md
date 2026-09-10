@@ -45,6 +45,7 @@ description: >
 ## Step 0 — Context + prior-gate check
 - Read `#Plan`, `#Contracts`, `#Architecture` and `STRUCTURE.md`. If `#Contracts` is empty, warn (tickets
   would invent their own types) but allow override.
+- **An override is RECORDED, never a verbal "yes"** (`PRINCIPLES.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Plan` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
 - Brownfield: read the existing tree and `docs/issues/` first — extend the numbering, never restart it.
 - **Dispatch on the argument — this is the whole mode decision:**
   - **No argument**, or a planning phrase (`"break down plan"`, `"decompose milestones"`, `"sprint backlog"`) → **Mode A** (Step 3A).

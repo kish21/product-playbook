@@ -25,7 +25,9 @@ Checks:
      unique, no field name has drifted, and each skill carries at least MIN_EVAL_CASES cases.
      This does not execute the evals - it only stops the file from decaying while CI stays green.
   9. Every phase skill's `Step 0 - ... prior-gate check` actually GATES: its body names a prior
-     `#Section` and offers an override, so the heading can never again stand in for the behaviour.
+     `#Section`, offers an override, AND requires that override to be RECORDED with a reason.
+     Offering a way through is half the rule; a bypass nobody can see afterwards turns a gated
+     workflow into an advisory one, so the heading can never again stand in for the behaviour.
  10. One skill COUNT everywhere: every "N skills" / "N commands" claim in README.md (badge and prose)
      and the VISION.md skills comment must equal the real number of skills in commands/. The repo
      description on GitHub quoted a stale 18 for months while the README said 21 - a wrong count on
@@ -61,6 +63,13 @@ NO_PRIOR_PHASE = {"vision"}
 # Each phrase is the one a real skill uses today: 12 say "allow override", /ship records "an override"
 # on the release, /learn says "continue if the user wants". Widen it only alongside a skill that needs it.
 OVERRIDE_PHRASES = ("allow override", "an override", "continue if the user wants")
+# ... and the other half of the rule: the bypass leaves a trace. PRINCIPLES.md permitted a bare
+# "warn but allow override" at :110 while :170 required a dated, reasoned line - and skills implemented
+# :110. 10 of 14 gates could be waved through leaving nothing behind, so a later reader could not tell a
+# gate that HELD from a gate that was bypassed. Each token below is required in the Step 0 body:
+# the recorded form, the rule it comes from, and the user's own reason.
+OVERRIDE_RECORD = ("Override <date>", "Declined runs")
+OVERRIDE_REASON = ("reason in the user's own words", "reason in the user's words")
 
 
 def fail(msg: str) -> None:
@@ -255,6 +264,14 @@ def check_prior_gates(files: dict[str, Path]) -> None:
         if not any(phrase in body.lower() for phrase in OVERRIDE_PHRASES):
             fail(f"{name} Step 0 gates with no override - standalone use is first-class, so a gate "
                  f"must warn and offer the missing phase, not block")
+            continue
+        for token in OVERRIDE_RECORD:
+            if token not in body:
+                fail(f"{name} Step 0 offers an override without requiring it to be RECORDED "
+                     f"(missing {token!r}) - a bypass nobody can see afterwards makes the gate advisory")
+        if not any(token in body for token in OVERRIDE_REASON):
+            fail(f"{name} Step 0 records an override without capturing the user's OWN reason - "
+                 f"'user said continue' is not a reason, and the agent's paraphrase is not the user's")
 
 
 # Every shape in which the README or VISION states how many skills there are. Each is a claim that

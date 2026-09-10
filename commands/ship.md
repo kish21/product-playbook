@@ -37,6 +37,7 @@ description: >
   recommend the specific phase that fills it (`/dev-check` → `/test` → `/eval`). Shipping is still allowed —
   standalone use is first-class — but **an override here is recorded on the release, not implied by an empty
   section**: write the skipped phases into the Ship log's *Skipped* column with the reason.
+- **An override is RECORDED, never a verbal "yes"** (`PRINCIPLES.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Ship log` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
 - **The exception is bounded, not vague.** A change may skip `/eval` only when it touches no product
   behaviour — a docs/typo/comment change, or a revert. **Anything that changes what the product does needs
   its tests recorded**; "small" is not a judgement the shipper makes about their own change.

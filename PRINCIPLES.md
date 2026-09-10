@@ -108,7 +108,15 @@ Exit criteria:
 
 - **Authoring:** the skill is not "done" until it satisfies its own exit criteria.
 - **Runtime self-check (before handoff):** verify every required `PRODUCT.md` field is present, non-empty, and evidenced. **If anything is missing, STOP and report it — do not hand off.**
-- **Prior-gate check (Step 0):** confirm the previous phase's exit criteria were met; if not, warn but allow override (standalone/jump-in still works).
+- **Prior-gate check (Step 0):** confirm the previous phase's exit criteria were met. If they were not,
+  **warn, name the missing phase and offer it first** — standalone/jump-in is first-class, so a gate is a
+  gate and never a wall. Proceeding anyway is an **override, and an override is recorded, never verbal**:
+  it names the gate being bypassed, captures **the reason in the user's own words**, and is written as an
+  `Override <date>: <reason> — bypassed <gate>` line in this phase's own section. A *warning* is
+  informational and needs no ceremony; an *override* advances the project on unmet criteria — the more
+  consequential of the two — so it is the one that must leave a trace. **One rule, one home:** the form and
+  the reading of it are defined in §Declined runs; this is the pointer, not a second copy. Enforced by
+  `tools/check.py` check 9, which reads the Step 0 body, not its heading.
 
 ## §Step 3b — closing the loop (every phase that writes)
 
@@ -167,9 +175,13 @@ section, in this form, with nothing else in the section touched:
   phase nobody invoked writes nothing. This line means exactly *"attempted, and stopped for a reason"*.
 
 **A deliberate skip is the same rule's other shape.** Where a phase is not merely *early* but is being
-**skipped on purpose** — `/validate`'s untested assumption, `/ship`'s skipped phases — the line reads
-`Override <date>: <reason>`, it *does* count as filled, and later phases surface it every time they
-orient. Both are dated, both are one line, both keep the scaffold; they differ only in whether the
+**skipped on purpose** — `/validate`'s untested assumption, `/ship`'s skipped phases — or where a prior
+gate is **bypassed on unmet criteria**, the line reads `Override <date>: <reason> — bypassed <gate>`, it
+*does* count as filled, and later phases surface it every time they orient. Three things are required and
+none is optional: **which gate** was bypassed, **a reason in the user's own words** (not the agent's
+paraphrase, and not "user said continue"), and **the date**. A verbal "yes, continue" that reaches no
+file turns a gated workflow into an advisory one — the bypass is the strictly more consequential event and
+was, until v1.28.0, the only one of the two that left nothing behind. Both are dated, both are one line, both keep the scaffold; they differ only in whether the
 phase is still owed. `/validate`'s override rule is this rule's specific case, not a separate one.
 
 ## §Seam — who owns the dependency manifest

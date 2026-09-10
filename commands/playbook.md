@@ -41,6 +41,12 @@ description: >
   happened** — *"`/eval` was already tried on <date> and declined because `#Tests` was empty; the missing
   phase is still `/test`"* — instead of proposing it blind for a second time. Distinguish it from an
   `Override` line, which *does* count as filled and is surfaced rather than routed to.
+- **Surface every recorded override, every time you orient.** Scan the filled sections for
+  `Override <date>: <reason> — bypassed <gate>` lines (`PRINCIPLES.md` §Declined runs) and list them in one
+  block before proposing anything — *"`#Contracts` was written on <date> with `#Foundation` bypassed:
+  '<the user's reason>'"*. This is the whole point of recording a bypass: the project advanced on unmet
+  criteria, and the next session — human or agent — must be told that without having to go looking. Offer
+  the bypassed phase again; never re-ask for a reason that is already written down.
 - **Check the order, not just the frontier.** The first-unfilled rule is silent when the chain was walked
   out of order — a project with `#Architecture` filled and `#Scope` empty gets pointed at Scope with no
   hint that stack decisions already exist which may not survive it. Compare the filled sections against
