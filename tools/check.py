@@ -40,7 +40,11 @@ Checks:
  13. Every skill that writes a spine section declares its STATE-MODEL participation - declined,
      override, superseded - each implemented or marked n/a WITH A REASON. Re-run semantics covered 6 of
      16 skills and nobody could tell which gaps were intentional; that ambiguity was the defect.
- 14. One skill COUNT everywhere: every "N skills" / "N commands" claim in README.md (badge and prose)
+ 14. Every EVIDENCE line that exists is well-formed: `evidence: <command> -> <result> · <artefact> ·
+     <date>`, the one representation settled in docs/state-model.md 2f. Evidence is optional - a
+     criterion that was judged rather than measured carries none and is reported UNVERIFIED, which is
+     honest - but a line that LOOKS re-runnable and is not is strictly worse than prose.
+ 15. One skill COUNT everywhere: every "N skills" / "N commands" claim in README.md (badge and prose)
      and the VISION.md skills comment must equal the real number of skills in commands/. The repo
      description on GitHub quoted a stale 18 for months while the README said 21 - a wrong count on
      a project whose thesis is docs-match-reality. The description lives outside the repo, but the
@@ -158,7 +162,9 @@ def main() -> int:
     check_gate_types(files)
     # 13. every section-writing skill declares its state-model participation
     check_state_model(files)
-    # 14. every stated skill count matches the real one
+    # 14. every evidence line that exists is re-runnable
+    check_evidence_lines(files)
+    # 15. every stated skill count matches the real one
     check_skill_count(len(cmds), files)
 
     return done(len(cmds))
@@ -447,6 +453,48 @@ def check_state_model(files: dict[str, Path]) -> None:
                      f"wearing an exemption's clothes")
 
 
+# The ONE evidence representation (docs/state-model.md §2f), as a pattern. Four fields, one line:
+#   `evidence: <command> -> <result> · <artefact> · <YYYY-MM-DD>`
+# Evidence is OPTIONAL - a criterion that was judged rather than measured carries none, and /drift-check
+# reports it UNVERIFIED, which is honest. A line that LOOKS like evidence and names no command or no date
+# is not: it stops anyone going to look, which is the whole failure mode this format exists to end.
+EVIDENCE_RE = re.compile(r"`evidence:\s*(?P<body>[^`]+)`")
+EVIDENCE_DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
+# The docs that TEACH the format necessarily contain placeholder specimens (`<command>`, `<date>`), so
+# they are read for the grammar rather than graded against it.
+EVIDENCE_TEACHING = {"docs/state-model.md", "templates/PRODUCT.md", "PRINCIPLES.md",
+                     "commands/dev-check.md", "commands/drift-check.md"}
+
+
+def check_evidence_lines(files: dict[str, Path]) -> None:
+    """15. An evidence line that exists carries all four fields, or it is not evidence.
+
+    "AI doesn't get to SAY something is true - it has to point to evidence that makes the claim true."
+    A prose checkbox cannot be re-verified, so a checked box and a checked box with fabricated
+    justification read identically to any later session. The fix is a re-runnable record; the risk the fix
+    introduces is a record that LOOKS re-runnable and is not, which is strictly worse than prose, so the
+    grammar is checked wherever it is used for real.
+    """
+    scan = set(files.values()) | {ROOT / "README.md", ROOT / "VISION.md", ROOT / "PRINCIPLES.md",
+                                  ROOT / "templates" / "PRODUCT.md"}
+    scan |= set((ROOT / "docs").glob("*.md"))
+    for path in sorted(scan):
+        where = path.relative_to(ROOT).as_posix()
+        if where in EVIDENCE_TEACHING:
+            continue
+        for m in EVIDENCE_RE.finditer(path.read_text(encoding="utf-8")):
+            body = m.group("body")
+            if "->" not in body and "→" not in body:
+                fail(f"{where} has an evidence line with no `command -> result`: {body.strip()!r} - "
+                     f"evidence that names no command cannot be re-run, which is the only thing it is for")
+            if not EVIDENCE_DATE_RE.search(body):
+                fail(f"{where} has an evidence line with no YYYY-MM-DD date: {body.strip()!r} - "
+                     f"undated evidence cannot be told from evidence that has gone stale")
+            if body.count("·") < 2 and body.count(" - ") < 2:
+                fail(f"{where} has an evidence line missing a field: {body.strip()!r} - the settled form "
+                     f"is `command -> result · artefact · date` (docs/state-model.md §2f)")
+
+
 def check_skill_count(n: int, files: dict[str, Path]) -> None:
     """10. Nobody states a skill count that disagrees with commands/.
 
@@ -475,6 +523,13 @@ def check_skill_count(n: int, files: dict[str, Path]) -> None:
 
 
 def done(n: int = 0) -> int:
+    # A failure message quotes the file it read, so it can carry any character the repo contains. On a
+    # Windows console (cp1252) printing an arrow or an em-dash then raises UnicodeEncodeError and the
+    # checker dies WHILE REPORTING A FAILURE - the worst possible moment, and invisible in Linux CI.
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError):  # a stream that cannot be reconfigured
+        pass
     if errors:
         print("FAIL - product-playbook consistency check:")
         for e in errors:

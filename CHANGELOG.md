@@ -3,6 +3,59 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.32.0] - 2026-09-10
+
+### Added — **evidence is a re-runnable record, and every claim gets a verdict** (#131)
+An exit criterion was a prose checkbox, so **a checked box and a checked box with fabricated
+justification were indistinguishable to any later reader, human or agent.** `/dev-check` already required
+*"every 'done' records HOW it was verified"* — but the record was free text, so nothing could re-verify it
+later. The audit's framing is right: *AI does not get to **say** something is true; it has to point at
+evidence that makes the claim true.*
+
+**One representation, settled in `docs/state-model.md` §2f** — as #126's design doc was required to do,
+and this ticket consumes it rather than inventing a second format:
+
+```
+- [x] Authentication works — `evidence: pnpm test:e2e → 18 passed · tests/e2e/auth.spec.ts · 2026-09-10`
+```
+
+A **line, not a block.** `README.md` promises `PRODUCT.md` reads top-to-bottom, and a four-line structured
+block per criterion taxes that promise on every page; a line stays prose to a human and is trivially
+machine-readable behind a fixed prefix. Evidence is **derived, not declared** — the command and artefact
+are transcribed from what the phase actually did, never invented.
+
+### Added — the four-state verdict, and the distinction that matters
+`VERIFIED` · `PARTIALLY VERIFIED` · `UNVERIFIED` · `CONTRADICTED`. **What separates the last two is
+whether a measurement was taken at all**: `UNVERIFIED` is *absence of evidence* (no line, or the command
+cannot run here — and the report says which), `CONTRADICTED` is *evidence of absence* (it ran and
+disagreed). Conflating them is expensive in both directions — a never-attempted check reported as
+CONTRADICTED sends someone chasing a phantom regression; a failed one reported as UNVERIFIED hides a real
+one behind "we could not tell". **A claim with no evidence is always reported, never silently passed**,
+and a criterion that was judged rather than measured is an honest state, not a defect.
+
+### Changed — the surface cost decided: `/drift-check` is extended, not a 22nd skill
+Three options were on the table. `/drift-check` **already owns claim-vs-reality** (its exit criteria
+already include code↔docs drift) and is already the run-anytime skill, so this widens an existing remit
+rather than adding capability from nothing. A 22nd top-level skill would contradict #116 and #123 —
+the surface is the problem those tickets are solving — and buys nothing here. `/dev-check` writes evidence
+in the settled form; `templates/PRODUCT.md` teaches it; `PRINCIPLES.md` states the rule once.
+
+**This unblocks the transition guard** that `docs/state-model.md` §4 deferred: reconciling intended
+against actual state is now a small addition to Step 3b rather than a new subsystem. It stays deferred in
+this release because it changes when every phase does work, which deserves its own run at its own gate.
+
+### Added — `check.py` check 14: an evidence line that exists is re-runnable
+Evidence is optional. A line that **looks** re-runnable and is not is strictly worse than prose, because
+it stops anyone going to look — the exact failure the format exists to end. Missing command, missing date
+or a missing field all fail. The files that *teach* the format carry placeholder specimens and are read
+for the grammar rather than graded against it. **Proven to fail first** on all three modes.
+
+### Fixed — the checker died while reporting a failure, on Windows only
+Surfaced by check 14's own proof run: a failure message quotes the file it read, so it can carry any
+character the repo contains. On a cp1252 console, printing an arrow raised `UnicodeEncodeError` inside
+`done()` — the checker crashed **at the moment it was reporting a problem**, and Linux CI could never
+see it. `stdout` is now reconfigured to UTF-8 with replacement before anything is printed.
+
 ## [1.31.0] - 2026-09-10
 
 ### Added — **`PRODUCT.md`'s state machine is declared, and gates are classified by where the answer lives** (#126, #121)

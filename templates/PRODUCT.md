@@ -105,8 +105,13 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 |---|---|---|---|
 
 ## Dev-complete      <!-- /dev-check -->
+<!-- Evidence format (the ONE form - docs/state-model.md §2f). Append to any criterion you can re-run:
+     - [x] Authentication works - `evidence: pnpm test:e2e -> 18 passed - tests/e2e/auth.spec.ts - 2026-09-10`
+     command -> result - artefact - date. A criterion with no evidence line is honest and is reported
+     UNVERIFIED by /drift-check; a line that names no command or no date fails CI. Never invent a second
+     format. -->
 - [ ] Every core-scope feature built & runs
-- [ ] Exit criteria + security DoD verified (with evidence)
+- [ ] Exit criteria + security DoD verified (with **re-runnable** evidence: `command -> result - artefact - date`)
 - [ ] No hardcoding · prompts externalized · contracts typed · builds green
 - [ ] Scope re-check — nothing crept in
 

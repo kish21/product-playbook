@@ -534,6 +534,27 @@
       "prompt": "I want to redo the design system - the whole look is wrong",
       "expected_output": "Finds #Design already filled and, per MECHANISMS.md Re-run semantics, shows what would change and asks before replacing it rather than overwriting silently; the superseded archetype, palette or type pairing stays with a dated `superseded <date>: <why>` line, because why the other option lost is the most expensive thing in the section to reconstruct. Runs Step 3b and Step 3c before writing",
       "files": []
+    },
+    {
+      "id": "drift-check-catches-a-fabricated-claim",
+      "skill": "drift-check",
+      "prompt": "check we're on track - dev-check says everything passed",
+      "expected_output": "Runs the claim-to-evidence pass: for each checked criterion it RE-RUNS the recorded command rather than re-reading the claim. A criterion whose command fails, or whose named artefact does not exist, is reported CONTRADICTED - a measurement was taken and it disagrees - and is ranked as a finding about both the record and the code. Never accepts a checked box as proof of itself",
+      "files": []
+    },
+    {
+      "id": "drift-check-separates-unverified-from-contradicted",
+      "skill": "drift-check",
+      "prompt": "verify the spine - note that the e2e suite needs credentials I don't have here",
+      "expected_output": "Marks a criterion with no evidence line, or one whose command cannot run in this environment (missing tooling, credentials, a live service), as UNVERIFIED and says WHICH of the two it is - absence of evidence, not evidence of absence - explicitly declining to report it as CONTRADICTED. Reports every unevidenced claim rather than silently passing it, while treating 'judged rather than measured' as an honest state",
+      "files": []
+    },
+    {
+      "id": "dev-check-writes-re-runnable-evidence",
+      "skill": "dev-check",
+      "prompt": "the checkpoint - mark auth as done, the e2e tests passed",
+      "expected_output": "Records the criterion with the ONE settled evidence form - `evidence: <command> -> <result> · <artefact> · <YYYY-MM-DD>` - transcribing the command actually run and the artefact it produced, so a later session can re-execute and compare. Does not invent a command it did not run: a criterion that was judged rather than measured is written with NO evidence line and will be reported UNVERIFIED, which is the honest outcome",
+      "files": []
     }
   ]
 }

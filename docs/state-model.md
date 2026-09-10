@@ -113,6 +113,66 @@ Declared per skill, so an omission can never again be mistaken for a decision.
 section can be redone, and a redone design system that silently discards the rejected archetype loses
 the most expensive thing in it. It gains `Not run`, Step 3b, Step 3c and §Re-run semantics.
 
+### 2f. Evidence — ONE representation, settled here (#131)
+
+An exit criterion may carry **re-runnable** evidence. There is exactly one format, and it is a single
+line appended to the criterion itself:
+
+```
+- [x] Authentication works — `evidence: pnpm test:e2e → 18 passed · tests/e2e/auth.spec.ts · 2026-09-10`
+```
+
+`evidence: <command> → <result> · <artefact> · <YYYY-MM-DD>` — four fields, one line, all required.
+
+**Why a line and not a block.** `README.md` promises `PRODUCT.md` reads top-to-bottom. A four-line
+structured block per criterion taxes that promise on every page, and the spine is read far more often
+than it is parsed. A line stays prose to a human and is trivially machine-readable behind a fixed
+`evidence:` prefix. It also honours `VISION.md`'s no-service non-goal by construction: this is Markdown
+in the repo, and re-verification is running the command it names.
+
+**Evidence is derived, not declared.** The command and the artefact path are things the phase *did*;
+they are transcribed, never invented. A criterion whose evidence cannot be stated as a command someone
+else can run is not evidenced — it is asserted, and should be marked so honestly.
+
+**Evidence is optional; a MALFORMED evidence line is not.** A criterion with no evidence line is
+reported as `UNVERIFIED` and is a normal state — plenty of things are judged rather than measured. A
+line that *looks* like evidence but names no command or no date is worse than none, because it stops
+anyone going to look. `tools/check.py` check 15 fails it.
+
+### 2g. The four-state verdict
+
+Produced by `/drift-check`'s claim-to-evidence pass, per criterion:
+
+| Verdict | Means | Separator |
+|---|---|---|
+| **VERIFIED** | the command was re-run and the result matches what was recorded | a measurement agrees |
+| **PARTIALLY VERIFIED** | re-ran and the artefact exists, but the result differs in degree not direction, or the evidence covers only part of the claim | a measurement agrees in part |
+| **UNVERIFIED** | **no measurement was taken** — no evidence line, or the command cannot run here (absent tooling, credentials, a live service) | *absence of evidence* |
+| **CONTRADICTED** | **a measurement was taken and it disagrees** — the command fails, or the named artefact does not exist | *evidence of absence* |
+
+**What separates `UNVERIFIED` from `CONTRADICTED` is whether a measurement was actually taken.** They
+are routinely conflated, and conflating them is expensive in both directions: reporting a
+never-attempted check as CONTRADICTED sends people chasing a phantom regression, and reporting a failed
+check as UNVERIFIED hides a real one behind "we could not tell". A claim with no evidence is **always
+reported**, never silently passed.
+
+### 2h. Where this lives — the surface-cost decision (#131)
+
+Three options were on the table: extend `/drift-check` · a `/prove` engine other skills compose · a 22nd
+top-level skill. **Chosen: extend `/drift-check`**, and the ticket's instruction not to pick the third by
+default is honoured.
+
+- `/drift-check` **already owns claim-vs-reality** — its exit criteria already include *"code↔docs drift
+  checked (claims that don't match reality)"*. This generalises that from scope/vision/doc drift to
+  *every claim in the spine*, which is a widening of an existing remit rather than a new capability.
+- It is **already the "run anytime" skill**, which is exactly when a re-verification pass is wanted.
+- A 22nd top-level skill would directly contradict #116 and #123, which are about the surface already
+  being intimidating. That cost is real and buys nothing here.
+
+**This also supplies the transition guard §4 deferred.** Once evidence is re-runnable, reconciling
+*intended* against *actual* at a transition is a small addition to Step 3b rather than a new subsystem —
+still deferred, but no longer blocked.
+
 ### 2d. Gate types — classified by where the answer lives
 
 Not by the user's experience level. By whether the answer is **derivable**:
@@ -181,8 +241,10 @@ The audit's model makes **evidence reconciliation a transition guard**: every ad
 #131, which needs a re-runnable evidence record before a guard has anything to check. Declaring the
 state set and enforcing participation is worth shipping on its own and does not block it.
 
-**Reopen trigger:** #131 landing a re-runnable evidence record. At that point the guard is a small
-addition to Step 3b rather than a new subsystem.
+**Reopen trigger — now met:** #131 landed the re-runnable evidence record in §2f. The guard is now a
+small addition to Step 3b rather than a new subsystem, and is the next thing to pick up here. It stays
+deferred in this release only because it changes when every phase does work, and that deserves its own
+run at its own gate.
 
 ---
 
