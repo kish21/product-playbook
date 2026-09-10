@@ -43,6 +43,8 @@ description: >
   `references/universal-laws.md`, `references/archetypes.md`, `references/design-md-template.md`, `references/page-patterns.md`, `references/palettes.md`, `references/craft.md`, `references/theme-studio.md`.
 - **Writes:** `DESIGN.md` (9-section standard, shadcn CSS-variable tokens) · one approved **sample page**
   · `PRODUCT.md#Design` (principles + archetype + token summary + paths).
+- **Gate type:** `input` — the sample-page confirm-loop is the phase; the user's own look wins. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
+- **State model** (`docs/state-model.md` §2c): writes `#Design` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria (the gate):**
   - [ ] The vision was located (spine) or discovered (standalone), and the **UI gate** was applied — if the
     product has no user-facing UI, **nothing is written** and the skill stops with the reason.
@@ -78,6 +80,17 @@ description: >
 3. **UI gate (mirror the existing AI-product conditional):** ask/decide — *"does this product have or need
    a user-facing UI?"* If the answer is **no** (pure backend/API/CLI/library) → **explain why a design
    system doesn't apply, write nothing, and stop.** Hand back to `/foundation`.
+4. **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** if `#Design` is already filled, **show what
+   would change and ask before replacing it** — never a silent overwrite. A redesign that quietly discards the
+   archetype you rejected loses the most expensive thing in the section, so the superseded archetype, palette or
+   type pairing stays with a dated `superseded <date>: <why>` line beside it. A first run over an empty section
+   is unchanged.
+5. **If the run stops at an unmet gate, record that it stopped (`MECHANISMS.md` §Declined runs):** write ONE
+   dated line at the top of `#Design` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it>
+   first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so
+   `/playbook` still routes here; the next attempt **replaces** that line rather than appending to it. This does
+   **not** apply to the UI gate at (3): a backend product is not *owed* a design system, so it writes nothing at
+   all — declining and being inapplicable are different states.
 
 ## Step 1 — Design principles FIRST (think like a 2026 senior designer)
 
@@ -220,6 +233,19 @@ motion (`craft.md`) (12), all
 interactive states (13), tokens-not-hex (14), accessible primitives — focus/ARIA/keyboard, reused from the registry on React (15), confirmed via sample (16), real
 content (18), table header/cell alignment + dot-not-pill status (20), mobile-first responsive at 3 widths (21),
 light+dark+system shipped (22). **If any law fails, STOP and fix it** — the floor is non-negotiable.
+
+### Step 3b — close the loop (`MECHANISMS.md` §Step 3b)
+Update the spine's `Stage:` header to this phase and `Last updated:` to today; **reconcile every number this
+phase introduced against `#Vision`** (a type scale or density that cannot serve the audience the vision names is
+a contradiction, not a detail); and **suggest a one-line commit message** in the repo's convention.
+
+### Step 3c — contradiction check (`MECHANISMS.md` §Step 3c)
+Compare what this phase just produced against decisions already recorded — `#Vision` (who it is for, and the
+tone that implies), `#Scope` (a non-goal the design quietly assumes), `#Architecture` (the UI framework and
+component registry the tokens must actually work in). **On a conflict, name both sides, ask which wins, and
+update the loser** — fix the artefact, or add a dated `superseded by <phase>, <date> — <reason>` line to the
+earlier section. Never leave it standing in two places. Adding detail to an earlier decision is not a
+contradiction.
 
 Then write `PRODUCT.md#Design` (principles + archetype + token summary + `DESIGN.md`/sample paths) and hand off:
 

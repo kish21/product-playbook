@@ -18,6 +18,8 @@ description: >
 - **Purpose:** turn a rough idea into a sharp, benchmarked product vision.
 - **Reads:** nothing required (this is the first phase) — or an existing `PRODUCT.md`/codebase if present.
 - **Writes:** `PRODUCT.md#Vision` — fields: who it's for · problem (why now) · value proposition · 2026 market/competitor read.
+- **Gate type:** `input` — who it is for, the job, the north star - the answers exist only in the user's head. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
+- **State model** (`docs/state-model.md` §2c): writes `#Vision` · `declined` ✓ · `override` n/a — `/vision` opens the chain; there is no prior section to bypass · `superseded` ✓
 - **Exit criteria:**
   - [ ] A single sentence vision (the world this product creates).
   - [ ] Named target user + the concrete problem they have, and **why now**.

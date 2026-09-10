@@ -31,6 +31,7 @@ description: >
   metadata (`package.json`, `pyproject.toml`, …) · entry points · routes · tests · CI config.
 - **Writes:** `PRODUCT.md` (only after the owner confirms), header `Stage: adopted <date>` + a one-line
   provenance note naming which files it was drawn from.
+- **Gate type:** `input` — every inferred line is confirmed by the owner section by section. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
 - **Exit criteria:**
   - [ ] **Every inferred line is tagged `(inferred — confirm)`** until the owner confirms it. A finished
         `PRODUCT.md` contains **no un-tagged claim that was not confirmed**.

@@ -18,6 +18,8 @@ description: >
 - **Purpose:** lock the typed shapes (models, schemas, migrations, API/agent contracts) before logic.
 - **Reads:** `PRODUCT.md#Scope`, `#Architecture`, `#Structure`.
 - **Writes:** `PRODUCT.md#Contracts` — typed models/schemas/migrations · boundary units/scale agreed.
+- **Gate type:** `derivation` — computable from `#Scope` + `#Architecture`. Batchable - a `derivation` run may chain with its neighbours and end in ONE review. (`docs/state-model.md` §2d)
+- **State model** (`docs/state-model.md` §2c): writes `#Contracts` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria:**
   - [ ] Core domain entities defined as **typed models** (not raw dicts/free text).
   - [ ] Persistence via a **migration** (never hand-edited schema); **schema matches what code reads/writes**.

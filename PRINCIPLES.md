@@ -116,6 +116,16 @@ Exit criteria:
 
 - **Authoring:** the skill is not "done" until it satisfies its own exit criteria.
 - **Runtime self-check (before handoff):** verify every required `PRODUCT.md` field is present, non-empty, and evidenced. **If anything is missing, STOP and report it — do not hand off.**
+- **Gates are classified by where the answer lives, not by how experienced the user is**
+  (`docs/state-model.md` §2d). **input** — the answer exists only in the human, so it can **never** be
+  batched or auto-answered; **derivation** — computable from prior sections, so a run may batch and end
+  in one review; **verification** — pass/fail on repo evidence, batchable and **stops on red**. Declared
+  per skill and enforced by `tools/check.py`; a global auto-mode is rejected, with reasons, in
+  `docs/state-model.md` §3. **An input gate is a question, not an approval** — do not call it a
+  confirmation.
+- **A `PRODUCT.md` section is in one of five declared states** — empty · declined · filled · overridden ·
+  superseded (`docs/state-model.md` §2a). Every section-writing skill declares which markers it
+  implements, and any exemption carries a reason; an omission and a decision must never look the same.
 - **Prior-gate check (Step 0):** confirm the previous phase's exit criteria were met. If they were not,
   **warn, name the missing phase and offer it first** — standalone/jump-in is first-class, so a gate is a
   gate and never a wall. Proceeding anyway is an **override, and an override is recorded, never verbal**:

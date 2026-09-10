@@ -21,6 +21,8 @@ description: >
 - **Purpose:** implement one feature to a verified, secure, documented definition-of-done.
 - **Reads:** `PRODUCT.md#Scope`, `#Plan`, `#Contracts`, `#Structure` — **plus `DESIGN.md` + `#Design` for any feature with a user-facing screen** (UI products).
 - **Writes:** a row in `PRODUCT.md#Build log` + `docs/features/<feature>.md`.
+- **Gate type:** `derivation` — computable from the ticket + `#Contracts`. Batchable - a `derivation` run may chain with its neighbours and end in ONE review. (`docs/state-model.md` §2d)
+- **State model** (`docs/state-model.md` §2c): writes `#Build log` · `declined` ✓ · `override` ✓ · `superseded` n/a — append-only log: one row per feature
 - **Exit criteria (per feature):**
   - [ ] A written **definition-of-done that includes security** (input validation, authz/tenant-isolation; for AI: prompt-injection defence).
   - [ ] Reused existing helpers where possible (no reinvented utilities).

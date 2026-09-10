@@ -19,6 +19,8 @@ description: >
 - **Purpose:** release one subtask safely, with review + security + honest docs, and hand off cleanly.
 - **Reads:** `PRODUCT.md` (all relevant sections), the diff.
 - **Writes:** `PRODUCT.md#Ship log` — what shipped · review/security · docs reconciled · PR.
+- **Gate type:** `verification` — review, security and doc gates pass or they do not. Batchable, and **stops on red** - a failing check ends the batch there. (`docs/state-model.md` §2d)
+- **State model** (`docs/state-model.md` §2c): writes `#Ship log` · `declined` ✓ · `override` ✓ · `superseded` n/a — append-only log: one entry per release
 - **Exit criteria:**
   - [ ] **Deep review** done (`/code-review`) — findings traced to real callers/cross-file impact, not a skim.
   - [ ] **Security review** on auth/data changes (`/security-review`); for AI, the OWASP LLM Top 10 checklist (esp. prompt injection).

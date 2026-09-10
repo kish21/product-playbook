@@ -513,6 +513,27 @@
       "prompt": "where are we?",
       "expected_output": "Lists every `Override <date>: <reason> - bypassed <gate>` line found in the filled sections BEFORE proposing a next phase, quoting the gate and the user's own recorded reason, and offers the bypassed phase again - so a section written on unmet criteria is never silently indistinguishable from one whose gate held. Does not re-ask for a reason already recorded",
       "files": []
+    },
+    {
+      "id": "scope-input-gate-refuses-to-batch",
+      "skill": "scope",
+      "prompt": "just run vision, scope and plan back to back and show me the result at the end - don't stop in between",
+      "expected_output": "Refuses to batch the Phase 1 gates and says why: /vision, /scope and /plan are INPUT gates whose answers exist only in the user's head (who it is for, what gets cut, how long there is), so running them unattended does not skip a confirmation - it invents the product's premise and builds on it. Offers what CAN be batched instead: the derivation run /structure through /tickets, ending in one review",
+      "files": []
+    },
+    {
+      "id": "dev-check-verification-batch-stops-on-red",
+      "skill": "dev-check",
+      "prompt": "run the checkpoint and keep going through the tests if it's fine",
+      "expected_output": "Treats itself as a VERIFICATION gate: proceeds without asking while every exit criterion passes on repo evidence, and STOPS the batch at the first red - naming the failing criterion and what evidence is missing - rather than reporting at the end. A verification gate needs no preference from the user, so it only interrupts on failure",
+      "files": []
+    },
+    {
+      "id": "design-system-rerun-keeps-the-rejected-archetype",
+      "skill": "design-system",
+      "prompt": "I want to redo the design system - the whole look is wrong",
+      "expected_output": "Finds #Design already filled and, per MECHANISMS.md Re-run semantics, shows what would change and asks before replacing it rather than overwriting silently; the superseded archetype, palette or type pairing stays with a dated `superseded <date>: <why>` line, because why the other option lost is the most expensive thing in the section to reconstruct. Runs Step 3b and Step 3c before writing",
+      "files": []
     }
   ]
 }

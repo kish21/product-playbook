@@ -17,6 +17,8 @@ description: >
 - **Purpose:** force a single core feature and an explicit, defended OUT-OF-SCOPE list.
 - **Reads:** `PRODUCT.md#Vision`.
 - **Writes:** `PRODUCT.md#Scope` — fields: THE core feature · in-scope (now) · Deferred (+trigger) · Non-goals (never).
+- **Gate type:** `input` — what gets cut is a preference no prior section encodes. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
+- **State model** (`docs/state-model.md` §2c): writes `#Scope` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria:**
   - [ ] Exactly **one** core feature named (the thing that, alone, delivers the core value).
   - [ ] A short in-scope list, each item tied to the vision's value proposition **and** plausibly moving the north-star metric.

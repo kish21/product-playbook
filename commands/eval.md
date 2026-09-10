@@ -18,6 +18,8 @@ description: >
 - **Purpose:** measure whether the product meets its goal, honestly — quality, not just "it runs".
 - **Reads:** `PRODUCT.md#Vision`, `#Scope`, `#Plan` (the goal), `#Tests`.
 - **Writes:** `PRODUCT.md#Evaluation` — measured result · metrics + confidence · separated failures.
+- **Gate type:** `verification` — measured against a recorded baseline. Batchable, and **stops on red** - a failing check ends the batch there. (`docs/state-model.md` §2d)
+- **State model** (`docs/state-model.md` §2c): writes `#Evaluation` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria:**
   - [ ] A measurable definition of "good" tied to the vision/goal (a metric or a rubric) — **for a product with a north star, that definition IS `#Vision`'s target + date**, not a fresh rubric invented here.
   - [ ] **The guardrail metric is measured too, and reported alongside.** A north-star number that improved while the guardrail got worse is not a pass — say so plainly.
@@ -39,6 +41,7 @@ description: >
   **input metrics** and the **guardrail** from `#Vision`'s north star — that is the measurement baseline, and
   the **instrumentation line** says how to read it. If the north star is a direction rather than a target,
   the goal is fuzzy: sharpen it with the user (or send them back to `/vision`) before measuring anything.
+- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** if the section is already filled, **show what would change and ask before replacing it** — never a silent overwrite — and leave a reversed decision in place with a dated `superseded <date>: <why>` line. A first run over an empty section is unchanged.
 - **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** write ONE dated line at the top of `#Evaluation` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
 
 ## Step 1 — Apply principles (this phase)

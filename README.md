@@ -1,7 +1,7 @@
 # Product Playbook: Build with Discipline in the AI Era
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.30.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.31.0-blue.svg)](CHANGELOG.md)
 ![Claude Code skills](https://img.shields.io/badge/Claude%20Code-21%20skills-8A2BE2.svg)
 
 **AI writes code faster than anyone can reason about it. `product-playbook` puts the gates in between.**
@@ -201,7 +201,13 @@ When you run `/playbook` or an individual command, the AI is instructed to:
 2.  Follow the guided checklist.
 3.  Perform research/evaluations (e.g., web searches for competitors, security reviews).
 4.  Write results back to `PRODUCT.md`.
-5.  **Stop at the gate** and wait for your explicit confirmation before moving forward.
+5.  **Stop at the gate.** What the stop *is* depends on the gate — and they are not all approvals
+    ([`docs/state-model.md`](docs/state-model.md)): an **input** gate (`/vision`, `/scope`, `/architect`)
+    asks you a question whose answer exists nowhere else, so it can never be skipped or batched; a
+    **derivation** gate (`/structure`, `/contracts`, `/build`) works from what earlier phases decided and
+    can run with its neighbours, ending in one review; a **verification** gate (`/dev-check`, `/test`,
+    `/ship`) reports pass or fail against the repo and only stops you on red. Most of the eighteen stops
+    are interviews, not signatures.
 
 ### 4. The Forms (`templates/`)
 Think of a template as a printed form with blank boxes. A skill fills the boxes so every ticket and every pull request looks the same and nothing gets forgotten. All three are ordinary text files in your repo: edit the wording if you like, and no skill will ever overwrite a form you already have.
