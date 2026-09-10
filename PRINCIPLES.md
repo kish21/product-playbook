@@ -94,7 +94,8 @@ Not all are P0 — but each should be a conscious choice, never an accident.
 
 ## The exit-criteria gate (ONE pattern, used by every skill)
 
-Every skill carries a **contract block** in its header:
+**Evidence gates: no evidence → the gate holds → no progress.** The name for what this pattern does;
+the teeth are in the refusal, not the advance. Every skill carries a **contract block** in its header:
 
 ```
 Purpose:  <one line>
