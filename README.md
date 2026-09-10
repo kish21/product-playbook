@@ -1,7 +1,7 @@
 # Product Playbook: Build with Discipline in the AI Era
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.29.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.30.0-blue.svg)](CHANGELOG.md)
 ![Claude Code skills](https://img.shields.io/badge/Claude%20Code-21%20skills-8A2BE2.svg)
 
 **AI writes code faster than anyone can reason about it. `product-playbook` puts the gates in between.**
@@ -103,6 +103,7 @@ Everything above writes to **one file at your repo root**. `#Vision`, `#Scope`, 
 - [The personal story: the vibe coding trap](#story) — the long version of the five failures above
 - [How it works: the files and principles](#how-it-works) — `PRODUCT.md`, `PRINCIPLES.md`, the commands, the templates
 - [Why this is not a set of templates](#not-templates) — the executable proof
+- [Case study: the playbook auditing its own work](docs/case-study-subscription-tracker.md) — 9 real findings, unsoftened
 - [The playbook journey](#journey) — the phase map
 - [Skill reference](#skill-reference) — every skill, and what each one writes
 - [Installation and setup](#install) — three install routes, updating, uninstalling
@@ -230,7 +231,15 @@ A spine document, six phases, milestones and exit criteria are the vocabulary of
 
 **3. The rules are single-sourced and referenced, not copy-pasted.** Every skill links [`PRINCIPLES.md`](PRINCIPLES.md) and names the subset that is load-bearing for its phase — see §[Production safeguards](PRINCIPLES.md#production-safeguards) and §[Production-readiness concern areas](PRINCIPLES.md#production-readiness-concern-areas-the-coverage-checklist). A rule that lived in fifteen copies would drift in fifteen directions.
 
-**4. The claims are checked in CI.** `python tools/check.py` asserts that the skill set is identical across `commands/`, `manifest.json`, `evals/evals.json` and `VISION.md`; that one version is stated everywhere; that every `#Section` a skill reads is one the `PRODUCT.md` template actually defines; and that every phase skill really gates. Docs that drift from reality are the failure this project exists to catch — including its own.
+**4. It has been pointed at its own work, and reported faults.** `/drift-check` on a project this playbook
+had itself guided returned **9 findings** — an API spec describing three routes that were never built, a
+deferred feature that shipped silently and doubled the surface of 11 open contrast defects, a riskiest
+assumption still untested three slices after the override that skipped it. Two days earlier the same
+project caught a fault in *this repo*: `/eval` carried a gate's heading and no gate, which became #104,
+`tools/check.py` check 9, and the rule *a heading is not a behaviour*.
+**[The full case study, with the findings unsoftened →](docs/case-study-subscription-tracker.md)**
+
+**5. The claims are checked in CI.** `python tools/check.py` asserts that the skill set is identical across `commands/`, `manifest.json`, `evals/evals.json` and `VISION.md`; that one version is stated everywhere; that every `#Section` a skill reads is one the `PRODUCT.md` template actually defines; and that every phase skill really gates. Docs that drift from reality are the failure this project exists to catch — including its own.
 
 ---
 

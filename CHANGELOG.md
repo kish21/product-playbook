@@ -3,6 +3,35 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.30.0] - 2026-09-10
+
+### Added — **a worked example: the playbook auditing a project it built** (#134)
+Every claim in the README was self-asserted. `docs/case-study-subscription-tracker.md` records the one
+piece of evidence a reader can inspect: a `/drift-check` run on a project this playbook had guided
+end-to-end, which returned **9 findings** — an API spec describing three routes that were never built,
+a deferred feature (dark mode) that shipped silently and doubled the surface of 11 open contrast
+defects, a `search` feature with its own security fix that appeared nowhere in `#Scope`, in-scope
+features advertised in the README with no live path, and a riskiest assumption still untested three
+slices after the recorded override that skipped it.
+
+**Nothing is softened.** The credibility is in the system reporting faults in its own work, and a case
+study where everything went well proves nothing. Each finding carries the verdict the run gave it —
+*fix* or *deliberate re-scope* — because a reversal is fine and an unrecorded reversal is the bug.
+
+**Feasibility decided (the ticket's open question): option 2, excerpt the artefacts.** The project is a
+personal repository and is not published, so the findings are quoted verbatim from its own
+`PRODUCT.md#Drift log` and the two cheapest to falsify are traced to file paths; the case study says
+plainly that the repo cannot be cloned, rather than implying it can. Two findings were independently
+re-verified against the real project before publishing — `openapi.json` does list
+`/api/v1/subscriptions/{id}` with no `[id]/` route directory, and the auth handler really is mounted at
+`src/app/api/auth/[...all]` while the spec claims `/api/v1/auth/*`.
+
+**The loop is closed.** The same project's 2026-09-08 run is what exposed `/eval` carrying a gate's
+heading with no gate — #104, fixed in v1.25.0, which produced `check.py` check 9 (red on **three**
+skills when first written, not one) and the rule *a heading is not a behaviour*. The README's central
+claim is that the guarantees are enforced in this repo's own build; check 9 exists because a real run
+caught this repo doing the thing it warns others about.
+
 ## [1.29.0] - 2026-09-10
 
 ### Changed — **`PRINCIPLES.md` was 25.8KB against its own ~15KB prune rule** (#127)
