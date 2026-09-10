@@ -24,7 +24,7 @@
 
 ## Per-feature contract (agree BEFORE building a feature)
 
-- **Exit criteria** — explicit, *testable* definition of done. Not done until every criterion is met **and verified, with evidence**. No vague "done".
+- **Exit criteria** — explicit, *testable* definition of done. Not done until every criterion is met **and verified**. Where the verification can be re-run, record it in the one settled form (`docs/state-model.md` §2f) — `` `evidence: <command> → <result> · <artefact> · <date>` `` — so a later session, a reviewer or CI can **re-execute it and compare** rather than take the claim on trust. A criterion that was judged rather than measured carries no evidence line and is reported as unverified; that is honest. No vague "done".
 - **Module-interaction map** — which modules/services it touches, the **typed contract in/out** of each boundary, dependencies.
 - **Independent test plan** — **unit** (isolated via injection/mocks), **integration** (real contracts with neighbours), plus E2E/regression as needed. If a feature can't be tested independently, fix the seams first.
 

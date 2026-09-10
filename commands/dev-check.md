@@ -17,7 +17,7 @@ description: >
 ## Contract
 - **Purpose:** prove development is actually complete before Testing — a real gate, not a vibe.
 - **Reads:** `PRODUCT.md#Scope`, `#Plan`, `#Build log`, `#Foundation`, `#Contracts`.
-- **Writes:** `PRODUCT.md#Dev-complete` — the checklist, each item checked **with evidence**.
+- **Writes:** `PRODUCT.md#Dev-complete` — the checklist, each item checked **with re-runnable evidence** in the one settled form (`docs/state-model.md` §2f): `` `evidence: <command> → <result> · <artefact> · <YYYY-MM-DD>` ``. Transcribe what you actually ran; a criterion you judged rather than measured carries **no** evidence line and is reported `UNVERIFIED` by `/drift-check`, which is an honest state — inventing a command you did not run is not.
 - **Gate type:** `verification` — pass/fail on repo evidence; no preference involved. Batchable, and **stops on red** - a failing check ends the batch there. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Dev-complete` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria:**

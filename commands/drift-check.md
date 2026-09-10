@@ -29,7 +29,39 @@ description: >
   - [ ] Built features cross-checked against `#Scope` — any OUT-OF-SCOPE item that got built is flagged as creep.
   - [ ] Current direction cross-checked against `#Vision` — misalignment surfaced.
   - [ ] Code↔docs drift checked (claims that don't match reality), composing `/doc-audit`.
+  - [ ] **Claim-to-evidence pass:** every exit criterion recorded as met in the spine is given one of four
+    verdicts — `VERIFIED` · `PARTIALLY VERIFIED` · `UNVERIFIED` · `CONTRADICTED` (`docs/state-model.md` §2g).
+    A claim with no evidence is **reported, never silently passed**.
   - [ ] A clear verdict: on-track, or a specific list of drifts + a recommended cut/correction.
+
+## Step 0b — Claim-to-evidence pass (re-verify, don't re-read)
+
+Every `- [x]` in the spine is a claim. **A checked box and a checked box with fabricated justification are
+indistinguishable to any later reader, human or agent** — unless the claim points at something re-runnable.
+So for each one:
+
+1. **Find its evidence line** — the single form settled in `docs/state-model.md` §2f:
+   `` `evidence: <command> → <result> · <artefact> · <YYYY-MM-DD>` ``. There is exactly one format; **do
+   not invent a second one**, and do not "upgrade" prose evidence you find into that shape without
+   re-running it — transcribing a claim into evidence-looking text is the failure this pass exists to catch.
+2. **Re-run it, don't re-read it.** Execute the command. Check the artefact exists.
+3. **Assign one of four verdicts** (`§2g`), and say which:
+   - `VERIFIED` — re-ran, result matches.
+   - `PARTIALLY VERIFIED` — re-ran and the artefact is there, but the result differs in degree not
+     direction, or the evidence covers only part of the claim.
+   - `UNVERIFIED` — **no measurement was taken**: no evidence line, or the command cannot run here
+     (missing tooling, credentials, a live service). Say *which*, so the reader knows whether to be
+     worried or to install something.
+   - `CONTRADICTED` — **a measurement was taken and it disagrees**: the command fails, or the named
+     artefact does not exist.
+4. **Never merge the last two.** `UNVERIFIED` is absence of evidence; `CONTRADICTED` is evidence of
+   absence. Reporting a never-attempted check as CONTRADICTED sends someone chasing a phantom regression;
+   reporting a failed one as UNVERIFIED hides a real one behind "we could not tell".
+5. **Report every unevidenced claim.** A criterion nobody measured is a normal, honest state — plenty of
+   things are judged rather than measured — but it is never silently counted as met.
+
+An `UNVERIFIED` claim is a finding about the *record*, not necessarily about the code; a `CONTRADICTED`
+one is a finding about both. Rank them accordingly in the report.
 
 ## Step 0 — Resolve the spine, then build context
 - **Resolve the spine first** (MECHANISMS.md §Spine resolution): `PRODUCT.md` if present; else the
