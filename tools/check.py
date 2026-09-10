@@ -21,6 +21,9 @@ Checks:
      a section the template never defines is doc<->code drift inside the toolkit itself).
   7. A plugin install ships every skill: each directory-form skill's folder is listed under
      `skills` in .claude-plugin/plugin.json (Claude Code only scans skills/ by default).
+  8. Every eval case is STRUCTURALLY sound: the required fields exist and are non-empty, ids are
+     unique, no field name has drifted, and each skill carries at least MIN_EVAL_CASES cases.
+     This does not execute the evals - it only stops the file from decaying while CI stays green.
 """
 from __future__ import annotations
 import json
@@ -30,6 +33,13 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 LINE_BUDGET = 500
+# evals/evals.json: skill-creator's schema (references/schemas.md) requires id + prompt +
+# expected_output; `files` (input fixtures) and `expectations` (individually gradeable statements)
+# are optional. `skill` and `expected_artifacts` are this repo's documented extensions.
+EVAL_REQUIRED = ("id", "skill", "prompt", "expected_output")
+EVAL_OPTIONAL = ("files", "expectations", "expected_artifacts")
+EVAL_LIST_FIELDS = ("files", "expectations", "expected_artifacts")
+MIN_EVAL_CASES = 2  # the file's own note promises "2-3 trigger/behaviour checks per skill"
 errors: list[str] = []
 
 # Canonical phase-template skills (the vision->learn chain /playbook walks).
@@ -101,6 +111,8 @@ def main() -> int:
     check_section_refs(files)
     # 7. plugin install ships every skill (directory-form ones need an explicit skills path)
     check_plugin_skill_paths(files)
+    # 8. the eval cases themselves are well-formed (nothing executes them, so nothing else would notice)
+    check_eval_cases(evals)
 
     return done(len(cmds))
 
@@ -153,7 +165,7 @@ def check_section_refs(files: dict[str, Path]) -> None:
 
 
 def check_plugin_skill_paths(files: dict[str, Path]) -> None:
-    """6. Directory-form skills load as a plugin only if plugin.json points `skills` at their folder."""
+    """7. Directory-form skills load as a plugin only if plugin.json points `skills` at their folder."""
     plugin = ROOT / ".claude-plugin" / "plugin.json"
     if not plugin.exists():
         return
@@ -166,6 +178,42 @@ def check_plugin_skill_paths(files: dict[str, Path]) -> None:
         if folder not in declared:
             fail(f"{name} is directory-form ({folder}/{name}/SKILL.md) but plugin.json `skills` "
                  f"does not list ./{folder}/ - a plugin install would drop it")
+
+
+def check_eval_cases(evals: dict) -> None:
+    """8. Structural gate on evals/evals.json - the only thing standing between it and rot.
+
+    CI never RUNS these cases, so a malformed one stays green forever. Six cases had already drifted
+    to `assertions`/`expected_artifacts` with no `expected_output` at all before this existed: two
+    schemas in one file, invisible because check 1 only ever compared the set of skill NAMES.
+    """
+    allowed = set(EVAL_REQUIRED) | set(EVAL_OPTIONAL)
+    seen: set = set()
+    per_skill: dict[str, int] = {}
+    for i, case in enumerate(evals.get("evals", [])):
+        where = case.get("id", f"index {i}")
+        for field in EVAL_REQUIRED:
+            value = case.get(field)
+            if value is None or (isinstance(value, str) and not value.strip()):
+                fail(f"eval {where!r} is missing a non-empty {field!r} "
+                     f"(required by skill-creator's eval schema)")
+        for field in sorted(set(case) - allowed):
+            fail(f"eval {where!r} has unknown field {field!r} "
+                 f"(allowed: {', '.join(sorted(allowed))})")
+        for field in EVAL_LIST_FIELDS:
+            if field in case and not isinstance(case[field], list):
+                fail(f"eval {where!r} field {field!r} must be a list, got {type(case[field]).__name__}")
+        cid = case.get("id")
+        if cid is not None:
+            if cid in seen:
+                fail(f"eval id {cid!r} is used more than once")
+            seen.add(cid)
+        skill = case.get("skill")
+        if skill:
+            per_skill[skill] = per_skill.get(skill, 0) + 1
+    for skill, n in sorted(per_skill.items()):
+        if n < MIN_EVAL_CASES:
+            fail(f"{skill} has {n} eval case(s); evals.json promises at least {MIN_EVAL_CASES} per skill")
 
 
 def done(n: int = 0) -> int:

@@ -47,7 +47,10 @@ This is distinct from `product-toolkit` (a grab-bag of individual dev/quality sk
 
 - Every skill's **contract block** exit criteria ⊆ a `PRODUCT.md` field or an `evals/evals.json` assertion.
 - A skill won't hand off until its exit criteria are met (runtime self-check); the next skill re-checks the prior phase.
-- `evals/evals.json` proves each skill matches this VISION; re-run on change.
+- `evals/evals.json` states, per skill, the behaviour this VISION requires — at least two cases each.
+  **CI gates the file's structure, not its verdicts:** `tools/check.py` fails on a missing or drifted
+  field, a duplicate id or a skill below two cases. **Executing the cases is still manual** — re-run
+  them on change; until that is automated, a green build means the assertions are well-formed, not met.
 - Run `/drift-check` on this repo to confirm each skill still matches its row above.
 
 ## Non-negotiables (from PRINCIPLES.md)

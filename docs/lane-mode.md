@@ -59,7 +59,9 @@ talked. Three things broke the moment more than one agent ran:
 - `tools/check.py` (CI): skill set consistency, phase-template structure, line budget, one version
   across CHANGELOG / manifest / plugin.json / README badge. **Run and green.**
 - `evals/evals.json`: two new cases, `tickets-lane-mode` and `build-lane-mode`, stating the expected
-  behaviour. **Listed only — the evals are not executed by CI yet** (open item in the repo).
+  behaviour. Both are now structurally gated by `tools/check.py` (they were two of the six cases that
+  had drifted to a second schema and carried no `expected_output` at all). **Their assertions are
+  still not executed by CI** — that half of the open item stands.
 - **Not verified in this change:** a live run of `/tickets` → `lanekeeper start` → `/build` in a
   worktree → `/ship` with the gate. That is the next session's job, against
   `kish21/mini-issue-tracker`, which already has three playbook-written issues.

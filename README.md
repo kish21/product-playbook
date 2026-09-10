@@ -1,7 +1,7 @@
 # Product Playbook: Build with Discipline in the AI Era
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.20.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.21.0-blue.svg)](CHANGELOG.md)
 ![Claude Code skills](https://img.shields.io/badge/Claude%20Code-21%20skills-8A2BE2.svg)
 
 **A guided path from idea → shipped that bakes in the engineering discipline most teams learn the hard way.**
@@ -283,7 +283,7 @@ Open a new Claude Code session and type `/playbook` (route A: `/product-playbook
 ## 🛠️ Contributing
 
 1.  Add or modify a command in `commands/<name>.md` — or directory-form `commands/<name>/SKILL.md` (+ `references/`) for skills that carry references. Keep them concise and single-purpose.
-2.  Register it in **all three**: `VISION.md`, `manifest.json`, and `evals/evals.json` (the CI gate checks they stay in sync).
+2.  Register it in **all three**: `VISION.md`, `manifest.json`, and `evals/evals.json` (the CI gate checks they stay in sync). Each skill needs **at least two** eval cases, each with a unique `id` plus a non-empty `skill`, `prompt` and `expected_output`; `files`, `expectations` and `expected_artifacts` are optional. CI checks that shape — it does **not** run the cases.
 3.  If a rule earned its place from a real incident, keep the skill file to the **bold one-line rule** and put the war story in `references/case-files-<skill>.md`, pointed to as `(case file: <heading>)`.
 4.  Run `python tools/check.py` (the CI consistency gate: every skill registered + structured + under the 500-line budget), then `./install.sh`, commit, and open a PR (master requires the `check` to pass).
 5.  Run `/drift-check` on this repo to verify nothing drifted.
