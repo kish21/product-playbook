@@ -74,7 +74,8 @@ Fill `#Tests`: coverage (unit/integration/regression) · security cases · note 
 Confirm with evidence: the suite **runs in CI and a red run blocks merge** (not just locally); there's at
 least one **integration + live-path** test (compose `/verify`+`/run`), not only isolated units; tests are
 **deterministic** (seeded, no time/network races); **the suite is provably pointed at the isolated datastore** (print the resolved target; point it at the dev one and show it refusing to run); an AI product has injection/jailbreak cases; a
-**golden/eval dataset** exists. **If only isolated units exist, or the suite isn't a CI gate, STOP and
+**golden/eval dataset** exists **and something actually executes it** — if nothing runs it, gate its
+structure and say so, never describe it as proof (`PRINCIPLES.md` §Lessons baked in). **If only isolated units exist, or the suite isn't a CI gate, STOP and
 add them** — that's exactly the gap that ships broken-but-green code.
 
 **Close the loop (`PRINCIPLES.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention.

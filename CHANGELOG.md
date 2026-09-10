@@ -3,6 +3,22 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.22.0] - 2026-09-10
+
+### Added - **a guarantee that nothing executes decays silently**
+The v1.21.0 incident is now a rule instead of a memory. `PRINCIPLES.md` §Lessons baked in gains
+**"a guarantee that nothing executes decays silently"** — an assertion file no runner reads drifts
+freely (a second schema, a required field missing) because the only thing ever compared is a name,
+so gate its structure in CI or scope the claim to what is actually checked. Overclaiming a guarantee
+is worse than not having one: it stops anyone going to look.
+- **`references/case-files-principles.md` is new** — the first case file for `PRINCIPLES.md` itself,
+  carrying the full war story (*The 53 assertions nothing read*) so the rule in the skill-facing file
+  stays one line, per §Lesson format.
+- **`/test` Step 3b now asks the question at the gate.** Its evidence check already required that a
+  golden/eval dataset *exist*; it now requires that **something actually executes it** — and if
+  nothing does, that the suite's structure be gated and the claim be worded to match, never described
+  as proof.
+
 ## [1.21.0] - 2026-09-10
 
 ### Fixed - **the eval file that proves the skills was itself unproven**

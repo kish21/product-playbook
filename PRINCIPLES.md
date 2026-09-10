@@ -250,6 +250,7 @@ Phrased generically so they apply to any project:
 - **Environment/platform gotchas** — cross-platform (stdout encoding, caches cleared between runs, corporate proxy/SSL); don't assume network egress.
 - **Defer paid infra/features until a real trigger** — anti-creep at the infra level; record the trigger.
 - **Docs must match reality** — reconcile code ↔ docs; no false claims.
+- **A guarantee that nothing executes decays silently** — an assertion file no runner reads drifts freely (a second schema, a required field missing) because the only thing ever compared is a name, so **gate its structure in CI, or scope the claim to what is actually checked** — overclaiming a guarantee is worse than not having one, it stops anyone going to look (case file: The 53 assertions nothing read).
 - **Fresh-eyes review, but verify findings against the real code** — don't rubber-stamp an audit; some findings are already done or misdiagnosed.
 - **Tests passing ≠ it works** — verify the path the product *actually runs*, not just the function in isolation; trace callers / cross-file wiring.
 - **Every "done" records HOW it was verified** — evidence, not just "done".
