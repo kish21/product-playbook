@@ -24,6 +24,8 @@ Checks:
   8. Every eval case is STRUCTURALLY sound: the required fields exist and are non-empty, ids are
      unique, no field name has drifted, and each skill carries at least MIN_EVAL_CASES cases.
      This does not execute the evals - it only stops the file from decaying while CI stays green.
+  9. Every phase skill's `Step 0 - ... prior-gate check` actually GATES: its body names a prior
+     `#Section` and offers an override, so the heading can never again stand in for the behaviour.
 """
 from __future__ import annotations
 import json
@@ -47,6 +49,13 @@ TEMPLATE = {"vision", "validate", "scope", "plan", "architect", "structure", "fo
             "tickets", "build", "dev-check", "test", "eval", "ship", "learn"}
 # Not phases, but load-bearing for a build step -> must still declare a contract + name their principles.
 CONTRACTED = {"design-system", "new-component"}
+# /vision opens the chain: there is no earlier section for it to gate on, so check 9 skips it.
+NO_PRIOR_PHASE = {"vision"}
+# The affordance that makes a prior-gate a gate and not a wall: the user can proceed anyway.
+# Standalone use is first-class in this toolkit, so every gate must offer a way through.
+# Each phrase is the one a real skill uses today: 12 say "allow override", /ship records "an override"
+# on the release, /learn says "continue if the user wants". Widen it only alongside a skill that needs it.
+OVERRIDE_PHRASES = ("allow override", "an override", "continue if the user wants")
 
 
 def fail(msg: str) -> None:
@@ -113,6 +122,8 @@ def main() -> int:
     check_plugin_skill_paths(files)
     # 8. the eval cases themselves are well-formed (nothing executes them, so nothing else would notice)
     check_eval_cases(evals)
+    # 9. a Step 0 titled "prior-gate check" actually gates
+    check_prior_gates(files)
 
     return done(len(cmds))
 
@@ -214,6 +225,29 @@ def check_eval_cases(evals: dict) -> None:
     for skill, n in sorted(per_skill.items()):
         if n < MIN_EVAL_CASES:
             fail(f"{skill} has {n} eval case(s); evals.json promises at least {MIN_EVAL_CASES} per skill")
+
+
+def check_prior_gates(files: dict[str, Path]) -> None:
+    """9. A Step 0 titled "prior-gate check" must contain a gate, not just the title.
+
+    `/eval` carried the heading for five releases while gating on nothing an earlier phase writes: a
+    user three phases early got no "run /dev-check then /test first", which is the orientation the
+    playbook exists to give. A heading is not a behaviour, so this checks the body - the Step 0 block
+    must name a prior `#Section` AND offer an override (standalone use is first-class here).
+    """
+    for name in sorted(TEMPLATE - NO_PRIOR_PHASE):
+        text = files[name].read_text(encoding="utf-8")
+        m = re.search(r"^## Step 0 .*?$(.*?)(?=^## )", text, re.MULTILINE | re.DOTALL)
+        if not m:
+            fail(f"{name} has no `## Step 0` block (every phase gates on what came before)")
+            continue
+        body = m.group(1)
+        if not re.search(r"`#[A-Z][A-Za-z][A-Za-z \-]*`", body):
+            fail(f"{name} Step 0 names no prior `#Section` - the heading says prior-gate check, "
+                 f"but nothing is gated on")
+        if not any(phrase in body.lower() for phrase in OVERRIDE_PHRASES):
+            fail(f"{name} Step 0 gates with no override - standalone use is first-class, so a gate "
+                 f"must warn and offer the missing phase, not block")
 
 
 def done(n: int = 0) -> int:

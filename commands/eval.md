@@ -28,7 +28,13 @@ description: >
   - [ ] Result compared to a **recorded baseline** — a regression below threshold **fails** (gates as config, not hardcoded).
 
 ## Step 0 — Context + prior-gate check
-- Read `#Vision/#Scope/#Plan` for the goal and `#Tests` for what's covered. Take the **target + date**, the
+- Read `#Vision/#Scope/#Plan` for the goal and `#Tests` for what's covered.
+- **Gate on the phases that come before this one.** If `#Tests` is empty or `#Dev-complete` still has
+  unchecked boxes, **say which one is missing and offer the phase that fills it first** — `/dev-check`
+  then `/test` — but allow override (standalone use). A product mid-Build has nothing to evaluate, and
+  a score measured over an untested build reads as a quality verdict on work that was never claimed
+  finished. *(A real run stopped here correctly — on judgement, because the skill never asked.)*
+- Take the **target + date**, the
   **input metrics** and the **guardrail** from `#Vision`'s north star — that is the measurement baseline, and
   the **instrumentation line** says how to read it. If the north star is a direction rather than a target,
   the goal is fuzzy: sharpen it with the user (or send them back to `/vision`) before measuring anything.

@@ -459,6 +459,13 @@
       "files": []
     },
     {
+      "id": "eval-prior-gate-names-the-missing-phase",
+      "skill": "eval",
+      "prompt": "we finished the second feature this morning, evaluate how good the product is",
+      "expected_output": "Reads the spine BEFORE measuring and finds #Tests empty and #Dev-complete unchecked; names which phase is missing rather than scoring anyway, and recommends /dev-check then /test in that order; explains that a product mid-Build has no measurement baseline and that a score over an untested build would read as a quality verdict on unfinished work; still allows an explicit override for standalone use; records the stop as ONE dated _Not run_ line at the top of #Evaluation per PRINCIPLES.md §Declined runs rather than filling the section; the north-star baseline check remains a separate second gate that fires once the prior phases are in place",
+      "files": []
+    },
+    {
       "id": "playbook-reads-a-declined-run-note",
       "skill": "playbook",
       "prompt": "what's next? I think I already tried the evaluation step",

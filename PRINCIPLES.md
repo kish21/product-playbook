@@ -285,6 +285,9 @@ Phrased generically so they apply to any project:
   with no work to do: if it writes nothing, *"ran and found nothing"* is indistinguishable from *"never
   ran"*, and whatever orients from the output keeps proposing the same thing. One dated line, replaced
   not appended (§Declined runs is this rule applied to the playbook's own phases).
+- **A heading is not a behaviour** — a section titled for a check (`prior-gate check`, `validation`,
+  `retry`) is read by everyone as proof the check exists, so nobody looks inside; assert on the BODY
+  in CI, or the title outlives the code that once backed it (case file: The gate that was only a heading).
 - **Fresh-eyes review, but verify findings against the real code** — don't rubber-stamp an audit; some findings are already done or misdiagnosed.
 - **Tests passing ≠ it works** — verify the path the product *actually runs*, not just the function in isolation; trace callers / cross-file wiring.
 - **Every "done" records HOW it was verified** — evidence, not just "done".
