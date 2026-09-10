@@ -1,7 +1,7 @@
 {
   "name": "product-playbook",
-  "version": "1.25.0",
-  "description": "A phased, principle-driven product-building skill set — guides anyone (newcomer or experienced) through the full product lifecycle, sequential but standalone, with hard-won principles baked into each phase. Anti-scope-creep by design.",
+  "version": "1.26.0",
+  "description": "AI writes code faster than anyone can reason about it. product-playbook puts evidence gates between the phases: 21 Claude Code skills that walk a product from idea to shipped, one gate at a time, recording every decision in one file in your repo. For technical builders shipping with AI coding agents. Anti-scope-creep by design.",
   "author": "kish21",
   "license": "MIT",
   "homepage": "https://github.com/kish21/product-playbook",

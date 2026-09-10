@@ -26,6 +26,11 @@ Checks:
      This does not execute the evals - it only stops the file from decaying while CI stays green.
   9. Every phase skill's `Step 0 - ... prior-gate check` actually GATES: its body names a prior
      `#Section` and offers an override, so the heading can never again stand in for the behaviour.
+ 10. One skill COUNT everywhere: every "N skills" / "N commands" claim in README.md (badge and prose)
+     and the VISION.md skills comment must equal the real number of skills in commands/. The repo
+     description on GitHub quoted a stale 18 for months while the README said 21 - a wrong count on
+     a project whose thesis is docs-match-reality. The description lives outside the repo, but the
+     number it quotes now has exactly one source.
 """
 from __future__ import annotations
 import json
@@ -124,6 +129,8 @@ def main() -> int:
     check_eval_cases(evals)
     # 9. a Step 0 titled "prior-gate check" actually gates
     check_prior_gates(files)
+    # 10. every stated skill count matches the real one
+    check_skill_count(len(cmds), files)
 
     return done(len(cmds))
 
@@ -248,6 +255,42 @@ def check_prior_gates(files: dict[str, Path]) -> None:
         if not any(phrase in body.lower() for phrase in OVERRIDE_PHRASES):
             fail(f"{name} Step 0 gates with no override - standalone use is first-class, so a gate "
                  f"must warn and offer the missing phase, not block")
+
+
+# Every shape in which the README or VISION states how many skills there are. Each is a claim that
+# can go stale independently: the badge, the prose, the install table, the uninstall instructions.
+COUNT_PATTERNS = (
+    r"badge/Claude%20Code-(\d+)%20skills",
+    r"\b(\d+)\s+(?:Claude Code\s+)?skills?\b",
+    r"\b(\d+)\s+(?:step-by-step|custom Markdown)\s+commands\b",
+)
+
+
+def check_skill_count(n: int, files: dict[str, Path]) -> None:
+    """10. Nobody states a skill count that disagrees with commands/.
+
+    The GitHub repo description said "18 commands" while the README said 21 in five places. That one
+    is a setting, not a file - but the number has one true source (commands/), so every place in the
+    repo that quotes it is checked against that source, and the description is copied from here.
+    """
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    for pattern in COUNT_PATTERNS:
+        for m in re.finditer(pattern, readme):
+            got = int(m.group(1))
+            if got != n:
+                line = readme[: m.start()].count("\n") + 1
+                fail(f"README.md:{line} claims {got} skills/commands, but commands/ has {n} "
+                     f"({m.group(0).strip()!r})")
+
+    vision = (ROOT / "VISION.md").read_text(encoding="utf-8")
+    m = re.search(r"<!--\s*skills:(.*?)-->", vision, re.DOTALL)
+    if not m:
+        fail("VISION.md has no `<!-- skills: ... -->` comment to count the skill set against")
+        return
+    listed = re.findall(r"`/([a-z-]+)`", m.group(1))
+    if sorted(listed) != sorted(files):
+        fail(f"VISION.md skills comment lists {len(listed)} skills, commands/ has {n}: "
+             f"{set(listed) ^ set(files)}")
 
 
 def done(n: int = 0) -> int:

@@ -3,6 +3,80 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.26.0] - 2026-09-10
+
+### Changed — **the playbook now names its own target user** (#132)
+`/vision`'s exit criteria require every product to name a target user and a job-to-be-done.
+This repo had never done it: `VISION.md` said "anyone — a newcomer (techie or not)", which is who
+*can* use it, not who it is *for* — the exact answer `/vision` would reject. `VISION.md` now names a
+primary reader (a technical builder shipping with AI coding agents, with no PM/QA/security/release
+role beside them) and the job to be done, lists the secondary audiences as explicitly deferred, and
+**retires the "techie or not" claim** rather than leaving two audience statements standing. Third
+instance of the same self-exemption pattern, after #127 and #128.
+
+### Changed — **positioning states the pain, not the shape** (#118, #124)
+"A guided path from idea → shipped" was equally true of Scrum or a whiteboard checklist. The thesis
+was already written and hidden at line 60 inside a collapsed `<details>`, with a skip-link routing
+readers around it. `README.md` now leads with the AI-speed-vs-reasoning gap, carries the
+execution-engine / discipline-engine argument and the five failure modes above the fold, and the
+story CTA routes to the entry command instead of past the positioning. AI coding is the accelerant;
+**Claude Code is the runtime, never the villain**. `VISION.md` §Why this exists moves with it — a
+sharpened README against an unchanged VISION would be the doc-drift this repo exists to catch.
+
+The guarantee is calibrated in the same edit: **"senior-level results by default" is gone.** Results
+depend on judgment no gate can supply. Both spine files now make one claim — *a process that cannot
+silently skip a check* — which is stronger because it is checkable.
+
+### Added — **"evidence gates", the philosophy named once** (#120)
+Both words appeared 30+ times across the spine; the idea had no name, so every use re-explained it.
+Named once in `README.md`, `VISION.md` and `PRINCIPLES.md` §The exit-criteria gate, and used only
+where it is load-bearing. **Third word decided deliberately:** the audit proposed *Evidence → Gate →
+Progress*; shipped instead as **no evidence → the gate holds → no progress**, because the enforced
+behaviour is the refusal, not the advance — a happy-path slogan would describe the half of the
+mechanism that has no teeth. `README.md` cites `tools/check.py` check 9 as the mechanical proof,
+which makes check 9 load-bearing for the claim: it may not be weakened or exempted.
+
+### Added — **why this is not a set of templates** (#122)
+A single four-word bullet separated this from "AI-generated PM templates". A README body section now
+makes the case with verifiable specifics — `audit.py` (contrast computed, never asserted),
+`tools/check.py` (CI fails on a gateless gate), the engineering definition-of-done, and one-click
+links into `PRINCIPLES.md` §Production safeguards and §Production-readiness concern areas. The
+audit's suggested label "AI-native development operating system" was **rejected**: hype register
+undermines a product whose thesis is discipline over vibes.
+
+### Added — **before → after, and three tiers over six phases** (#119, #123)
+The journey diagram was ~140 lines down and showed no gates — a flat list of command names that read
+as "18 things to memorise". It moves above the fold, gains `✓ evidence` between the tiers, and gains
+a "without the playbook" contrast whose four unanswerable questions are each **wired to the
+`PRODUCT.md` section that answers them**. The six phases group into three tiers for **display only**
+— all 15 skill frontmatters keep their phase numbers, since those strings are what Claude Code shows
+in the skill picker. Security, verification and scope integrity are drawn as spanning all three
+tiers, never as a stage you pass. Net visual count above the fold is unchanged: the new panel
+replaces the old journey block rather than joining it.
+
+### Changed — **the reveal order: one door, then the rooms** (#116)
+"21 skills" was announced five times in the first 66 lines, including as the opening sentence's
+subject and as the destination of the skip-link for the most time-pressed reader. The count is now a
+capability claim, not a first instruction; the quick start is one command; and the standalone-skill
+guarantee stays on the quick-start screen — **the fix is ordering, not removal**, since every skill
+running on its own is why an experienced builder picks this over a rigid wizard.
+
+### Added — **Git-native stated as a choice, hosted state recorded as a non-goal** (#133)
+`PRODUCT.md` living in Git was mentioned once, as a convenience. `VISION.md` now states it as the
+architectural property it is, with its consequences listed concretely (reviewable · versioned ·
+revertable · branchable · agent-inspectable · forkable · no external dependency), and records **no
+SaaS / no hosted spine / no web UI / no accounts** as an explicit non-goal with its reasoning and a
+**reopen trigger**, per `/scope`'s own Deferred+trigger convention. Every open ticket that adds
+machine-readable state is now built against a written guard rail rather than an assumption.
+
+### Added — `check.py` check 10: one skill count, everywhere (#130)
+The GitHub repo description said "18 commands" while the README said 21 in five places — a stale
+storefront on a project whose thesis is docs-match-reality. The description is updated to the new
+positioning, and the number now has exactly one source: check 10 fails the build when any
+`N skills` / `N commands` claim in `README.md` (badge and prose) or the `VISION.md` skills comment
+disagrees with `commands/`. **Proven to fail first** — `all 21 skills` → `18` went red at
+`README.md:313`, and dropping `/adopt` from the VISION comment went red before either was restored.
+
 ## [1.25.0] - 2026-09-10
 
 ### Fixed — **a heading is not a behaviour: `/eval` had the gate's title and no gate**

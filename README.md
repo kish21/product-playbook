@@ -1,16 +1,38 @@
 # Product Playbook: Build with Discipline in the AI Era
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.25.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.26.0-blue.svg)](CHANGELOG.md)
 ![Claude Code skills](https://img.shields.io/badge/Claude%20Code-21%20skills-8A2BE2.svg)
 
-**A guided path from idea → shipped that bakes in the engineering discipline most teams learn the hard way.**
+**AI writes code faster than anyone can reason about it. `product-playbook` puts the gates in between.**
 
-`product-playbook` is **21 Claude Code skills** that walk a product through six phases — Product → Development → Testing → Evaluation → Ship → Learn — **one gate at a time**. Each skill reads what the phase before it decided, does its own step, writes the result into one file at your repo root (`PRODUCT.md`), then **stops and waits for your confirmation**. Nothing advances on a vibe: every gate is checked against evidence in the repo, not against what the last session remembers.
+AI is an incredible *execution engine* — it is not a *discipline engine*. Build without guardrails and it does not just build your product: it multiplies the entropy, debt and chaos at 100mph. These five cost me real time on a real project:
+
+| The failure | What it looked like |
+|---|---|
+| **Features nobody asked for** | Building was so cheap the core purpose got buried under "cool" ideas. |
+| **Config that silently did nothing** | The block looked correct in the file; the value never flowed end-to-end. |
+| **Green tests over a dead live path** | The suite passed perfectly while the path the product actually runs was broken. |
+| **A vendor SDK welded into business logic** | Swapping providers meant refactoring half the codebase. |
+| **A leaked secret, a missing tenant filter** | One absent scope check away from a cross-customer data leak. |
+
+Every one of those is an *AI-speed* failure: not "we could not build it", but a working-looking product nobody can account for. AI made building cheap, so **deciding what to build, and proving it worked, are what is now scarce.** That is the whole product — six phases, a gate between each, and one file at your repo root that remembers what you decided.
+
+### Evidence gates
+
+> **No evidence → the gate holds → no progress.**
+
+The teeth are in the *refusal*, not the advance. And it is not a slogan: [`tools/check.py`](tools/check.py) **check 9** fails CI if any phase skill carries a gate's title without a gate's behaviour — the guarantee is enforced in this repo's own build.
+
+The guarantee is deliberately narrow: **a process that cannot silently skip a check.** Not senior judgment, not good outcomes — those stay yours. A gate can always be passed; passing one is *recorded*, with a reason and a date, so a later reader can tell a gate that held from a gate that was waved through.
+
+**Who it is for:** a technical builder shipping with AI coding agents — a solo founder, or an engineer anywhere from first job to staff — with no PM, designer, QA, security engineer or release manager beside them. Claude Code is the runtime; the same gap exists in Cursor or Copilot. ([the full audience note, and who it is *not* for →](VISION.md))
 
 **Requirements:** Claude Code (≥ 2.0.70 for the plugin route). Language- and framework-agnostic — it drives your process, not your stack.
 
 ## ⚡ Quick start
+
+**Install, then type one command.** It reads your repo, works out where you are, and runs the right phase — you never have to pick.
 
 ```
 /plugin marketplace add kish21/product-playbook
@@ -19,21 +41,70 @@
 
 Then, in a new Claude Code session:
 
-| Your situation | Type this |
-|---|---|
-| Brand-new idea, nothing built | `/product-playbook:playbook` — it asks where you are and runs the right phase |
-| You already have code, but no plan written down | `/product-playbook:adopt` — drafts a `PRODUCT.md` from the repo and confirms it with you |
-| You have a process already, want one step of it | Any skill on its own, e.g. `/product-playbook:tickets` or `/product-playbook:ship` |
-| Not sure the project is still on track | `/product-playbook:drift-check` |
+```
+/product-playbook:playbook
+```
+
+*Already have a process and want one step of it?* **Every skill also runs on its own** — `/product-playbook:adopt` to draft a spine from code you have already written, `/product-playbook:tickets`, `/product-playbook:ship`, `/product-playbook:drift-check`, any of them, in any order. The guided path is the default, never a requirement.
 
 If the install summary says `Run /reload-plugins to activate.`, run it first. Prefer plain `/vision`-style names (no plugin prefix), a project-local install, or just a few of the skills? See [Installation and Setup](#install).
 
+## 🔀 Before → after
+
+**Without a playbook**
+
+```
+idea ──▶ "sure, I'll build that" ──▶ ~500 files later ──▶ ???
+```
+
+Four questions nobody can answer — and the section of `PRODUCT.md` that answers each:
+
+| The question | Answered by |
+|---|---|
+| *Why did we build this?* | **#Vision** — who it is for, the job to be done, the north-star metric |
+| *What did we decide, and why?* | **#Architecture** + **#Contracts** — stack, ADRs, typed boundaries |
+| *Does this actually work?* | **#Tests** + **#Evaluation** — live-path and adversarial cases, measured |
+| *Can we safely ship this?* | **#Ship log** — security review, rollback path, post-deploy signal |
+
+**With it** — three tiers over six phases, and a gate between each:
+
+```
+ ①  PRODUCT THINKING          /vision ─▶ /validate ─▶ /scope ─▶ /plan
+    decide what is worth
+    building                  ↓ ✓ evidence: a named user + job, a measured
+                              │   experiment, ONE core feature, non-goals
+                              │
+ ②  ENGINEERING DISCIPLINE    /architect ─▶ /structure ─▶ /design-system*
+    build it so it holds      ─▶ /foundation ─▶ /contracts ─▶ /tickets
+                              ─▶ /build ─▶ /dev-check
+                              ↓ ✓ evidence: it RUNS; every feature's
+                              │   definition-of-done met, with HOW it was verified
+                              │
+ ③  SHIPPING & LEARNING       /test ─▶ /eval ─▶ /ship ─▶ /learn
+    prove it, ship it,        ↓ ✓ evidence: measured against a baseline,
+    find out if it worked         security-reviewed, metric instrumented
+
+ ┃ carried through ALL three, never a phase of their own:
+ ┃    security · verification · scope integrity — they live in every
+ ┃    definition-of-done, not in a stage you pass once
+
+    any time ─────────▶  /drift-check   are we still building the vision?
+    code already? ────▶  /adopt         drafts the spine from your repo
+    building UI? ─────▶  /new-component to build · /frontend-audit to enforce
+                         (* /design-system runs only if the product has a UI)
+```
+
+### The one file: `PRODUCT.md`
+
+Everything above writes to **one file at your repo root**. `#Vision`, `#Scope`, `#Architecture`, `#Tests`, `#Ship log` are its sections — each phase appends its own and reads the ones before it. An empty section means that phase is not done. It is plain Markdown, it lives in Git beside the code, and it is what makes the next session (or the next person) able to pick up where you stopped. Full description: [How it works](#how-it-works).
+
 ## Contents
 
-- [The personal story: the vibe coding trap](#story) — why this exists
+- [The personal story: the vibe coding trap](#story) — the long version of the five failures above
 - [How it works: the files and principles](#how-it-works) — `PRODUCT.md`, `PRINCIPLES.md`, the commands, the templates
+- [Why this is not a set of templates](#not-templates) — the executable proof
 - [The playbook journey](#journey) — the phase map
-- [Skill reference](#skill-reference) — all 21 skills, what each writes
+- [Skill reference](#skill-reference) — every skill, and what each one writes
 - [Installation and setup](#install) — three install routes, updating, uninstalling
 - [Contributing](#contributing)
 
@@ -61,9 +132,9 @@ Here is exactly how it happened:
 
 To cut short the time of my next project and stay laser-focused, I needed a playbook. Not just a document, but **executable skills with evidence-based gates and checks** that force both me and the AI to maintain engineering discipline.
 
-> 👉 *Short on time? **[Skip the story — jump straight to the 21 skills ->](#skill-reference)***
+> 👉 *This is the long version of the five failures at the top. Short on time? **[Go straight to the one command that starts it ->](#-quick-start)***
 
-`product-playbook` was born from my scars. It turns those lessons into a single, shared rulebook (`PRINCIPLES.md`) and maps them to **21 step-by-step commands (skills)** (18 journey phases + `/adopt` for projects that already have code + the `/frontend-audit` and `/new-component` UI-suite skills). It forces you to move one phase at a time, checking gates with evidence before writing code, so you get senior-level discipline by default.
+`product-playbook` was born from my scars. It turns those lessons into a single, shared rulebook (`PRINCIPLES.md`) and maps them to **21 step-by-step commands (skills)** (18 journey phases + `/adopt` for projects that already have code + the `/frontend-audit` and `/new-component` UI-suite skills). It forces you to move one phase at a time, checking each gate against evidence in the repo before writing code — **a process that cannot silently skip a check.** What it enforces is the process; the judgment stays yours.
 
 </details>
 
@@ -77,7 +148,7 @@ This system relies on three core files to create a structured, sequential, yet s
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/architecture-dark.svg">
-  <img alt="How product-playbook works: PRINCIPLES.md and PRODUCT.md feed the 21 skills, which generate your codebase" src="docs/diagrams/architecture-light.svg">
+  <img alt="How product-playbook works: PRINCIPLES.md and PRODUCT.md feed the playbook skills, which generate your codebase" src="docs/diagrams/architecture-light.svg">
 </picture>
 
 <sub>Diagram source: <a href="docs/diagrams/architecture.mmd"><code>docs/diagrams/architecture.mmd</code></a> (regenerate with <code>sh tools/render-diagrams.sh</code>).</sub>
@@ -95,7 +166,7 @@ The single source of truth for your quality bar. It details:
 *   **Production Safeguards:** Zero-secrets, fail-closed security, observability, and rollback paths.
 
 ### 3. The Commands (`commands/*.md`)
-These are **21 custom Markdown commands** (skills) that you install into Claude Code. Each command (e.g., `/vision`, `/scope`, `/architect`, `/dev-check`) has a strict contract:
+These are plain **Markdown commands** (skills) that you install into Claude Code. Each command (e.g., `/vision`, `/scope`, `/architect`, `/dev-check`) has a strict contract:
 
 ```markdown
 ---
@@ -136,25 +207,38 @@ How they fit together: the spine says *what* to build, the ticket form turns tha
 
 ---
 
+<a id="not-templates"></a>
+
+## 🔩 Why this is not a set of templates
+
+A spine document, six phases, milestones and exit criteria are the vocabulary of project management, and it is a fair first guess that this is a folder of AI-written PM templates. Four things a template cannot do:
+
+**1. Two of the skills ship executable code, not prose.**
+
+- [`commands/frontend-audit/audit.py`](commands/frontend-audit/audit.py) — a real OKLCH→WCAG contrast engine. Contrast is **computed** from your `DESIGN.md` tokens in both light and dark mode, never asserted; an ERROR exits non-zero, so it fails a CI build.
+- [`tools/check.py`](tools/check.py) — the gate that guards the gates. Check 9 fails this repo's own build if a phase skill carries a `prior-gate check` heading whose body gates on nothing. That check exists because a skill did exactly that for five releases.
+
+**2. The definition-of-done carries engineering, not just process.** Secret-scan clean and placeholders that *fail the boot* rather than pass a length check · fail-closed authorization and tenant isolation on every data path · the OWASP LLM Top 10 for AI products · migrations rather than hand-edited schema · externals behind provider adapters · verification of the path the product **actually runs**, not the function in isolation · a rollback path and a named post-deploy signal before a release is called done.
+
+**3. The rules are single-sourced and referenced, not copy-pasted.** Every skill links [`PRINCIPLES.md`](PRINCIPLES.md) and names the subset that is load-bearing for its phase — see §[Production safeguards](PRINCIPLES.md#production-safeguards) and §[Production-readiness concern areas](PRINCIPLES.md#production-readiness-concern-areas-the-coverage-checklist). A rule that lived in fifteen copies would drift in fifteen directions.
+
+**4. The claims are checked in CI.** `python tools/check.py` asserts that the skill set is identical across `commands/`, `manifest.json`, `evals/evals.json` and `VISION.md`; that one version is stated everywhere; that every `#Section` a skill reads is one the `PRODUCT.md` template actually defines; and that every phase skill really gates. Docs that drift from reality are the failure this project exists to catch — including its own.
+
+---
+
 <a id="journey"></a>
 
 ## 🗺️ The Playbook Journey
 
-Run `/playbook` to start. It reads your `PRODUCT.md` and guides you step-by-step through:
+The three-tier map is [above](#-before--after). This is the same journey at full resolution — every skill, what it writes, and when to reach for it. The tiers are a way to hold it in your head; the **six phases** are what the skills themselves are numbered by.
 
-```
-START -> /playbook (guides you through the phases below)
+| Tier | Phases | What you are doing |
+|---|---|---|
+| ① Product thinking | 1 · Product | Deciding what is worth building, and cutting what is not |
+| ② Engineering discipline | 2 · Development | Building it so it holds — stack, contracts, features, checkpoint |
+| ③ Shipping & learning | 3 · Testing · 4 · Evaluation · 5 · Ship · 6 · Learn | Proving it, releasing it safely, finding out if it worked |
 
-1. PRODUCT       /vision ──> /validate ──> /scope ──> /plan
-2. DEVELOPMENT   /architect ──> /structure ──> /design-system* ──> /foundation ──> /contracts ──> /tickets ──> /build ──> /dev-check
-                                              (* if the product has a UI)
-3. TESTING       /test
-4. EVALUATION    /eval
-5. SHIP          /ship
-6. LEARN         /learn
-
-ANYTIME          /drift-check (detects scope creep or code-docs drift)
-```
+**Security, verification and scope integrity span all three.** They are not stages you pass — they are in `/scope`'s non-goals, `/build`'s definition-of-done, `/dev-check`, `/test` and `/ship`'s security review. A phase that "passed security" once would be the opposite of the position this playbook takes.
 
 ### Skill Reference
 
