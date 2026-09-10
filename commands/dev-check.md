@@ -28,6 +28,9 @@ description: >
 
 ## Step 0 — Context + prior-gate check
 - Read `#Scope/#Plan/#Build log`. Cross-check the planned core features against what's actually in the build log.
+- **If `#Build log` is empty, this checkpoint is premature** — there is nothing built to check. Warn and
+  offer `/build` first (allow override): a checkpoint run over an empty log passes by having nothing to
+  fail, which is the opposite of a gate.
 - **If the gate is unmet and the run stops here, record that it stopped (`PRINCIPLES.md` §Declined runs):** write ONE dated line at the top of `#Dev-complete` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
 
 ## Step 1 — Apply principles (this phase)

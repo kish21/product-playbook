@@ -33,7 +33,7 @@ description: >
   - [ ] **(Lane mode — a `.lane` file is present; PRINCIPLES.md §Lane mode)** every written file is inside `ALLOW` and outside `DENY`; **no spine file was touched** — the Build-log row lives in the feature doc and `/dev-check` reconciles it.
 
 ## Step 0 — Context + prior-gate check
-- Read `#Scope/#Plan/#Contracts`. **Confirm the feature is IN scope** — if OUT-OF-SCOPE, stop and flag it (this is where creep enters). If `#Contracts` is empty, offer `/contracts` first.
+- Read `#Scope/#Plan/#Contracts`. **Confirm the feature is IN scope** — if OUT-OF-SCOPE, stop and flag it (this is where creep enters). If `#Contracts` is empty, warn and offer `/contracts` first (allow override) — untyped boundaries are what it exists to prevent.
 - **Lane mode: read `.lane` first, and treat `ALLOW`/`DENY` as the file-level scope gate.** `TASK` is the
   ticket; `ALLOW` is every path this session may write. A file you need that is outside `ALLOW` is **creep at
   file level** — the same finding `/scope` makes at feature level: **STOP and flag it** (widen the ticket's

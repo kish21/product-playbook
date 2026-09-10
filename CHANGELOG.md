@@ -3,6 +3,24 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.25.0] - 2026-09-10
+
+### Fixed — **a heading is not a behaviour: `/eval` had the gate's title and no gate**
+`/eval` Step 0 has read `## Step 0 — Context + prior-gate check` since the phase template landed,
+while its body only *read* `#Tests` — it never asked whether `#Tests` or `#Dev-complete` were empty.
+A user running `/eval` three phases early (found on a real mid-Build project) got none of the
+"run `/dev-check` then `/test` first" orientation the other fourteen phase skills give. `/eval` now
+carries the standard gate — name the missing phase, recommend it, allow an override — with the
+v1.14.0 north-star baseline check left intact as a separate second gate.
+
+### Added — `check.py` check 9: phase gates are read from the body, not the heading
+Every phase skill except `/vision` must name a prior `#Section` in Step 0 **and** offer an override.
+Written before the fix, it went red on three skills rather than one: `/build` named `/contracts` with
+no override, and `/dev-check` had no prior-gate at all — a checkpoint over an empty `#Build log`
+passed by having nothing to fail. Both now carry the same wording, so the chain is uniform.
+Generalised into `PRINCIPLES.md` §Lessons baked in as **a heading is not a behaviour**
+(case file: The gate that was only a heading), plus an eval case for the gate.
+
 ## [1.24.0] - 2026-09-10
 
 ### Added - **a correct no-op must still leave a trace**
