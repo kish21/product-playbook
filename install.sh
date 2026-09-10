@@ -160,10 +160,14 @@ mkdir -p "${TARGET}"
 INSTALLED=0
 for name in "${SELECTED[@]}"; do
   if [[ -f "${ROOT}/commands/${name}.md" ]]; then
+    # A skill that USED to ship as a directory leaves its folder behind; two forms of one skill
+    # in commands/ is an ambiguous slash command, so the old form goes before the new one lands.
+    rm -rf "${TARGET:?}/${name}"
     cp "${ROOT}/commands/${name}.md" "${TARGET}/${name}.md"
     echo "  ✓ ${name}.md"
   else
     rm -rf "${TARGET:?}/${name}"   # prevent a nested copy (design-system/design-system) on re-install
+    rm -f  "${TARGET:?}/${name}.md"  # ...and the flat file it shipped as before it grew references/
     cp -R "${ROOT}/commands/${name}/" "${TARGET}/${name}"
     files_in=$(find "${TARGET}/${name}" -name "*.md" | wc -l)
     echo "  ✓ ${name}/ ($(echo "${files_in}" | tr -d '[:space:]') files — SKILL.md + references)"
