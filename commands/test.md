@@ -10,7 +10,7 @@ description: >
 
 # `/test` — Phase 3 · Testing · run as a **tester**
 
-> Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per PRINCIPLES.md §Spine resolution).
+> Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
 > Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing: **independent test plan**, **unit=isolated/mocked,
 > integration=real contracts**, **testable-by-construction**, **tests passing ≠ it works (verify the
 > live path)**, **OWASP LLM Top 10 cases for AI**, **multi-tenant isolation tests**.
@@ -38,8 +38,8 @@ description: >
 ## Step 0 — Context + prior-gate check
 - Read `#Dev-complete`. If the dev checkpoint hasn't passed, warn ("development isn't verified complete")
   but allow override (you can still add tests for an existing product).
-- **An override is RECORDED, never a verbal "yes"** (`PRINCIPLES.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Tests` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
-- **If the gate is unmet and the run stops here, record that it stopped (`PRINCIPLES.md` §Declined runs):** write ONE dated line at the top of `#Tests` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
+- **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Tests` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
+- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** write ONE dated line at the top of `#Tests` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
 
 ## Step 1 — Apply principles (this phase)
 - **Independent test plan:** unit = isolated/mocked; integration = real contracts with neighbours. If a unit can't be tested in isolation, the seams are wrong — fix them.
@@ -77,13 +77,13 @@ Confirm with evidence: the suite **runs in CI and a red run blocks merge** (not 
 least one **integration + live-path** test (compose `/verify`+`/run`), not only isolated units; tests are
 **deterministic** (seeded, no time/network races); **the suite is provably pointed at the isolated datastore** (print the resolved target; point it at the dev one and show it refusing to run); an AI product has injection/jailbreak cases; a
 **golden/eval dataset** exists **and something actually executes it** — if nothing runs it, gate its
-structure and say so, never describe it as proof (`PRINCIPLES.md` §Lessons baked in). **If only isolated units exist, or the suite isn't a CI gate, STOP and
+structure and say so, never describe it as proof (`LESSONS.md` §Lessons baked in). **If only isolated units exist, or the suite isn't a CI gate, STOP and
 add them** — that's exactly the gap that ships broken-but-green code.
 
-**Close the loop (`PRINCIPLES.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention.
+**Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention.
 
 ## Step 3c — Contradiction check (before the gate closes)
-Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Contracts` and `#Architecture` — a suite that asserts a shape the contracts don't declare, or **points a real-boundary test at the datastore `#Foundation` recorded for development**. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
+Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Contracts` and `#Architecture` — a suite that asserts a shape the contracts don't declare, or **points a real-boundary test at the datastore `#Foundation` recorded for development**. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
 
 ## Step 4 — Handoff
 "Suite covers units, integration, the live path, and adversarial cases. Next run **`/eval`** to judge

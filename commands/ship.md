@@ -10,7 +10,7 @@ description: >
 
 # `/ship` — Phase 5 · Ship · run as a **release reviewer**
 
-> Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per PRINCIPLES.md §Spine resolution).
+> Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
 > Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing: **reviews are DEEP not skims**, **fresh-eyes caller/cross-file
 > tracing (works-in-tests-dead-in-prod)**, **security/fail-closed on auth/data**, **docs match
 > reality**, **one-subtask→PR+handoff**, **confidence score**, **verify findings against real code**.
@@ -30,20 +30,20 @@ description: >
   - [ ] Security checklist cleared: dependency-vuln scan, CORS prod domain, cookie-based auth (not localStorage), and data-deletion/GDPR for data products.
   - [ ] **No placeholder can boot this build** — `.env.example`'s values are still rejected by name at startup (the `/foundation` guard and its test are intact, with no production override). A release that boots on a committed secret is a live incident, not a finding.
   - [ ] **Rollout safety:** a stated **rollback path** (revert PR / migration-down / flag-off); risky changes behind a **flag / staged rollout**; the **post-deploy signal to watch** named.
-  - [ ] **(Lane mode — PRINCIPLES.md §Lane mode)** `lanekeeper check` passed before the PR was opened; the PR carries exactly one `lane: <name>` label; the `#Ship log` + CHANGELOG entries were written **on the base branch after merge**, never from inside the lane.
+  - [ ] **(Lane mode — MECHANISMS.md §Lane mode)** `lanekeeper check` passed before the PR was opened; the PR carries exactly one `lane: <name>` label; the `#Ship log` + CHANGELOG entries were written **on the base branch after merge**, never from inside the lane.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Dev-complete`, `#Tests`, `#Evaluation` and the diff. **Name every one of them that is empty** and
   recommend the specific phase that fills it (`/dev-check` → `/test` → `/eval`). Shipping is still allowed —
   standalone use is first-class — but **an override here is recorded on the release, not implied by an empty
   section**: write the skipped phases into the Ship log's *Skipped* column with the reason.
-- **An override is RECORDED, never a verbal "yes"** (`PRINCIPLES.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Ship log` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
+- **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Ship log` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
 - **The exception is bounded, not vague.** A change may skip `/eval` only when it touches no product
   behaviour — a docs/typo/comment change, or a revert. **Anything that changes what the product does needs
   its tests recorded**; "small" is not a judgement the shipper makes about their own change.
 - *(On a real run this gate read the evaluation section alone and shipped a product whose `#Dev-complete`, `#Tests` and
   `#Evaluation` were all empty — the last gate before release never asked whether anything was tested.)*
-- **If the gate is unmet and the run stops here, record that it stopped (`PRINCIPLES.md` §Declined runs):** write ONE dated line at the top of `#Ship log` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
+- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** write ONE dated line at the top of `#Ship log` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
 
 ## Step 1 — Apply principles (this phase)
 - **Reviews are DEEP:** trace the change to its real callers; hunt the "green tests, dead in the live path" bug. **Verify any review/audit finding against the real code** — don't rubber-stamp; some findings are already done or misdiagnosed.
@@ -74,10 +74,10 @@ empty `#Tests` section is not a disclosure, it is an absence, and absence reads 
 Check the boxes. **If review/security/docs aren't actually done, or a doc claim doesn't match the
 code, STOP — do not open the PR.** Shipping a false claim is the exact failure to avoid.
 
-**Close the loop (`PRINCIPLES.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention.
+**Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention.
 
 ## Step 3c — Contradiction check (before the gate closes)
-Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: the whole spine against what actually shipped — docs claiming a capability the code lacks, and the version in the CHANGELOG against every manifest surface. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
+Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: the whole spine against what actually shipped — docs claiming a capability the code lacks, and the version in the CHANGELOG against every manifest surface. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
 
 ## Step 4 — Handoff
 "Shipped: reviewed, security-checked, docs reconciled, PR open, confidence recorded, **issue closed +

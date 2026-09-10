@@ -1,7 +1,7 @@
 # Product Playbook: Build with Discipline in the AI Era
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.28.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.29.0-blue.svg)](CHANGELOG.md)
 ![Claude Code skills](https://img.shields.io/badge/Claude%20Code-21%20skills-8A2BE2.svg)
 
 **AI writes code faster than anyone can reason about it. `product-playbook` puts the gates in between.**
@@ -159,11 +159,19 @@ Every project gets a single file at its root called `PRODUCT.md` (instantiated f
 *   If a section is empty, that phase is incomplete.
 *   It travels with your Git repo, ensuring anyone (or any new LLM session) can read it top-to-bottom to understand the product's vision, decisions, contracts, and learnings.
 
-### 2. The Rulebook (`PRINCIPLES.md`)
-The single source of truth for your quality bar. It details:
+### 2. The Rulebook (`PRINCIPLES.md`, with `MECHANISMS.md` and `LESSONS.md` beside it)
+The single source of truth for your quality bar — and deliberately **short**, because it is loaded by
+every skill in every session. It details:
 *   **The 5-Step Spine:** Architect first → Verify assumptions → No hardcoding → Benchmark to the current year → Self-review.
 *   **Per-Feature Contracts:** Explicit exit criteria, interaction maps, and independent test plans.
 *   **Production Safeguards:** Zero-secrets, fail-closed security, observability, and rollback paths.
+
+The *mechanisms* those rules run on — how a phase closes its loop, what a re-run must not erase, how a
+declined run and a recorded override leave a trace, how the spine is resolved in a brownfield repo, lane
+mode — live in [`references/mechanisms.md`](references/mechanisms.md), and the harvested war-story rules
+live in [`references/lessons.md`](references/lessons.md). Both install as companions and are read on
+demand, by name (`MECHANISMS.md §Declined runs`). `tools/check.py` fails a pointer that resolves to
+nothing, and fails any of the three files over the ~15KB threshold `LESSONS.md` §Lesson format sets.
 
 ### 3. The Commands (`commands/*.md`)
 These are plain **Markdown commands** (skills) that you install into Claude Code. Each command (e.g., `/vision`, `/scope`, `/architect`, `/dev-check`) has a strict contract:
@@ -203,7 +211,7 @@ Think of a template as a printed form with blank boxes. A skill fills the boxes 
 | **The ticket form** | `templates/feature_ticket_template.md` | `/tickets`, one copy per ticket | The goal; how the work was cut (a thin end-to-end slice, a single layer, or a one-off bug); the feature it belongs to (the optional *Lane*); the **exact files it may touch** — the box that keeps a ticket small and lets two people work without colliding; what data it takes in and hands out; which tickets must come first; what a reviewer can *see working* after merge; a short task list; a definition of done with security built in; the one command that proves it works. |
 | **The pull request form** | `templates/pull_request_template.md` | GitHub shows it on every PR | Which issue it closes, a summary, the files changed, and a checklist of what was verified using the project's own test command. |
 
-How they fit together: the spine says *what* to build, the ticket form turns that into small bounded pieces, and the pull request form is how each finished piece is checked back in. (When [Lanekeeper](https://github.com/kish21/parallel-agents) is present it supplies its own pull request form, so `/tickets` leaves that one alone — see `PRINCIPLES.md` §Lane mode.)
+How they fit together: the spine says *what* to build, the ticket form turns that into small bounded pieces, and the pull request form is how each finished piece is checked back in. (When [Lanekeeper](https://github.com/kish21/parallel-agents) is present it supplies its own pull request form, so `/tickets` leaves that one alone — see `MECHANISMS.md` §Lane mode.)
 
 ---
 
@@ -275,7 +283,7 @@ The three-tier map is [above](#-before--after). This is the same journey at full
 > coding agents on one repo without collisions. *product-playbook writes the work down; Lanekeeper divides it
 > up.* Each `/tickets` ticket's **Target Files** list is the lane Lanekeeper enforces on every PR. When a
 > project is in **lane mode** (a `.lanekeeper/` policy or a `.lane` file is present), `/tickets`, `/build`,
-> `/dev-check` and `/ship` follow the four rules in `PRINCIPLES.md` §Lane mode — ticket = boundary, lanes are
+> `/dev-check` and `/ship` follow the four rules in `MECHANISMS.md` §Lane mode — ticket = boundary, lanes are
 > features not layers, the spine has one writer, the PR carries its lane. The design note behind that seam is
 > [`docs/lane-mode.md`](docs/lane-mode.md).
 >
@@ -341,13 +349,13 @@ Context cost, from `claude plugin details`: ~3.5k tokens always-on per session; 
 | **Project-level** — teammates get it on clone | `./install.sh --project /path/to/project` then commit `<project>/.claude/` |
 | **Subset** — only the skills you name | `./install.sh --only build,ship` (remote: `curl -fsSL …/install.sh \| bash -s -- --only build,ship`) |
 
-What it puts where: the 21 skills → `~/.claude/commands/` (or `<project>/.claude/commands/`), plus the companions the skills read (`PRINCIPLES.md`, `VISION.md`, `PRODUCT.md` template) → `~/.claude/product-playbook/` (or `<project>/.claude/product-playbook/`).
+What it puts where: the 21 skills → `~/.claude/commands/` (or `<project>/.claude/commands/`), plus the companions the skills read (`PRINCIPLES.md`, `MECHANISMS.md`, `LESSONS.md`, `VISION.md`, `PRODUCT.md` template) → `~/.claude/product-playbook/` (or `<project>/.claude/product-playbook/`).
 
 **Updating:** re-run the exact same command. It overwrites in place. There is no version check — if you want to be told about updates, use route A.
 
 #### C. Copy install, subset (`--only`)
 
-`--only` takes a comma-separated list of skill names — `./install.sh --only build,ship,drift-check`. It installs exactly those (flat skills and directory-form ones like `design-system`, with their `references/`) **plus the companions every skill reads** (`PRINCIPLES.md`, `VISION.md`, the `PRODUCT.md` template), which are never optional. It combines with `--project`. An unknown name installs nothing and prints the valid ones; `./install.sh --list` prints them on demand. Add more skills later by re-running with a new list — nothing already installed is removed.
+`--only` takes a comma-separated list of skill names — `./install.sh --only build,ship,drift-check`. It installs exactly those (flat skills and directory-form ones like `design-system`, with their `references/`) **plus the companions every skill reads** (`PRINCIPLES.md`, `MECHANISMS.md`, `LESSONS.md`, `VISION.md`, the `PRODUCT.md` template), which are never optional. It combines with `--project`. An unknown name installs nothing and prints the valid ones; `./install.sh --list` prints them on demand. Add more skills later by re-running with a new list — nothing already installed is removed.
 
 Skills stay runnable on their own, but a few **call other skills** when they are present — `/build` → `/code-review`, `/ship` → `/security-review`, `/drift-check` → `/doc-audit`. Those live outside this repo; if they are not installed, the composing skill runs without that step rather than failing.
 
@@ -368,6 +376,6 @@ Open a new Claude Code session and type `/playbook` (route A: `/product-playbook
 
 1.  Add or modify a command in `commands/<name>.md` — or directory-form `commands/<name>/SKILL.md` (+ `references/`) for skills that carry references. Keep them concise and single-purpose.
 2.  Register it in **all three**: `VISION.md`, `manifest.json`, and `evals/evals.json` (the CI gate checks they stay in sync). Each skill needs **at least two** eval cases, each with a unique `id` plus a non-empty `skill`, `prompt` and `expected_output`; `files`, `expectations` and `expected_artifacts` are optional. CI checks that shape — it does **not** run the cases.
-3.  If a rule earned its place from a real incident, keep the skill file to the **bold one-line rule** and put the war story in `references/case-files-<skill>.md`, pointed to as `(case file: <heading>)`.
+3.  If a rule earned its place from a real incident, keep the skill file to the **bold one-line rule** and put the war story in `references/case-files-<skill>.md`, pointed to as `(case file: <heading>)`. **Rules go in `PRINCIPLES.md`; mechanisms go in `references/mechanisms.md`; harvested lessons go in `references/lessons.md`** — CI fails any of the three over ~15KB, and fails a `§` pointer that names a heading none of them has.
 4.  Run `python tools/check.py` (the CI consistency gate: every skill registered + structured + under the 500-line budget), then `./install.sh`, commit, and open a PR (master requires the `check` to pass).
 5.  Run `/drift-check` on this repo to verify nothing drifted.

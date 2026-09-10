@@ -2,7 +2,7 @@
 # product-playbook installer
 # Copies the product-playbook skills into ~/.claude/commands/ so they become
 # globally available slash commands, plus the companion files the skills read
-# (PRINCIPLES.md, VISION.md, templates/PRODUCT.md).
+# (PRINCIPLES.md, MECHANISMS.md, LESSONS.md, VISION.md, templates/PRODUCT.md).
 #
 # Usage (one-liner, recommended):
 #   curl -fsSL https://raw.githubusercontent.com/kish21/product-playbook/master/install.sh | bash
@@ -176,9 +176,11 @@ done
 #    Always installed, subset or not: every skill reads PRINCIPLES.md and writes the PRODUCT.md spine.
 mkdir -p "${SUPPORT}"
 cp "${ROOT}/PRINCIPLES.md"        "${SUPPORT}/PRINCIPLES.md"
+cp "${ROOT}/references/mechanisms.md" "${SUPPORT}/MECHANISMS.md"
+cp "${ROOT}/references/lessons.md"    "${SUPPORT}/LESSONS.md"
 cp "${ROOT}/VISION.md"            "${SUPPORT}/VISION.md"
 cp "${ROOT}/templates/PRODUCT.md" "${SUPPORT}/PRODUCT.md"
-echo "  ✓ companions → ${SUPPORT} (PRINCIPLES.md · VISION.md · PRODUCT.md)"
+echo "  ✓ companions → ${SUPPORT} (PRINCIPLES.md · MECHANISMS.md · LESSONS.md · VISION.md · PRODUCT.md)"
 
 echo "─── Done ─────────────────────────────────────────────────────"
 echo "Installed ${INSTALLED} skill(s) + companions to ${TARGET}"

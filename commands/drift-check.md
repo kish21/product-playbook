@@ -5,7 +5,7 @@ description: >
   the vision or has drifted: scope creep (features built that are OUT OF SCOPE), vision misalignment,
   and code↔docs drift. Use when you suspect creep, before a milestone, or run /drift-check "are we
   on track", "did we drift", "scope creep", "is this still the plan". Reports against the project
-  spine (PRODUCT.md, or the project's existing docs / inferred-from-code — see PRINCIPLES.md
+  spine (PRODUCT.md, or the project's existing docs / inferred-from-code — see MECHANISMS.md
   §Spine resolution); composes /doc-audit. Does not advance the phase chain.
 ---
 
@@ -13,7 +13,7 @@ description: >
 
 > Part of **product-playbook**. Reads the project spine — `PRODUCT.md`, or (for existing/brownfield
 > projects) the project's own docs, or an inferred-from-code picture — and the codebase/docs.
-> Resolve the spine per `PRINCIPLES.md` §Spine resolution.
+> Resolve the spine per `MECHANISMS.md` §Spine resolution.
 > Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing: **vision-alignment (top priority)**, **scope discipline**,
 > **no-drift / no-assumptions**, **docs match reality**, **verify against real code**.
 
@@ -22,7 +22,7 @@ description: >
 
 ## Contract
 - **Purpose:** detect and surface scope creep, vision drift, and code↔docs drift — early.
-- **Reads:** the resolved spine's Vision, Scope (Deferred + Non-goals), Plan (concern-area checklist), Build log; the codebase + docs. (`PRODUCT.md#…` when it exists; otherwise the equivalent sections of the resolved doc, per PRINCIPLES.md §Spine resolution.)
+- **Reads:** the resolved spine's Vision, Scope (Deferred + Non-goals), Plan (concern-area checklist), Build log; the codebase + docs. (`PRODUCT.md#…` when it exists; otherwise the equivalent sections of the resolved doc, per MECHANISMS.md §Spine resolution.)
 - **Writes:** a drift report to the user + a dated row in `PRODUCT.md#Drift log` on any confirmed drift (its OWN section — never `/learn`'s `#Learnings`); does NOT advance the chain. **If there is no `PRODUCT.md`, do not create one** — report to the user and, if the project keeps a log/CHANGELOG, offer to append the drift note there.
 - **Exit criteria:**
   - [ ] Built features cross-checked against `#Scope` — any OUT-OF-SCOPE item that got built is flagged as creep.
@@ -31,7 +31,7 @@ description: >
   - [ ] A clear verdict: on-track, or a specific list of drifts + a recommended cut/correction.
 
 ## Step 0 — Resolve the spine, then build context
-- **Resolve the spine first** (PRINCIPLES.md §Spine resolution): `PRODUCT.md` if present; else the
+- **Resolve the spine first** (MECHANISMS.md §Spine resolution): `PRODUCT.md` if present; else the
   project's own docs (`CLAUDE.md` → `README.md` → `docs/` → `AGENTS.md`); else (code only) an
   **INFERRED** picture from code + package metadata. **Say which you resolved.**
 - Read the spine's Vision / Scope / Plan / Build-log equivalents. Build the picture of what was
@@ -47,7 +47,7 @@ description: >
 - **Docs match reality:** a claim in the docs that the code doesn't support is drift too.
 
 ## Step 2 — Check for drift
-> Each phase now runs its own **Step 3c** contradiction check before its gate closes (`PRINCIPLES.md` §Step 3c), so a contradiction *between* two spine sections should be rare and dated. This sweep is what catches the ones that escaped — and a conflict you find here that carries **no `superseded by` line** means a phase skipped its Step 3c: report that as drift in its own right.
+> Each phase now runs its own **Step 3c** contradiction check before its gate closes (`MECHANISMS.md` §Step 3c), so a contradiction *between* two spine sections should be rare and dated. This sweep is what catches the ones that escaped — and a conflict you find here that carries **no `superseded by` line** means a phase skipped its Step 3c: report that as drift in its own right.
 
 1. **Scope creep:** list features in the code/build log not justified by `#Scope`; flag anything built that's a **Non-goal** or a **Deferred** item whose trigger never fired. Also flag the inverse: a deliberate pivot the spine never recorded → recommend updating `#Scope`/`#Vision`, not cutting code.
 2. **Vision drift:** is the current direction still serving `#Vision` and its north-star metric? Surface any quiet pivot. If `#Validation` is empty or holds an **override** while code exists, that is a **standing finding** — the product is being built on an untested riskiest assumption; recommend `/validate` (still cheaper than the next feature).

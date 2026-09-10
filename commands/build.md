@@ -10,7 +10,7 @@ description: >
 
 # `/build` — Phase 2 · Development ⑤ · run as an **engineer**
 
-> Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per PRINCIPLES.md §Spine resolution).
+> Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
 > Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing: **per-feature contract (security in the DoD)**,
 > **secure-by-construction**, **prompts→`prompts/` YAML**, **doc↔code reconciled**, **measure before
 > fixing**, **no swallowed errors**, **reuse-before-write**, **trace callers (live-path)**,
@@ -30,11 +30,11 @@ description: >
   - [ ] **No secret in any code file** (secrets→`.env`; tests use fake placeholder keys).
   - [ ] **Single-responsibility kept** — a file growing large/multi-concern is split into modules (no god-files); long/blocking work stays off the async event loop.
   - [ ] **(UI products) The feature's screen(s) are built to `DESIGN.md`** — §5 layout, token look, `/new-component` parts — and **`/frontend-audit` is clean** (0 errors).
-  - [ ] **(Lane mode — a `.lane` file is present; PRINCIPLES.md §Lane mode)** every written file is inside `ALLOW` and outside `DENY`; **no spine file was touched** — the Build-log row lives in the feature doc and `/dev-check` reconciles it.
+  - [ ] **(Lane mode — a `.lane` file is present; MECHANISMS.md §Lane mode)** every written file is inside `ALLOW` and outside `DENY`; **no spine file was touched** — the Build-log row lives in the feature doc and `/dev-check` reconciles it.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Scope/#Plan/#Contracts`. **Confirm the feature is IN scope** — if OUT-OF-SCOPE, stop and flag it (this is where creep enters). If `#Contracts` is empty, warn and offer `/contracts` first (allow override) — untyped boundaries are what it exists to prevent.
-- **An override is RECORDED, never a verbal "yes"** (`PRINCIPLES.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Build log` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
+- **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Build log` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
 - **Lane mode: read `.lane` first, and treat `ALLOW`/`DENY` as the file-level scope gate.** `TASK` is the
   ticket; `ALLOW` is every path this session may write. A file you need that is outside `ALLOW` is **creep at
   file level** — the same finding `/scope` makes at feature level: **STOP and flag it** (widen the ticket's
@@ -46,7 +46,7 @@ description: >
   1b. **A plan's load-bearing NUMBER is verified by MEASURING, not by reading code — and it must be measured BEFORE anything is calibrated to it.** A figure quoted in an issue can be an artifact of the very bug you are fixing, and code review cannot see that; if the number justifies the feature, reproduce it against the real system first. (case file: The number that justified the feature)
   2. **The project's own skills have rotted.** Grep their concrete claims — paths, storage, model/provider, field names, stage lists — against the code. (case file: Rotted skills)
 - **When a project doc or skill is wrong, FIX IT IN THIS SESSION** — a PR-description correction dies there; record the corrected premises where the wrong ones lived.
-- **If the gate is unmet and the run stops here, record that it stopped (`PRINCIPLES.md` §Declined runs):** write ONE dated line at the top of `#Build log` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
+- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** write ONE dated line at the top of `#Build log` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
 
 ## Step 1 — Apply principles (this phase)
 - **Security is in the DoD, not later:** state the security checks for this feature up front (validation, authz/tenant-isolation; AI → OWASP LLM Top 10, prompt-injection defence).
@@ -130,10 +130,10 @@ Walk **this phase's load-bearing principles (Step 1)** and confirm each is real 
 
 **If any named principle is only claimed, not evidenced, STOP — the feature is not done.** Record the *how-verified* per principle in `#Build log` (evidence, not "done"). (Deterministic checks also run via the commit hooks + CI from `/foundation`; this gate is the judgment layer.)
 
-**Close the loop (`PRINCIPLES.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention.
+**Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention.
 
 ## Step 3c — Contradiction check (before the gate closes)
-Per `PRINCIPLES.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Contracts` (types crossing boundaries), `#Architecture` (adapters — no vendor SDK in logic), `#Scope` (non-goals) and `DESIGN.md` (UI tokens) — the richest surface for contradiction, because this is the phase that writes real code. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
+Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Contracts` (types crossing boundaries), `#Architecture` (adapters — no vendor SDK in logic), `#Scope` (non-goals) and `DESIGN.md` (UI tokens) — the richest surface for contradiction, because this is the phase that writes real code. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
 
 ## Step 4 — Handoff
 "Feature done, verified, and documented. Build the next core-scope feature with `/build`, or when the
