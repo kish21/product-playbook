@@ -3,6 +3,15 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.24.0] - 2026-09-10
+
+### Added - **a correct no-op must still leave a trace**
+The v1.23.0 fix, generalised out of the playbook and into `PRINCIPLES.md` §Lessons baked in so it
+applies to the products built with it, not only to the playbook's own phases. A guard that declines,
+a check that finds nothing, a scheduled job with no work to do: if it writes nothing, *"ran and found
+nothing"* is indistinguishable from *"never ran"*, and whatever orients from the output keeps
+proposing the same thing. One dated line, replaced rather than appended.
+
 ## [1.23.0] - 2026-09-10
 
 ### Added - **a phase that declines to run leaves a trace**
