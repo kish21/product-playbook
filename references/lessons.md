@@ -24,6 +24,15 @@ Phrased generically so they apply to any project:
   with no work to do: if it writes nothing, *"ran and found nothing"* is indistinguishable from *"never
   ran"*, and whatever orients from the output keeps proposing the same thing. One dated line, replaced
   not appended (§Declined runs is this rule applied to the playbook's own phases).
+- **A rule the project does not apply to ITSELF is the one most likely to be broken** — the author knows
+  the reasoning, so the file feels exempt from it; four instances shipped in one week here (a ~15KB prune
+  rule in a 25.8KB file, a permitted bare override contradicting a required recorded one, a "name your
+  target user" gate in a repo that named none, a skill count stale on the storefront). Audit the project
+  against its own stated rules first — that list is free, specific, and nobody else will run it.
+- **Proving a new check fails first is also a test of the FAILURE path** — the run that turns it red is
+  usually the only time the error branch ever executes, so a crash there hides until the day something
+  actually breaks (case: check 14's proof run died printing a `→` on a cp1252 console, inside the
+  reporter, on the one code path that reports problems — invisible in Linux CI).
 - **A heading is not a behaviour** — a section titled for a check (`prior-gate check`, `validation`,
   `retry`) is read by everyone as proof the check exists, so nobody looks inside; assert on the BODY
   in CI, or the title outlives the code that once backed it (case file: The gate that was only a heading).

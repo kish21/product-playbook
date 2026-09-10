@@ -63,6 +63,14 @@ So for each one:
 An `UNVERIFIED` claim is a finding about the *record*, not necessarily about the code; a `CONTRADICTED`
 one is a finding about both. Rank them accordingly in the report.
 
+## Step 0c — Check the project against its OWN rules
+
+Before comparing code to docs, compare the project to the rules it publishes. **A rule the project does
+not apply to itself is the one most likely to be broken** — the author knows the reasoning, so the file
+feels exempt (`LESSONS.md`). Read the spine's own stated rules — thresholds, naming requirements, gates,
+counts — and ask of each: *does this repository satisfy it?* That list is free, specific to this project,
+and nobody else will ever run it.
+
 ## Step 0 — Resolve the spine, then build context
 - **Resolve the spine first** (MECHANISMS.md §Spine resolution): `PRODUCT.md` if present; else the
   project's own docs (`CLAUDE.md` → `README.md` → `docs/` → `AGENTS.md`); else (code only) an

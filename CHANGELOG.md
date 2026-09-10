@@ -3,6 +3,21 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.33.0] - 2026-09-10
+
+### Added — **two lessons harvested from the audit sweep** (`LESSONS.md`)
+- **A rule the project does not apply to ITSELF is the one most likely to be broken.** Four instances
+  shipped in one week: a ~15KB prune rule inside a 25.8KB file (#127), a permitted bare override
+  contradicting a required recorded one (#128), a *name your target user* gate in a repo that had never
+  named one (#132), and a skill count stale on the storefront (#130). The author knows the reasoning, so
+  the file feels exempt from it. `/drift-check` gains **Step 0c**: before comparing code to docs, compare
+  the project to the rules it publishes. That list is free, specific to the project, and nobody else will
+  run it.
+- **Proving a new check fails first is also a test of its FAILURE path.** The run that turns a check red
+  is usually the only time its error branch ever executes. Check 14's proof run died printing a `→` on a
+  cp1252 console — inside the reporter, on the one code path that reports problems, and invisible in
+  Linux CI.
+
 ## [1.32.0] - 2026-09-10
 
 ### Added — **evidence is a re-runnable record, and every claim gets a verdict** (#131)
