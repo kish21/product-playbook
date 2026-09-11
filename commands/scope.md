@@ -29,6 +29,12 @@ description: >
 ## Step 0 — Context + prior-gate check
 - Read `PRODUCT.md#Vision`. If it is missing/empty, warn: "`/vision` looks incomplete — scope without
   a vision drifts." Offer to run `/vision` first, but allow override (standalone use).
+- **`#Validation` is `running`?** (a timeboxed experiment, due-dated, result `PENDING` —
+  `docs/state-model.md` §2a.) This phase treats that as **advisory, not blocking**: proceed
+  **provisionally**, mark every scope decision that depends on the pending result, and say the mark
+  clears when the result lands. `/scope` produces a document, not code — blocking it for a fortnight buys
+  little, and the wait-or-override menu is why the override always won. It **blocks from `/architect`
+  onward**, where the cost of being wrong is real.
 - Read `PRODUCT.md#Validation`. If it is empty, or holds an **override** (assumption untested), warn:
   "The riskiest assumption has not been tested — scoping locks a core feature around an unproven bet."
   Offer to run `/validate` first (usually days, not weeks), but allow override (standalone use); if the

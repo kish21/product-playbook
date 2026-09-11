@@ -24,7 +24,7 @@ description: >
 - **Reads:** `PRODUCT.md#Vision` — riskiest assumption · north-star metric · job-to-be-done · target user · business model.
 - **Writes:** `PRODUCT.md#Validation` — fields: assumption under test · experiment (type, who, time box) · pass/fail threshold (set before) · measured result · verdict (proceed / pivot / kill) · override (if any).
 - **Gate type:** `input` — the assumption, the threshold and the verdict are the user's, not derivable. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
-- **State model** (`docs/state-model.md` §2c): writes `#Validation` · `declined` ✓ · `override` ✓ · `superseded` n/a — append-only log: a new dated entry per run, so a second run cannot erase the first
+- **State model** (`docs/state-model.md` §2c): writes `#Validation` · `declined` ✓ · `override` ✓ · `running` ✓ (the timeboxed experiment — this phase is where that state comes from) · `superseded` n/a — append-only log: a new dated entry per run, so a second run cannot erase the first
 - **Exit criteria:**
   - [ ] The assumption under test is stated as a **falsifiable sentence** ("<user> will <behaviour> because <reason>"), copied from `#Vision` or sharpened with the user.
   - [ ] **One experiment** chosen, the cheapest that can falsify it — with the real people it reaches and a **time box** (days, not months).
@@ -81,8 +81,15 @@ Give **one recommendation** (experiment + threshold + time box); get a yes/no.
 
 ## Step 3 — Run it, then record the measured result
 - **Run or schedule it.** Small desk checks run now. Interviews / landing pages / concierge runs take
-  days: write the plan into `#Validation` as **"running — due <date>"**, and offer to re-measure
-  later (compose `/loop` or `/schedule` for a landing-page or sign-up count that changes over time).
+  days: put the section into the **`running` state** (`docs/state-model.md` §2a) — one dated line
+  `_Running <date>, due <date>: <what is being measured>._`, the fields filled, and `PENDING` where the
+  result goes. **Say plainly that the gate is NOT closed**, and offer to re-measure later (compose
+  `/loop` or `/schedule` for a count that changes over time).
+- **Then give the user THREE ways forward, not two** (§2a): wait for the result · **proceed
+  provisionally** — `/scope` and `/plan` continue with the dependent work marked, and the mark clears
+  when the result lands · or a real **override**, which abandons the experiment. Two options — wait a
+  fortnight or be flagged forever — is why the override wins every time, and an override taken to escape
+  an unusable menu is the silent skip this playbook exists to prevent.
 - When the result is in, **record what was measured** — the number, the quotes, the count — and the
   date. Keep the raw evidence somewhere the repo can point to (`docs/validation/<date>-<experiment>.md`
   for interview notes / screenshots), not only in chat.

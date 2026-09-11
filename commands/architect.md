@@ -27,7 +27,10 @@ description: >
   - [ ] `#Architecture` is complete and **traces to scope/plan** (no gold-plating): stack+tools+why **and the constraint set each choice was optimised against** (reliability · operational burden · team size · cost · compatibility · maturity · lock-in/exit cost), every external behind an adapter, key ADRs (incl. patterns applied / anti-patterns avoided), migrations approach, a **custody + runtime target** line (data custody · runtime target · identity custody — each an ADR or an explicit N/A, and a default taken without user input says so), a **Dev tooling** line naming the hook runner · secret scanner · task runner · formatter/linter · dependency manifest (the tools `/structure` will scaffold — leave one unnamed and `/structure` picks it blind), and the **decisions for the concern areas this product needs** — resilience · perf/cost budget · security/no-secret-in-code · observability, **+ (AI) prompt-versioning/eval/tracing** — each recorded or marked **N/A**.
 
 ## Step 0 — Context + prior-gate check
-- Read `#Vision/#Scope/#Plan`. If `#Scope`/`#Plan` are empty, warn and offer to run them first (allow override).
+- Read `#Vision/#Scope/#Plan`. If `#Scope`/`#Plan` are empty, warn and offer to run them first (allow
+  override). **A `running` upstream gate BLOCKS from here on** (`docs/state-model.md` §2a): it was
+  advisory for `/scope` and `/plan`, which produce documents — from here the product is being built, so a
+  pending result needs the result, or a recorded override.
 - **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Architecture` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
 - Brownfield: detect the existing stack from the repo and record it as the starting point.
 
