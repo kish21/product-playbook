@@ -5,7 +5,7 @@ description: >
   a security review, reconcile docs to reality, a confidence score, open the PR, write the handoff,
   and tell the user to start a fresh session. Use when a feature/subtask is done, or run /ship "ship
   it", "open a PR", "release", "wrap up". Writes the Ship log of PRODUCT.md. Composes /code-review,
-  /security-review, /doc-audit, github-pr-flow. Run /learn after a release lands.
+  /security-review. Run /learn after a release lands.
 ---
 
 # `/ship` — Phase 5 · Ship · run as a **release reviewer**
@@ -24,10 +24,10 @@ description: >
 - **Exit criteria:**
   - [ ] **Deep review** done (`/code-review`) — findings traced to real callers/cross-file impact, not a skim.
   - [ ] **Security review** on auth/data changes (`/security-review`); for AI, the OWASP LLM Top 10 checklist (esp. prompt injection).
-  - [ ] **Docs reconciled to reality** (`/doc-audit`) — no false capability/security claims.
+  - [ ] **Docs reconciled to reality** — every **capability and security claim** in `PRODUCT.md`, `docs/features/*` and the README checked against the code that backs it. A claim with no implementation is the finding; delete it or build it.
   - [ ] **Confidence score (0–100%)** reported (solid / risky-untested / to-raise-it).
-  - [ ] PR opened (`github-pr-flow`) with **`Closes #N`** in the body where a tracked issue exists; a smooth **handoff** written; user told to start a fresh session.
-  - [ ] **Tracker reconciled after merge:** the linked issue is **Closed** and (if a project board exists) its card moved to **Done** — **if the project keeps a board**; the playbook does not create one, so audit what exists rather than a structure nothing here provisions — *verified against the tracker*, not assumed from "shipped". See `github-pr-flow` Step 7.
+  - [ ] PR opened with **`Closes #N`** in the body where a tracked issue exists; a smooth **handoff** written; user told to start a fresh session.
+  - [ ] **Tracker reconciled after merge:** the linked issue is **Closed** and (if a project board exists) its card moved to **Done** — **if the project keeps a board**; the playbook does not create one, so audit what exists rather than a structure nothing here provisions — *verified against the tracker*, not assumed from "shipped" (Step 7 below).
   - [ ] A **CHANGELOG / release note** entry (+ a **semver** bump where versioned).
   - [ ] Security checklist cleared: dependency-vuln scan, CORS prod domain, cookie-based auth (not localStorage), and data-deletion/GDPR for data products.
   - [ ] **No placeholder can boot this build** — `.env.example`'s values are still rejected by name at startup (the `/foundation` guard and its test are intact, with no production override). A release that boots on a committed secret is a live incident, not a finding.
@@ -56,15 +56,15 @@ description: >
 1. **Deep review:** compose **`/code-review`**; fix real findings; verify each against the code before acting.
    - **Then review AGAIN — the fixes are new code, and nothing has reviewed them.** A round of fixes edits the same files under time pressure with the finding, not the design, in view; re-running the review is the only thing that looks at what the fixing produced (case file: The second review round).
 2. **Security:** compose **`/security-review`** on auth/data; for AI, run the OWASP LLM Top 10 / prompt-injection checklist.
-3. **Reconcile docs:** compose **`/doc-audit`**; update `PRODUCT.md`, `docs/features/*`, README so they match reality (no false claims). Gate the PR on this.
+3. **Reconcile docs:** walk every **capability / security / “supported” claim** in `PRODUCT.md`, `docs/features/*` and the README and find the code that backs it — grep the concrete nouns (paths, flags, model names, field names), don't re-read the prose. Update whichever side is wrong. **Gate the PR on this:** a doc that overstates the product is a false security claim, not a typo.
 4. **Rollout safety:** state the **rollback path** (revert PR / migration-down / flag-off); put risky/irreversible changes behind a **flag or staged rollout**; name the **post-deploy signal to watch** (the bridge to `/learn`); bump **semver** where versioned.
    - **Post-deploy live verification must never mutate a record sitting in a human's review/approval state — dry-run the same code path on the real data with persistence off.** A no-persist harness proves the deployed logic on production inputs while the human's pending decision stays untouched (case file: Dry-run live verify).
    - **A DATA migration (one that rewrites rows rather than schema) usually has no automatic down-path — "migration-down" is not the rollback, a hand-written re-flip is.** Say so in the rollback line instead of implying reversibility, and take the backup BEFORE applying: with no failing test to catch a bad data write, the only evidence you will have afterwards is a before/after diff proving exactly the intended rows moved.
 5. **Confidence score:** report 0–100% with solid / risky-untested / to-raise-it.
-6. **PR + handoff:** compose **`github-pr-flow`** to open the PR (with **`Closes #N`** in the body for any tracked issue) + a **CHANGELOG** entry; write a short handoff (done / next / how to resume / blockers).
+6. **PR + handoff:** open the PR — **`Closes #N`** goes in the **body**, not the title (a title keyword closes nothing) + a **CHANGELOG** entry; write a short handoff (done / next / how to resume / blockers).
    - **Lane mode (a `.lane` file is present):** before opening, run `lanekeeper check --lane <LANE> --base origin/<base>` and fix every file it names — a stray file is creep, not a label problem. Open the PR with the label **`lane: <LANE>`** (the gate fails closed without exactly one). Use Lanekeeper's PR template as-is. **Do not write the CHANGELOG or `#Ship log` from the worktree** — both are spine files outside the lane; note the entry in the PR body, and write it on the base branch once the PR merges (step 7).
    - **A blocker you hand the user must be a PROVEN blocker — re-run with your workaround actually in effect and confirm it took, before calling it environmental.** An unverified diagnosis costs a round-trip and is often your own bug wearing the environment's clothes (case file: The environment blocker that was my own typo).
-7. **Reconcile the tracker (post-merge):** verify the linked issue actually **Closed** and the project-board card moved to **Done** (`github-pr-flow` Step 7) — close/move manually if the keyword or board workflow was missing. A "shipped" note is not proof; check the tracker. **Lane mode:** now, on the base branch, write the `#Ship log` row + CHANGELOG entry the lane PR could not carry (one writer for the spine), and if a Lanekeeper board exists confirm the card's Lane/Seat fields still match `lanes.yaml`.
+7. **Reconcile the tracker (post-merge):** a merge closes nothing on its own — `gh issue view <N> --json state -q .state` must read `CLOSED`, and a board card only moves if the project's set-Done workflow is on. **Both fail silently**, so the work reads as shipped while the tracker still says open. Close or move by hand where it did not fire (`gh issue close <N> --comment "Shipped in #<PR> (<sha>)."`), then sweep the board for any card whose column disagrees with its issue's state. A "shipped" note is not proof; check the tracker. **Lane mode:** now, on the base branch, write the `#Ship log` row + CHANGELOG entry the lane PR could not carry (one writer for the spine), and if a Lanekeeper board exists confirm the card's Lane/Seat fields still match `lanes.yaml`.
 
 ## Step 3 — Write back to `PRODUCT.md`
 Append a `#Ship log` row: date · what shipped · review+security · **skipped phases** (write `none` when the

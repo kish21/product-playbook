@@ -58,7 +58,7 @@ description: >
 - **One folder = one concern; dependencies point inward** (api → service/domain → data). No god-files.
 - **No-hardcoding:** secrets go to `.env`; tunable knobs to layered config; **never a key/secret in a code file**.
 - **Prompts are config (AI):** `app/prompts/*.yaml` (backend sub-package), versioned, never inline.
-- Reuse `/new-project`'s sub-package conventions where they fit; don't reinvent.
+- Keep sub-package conventions consistent across the tree; don't reinvent per folder.
 
 ## Step 2 — Lay the structure (pick the shape, then adapt names to the stack)
 
