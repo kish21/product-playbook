@@ -1,7 +1,7 @@
 # Product Playbook: Build with Discipline in the AI Era
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.36.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.37.0-blue.svg)](CHANGELOG.md)
 ![Claude Code skills](https://img.shields.io/badge/Claude%20Code-21%20skills-8A2BE2.svg)
 
 **AI writes code faster than anyone can reason about it. `product-playbook` puts the gates in between.**
@@ -365,7 +365,7 @@ Skills stay runnable on their own, but a few **call other skills** when they are
 
 ### Did it work?
 
-Open a new Claude Code session and type `/playbook` (route A: `/product-playbook:playbook`). It should be offered as a command and greet you with the journey. Route A users can also run `/plugin list` and expect `product-playbook@product-playbook · Version: 1.36.0 · enabled`.
+Open a new Claude Code session and type `/playbook` (route A: `/product-playbook:playbook`). It should be offered as a command and greet you with the journey. Route A users can also run `/plugin list` and expect `product-playbook@product-playbook · Version: 1.37.0 · enabled`.
 
 ### Uninstall
 
