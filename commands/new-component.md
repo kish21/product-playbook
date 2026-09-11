@@ -22,7 +22,12 @@ $ARGUMENTS
 - **Gate type:** `derivation` — the component is computable from `DESIGN.md`'s tokens plus the chosen ticket; the only preference in it (the file path) is confirmed, not invented. Batchable - several components may be built and reviewed together. Writes no spine section, so it declares no state model. (`docs/state-model.md` §2d)
 - **Exit criteria:**
   - [ ] Invoked bare, the **pending components for the active milestone are offered** (built vs pending) and exactly **one** is chosen; with no tickets, it falls back to a description and says why.
-  - [ ] **Every `var(--token)` the component references is defined in `DESIGN.md`** — checked mechanically (see the verification step). An undefined token does **not** fail `/frontend-audit`: CSS drops the declaration silently, so the colour simply never arrives. Nothing else catches this.
+  - [ ] **Every `var(--token)` the component references resolves IN THE APP** — checked mechanically against
+    the project stylesheet `DESIGN.md` §2 names (`src/app/globals.css` or equivalent), **not against the
+    spec**. *Documented* and *resolves at runtime* are different claims and only the second one renders:
+    CSS drops a declaration whose `var()` is undefined, silently, so the component looks almost right and
+    the audit reports zero errors. No such stylesheet yet → say so and stop; that is `/design-system`
+    output that was never emitted, not something to improvise here.
   - [ ] No raw hex, no literal font string, no invented token name. A token this component needs but `DESIGN.md` lacks is a **gap to raise**, not one to improvise.
   - [ ] Every interactive element has **hover · focus-visible · active**; focus is never suppressed without a visible replacement.
   - [ ] Motion animates `transform`/`opacity` only — never `transition: all`, never a layout/paint property.
@@ -106,13 +111,15 @@ The names below are **examples, not the contract**. Where `DESIGN.md` records a 
 ## Before you hand it back — verify, don't assert
 **Both in one run** — pass `DESIGN.md` alongside the component, or the token check cannot run:
 
-1. **Every token the component references is defined.** Audit the component **together with `DESIGN.md`**
-   so the two resolve against each other — Law 14b errors on any `var(--token)` nothing defines:
+1. **Every token the component references resolves in the app.** Audit the component **together with the
+   project's token stylesheet** — the file `DESIGN.md` §2 records, not `DESIGN.md` itself — so the two
+   resolve against each other; Law 14b errors on any `var(--token)` nothing defines:
    ```
-   python commands/frontend-audit/audit.py DESIGN.md <the new component>
+   python commands/frontend-audit/audit.py src/app/globals.css <the new component>
    ```
    Auditing the component **alone** cannot check this and will say so (`tokens-defined: warn`,
-   "unverified"). Passing `DESIGN.md` is what makes it a real check.
+   "unverified"). Auditing it against `DESIGN.md` passes on a token the running app does not have —
+   the spec then does the job the stylesheet should, which is the failure this check exists to catch.
 2. **0 errors overall** on that same run.
 
 A token this component genuinely needs but `DESIGN.md` doesn't define is a **contradiction between the

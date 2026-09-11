@@ -23,12 +23,10 @@ description: >
 > default + the why** (teach-mode), never a jargon matrix. They are here to *learn* design, not just
 > receive a file.
 
-> **You run as the designer; the laws are only your floor.** Reason in a senior designer's *order*, and
-> explain each move like a mentor: **(1) who's the user + their context → (2) content priority & visual
-> hierarchy → (3) the mobile-first experience (design the phone first, not a shrunk desktop) → (4) touch
-> ergonomics → (5) restraint & aesthetics → (6) tokens.** `references/universal-laws.md` *enforces* this;
-> it never replaces the reasoning. **Lead with the design decision; cite the law as the guardrail** — not
-> the other way round.
+> **You run as the designer; the laws are only your floor.** Reason in a senior designer's *order* —
+> **user + context → content priority & hierarchy → mobile-first → touch ergonomics → restraint →
+> tokens** (`references/craft.md` §Designer order) — and explain each move like a mentor. **Lead with the
+> design decision; cite the law as the guardrail**, never the other way round.
 
 > **What this skill is — and isn't** (`references/build-loop.md` §What this skill is — and isn't):
 > its edge is **real apps**, and it **reuses** shadcn/ui + 21st.dev rather than out-designing them.
@@ -40,7 +38,8 @@ description: >
 - **Reads:** spine `#Vision`/`#Scope`/`#Architecture` (or discovers the vision if there's none);
   every file in `references/` — universal-laws · archetypes · design-md-template · page-patterns ·
   palettes · craft · theme-studio · build-loop.
-- **Writes:** `DESIGN.md` (9-section standard, shadcn CSS-variable tokens) · one approved **sample page**
+- **Writes:** `DESIGN.md` (9-section standard, shadcn CSS-variable tokens) · **the token stylesheet the
+  app actually loads** (`src/app/globals.css` or where `STRUCTURE.md` puts it) · one approved **sample page**
   · `PRODUCT.md#Design` (principles + archetype + token summary + paths).
 - **Gate type:** `input` — the sample-page confirm-loop is the phase; the user's own look wins. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Design` · `declined` ✓ · `override` ✓ · `superseded` ✓
@@ -58,6 +57,11 @@ description: >
   - [ ] `DESIGN.md` emitted **only after approval**: 9 sections, **shadcn-compatible OKLCH tokens** in **light AND
     dark** (Law 22), **WCAG-AA verified in both modes**, the app's **page inventory** recorded (§5), fixing the three
     symptoms (a real type scale → no tiny fonts; a layout/density spec; an archetype + Do/Don't list → no generic AI look).
+  - [ ] **The tokens EXIST IN THE APP, not only in the spec** — every token `DESIGN.md` defines is written
+    into the project's real stylesheet, that stylesheet is imported by the app's root entry, and its path
+    is recorded in `DESIGN.md` §2. `DESIGN.md` is a specification; **a specification is not a stylesheet**,
+    and a component written against tokens the app never defines renders unstyled while typecheck, lint
+    and the audit all stay green.
   - [ ] All **22 universal laws** satisfied (run the principle-gate, Step 6 self-check).
 
 > **Scope of this version: greenfield core loop** — brand re-skin is in; deep token-extraction, full
@@ -90,15 +94,9 @@ description: >
 Before any colour or font, reason the way an experienced designer does *today*, grounded in the
 product's **purpose + audience**. Write **4–6 short principle statements** — and for **each, show the
 *why* in plain language** (teach-mode), drawing on the real levers:
-- **Hierarchy** (what the eye hits first), **restraint** (ONE accent), **real contrast / WCAG 2.2**,
-  **task-appropriate density** (a dense admin ≠ a marketing page), **an intentional type scale**, and
-  **motion that earns its place** (current norms: Linear/Stripe/Carbon-era discipline, OKLCH colour).
-
-> Example (enterprise compliance): *"Calm authority · Density without clutter · Evidence first ·
-> Accessible by default"* — each with one line on why it serves **this** product's users.
-
-Show them; **let the user adjust**. They constrain every later token, and become `DESIGN.md` §1 and
-`PRODUCT.md#Design`.
+The levers, a worked example, and what a principle looks like when it is doing work:
+`references/build-loop.md` §Design principles. Show them; **let the user adjust**. They constrain every
+later token, and become `DESIGN.md` §1 and `PRODUCT.md#Design`.
 
 ## Step 2 — Ask what they want, THEN propose
 
@@ -119,13 +117,11 @@ before you propose (`references/build-loop.md` §Why ask before proposing).
 
 ## Step 3 — Concrete foundations from the archetype
 
-From the chosen family's preset (in `archetypes.md`), decide the **concrete** values — *this is the part
-the popular skills omit, and the fix for "fonts too small / artsy-but-wrong":*
-**The decided value for each — and the why — is in `references/build-loop.md` §Concrete foundations:**
-font pairing (no default-only face) · a real type scale at an archetype-correct base size · colour roles
-in OKLCH, AA-verified · spacing and density · the depth ladder · layout pattern · motion tier and library
-ceiling · **light AND dark derived now (Law 22)** · an optional brand re-skin over the archetype.
-Give each as a **decided default + one-line why**; let the user tweak.
+From the chosen family's preset (in `archetypes.md`), decide the **concrete** values — the part the
+popular skills omit, and the fix for "fonts too small / artsy-but-wrong". **The full list, each decided
+value and its why, is in `references/build-loop.md` §Concrete foundations** — type pairing and scale,
+colour roles in OKLCH, density, depth, layout, motion tier, **light AND dark now** (Law 22). Give each as
+a **decided default + one-line why**; let the user tweak.
 
 ## Step 4 — Build ONE sample page · STOP · iterate until liked  *(the non-negotiable loop)*
 
@@ -146,16 +142,20 @@ lets the user finalize without a regenerate: `references/build-loop.md` §Confir
 
 ## Step 5 — Emit `DESIGN.md` (only after approval)
 
+**Emit the tokens TWICE — as the spec and as the app's stylesheet.** `DESIGN.md` records the decision;
+the stylesheet is what the running product loads. Write both in this step, and follow
+`references/build-loop.md` §Emit the token stylesheet — where the file goes, the light/dark blocks, the
+root import, and the two-way check that the spec and the stylesheet define the same set. A design system
+that exists only as a document is a decision nothing executes.
+
 Load `references/design-md-template.md` and write **`DESIGN.md`**, filling all **9 sections** with the
 *concrete approved values* — replace every placeholder, ship nothing un-filled. The section list and the
 per-section rules (OKLCH shadcn-compatible tokens, light **and** dark, the page inventory, the AA
 re-check before writing) are in `references/build-loop.md` §Emit `DESIGN.md`.
-- **Audit timing (T1-c) — RUN the engine, never just cite it:**
-  `python commands/frontend-audit/audit.py <approved-sample> DESIGN.md`, on the approved sample at
-  confirm-time (Step 4) and on `DESIGN.md` after it is emitted, never before approval (Law 16). Fix every
-  `[FAIL]`, triage every `[WARN]`, and **claim no "passes the laws" you did not run the engine to back**
-  (`references/build-loop.md` §Audit timing).
-- The **Agent Guide** (§9) tells every later build step how to obey this file.
+- **Audit timing — RUN the engine, never just cite it:** `python commands/frontend-audit/audit.py` over
+  the approved sample at confirm-time and over `DESIGN.md` once emitted, never before approval (Law 16);
+  fix every `[FAIL]`, triage every `[WARN]`, and **claim no "passes the laws" you did not run the engine
+  to back** (`references/build-loop.md` §Audit timing).
 
 ## Step 6 — Principle-gate self-check, then handoff
 

@@ -1,5 +1,19 @@
 # Craft layer — archetype signature moves (the *how*, not just the *what*)
 
+## §Designer order
+
+The order a senior designer reasons in, and the order every explanation in this phase follows:
+
+1. **Who is the user, and in what context** — standing in a queue is not sitting at a desk.
+2. **Content priority and visual hierarchy** — what the eye must hit first, decided before anything is styled.
+3. **The mobile-first experience** — design the phone, never a shrunk desktop.
+4. **Touch ergonomics** — reach, target size, thumb zones.
+5. **Restraint and aesthetics** — one accent, earned motion, nothing decorative that costs legibility.
+6. **Tokens** — last. They record the decisions above; they do not make them.
+
+`universal-laws.md` *enforces* this order; it never replaces the reasoning. A law quoted before a design
+decision is an agent hiding behind a checklist.
+
 > Loaded by `/design-system` **Step 4** (the sample build), *after* the archetype is confirmed.
 > `archetypes.md` says **which motion tier is allowed**; this file says **what the signature gesture
 > actually is and how to wire it** so the page reads as *deliberately crafted*, not generic.
