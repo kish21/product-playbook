@@ -175,6 +175,7 @@ def main() -> int:
     check_skill_count(len(cmds), files)
     # 16. every section-writing skill actually invokes the transition guard at its Step 3b
     check_transition_guard(files)
+    check_close_the_loop(files)
 
     return done(len(cmds))
 
@@ -566,6 +567,36 @@ def check_transition_guard(files: dict[str, Path]) -> None:
                    for i in hits):
             fail(f"{name} runs the guard without saying that `UNVERIFIED` is a normal outcome - a guard "
                  f"read as a hard block gets skipped wherever measurement is legitimately impossible")
+
+
+def check_close_the_loop(files: dict[str, Path]) -> None:
+    """17. A phase that writes a section commits it and closes in plain language.
+
+    Both rules existed and neither was executed anywhere. PRINCIPLES.md has demanded plain language since
+    v1.0 while every run ended in playbook dialect, and MECHANISMS.md only ever said *suggest* a commit
+    message - so three phases behaved three different ways and a real project sat at zero commits after
+    two of them. That is the decide-but-never-execute failure inside the file that names it, which is why
+    the obligation is checked in the gate-closing region rather than trusted to the prose that defines it.
+    """
+    for name in sorted(GUARD_DECLARING):
+        text = files[name].read_text(encoding="utf-8")
+        start = re.search(r"^#{2,4}\s*Step 3b", text, re.MULTILINE)
+        if not start:
+            continue  # check 16 already failed this file; one message per defect
+        rest = text[start.end():]
+        stop = re.search(r"^#{2,4}\s*Step 3c", rest, re.MULTILINE)
+        body = " ".join(rest[: stop.start() if stop else len(rest)].split())
+        for pointer, what, why in CLOSE_OBLIGATIONS:
+            if pointer not in body:
+                fail(f"{name} closes its gate without {what} ({pointer}) - {why}")
+
+
+CLOSE_OBLIGATIONS = (
+    ("§Commit the work", "offering to commit what it just wrote",
+     "a phase that only names a commit message leaves its own output uncommitted"),
+    ("§Plain-language close", "closing in plain language",
+     "a run that ends in gates, states and verdicts has not told the user what happened or what they do next"),
+)
 
 
 def check_skill_count(n: int, files: dict[str, Path]) -> None:
