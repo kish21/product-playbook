@@ -28,7 +28,7 @@ The guarantee is deliberately narrow: **a process that cannot silently skip a ch
 
 **Who it is for:** a technical builder shipping with AI coding agents — a solo founder, or an engineer anywhere from first job to staff — with no PM, designer, QA, security engineer or release manager beside them. Claude Code is the runtime; the same gap exists in Cursor or Copilot. ([the full audience note, and who it is *not* for →](VISION.md))
 
-**Requirements:** Claude Code (≥ 2.0.70 for the plugin route). Language- and framework-agnostic — it drives your process, not your stack.
+**Requirements:** Claude Code (≥ 2.0.70 for the plugin route). **Nothing else to install** — every phase skill ships here, and the only skills composed from outside are Claude Code's own built-ins (`/code-review`, `/security-review`, `/run`, `/loop`, `/schedule`). If your version or harness names one differently, **any equivalent satisfies it** — do the same work and record which you used in the phase's evidence line. Language- and framework-agnostic — it drives your process, not your stack.
 
 ## ⚡ Quick start
 
@@ -276,10 +276,11 @@ The three-tier map is [above](#-before--after). This is the same journey at full
 | **Learn** | `/learn` | Tracks success metric and decides: iterate or **KILL** | `PRODUCT.md` -> **Learnings** | Post-launch retro |
 | **Cross-Cut** | `/drift-check` | Compares current code and docs vs. original scope | Drift Report | Anytime you suspect creep |
 
-> **Sibling repo:** [`product-toolkit`](https://github.com/kish21/product-toolkit) is the à-la-carte
-> **build-and-ship** engineering skills (scaffold, audit, quality-gate, PR-flow, UI) — reach for one
-> when you know what you need. **product-playbook is the guided journey that composes tools like those**
-> across the whole product arc (vision -> learn).
+> **One repo, no companions.** An earlier sibling repo (`product-toolkit`) held à-la-carte engineering
+> skills that some phases composed. Everything the playbook needs now lives **here** — where a phase
+> wanted a small part of one of those skills, the check was written into the phase itself rather than
+> pulled in whole. **product-playbook is the guided journey across the entire product arc**
+> (vision -> learn), and it installs on its own.
 >
 > **Companion for parallel agents:** [`Lanekeeper`](https://github.com/kish21/parallel-agents) runs several
 > coding agents on one repo without collisions. *product-playbook writes the work down; Lanekeeper divides it
@@ -291,9 +292,10 @@ The three-tier map is [above](#-before--after). This is the same journey at full
 >
 > **Single-master rule for the UI suite.** The UI suite — `/design-system`, `/frontend-audit`, and
 > `/new-component` — is **mastered here in product-playbook** (they're coupled through `DESIGN.md`, so one
-> master = one place to fix bugs). `/new-component` is **bundled in this repo** so product-playbook installs
-> **fully standalone** (no product-toolkit needed). Any copy elsewhere (e.g. in product-toolkit) is a
-> **one-way synced, read-only copy** — edit it here, then re-sync.
+> master = one place to fix bugs). All three are **bundled here**, as is every
+> other phase skill — product-playbook installs **fully standalone**. There is no synced copy of any
+> skill in any other repo: a mirror with no sync tooling drifts, and the one that existed did (to a
+> quarter of its master's size). One master, one copy.
 
 ### How `DESIGN.md` is derived (the UI suite)
 
