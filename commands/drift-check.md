@@ -95,23 +95,30 @@ and nobody else will ever run it.
 > Each phase now runs its own **Step 3c** contradiction check before its gate closes (`MECHANISMS.md` §Step 3c), so a contradiction *between* two spine sections should be rare and dated. This sweep is what catches the ones that escaped — and a conflict you find here that carries **no `superseded by` line** means a phase skipped its Step 3c: report that as drift in its own right.
 
 1. **Scope creep:** list features in the code/build log not justified by `#Scope`; flag anything built that's a **Non-goal** or a **Deferred** item whose trigger never fired. Also flag the inverse: a deliberate pivot the spine never recorded → recommend updating `#Scope`/`#Vision`, not cutting code.
-2. **A stalled `running` gate.** A section in the `running` state (`docs/state-model.md` §2a) **past its
+2. **The spine's own size.** `PRODUCT.md` over **~25KB**, or any section over **~5KB**, is a prune
+   signal — the same rule the playbook applies to its own files, applied to the artefact the user
+   maintains (`PRINCIPLES.md`). Name the offending sections by size and say which companion the detail
+   belongs in (`docs/adr/*`, `docs/runbook.md`, `STRUCTURE.md`, `DESIGN.md`, `docs/features/*`,
+   `src/schemas/*`). A real spine reached **73KB with five sections still empty**, projecting ~125KB by
+   M4 — at that size nobody reads it, they grep it, and a phase that greps instead of reading is the
+   mechanism behind several findings in this list.
+3. **A stalled `running` gate.** A section in the `running` state (`docs/state-model.md` §2a) **past its
    due date with no result** is a finding nobody was emitting: the experiment was scheduled, the chain
    moved on provisionally, and the result never landed. Report it with the date it was due and what
    downstream work is still marked provisional.
-3. **Vision drift:** is the current direction still serving `#Vision` and its north-star metric? Surface any quiet pivot. If `#Validation` is empty or holds an **override** while code exists, that is a **standing finding** — the product is being built on an untested riskiest assumption; recommend `/validate` (still cheaper than the next feature).
-4. **Table-stakes drift:** re-read `#Scope`'s table-stakes list. An item marked **in-scope now** that was
+4. **Vision drift:** is the current direction still serving `#Vision` and its north-star metric? Surface any quiet pivot. If `#Validation` is empty or holds an **override** while code exists, that is a **standing finding** — the product is being built on an untested riskiest assumption; recommend `/validate` (still cheaper than the next feature).
+5. **Table-stakes drift:** re-read `#Scope`'s table-stakes list. An item marked **in-scope now** that was
    never built is drift of the most expensive kind — it surfaces at ship time as "we can't launch without
    this". An item marked **Deferred** whose **trigger has now fired** is the same finding with a date on it.
-5. **Plan / concern-area drift:** milestones skipped or reordered off core-first? Re-read `#Plan`'s concern-area checklist — any "now" still unbuilt, any "next" overdue?
-6. **Doc drift:** grep the docs' **concrete** claims — paths, flags, model names, field names, stage lists — against the code, and flag each that no longer holds. Prose re-reading finds nothing; a stale instruction is worse than none because it gets followed. If the `#Build log` itself is stale vs the code, flag that as drift too.
-7. **Agent instructions that are ABSENT, before any check for rot.** A filled spine and **no**
+6. **Plan / concern-area drift:** milestones skipped or reordered off core-first? Re-read `#Plan`'s concern-area checklist — any "now" still unbuilt, any "next" overdue?
+7. **Doc drift:** grep the docs' **concrete** claims — paths, flags, model names, field names, stage lists — against the code, and flag each that no longer holds. Prose re-reading finds nothing; a stale instruction is worse than none because it gets followed. If the `#Build log` itself is stale vs the code, flag that as drift too.
+8. **Agent instructions that are ABSENT, before any check for rot.** A filled spine and **no**
    `CLAUDE.md` / `AGENTS.md` at all is the emptiest possible case, and it passed silently: every
    check below reads a file that has to exist. Report it — the next session is then told nothing
    of what every phase decided, which on a solo-with-agents workflow *is* the workflow. A file the
    project's framework generated (a `<!-- BEGIN: -->` block and nothing else) counts as absent.
    `/structure` scaffolds it from `templates/AGENTS.md`.
-8. **Agent-instruction drift — the project's OWN skills/commands/`CLAUDE.md`.** These rot exactly like docs, but they are far more dangerous, because they are **executed, not read**: a stale `docs/` page misleads a human who can sanity-check it, while a stale `.claude/skills/*` is picked up and *acted on*. Check each skill's concrete, falsifiable claims against the code — file paths and directory layout, storage/vendor, model + provider, contract field names, stage list and count, and any "always/never do X" rule. Flag three things: claims that are **false**, skills that contradict **each other**, and skills that contradict a **locked decision** in the spine. *(Real instance: a project's three most task-relevant skills were each materially wrong — a stage documented as "no LLM, schema check only" that actually runs a vision judge; a contract listing fields deleted a session earlier plus a storage vendor the project had migrated off; and an "X is blocking" claim that inverted a locked blocking-vs-advisory split. Two also contradicted each other on whether a whole backend technology was permitted. Nobody had noticed, because sessions read the code directly and never opened the skills.)*
+9. **Agent-instruction drift — the project's OWN skills/commands/`CLAUDE.md`.** These rot exactly like docs, but they are far more dangerous, because they are **executed, not read**: a stale `docs/` page misleads a human who can sanity-check it, while a stale `.claude/skills/*` is picked up and *acted on*. Check each skill's concrete, falsifiable claims against the code — file paths and directory layout, storage/vendor, model + provider, contract field names, stage list and count, and any "always/never do X" rule. Flag three things: claims that are **false**, skills that contradict **each other**, and skills that contradict a **locked decision** in the spine. *(Real instance: a project's three most task-relevant skills were each materially wrong — a stage documented as "no LLM, schema check only" that actually runs a vision judge; a contract listing fields deleted a session earlier plus a storage vendor the project had migrated off; and an "X is blocking" claim that inverted a locked blocking-vs-advisory split. Two also contradicted each other on whether a whole backend technology was permitted. Nobody had noticed, because sessions read the code directly and never opened the skills.)*
 
    **The structural fix, once you find the drift: make docs POINT, don't RE-TYPE.** Audit the rotted
    set and you'll find nearly every false claim is a constant that already exists in config or a

@@ -19,7 +19,11 @@ description: >
 ## Contract
 - **Purpose:** a thin end-to-end skeleton that runs, with config/logging/infra/tooling/CI in place.
 - **Reads:** `PRODUCT.md#Architecture`, `#Structure`.
-- **Writes:** `PRODUCT.md#Foundation` — runs end-to-end? · config-flow verified · guards/secret-scan/CI.
+- **Writes:** **`docs/runbook.md`** (how to boot it, what `.env` needs, what each guard does and how to
+  verify it) + `PRODUCT.md#Foundation`, which stays a **record**: runs end-to-end? · config-flow verified ·
+  guards/secret-scan/CI · the pointer. This section hit **14KB** on a real run — one section at the
+  whole-file ceiling the playbook imposes on a skill — because a runbook was wearing a spine section's
+  clothes (`PRINCIPLES.md`: a section is a record, not a container).
 - **Gate type:** `derivation` — computable from `#Architecture` + `#Structure`. Batchable - a `derivation` run may chain with its neighbours and end in ONE review. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Foundation` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria:**
@@ -70,22 +74,30 @@ description: >
 - **CI mirrors prod:** bootstrap the same way prod does (real schema/migrations), least-privilege tokens.
 
 ## Step 2 — Build the skeleton
-1. **Dependency manifest: this phase owns its CONTENTS AND PROVABILITY** (`MECHANISMS.md` §Seam) — `/structure` created the file and its dev/prod split; pin the versions, **actually install**, write the tool config files those scripts reference (`biome.json`, `tsconfig.json`, the test-runner config), and get the first real run to pass. Then a runnable entrypoint with a **health/hello path** (the walking skeleton).
-2. **The dev seed** (`/structure` named the task-runner target; **this phase makes it real** — the same
-   ownership split as the dependency manifest, `MECHANISMS.md` §Seam): idempotent, production-refusing, and
-   it prints the fake dev credentials once when it finishes.
-3. **Config loader** reading `.env`/config; add a **startup guard** (fail-loud on misconfig, fail-closed on security) that holds the placeholder values as a **known-bad list** and rejects them by name, with a message saying how to generate a real value (`openssl rand -base64 32`). Keep the list next to the loader so adding a secret to `.env.example` and forgetting the guard is visible in one file.
-4. **The test datastore + its guard**, alongside the app's own: provision a separate disposable target, wire the runner to the app's config loader, and write the **refuse-to-run guard** before any test exists. Order matters — a suite written first is a suite that has already run once against whatever was configured.
-5. **Structured logging** (no prints) **+ a tracing / error-reporter hook** (even a stub behind an adapter) — wire base infra behind the adapters from `/architect` (DB/LLM/queue), even if stubbed.
-6. **The auto-layer:** dev tooling lint + format + **the commit-hook runner `#Architecture` recorded** running **secret-scan + dependency-vuln scan**; this is what enforces the deterministic checks on every commit so the later skills don't rely on memory. Wire an **automated dependency-update bot** (`.github/dependabot.yml`/Renovate) here too — adding the CVE gate on day one keeps it green from the start; bolting it on later means inheriting a backlog of CVEs that piled up unscanned.
-7. **The design tokens, if this product has a UI** (`DESIGN.md` exists): confirm the token stylesheet
-   `/design-system` emitted is **imported by the app's root entry and resolves at runtime** — load a page
-   and read a token back, the same "prove it flows" bar as config. A spec-only token layer is dead config
-   with a stylesheet's name: components render unstyled while lint, typecheck and the audit stay green.
-   Missing entirely → this is `/design-system`'s output, so send it back rather than writing CSS here.
-8. **CI** that installs, bootstraps from the real schema/migrations, runs lint/secret-scan/dep-scan/tests, **builds + runs in the container prod uses**, and **blocks merge on red** — green. CI creates throwaway creds at runtime (no secret in repo).
+**Open `references/skeleton-steps.md` and work through all eight** — each carries the detail, the
+ownership seam and the failure it prevents:
 
-## Step 3 — Write back to `PRODUCT.md`
+1. **Dependency manifest: contents and provability** (`MECHANISMS.md` §Seam — `/structure` owns its shape)
+   — pin, install, write the tool configs, get the first real run green. Then a runnable entrypoint with
+   a health path: the walking skeleton.
+2. **The dev seed** — idempotent, production-refusing, prints its fake credentials once.
+3. **Config loader + startup guard** — fail-loud on misconfig, fail-closed on security, rejecting
+   `.env.example`'s placeholders **by name**.
+4. **The test datastore + its refuse-to-run guard**, written *before* any test exists
+   (`references/test-datastore.md` for the recipe per custody).
+5. **Structured logging + a tracing/error-reporter hook**, and base infra behind `/architect`'s adapters.
+6. **The auto-layer** — lint, format, the recorded commit-hook runner, secret-scan, dependency-vuln scan,
+   and an automated dependency-update bot wired on day one.
+7. **The design tokens, if this product has a UI** — the stylesheet `/design-system` emitted is imported
+   by the root entry and **resolves at runtime**; prove it by reading a token back.
+8. **CI that mirrors the prod bootstrap** — real schema/migrations, blocks on red, throwaway creds.
+
+## Step 3 — Write the runbook, then the record
+**`docs/runbook.md` holds the operational detail** — boot sequence, the `.env` variables and how to
+generate each, what every guard refuses and how to prove it, how to reset and re-seed, how to run the
+suite against the isolated datastore. It is the document someone opens at 2am, so it is written for
+someone who was not here. **`#Foundation` keeps the record and the pointer.**
+
 Fill `#Foundation`: runs end-to-end? · config-flow verified (how) · guards (**incl. the placeholder rejection and the test-datastore refuse-to-run guard, each with its test**) · isolated test datastore + how the runner loads config · secret-scan + dep-vuln · hook runner + CI (auto-layer) · container · observability hook.
 
 ## Step 3b — Principle-gate: verify it RUNS and the guards are real (evidence)
