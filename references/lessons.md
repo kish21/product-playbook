@@ -18,6 +18,10 @@ Phrased generically so they apply to any project:
 - **Schema ↔ code consistency** — via migrations; a column the code reads must exist; CI bootstraps from the real schema.
 - **Environment/platform gotchas** — cross-platform (stdout encoding, caches cleared between runs, corporate proxy/SSL); don't assume network egress.
 - **Defer paid infra/features until a real trigger** — anti-creep at the infra level; record the trigger.
+- **A check that cannot fail is worse than no check** — it stops anyone from looking. Break what a new check guards and watch it go red *before* trusting it; a green run over a page whose live total is silent to a screen reader, or a gate whose region regex matches nothing, both report the same "pass".
+- **A decision nothing executes is deferred, not recorded** — four separate defects were one pattern: a phase recorded the runtime target, the design tokens, the frozen schemas and the project's agent rules, and no phase carried any of them into what runs. When a phase decides something, name the phase that executes it.
+- **A pointer is an instruction to open the file** — a record naming `src/schemas/*` is not the contract; a phase that reads the record instead of the artefact fills the gap by inventing one.
+- **Testable is not reachable** — an exit criterion can be perfectly verifiable and still require something no plan delivers (a public URL, a second device, another person). Name each prerequisite and the milestone that produces it.
 - **Docs must match reality** — reconcile code ↔ docs; no false claims.
 - **A guarantee that nothing executes decays silently** — an assertion file no runner reads drifts freely (a second schema, a required field missing) because the only thing ever compared is a name, so **gate its structure in CI, or scope the claim to what is actually checked** — overclaiming a guarantee is worse than not having one, it stops anyone going to look (case file: The 53 assertions nothing read).
 - **A correct no-op must still leave a trace** — a guard that declines, a check that finds nothing, a job
