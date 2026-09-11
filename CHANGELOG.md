@@ -3,6 +3,27 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.38.2] - 2026-09-11
+
+### Fixed — a phase could commit into the user's home directory (#187, #190)
+
+`references/mechanisms.md` §Commit the work item 1 checked that **a** git repo exists, not that it is
+**this project's**. Git resolves upward, so an accidentally `git init`-ed home directory answers for every
+folder beneath it: in an empty project under `~` the check passed, and the rule went on to commit
+`PRODUCT.md` into the user's home directory alongside Desktop, dotfiles and credentials — reporting
+*"committed on `main`"*, exactly what a correct run reports. Reproduced on a real machine
+(`git rev-parse --show-toplevel` → `C:/Users/kishore`, 126 dirty entries); caught by hand, nothing committed.
+
+This was the first rule in the chain that writes **outside** the project directory — every other guard
+assumes damage stays inside it — and it silently defeated `PRINCIPLES.md` §Secrets never get pushed,
+which assumes the target repo is the one whose `.gitignore` `/structure` wrote.
+
+- item 1 resolves the root and compares it: equal → proceed · a **parent** → **STOP**, name both paths,
+  offer `git init` here or an explicit user instruction · none → offer `git init`. A monorepo stays
+  legitimate as a recorded `Override <date>:`, not an inference re-made by every phase.
+- item 2 names the repository root alongside the branch.
+- `tools/check.py` check 19 keeps the rule stating the load-bearing part; proven to fail before it passed.
+
 ## [1.38.1] - 2026-09-11
 
 ### Fixed — the one-sentence vision had nowhere to be written (#188)
