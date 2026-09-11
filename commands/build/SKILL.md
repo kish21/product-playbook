@@ -69,7 +69,12 @@ description: >
      - anything **shared across tenants, cached, AI-suggested, or keyed by a client-supplied selector** → **§Trust boundaries and shared state**
 4. **Run + verify the LIVE path** — compose `/run` to exercise the path the product actually runs, **then check the observable result yourself** (the response, the row, the rendered page — not the exit code), then **trace your change to its real callers** (green unit tests ≠ wired in).
    - **Walk `references/live-path-checks.md`** — the checks that separate *the code exists* from *the product runs it*: production entrypoint, criterion altitude, delete-the-wire, validator placement, round-trip, third-party fixtures, browser-journey traps. Each one came from a live path that tested green and was dead.
-5. **Review the diff** — compose `/code-review`; fix findings (watch for "works in tests, dead in the real path").
+5. **Review the diff** — compose `/code-review`; fix findings (watch for "works in tests, dead in the
+   real path"). **Record the review's SCOPE, not just its verdict**, in the `#Build log` row: the tool,
+   the result, **the commit it reviewed**, and the date — `/code-review high → 8 findings, all fixed ·
+   <sha> · <date>`. With a commit in the line, *"has anything changed since that review?"* becomes one
+   command for `/ship` instead of a judgement call, and that is what lets it skip a duplicate review of
+   the same diff rather than paying for the chain's most expensive operation twice.
    - ⚠️ **If you cannot invoke it, ASK the user to run it, or do the deep pass by hand and say which you did** — see `PRINCIPLES.md`, *Composed skills*. (A by-hand pass is worth the time: one such pass found three real defects.)
 6. **Document** — write/update `docs/features/<feature>.md`; reconcile it with the code.
 
