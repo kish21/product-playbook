@@ -76,6 +76,47 @@ Generate **a single, representative screen of THIS product** using the §Concret
   **`@container` queries (not `@media`)** so the width buttons reflow (T5-1); use the `.light`/`.dark` **escape-hatch** dark
   pattern (template §2) so manual mode beats the OS (T5-6); load the font via `<link>` in the preview (T5-7).
 
+## §Design principles
+
+**Trigger:** Step 1 — before any colour or font is chosen.
+
+The levers a 2026 senior designer actually pulls: **hierarchy** (what the eye hits first) · **restraint**
+(ONE accent) · **real contrast / WCAG 2.2** · **task-appropriate density** (a dense admin is not a
+marketing page) · **an intentional type scale** · **motion that earns its place**. Current norms to
+benchmark against: Linear / Stripe / Carbon-era discipline, OKLCH colour.
+
+Worked example, an enterprise compliance product: *"Calm authority · Density without clutter · Evidence
+first · Accessible by default"* — each carrying one line on why it serves **this** product's users.
+
+A principle is doing work when it can **decide a later argument**: "evidence first" settles whether the
+audit trail or the summary goes above the fold. A principle that cannot lose an argument is decoration.
+
+## §Emit the token stylesheet
+
+**Trigger:** Step 5 — the design is approved and `DESIGN.md` is being written.
+
+**Why this exists.** `DESIGN.md` is a specification. On a real run a component referenced 14 tokens, every
+one of them correctly defined *in `DESIGN.md`*, and rendered as an unstyled browser button: no stylesheet
+in the app defined them, and no root layout imported one. Typecheck, lint and `/frontend-audit` were all
+green, because CSS drops a declaration whose `var()` resolves to nothing — silently. The token layer was
+finally written four phases later, during a feature build, where design decisions do not belong (it grew
+to 94 tokens against the spec's 16 — most of the design system was invented by `/build`).
+
+1. **Write the real file.** Path from `STRUCTURE.md` — `src/app/globals.css` for Next.js app-router,
+   `src/styles/tokens.css` otherwise. Every token in `DESIGN.md` §2/§3, in the project's CSS convention
+   (shadcn CSS variables on `:root`), **light and dark both** (Law 22), in the same names the spec uses.
+2. **Import it from the app's root entry** — the root layout / app entry / global stylesheet chain — and
+   **verify the import resolves**, not that you wrote the line. An unimported stylesheet fails exactly the
+   way a missing one does.
+3. **Record the path in `DESIGN.md` §2** and in `PRODUCT.md#Design`, so `/new-component`, `/build` and
+   `/frontend-audit` can resolve tokens against the app instead of against the spec.
+4. **Check both directions before the gate closes.** Every spec token exists in the stylesheet, and every
+   stylesheet token exists in the spec. A token in one and not the other is a contradiction
+   (`MECHANISMS.md` §Step 3c) — name both sides, do not quietly add it to the loser.
+5. **The sample page is not this file.** A preview that defines its own tokens inline demonstrates the
+   design twice and ships it zero times. If the sample carries inline `<style>` tokens, say so, and point
+   at the stylesheet as the one that counts.
+
 ## §Confirm the sample
 
 **Trigger:** the sample page is built and you are about to show it (Step 4).
