@@ -5,7 +5,7 @@ description: >
   (real contracts), regression, and adversarial/security cases (prompt-injection & jailbreak for AI,
   authz/tenant-isolation) — and verify the path the product ACTUALLY runs, not just functions in
   isolation. Use after /dev-check, or run /test "write tests", "test this", "does it actually work".
-  Writes the Tests section of PRODUCT.md. Composes /verify and /run. Run /eval next.
+  Writes the Tests section of PRODUCT.md. Composes /run. Run /eval next.
 ---
 
 # `/test` — Phase 3 · Testing · run as a **tester**
@@ -46,7 +46,7 @@ description: >
 
 ## Step 1 — Apply principles (this phase)
 - **Independent test plan:** unit = isolated/mocked; integration = real contracts with neighbours. If a unit can't be tested in isolation, the seams are wrong — fix them.
-- **Tests passing ≠ it works:** add at least one test on the **live path** the product runs (compose `/run`+`/verify`), and trace that the feature is actually wired in (the "green tests, dead feature" trap).
+- **Tests passing ≠ it works:** add at least one test on the **live path** the product runs (compose `/run`, then assert on the observable result), and trace that the feature is actually wired in (the "green tests, dead feature" trap).
 - **Isolation before coverage:** confirm what the suite is pointed at *before* writing a destructive hook, and confirm the runner loads config through the app's own loader. This is not tidiness — on a real run, an `afterAll` truncate against a shared URL left the developer stranded at `/login` with no accounts.
 - **A clean headless browser is not a user's browser.** "The path the product actually runs" has quietly
   meant "the path our runner runs". On a real run every test was green while the login page threw for real
@@ -58,7 +58,7 @@ description: >
 ## Step 2 — Build the suite
 1. **Unit** tests for each core-feature unit (inject deps; mock externals).
 2. **Integration** tests across real boundaries/contracts from `/contracts` — **against the isolated test datastore**, verified by reading back the target the bootstrap resolved, not by trusting the variable's name.
-3. **Live-path** test: exercise the real end-to-end path (`/run`+`/verify`); confirm the feature is reachable in the running product.
+3. **Live-path** test: exercise the real end-to-end path (`/run`), asserting on what the user would actually see; confirm the feature is reachable in the running product.
 4. **Adversarial/security:** cross-tenant AND **within-tenant** access attempts (one user must not see another user's resources inside the same org — tenant-id/RLS only stops cross-tenant). Assert the per-resource access check on **every resource-returning endpoint individually, including streaming ones** (SSE/WebSocket/`StreamingResponse` handlers routinely skip the guard their REST siblings call). For AI, prompt-injection/jailbreak prompts that must be refused/neutralised.
 5. **Real-user-environment** (browser UI): drive the auth/form surfaces with **injected third-party DOM** and
    assert first interactive paint survives; then vary locale/timezone, reduced motion and forced colours, a
@@ -77,7 +77,7 @@ Fill `#Tests`: coverage (unit/integration/regression) · security cases · note 
 
 ## Step 3b — Principle-gate: prove the suite is real (evidence)
 Confirm with evidence: the suite **runs in CI and a red run blocks merge** (not just locally); there's at
-least one **integration + live-path** test (compose `/verify`+`/run`), not only isolated units; tests are
+least one **integration + live-path** test (compose `/run`), not only isolated units; tests are
 **deterministic** (seeded, no time/network races); **the suite is provably pointed at the isolated datastore** (print the resolved target; point it at the dev one and show it refusing to run); an AI product has injection/jailbreak cases; a
 **golden/eval dataset** exists **and something actually executes it** — if nothing runs it, gate its
 structure and say so, never describe it as proof (`LESSONS.md` §Lessons baked in). **If only isolated units exist, or the suite isn't a CI gate, STOP and
