@@ -110,6 +110,22 @@ as filled, and needs all three of gate · the user's own words · date. The scaf
 §Declined runs (full)** — which of the two applies, what it does to `/playbook`'s routing, and the
 already-filled case.
 
+## §Follow the pointer — a spine section that names files is an instruction to open them
+
+
+The spine **records** that a thing was decided and **where it lives**; it does not contain the thing. So
+a phase that consumes the thing **opens the files the section names** — `#Contracts`' `src/schemas/*` and
+route table, `#Structure`'s map, `#Design`'s token stylesheet. Reading the record instead of the artefact
+is how a phase finds a signpost where it needed a definition, and **fills the gap by inventing one**.
+
+- **A presence check is not a usage check.** *"`#Contracts` is empty → warn"* cannot tell *contracts
+  exist and were used* from *contracts exist and were ignored* — and the second is the case that happens.
+- **Every type, route or field name a phase writes must resolve to a real symbol** in the files it was
+  pointed at. This is greppable, so it is a gate, not an intention.
+- **It failed exactly this way once:** the phase downstream of `/contracts` read the record, invented ten
+  types, a float money field and an event that did not exist, and **published eleven public issues**
+  before its own self-check caught it 22 minutes later.
+
 ## §Seam — who owns the dependency manifest
 
 

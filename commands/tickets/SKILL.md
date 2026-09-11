@@ -25,7 +25,10 @@ description: >
 
 ## Contract
 - **Purpose:** turn milestones into granular, independently assignable and independently mergeable tickets — sliced the way this milestone and this team actually need — and capture ad-hoc issues without derailing the backlog.
-- **Reads:** `PRODUCT.md#Plan`, `#Contracts`, `#Architecture`, `STRUCTURE.md`, `DESIGN.md` (UI products only).
+- **Reads:** `PRODUCT.md#Plan`, `#Contracts`, `#Architecture`, `STRUCTURE.md`, `DESIGN.md` (UI products
+  only) — **and the files `#Contracts` names** (`src/schemas/*`, the route table, the db schema).
+  `#Contracts` is a *record that* the types were frozen and *where*; it never contains them
+  (`MECHANISMS.md` §Follow the pointer).
 - **Writes:**
   - `docs/issues/*.md` — one file per ticket.
   - `.github/ISSUE_TEMPLATE/feature_ticket.md` and `.github/PULL_REQUEST_TEMPLATE.md` (scaffolded from bundled `templates/` if missing).
@@ -35,7 +38,13 @@ description: >
 - **Exit criteria:**
   - [ ] **Mode A:** every milestone in `#Plan` is decomposed into 2–4 tickets under a **stated slice strategy** (vertical or horizontal), recommended with a reason and **confirmed by the user** before anything is written.
   - [ ] Every ticket names **exact target file paths** (`src/services/quoteEngine.ts`), never a bare folder.
-  - [ ] Every ticket states its **typed inputs and outputs** — the seam it owns.
+  - [ ] Every ticket states its **typed inputs and outputs** — the seam it owns — and **every type, route,
+    field and event name it uses RESOLVES to a real symbol** in the files `#Contracts` names. Checked by
+    grep, not by reading: a name that does not resolve is a typo or an invention, and both stop the run.
+  - [ ] **Every milestone produces tickets or a recorded reason why not.** A milestone whose deliverable is
+    *evidence* (a measurement, a user session, a decision) is the one that silently produces none — write
+    the ticket that captures the evidence, or one line in `docs/issues/README.md` saying which milestone
+    was skipped and why. Zero tickets and zero trace is indistinguishable from an oversight.
   - [ ] Every ticket is **self-contained**: assignable to one developer and mergeable as an isolated PR.
   - [ ] **Vertical only:** every slice states what a reviewer **can see working** after it merges.
   - [ ] **Horizontal only:** no ticket lists files from two layers, and layers absent from `STRUCTURE.md` produce no ticket.
@@ -46,8 +55,11 @@ description: >
   - [ ] **Lane mode** (MECHANISMS.md §Lane mode — Lanekeeper present): every ticket's Target Files include **everything the build writes** (feature doc + tests) and **never a spine file**; a horizontal strategy carries a **recorded reason**; the playbook's PR template is **not** written (Lanekeeper owns it).
 
 ## Step 0 — Context + prior-gate check
-- Read `#Plan`, `#Contracts`, `#Architecture` and `STRUCTURE.md`. If `#Contracts` is empty, warn (tickets
-  would invent their own types) but allow override.
+- Read `#Plan`, `#Contracts`, `#Architecture` and `STRUCTURE.md`. **Then open the schema files
+  `#Contracts` points at and read the real types, routes and enums** — a presence check cannot tell
+  *contracts were used* from *contracts were ignored*, and the second is what happens. If `#Contracts` is
+  empty, warn (tickets would invent their own types) but allow override; if it names files that do not
+  exist, **stop** — that is drift, not a missing section.
 - **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Plan` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
 - Brownfield: read the existing tree and `docs/issues/` first — extend the numbering, never restart it.
 - **Dispatch on the argument — this is the whole mode decision:**
@@ -91,9 +103,20 @@ Record the chosen strategy in every ticket generated for that milestone, so a la
 ### 3A.2 — Slice the milestone, then fill every ticket
 **Load `references/slicing.md`** — **§Vertical slicing** or **§Horizontal slicing** for the strategy just confirmed, then **§Per-ticket content** for what every ticket must carry.
 
-Write each ticket to `docs/issues/<id>_<slug>.md`, then publish the non-duplicates with `gh issue create`.
+Write each ticket to `docs/issues/<id>_<slug>.md`. **Then verify — and only then publish.**
 
-**Publishing mirrors the plan's own structure** — milestone → lane label → ticket, each created idempotently so a second `/tickets` run adds no duplicate milestone, label or issue. Procedure: `references/publishing.md` §Mirror the plan structure onto GitHub.
+**Local files are the reversible draft; `gh issue create` is the irreversible step.** Run Step 3b's
+checks over the written files *before* anything leaves the machine: the skill's own rule — *a
+half-published backlog is worse than none* — applies harder to a **complete, confident and wrong** one.
+A real run published 11 issues against an invented API and corrected them 22 minutes later; on a team
+the window is not 22 minutes, it is *until someone reads them*, and **nothing notifies a reader that
+every issue they saw was rewritten**.
+
+Then publish the non-duplicates with `gh issue create`. **Publishing mirrors the plan's own structure** —
+milestone → lane label → ticket, each created idempotently so a second `/tickets` run adds no duplicate
+milestone, label or issue. **A milestone carries its target date from `#Plan` onto the GitHub milestone's
+`due_on`** — dropping it lands every milestone undated, which is the one field a milestone view sorts by.
+Procedure: `references/publishing.md` §Mirror the plan structure onto GitHub.
 
 ## Step 3B — Mode B: ad-hoc issue capture
 Triggered mid-build by `/tickets "Bug: Gemini API timeout is unhandled on slow 3G"`. **Fast path —
@@ -104,28 +127,11 @@ Step 2 dedup + remote guards with a real parent `#N`. **Never** read `#Plan`, re
 touch a milestone ticket.
 
 ## Step 3b — Principle-gate: verify the tickets hold (evidence)
-Walk the principles and prove each against the files just written — do not assert it:
-- **Strategy was confirmed**, not assumed, and is recorded on every ticket of that milestone.
-- **Every path resolves.** Check each target path against the real tree (or against `STRUCTURE.md` for a
-  not-yet-created file). A ticket pointing at a directory, or at a path this project will never have, fails.
-- **Vertical:** every slice names an observable outcome. **A slice whose Demo field says "n/a" is a layer
-  wearing a slice's ID — STOP and re-slice, or switch that milestone to horizontal.**
-- **Vertical:** slice 1 runs end to end on its own. If it needs slice 2 to do anything, the order is wrong.
-- **Horizontal:** no ticket lists files from two layers; no layer-3 ticket exists when `STRUCTURE.md`
-  declares no component directory; layer 4 contains no per-layer unit tests.
-- **IDs unique.** Every ID appears exactly once across `docs/issues/` and the fetched GitHub issues.
-- **Dedup ran.** Confirm `gh issue list` was fetched before any `gh issue create`, and that no remote
-  repository was created.
-- **Structure mirrored + idempotent.** Every published ticket carries its milestone and its `lane: <name>`
-  label; a second run created no duplicate milestone, label or issue (**re-run it and show that**); no link
-  points at a feature doc that does not exist yet; permissions were checked **before** the first create.
-- **Security DoD present** on every ticket, including the ad-hoc ones.
-- **Independently mergeable.** For each ticket ask: could one developer open a PR containing only these
-  files and have it reviewed on its own? **If not, the split is wrong — STOP and re-split before publishing.**
-- **Lane mode:** no ticket lists a spine file; every ticket lists its feature doc and tests; two tickets that
-  name the same file are either **dependants through a contract** (fine — `Depends On` says so) or a
-  **collision** (STOP: re-split, or name the shared file so Lanekeeper can declare it a `shared:` zone).
-  A horizontal milestone has its reason recorded. No `PULL_REQUEST_TEMPLATE.md` was written.
+**Load `references/verification.md` and run every check in it — over the LOCAL files, before you publish.**
+It starts with the one that matters most: **every type, route, field and event name a ticket uses must
+resolve to a real symbol** in the files `#Contracts` points at. The rest proves slicing, paths, IDs,
+dedup, the security DoD, independent mergeability and the lane rules. Nothing reaches `gh issue create`
+until it is green.
 
 **Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done".
 

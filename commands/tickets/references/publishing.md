@@ -35,7 +35,12 @@
 none of it: the Milestone column stays empty, tickets cannot be filtered by feature, and ad-hoc bugs never
 link back to the feature they belong to. On publish:
 - **Milestone** — parse `PRODUCT.md#Plan`, create each **missing** GitHub milestone (titles derived from
-  `#Plan`, never invented) and pass it on `gh issue create`.
+  `#Plan`, never invented) and pass it on `gh issue create`. **Carry the target date across:** `#Plan`
+  gives each milestone a date, `gh` takes it as `--due-date YYYY-MM-DD` (or `due_on` via the API), and
+  dropping it lands every milestone with `due_on: null` — the one field the milestone view sorts and
+  warns on, so the plan's own sequencing disappears at exactly the place a team reads it. A milestone
+  with **no** date in `#Plan` is created without one, and that is worth saying out loud rather than
+  inventing a date to fill the field.
 - **Lane label** — the ticket's `Lane` field becomes a label in the **`lane: <name>`** form required by
   `MECHANISMS.md` §Lane mode rule 4. Do not invent a second spelling; the gate depends on that one.
 - **Feature doc — reference the PATH, not a link.** `/build` writes `docs/features/<feature>.md` *after* the
