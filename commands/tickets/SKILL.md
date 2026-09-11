@@ -96,20 +96,12 @@ Write each ticket to `docs/issues/<id>_<slug>.md`, then publish the non-duplicat
 **Publishing mirrors the plan's own structure** — milestone → lane label → ticket, each created idempotently so a second `/tickets` run adds no duplicate milestone, label or issue. Procedure: `references/publishing.md` §Mirror the plan structure onto GitHub.
 
 ## Step 3B — Mode B: ad-hoc issue capture
-Triggered mid-build by `/tickets "Bug: Gemini API timeout is unhandled on slow 3G"`. **Fast path — touch nothing else.**
-1. **Classify** the text: `bug` · `edge-case` · `tech-debt` · `security`. Security items are never downgraded.
-2. **Locate the owning file** via `STRUCTURE.md` + the architecture: the example above is an LLM provider
-   concern → `src/providers/llm/geminiProvider.ts`. Confirm the path exists; if you cannot resolve one
-   confidently, say so and record the candidates rather than guessing a path into the ticket.
-3. **Write one ticket** `[ADHOC-<nn>]` into `docs/issues/` using the same template, filling: what happened ·
-   expected vs actual · reproduction or trigger condition · affected file(s) · suspected cause · a DoD that
-   includes a **regression test proving the fix**.
-4. **Publish** it as a single issue with the classification as a label, subject to the same dedup and remote
-   guards from Step 2, **plus a real parent reference**: resolve the parent ticket's *issue number* from the
-   dedup index already fetched in Step 2 and write `#N`, so GitHub renders the bidirectional timeline link.
-   **A parent with no published issue degrades to the plain ID with the reason stated — never a guessed
-   number**, which would link the bug to an unrelated issue.
-5. **Do not** read `#Plan`, regenerate, renumber or modify any milestone ticket. One invocation, one issue.
+Triggered mid-build by `/tickets "Bug: Gemini API timeout is unhandled on slow 3G"`. **Fast path —
+touch nothing else, and read `references/adhoc-capture.md` before writing anything.** One invocation,
+one issue: classify (`bug`·`edge-case`·`tech-debt`·`security`, never downgraded) → locate the owning
+file from `STRUCTURE.md` → write one `[ADHOC-<nn>]` ticket into `docs/issues/` → publish it under the
+Step 2 dedup + remote guards with a real parent `#N`. **Never** read `#Plan`, regenerate, renumber or
+touch a milestone ticket.
 
 ## Step 3b — Principle-gate: verify the tickets hold (evidence)
 Walk the principles and prove each against the files just written — do not assert it:
@@ -135,7 +127,7 @@ Walk the principles and prove each against the files just written — do not ass
   **collision** (STOP: re-split, or name the shared file so Lanekeeper can declare it a `shared:` zone).
   A horizontal milestone has its reason recorded. No `PULL_REQUEST_TEMPLATE.md` was written.
 
-**Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and end with a suggested one-line commit message in the repo's convention. Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal.
+**Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done".
 
 ## Step 3c — Contradiction check (before the gate closes)
 Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Plan` milestones, `#Scope` non-goals and `#Contracts` types — a ticket that builds a non-goal, or names a type the contracts don't define. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.

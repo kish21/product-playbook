@@ -1,0 +1,122 @@
+# MECHANISMS-ON-DEMAND.md — the mechanism you open only when its trigger fires
+
+> Companion to `MECHANISMS.md`. Everything in that file is read by **every** phase, every run, so its
+> size is the per-session attention cost of the whole system. The mechanism below is **situational** —
+> each section states the condition that makes it apply, and outside that condition it is dead weight in
+> the context window. `MECHANISMS.md` keeps the trigger and the default inline and points here for the
+> rest; this file installs alongside it, so the pointer resolves for an installed user too.
+
+## §Spine resolution (full) — brownfield and code-only projects
+
+
+**Trigger:** the project has **no `PRODUCT.md`**. With one, it *is* the spine and nothing here applies —
+that default is stated inline in `MECHANISMS.md` §Spine resolution.
+
+**2. No `PRODUCT.md`, but the project has docs** → resolve the spine from the project's own docs, in
+order: `CLAUDE.md` → `README.md` → `docs/` → `AGENTS.md`. Map sections *loosely* (Vision ≈ the "what/why";
+Scope/Non-goals ≈ an out-of-scope / "not doing" list; Build log ≈ a build-state / `CHANGELOG`). **State
+which file you resolved as the spine.** Never fabricate a section that isn't there.
+
+**3. Code only, no spine doc at all** → infer a **low-confidence** picture from the code + package
+metadata (`package.json`, `pyproject.toml`, manifest, entry points, routes). **Label it "INFERRED"** and
+say plainly what *cannot* be judged without recorded intent (e.g. true scope/vision drift). **Never grade
+against a self-guessed baseline** (no-assumptions / honesty). Recommend bootstrapping a real spine —
+**`/adopt`** is the direct route (it drafts the spine from this same evidence and has the owner confirm
+it); `/vision`+`/scope` suits a project that is really starting over.
+
+**Writing a section without a `PRODUCT.md`:** a skill that *writes* degrades gracefully — prefer reporting
+to the user (and offering to create/append a spine) over forcing a `PRODUCT.md` the project never opted
+into. A skill that *creates* `PRODUCT.md` by design (e.g. `/vision`) keeps doing so.
+
+## §Lane mode (full) — the four rules
+
+
+**Trigger:** the project has `.lanekeeper/config.yaml` or a root `lanes.yaml` (the policy), or the current
+worktree has a `.lane` file (this session IS one agent's seat). Outside lane mode **nothing here applies**
+and every skill behaves as before. The companion tool is
+[Lanekeeper](https://github.com/kish21/parallel-agents): *product-playbook writes the work down;
+Lanekeeper divides it up and gates every PR to its lane.*
+
+1. **The ticket's file list IS the lane.** Lanekeeper reads the `Target Files` / `Allowed File Paths`
+   section of the issue as the boundary, and a `Lane` heading as the feature name. A ticket with no files
+   has no safety guarantee; a ticket that lists a *folder* has a boundary too wide to protect anyone.
+   Exact paths, always — and the paths a ticket names must include **everything the build will write**,
+   feature doc included.
+2. **A lane is a feature slice, never a technology layer.** Vertical tickets are lanes by construction. A
+   horizontal (per-layer) ticket turns one feature into N lanes and makes every change a collision — in
+   lane mode the default is vertical, and horizontal needs a recorded reason.
+3. **The spine is a shared file — it gets ONE writer.** `PRODUCT.md`, `CHANGELOG.md`, `STRUCTURE.md` and
+   the policy files sit outside every lane; a lane PR that touches them fails the gate (or merge-conflicts
+   with every other lane). Inside a lane, a skill writes only lane-owned files
+   (`docs/features/<feature>.md`); the spine rows are **reconciled by the integrating session** on the
+   base branch (`/dev-check` for the Build log, `/ship` for the Ship log + CHANGELOG). The alternative — a
+   declared `shared:` zone for the spine with `merge=union` — is the user's explicit choice, never a
+   default.
+4. **The PR carries its lane — and so does the issue.** The label form is **`lane: <name>`, with a
+   space**, on **both** the issue (`/tickets` applies it at publish) and the PR. One spelling, stated
+   here, because Lanekeeper's gate fails closed without exactly one label: a second spelling (`lane:auth`)
+   would split filtering in half. Every lane PR is labelled `lane: <name>` and passes `lanekeeper check`
+   before it is opened. Lanekeeper owns the **PR template** and the gate workflow; product-playbook owns
+   the **issue template**. Neither overwrites the other's file.
+
+## §Re-run semantics (full) — a second run must not erase the first
+
+
+**Trigger:** the section this phase writes is **not empty** — a pivot, a changed constraint, a redo.
+
+Re-running a phase is not an edge case: a pivot, a changed constraint, or simply a redo. What gets lost is
+the most expensive thing in the section to reconstruct — **why the other option was rejected.**
+
+- **A run over a *non-empty* section shows what is about to change and asks before replacing it.** Never a
+  silent overwrite. A first run over an empty section is unchanged — no extra prompting.
+- **A reversed decision is dated, not erased.** The superseded ADR / scope item / metric stays, with a
+  `superseded <date>: <why>` line beside it — the same record Step 3c writes, and what makes a reversal
+  auditable instead of invisible.
+- **A recommendation reversed *inside* one run is recorded too.** Where a skill recommends an option and
+  the user picks another — the cheap trigger is *the answer is not the option marked (Recommended)* — the
+  run writes one line into the section it is filling: `chose <X> over the recommended <Y> (<date>): <the
+  user's reason>`. A confirm-and-iterate phase reverses within a run as its normal mode, and an argument
+  made once in chat is gone by the next session.
+- **Log-shaped sections keep appending** — `#Validation`, `#Build log`, `#Drift log`, `#Ship log`,
+  `#Learnings`. `/validate`'s "append a new dated entry, never overwrite" is the general case.
+- **A true restart may replace wholesale** — but only as an explicit, recorded choice.
+
+## §Declined runs (full) — a phase that stops still leaves a trace
+
+
+**Trigger:** this phase is **stopping without filling its section** — an unmet prior gate, or a
+deliberate skip / bypass.
+
+§Re-run semantics governs a phase *rewriting* its section. This governs a phase **declining to write
+one**. A skill that correctly stops at an unmet prior gate leaves the repo byte-identical — so *"I ran
+`/eval` and it correctly declined"* is indistinguishable from *"I never ran `/eval`"*, and `/playbook`,
+which orients purely by which sections are filled, keeps proposing the phase with no memory of the stop.
+
+**A phase that declines to run records that it declined.** One dated line at the top of its own
+section, in this form, with nothing else in the section touched:
+
+`_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._`
+
+- **The scaffold stays intact and visibly unfilled.** Blanking or half-filling the fields is the
+  §Re-run failure wearing new clothes: the note is orientation, not content.
+- **It does not count as the section being filled.** `/playbook`, `/drift-check` and the next session
+  still route to the missing phase — the note only lets them say *"attempted <date>, declined because X"*
+  instead of proposing it blind.
+- **One line, replaced on the next attempt — never appended.** An append-only log of every early
+  invocation is noise, and noise trains people to skip the line that mattered.
+- **Only a *declined* run writes it.** A phase that runs to completion writes its section normally; a
+  phase nobody invoked writes nothing. This line means exactly *"attempted, and stopped for a reason"*.
+- **Only an *unfilled* section can take it — `filled ──▶ declined` is refused** (`docs/state-model.md`
+  §2b: a phase that ran does not un-run). A stop over an **already filled** section leaves it exactly as
+  it is and says so; a filled section that needs redoing goes `filled ──▶ filled` through §Re-run
+  semantics. The Not-run line over real content would destroy the phase's output *and* route `/playbook`
+  back to a phase that is not owed.
+
+**A deliberate skip is the same rule's other shape.** Where a phase is not merely *early* but is
+**skipped on purpose** — `/validate`'s untested assumption, `/ship`'s skipped phases — or where a prior
+gate is **bypassed on unmet criteria**, the line reads `Override <date>: <reason> — bypassed <gate>`, it
+*does* count as filled, and later phases surface it every time they orient. Three things are required and
+none is optional: **which gate** was bypassed, **a reason in the user's own words** (not the agent's
+paraphrase, and not "user said continue"), and **the date**. A verbal "yes, continue" that reaches no file
+turns a gated workflow into an advisory one. Both lines are dated, both are one line, both keep the
+scaffold; they differ only in whether the phase is still owed.
