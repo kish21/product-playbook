@@ -73,6 +73,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SECTION_SIGN = "§"
+ARROW = "→"
 LINE_BUDGET = 500
 # evals/evals.json: skill-creator's schema (references/schemas.md) requires id + prompt +
 # expected_output; `files` (input fixtures) and `expectations` (individually gradeable statements)
@@ -188,6 +189,8 @@ def main() -> int:
     check_states_are_implemented(files)
     # 19. §Commit the work checks THIS project's repo, not any ancestor's
     check_commit_repo_root()
+    # 20. every exit criterion cites a spine field that actually exists
+    check_criteria_have_a_home(files)
 
     return done(len(cmds))
 
@@ -659,6 +662,58 @@ COMMIT_ROOT_OBLIGATIONS = (
     ("STOP. Do not commit", "detecting the wrong repo and proceeding anyway is the bug, not the fix"),
     ("repository root", "a close that names only the branch lets a commit land in `~` looking normal"),
 )
+
+
+def check_criteria_have_a_home(files: dict[str, Path]) -> None:
+    """20. Every exit criterion cites the spine field that records it, and that field exists.
+
+    /vision demanded "a single sentence vision" from the first commit while templates/PRODUCT.md had no
+    field for it, Step 2 never asked and Step 3 never wrote it - three months of runs skipped it and the
+    principle-gate passed them, because Step 3b walks the document it just wrote rather than the
+    checklist (#188, #192). A run cannot notice a question it was never handed a box for.
+
+    Two cheaper designs were measured and rejected. Token overlap between a criterion and its section's
+    field labels flags 39 criteria that are correct today. Auto-mapping by best overlap proposes wrong
+    fields - "a real request succeeded against the deployed URL" maps to `Rollback path`. So the link is
+    DECLARED, not inferred: a criterion ends with an arrow and one or more backticked field labels, and
+    every label must occur verbatim in the template - which is exactly what the missing one did not.
+
+    CRITERIA_CITED is the migrated set, not the whole repo: the other 12 section-writing skills carry 87
+    criteria needing a human decision each, and a wrong citation is worse than an absent one because it
+    reads as verified. Tracked in #192; each skill joins the set as it is migrated.
+    """
+    tpl = (ROOT / "templates" / "PRODUCT.md").read_text(encoding="utf-8")
+    for name in sorted(CRITERIA_CITED):
+        if name not in files:
+            fail(f"CRITERIA_CITED names {name!r}, which is not a skill")
+            continue
+        text = files[name].read_text(encoding="utf-8")
+        if "**Exit criteria:**" not in text:
+            fail(f"{name} is in CRITERIA_CITED but declares no exit criteria")
+            continue
+        block = text.split("**Exit criteria:**", 1)[1].split("\n## ", 1)[0]
+        for line in block.splitlines():
+            s = line.strip()
+            if not s.startswith("- [ ]"):
+                continue
+            crit = s[5:].strip()
+            if ARROW not in crit:
+                fail(f"{name}: exit criterion cites no spine field - {crit[:70]!r} - a criterion with "
+                     f"nowhere to be written is skipped silently while the gate still passes")
+                continue
+            cited = re.findall(r"`([^`]+)`", crit.rsplit(ARROW, 1)[1])
+            if not cited:
+                fail(f"{name}: exit criterion has a citation arrow but names no field - {crit[:70]!r}")
+                continue
+            for label in cited:
+                if label not in tpl:
+                    fail(f"{name}: exit criterion cites {label!r}, which templates/PRODUCT.md does not "
+                         f"contain - the criterion has nowhere to be recorded")
+
+
+# Skills whose exit criteria have been migrated to cite their spine field (#192). Grows one skill at a
+# time; each migration is a human decision per criterion, so the set is explicit rather than inferred.
+CRITERIA_CITED = {"vision"}
 
 
 def check_skill_count(n: int, files: dict[str, Path]) -> None:

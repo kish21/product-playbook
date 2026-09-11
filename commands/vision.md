@@ -22,13 +22,13 @@ description: >
 - **Gate type:** `input` — who it is for, the job, the north star - the answers exist only in the user's head. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Vision` · `declined` ✓ · `override` n/a — `/vision` opens the chain; there is no prior section to bypass · `superseded` ✓
 - **Exit criteria:**
-  - [ ] A single sentence vision (the world this product creates).
-  - [ ] Named target user + the concrete problem they have, and **why now**.
-  - [ ] A value proposition stating how this is better/different.
-  - [ ] A current-year market/competitor read with at least one sharpening insight.
-  - [ ] A **north-star metric with all five parts** — a **target number + date**, **2–3 input metrics**, **1 guardrail**, and an **instrumentation line**. A direction ("more people tracking subscriptions") is a slogan, not a metric, and **fails this gate**: `/eval` would have nothing to measure against.
-  - [ ] The **job-to-be-done**, the **riskiest assumption**, and the **business model** (free/paid/internal) captured.
-  - [ ] Recorded whether this is an **AI product** (uses LLMs) — flags the AI-security layer downstream.
+  - [ ] A single sentence vision (the world this product creates). → `Vision (ONE sentence`
+  - [ ] Named target user + the concrete problem they have, and **why now**. → `Who it's for` · `Problem (why now)`
+  - [ ] A value proposition stating how this is better/different. → `Value proposition`
+  - [ ] A current-year market/competitor read with at least one sharpening insight. → `Current-year market`
+  - [ ] A **north-star metric with all five parts** — a **target number + date**, **2–3 input metrics**, **1 guardrail**, and an **instrumentation line**. A direction ("more people tracking subscriptions") is a slogan, not a metric, and **fails this gate**: `/eval` would have nothing to measure against. → `North star`
+  - [ ] The **job-to-be-done**, the **riskiest assumption**, and the **business model** (free/paid/internal) captured. → `Job-to-be-done` · `Riskiest assumption` · `Business model`
+  - [ ] Recorded whether this is an **AI product** (uses LLMs) — flags the AI-security layer downstream. → `AI product?`
 
 ## Step 0 — Context + prior-gate check
 - If `PRODUCT.md` exists, read `#Vision`; you are refining, not overwriting blindly.
