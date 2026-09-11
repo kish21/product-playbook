@@ -22,8 +22,8 @@ description: >
 - **Gate type:** `verification` — review, security and doc gates pass or they do not. Batchable, and **stops on red** - a failing check ends the batch there. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Ship log` · `declined` ✓ · `override` ✓ · `superseded` n/a — append-only log: one entry per release
 - **Exit criteria:**
-  - [ ] **Deep review** done (`/code-review`) — findings traced to real callers/cross-file impact, not a skim.
-  - [ ] **Security review** on auth/data changes (`/security-review`); for AI, the OWASP LLM Top 10 checklist (esp. prompt injection).
+  - [ ] **Deep review** done (`/code-review`, or the equivalent your harness has) — findings traced to real callers/cross-file impact, not a skim.
+  - [ ] **Security review** on auth/data changes (`/security-review`, or equivalent — and say which); for AI, the OWASP LLM Top 10 checklist (esp. prompt injection).
   - [ ] **Docs reconciled to reality** — every **capability and security claim** in `PRODUCT.md`, `docs/features/*` and the README checked against the code that backs it. A claim with no implementation is the finding; delete it or build it.
   - [ ] **Confidence score (0–100%)** reported (solid / risky-untested / to-raise-it).
   - [ ] PR opened with **`Closes #N`** in the body where a tracked issue exists; a smooth **handoff** written; user told to start a fresh session.
@@ -53,9 +53,9 @@ description: >
 - **One subtask per session:** ship this, then hand off — don't roll into the next subtask. This is also the **cost lever**: agent-session cost grows ~quadratically with length (every API call re-reads the full history), so a fresh session after the PR is materially cheaper than continuing — measured on a shipped project (97% of a month's token spend was cache re-reads from overlong sessions), not a vibe.
 
 ## Step 2 — Ship
-1. **Deep review:** compose **`/code-review`**; fix real findings; verify each against the code before acting.
+1. **Deep review:** run **`/code-review`** *if available* — otherwise your default code-reviewer agent / review mode, inspecting the diff against `PRINCIPLES.md`. **NEVER skip the review.** Fix real findings; verify each against the code before acting.
    - **Then review AGAIN — the fixes are new code, and nothing has reviewed them.** A round of fixes edits the same files under time pressure with the finding, not the design, in view; re-running the review is the only thing that looks at what the fixing produced (case file: The second review round).
-2. **Security:** compose **`/security-review`** on auth/data; for AI, run the OWASP LLM Top 10 / prompt-injection checklist.
+2. **Security:** run **`/security-review`** *if available* on auth/data — otherwise your default security-audit pass over auth, capability tokens and data paths against `PRINCIPLES.md`'s production safeguards. For AI, run the OWASP LLM Top 10 / prompt-injection checklist.
 3. **Reconcile docs:** walk every **capability / security / “supported” claim** in `PRODUCT.md`, `docs/features/*` and the README and find the code that backs it — grep the concrete nouns (paths, flags, model names, field names), don't re-read the prose. Update whichever side is wrong. **Gate the PR on this:** a doc that overstates the product is a false security claim, not a typo.
 4. **Rollout safety:** state the **rollback path** (revert PR / migration-down / flag-off); put risky/irreversible changes behind a **flag or staged rollout**; name the **post-deploy signal to watch** (the bridge to `/learn`); bump **semver** where versioned.
    - **Post-deploy live verification must never mutate a record sitting in a human's review/approval state — dry-run the same code path on the real data with persistence off.** A no-persist harness proves the deployed logic on production inputs while the human's pending decision stays untouched (case file: Dry-run live verify).

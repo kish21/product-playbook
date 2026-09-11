@@ -60,7 +60,7 @@ description: >
 Fill `#Dev-complete`: tick each box **only with evidence**; list any failing item explicitly.
 
 ## Step 3b — Principle-gate: phase-level verification (evidence)
-Beyond ticking the per-feature boxes, do a phase-level check: compose a holistic **`/security-review`**
+Beyond ticking the per-feature boxes, do a phase-level check: a holistic **`/security-review`** (or equivalent)
 across the auth/data surface and confirm CI (the auto-layer) is green. Then **report a phase Confidence
 Score (0–100%)** with one line each on solid / risky-untested / to-raise-it (per `PRINCIPLES.md`).
 **If any box can't be ticked with evidence, the gate FAILS — STOP and report exactly what's missing;

@@ -70,7 +70,7 @@ description: >
 4. **Run + verify the LIVE path** — compose `/run` to exercise the path the product actually runs, **then check the observable result yourself** (the response, the row, the rendered page — not the exit code), then **trace your change to its real callers** (green unit tests ≠ wired in).
    - **Walk `references/live-path-checks.md`** — the checks that separate *the code exists* from *the product runs it*: production entrypoint, criterion altitude, delete-the-wire, validator placement, round-trip, third-party fixtures, browser-journey traps. Each one came from a live path that tested green and was dead.
 5. **Review the diff** — compose `/code-review`; fix findings (watch for "works in tests, dead in the real path").
-   - ⚠️ **`/code-review` is USER-INVOCABLE ONLY in some harnesses — if you cannot invoke it, ASK the user to run it, or do the deep pass by hand and say which you did.** A composed command that silently no-ops is a SKIPPED GATE that still gets reported as run. (A by-hand pass is worth the time: one such pass found three real defects.)
+   - ⚠️ **If you cannot invoke it, ASK the user to run it, or do the deep pass by hand and say which you did** — see `PRINCIPLES.md`, *Composed skills*. (A by-hand pass is worth the time: one such pass found three real defects.)
 6. **Document** — write/update `docs/features/<feature>.md`; reconcile it with the code.
 
 ## Step 3 — Write back to `PRODUCT.md`
@@ -83,7 +83,7 @@ lifts every un-reconciled row into `#Build log`. One writer for the spine; no la
 
 ## Step 3b — Principle-gate: verify each principle is ACTUALLY implemented (not just claimed)
 Walk **this phase's load-bearing principles (Step 1)** and confirm each is real in the code, **with evidence** — composing the existing checkers, not eyeballing:
-- security-in-DoD → **`/security-review`** passed.
+- security-in-DoD → **`/security-review`** (or the equivalent pass) passed — name which.
 - no secret in code / no-hardcoding → secret-scan clean.
 - live-path-works → **`/run`** exercised the real path **and the observable result was checked** — name the command **and what you saw**. An exit code is not the observable result.
 - reuse · no-swallowed-errors · single-responsibility → confirmed in the diff's **`/code-review`**.

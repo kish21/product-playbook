@@ -28,7 +28,7 @@ The guarantee is deliberately narrow: **a process that cannot silently skip a ch
 
 **Who it is for:** a technical builder shipping with AI coding agents — a solo founder, or an engineer anywhere from first job to staff — with no PM, designer, QA, security engineer or release manager beside them. Claude Code is the runtime; the same gap exists in Cursor or Copilot. ([the full audience note, and who it is *not* for →](VISION.md))
 
-**Requirements:** Claude Code (≥ 2.0.70 for the plugin route). **Nothing else to install** — every phase skill ships here, and the only skills composed from outside are Claude Code's own built-ins (`/code-review`, `/security-review`, `/run`, `/loop`, `/schedule`). If your version or harness names one differently, **any equivalent satisfies it** — do the same work and record which you used in the phase's evidence line. Language- and framework-agnostic — it drives your process, not your stack.
+**Requirements:** Claude Code (≥ 2.0.70 for the plugin route). **Nothing else to install** — every phase skill ships here, and the only skills composed from outside are Claude Code's own built-ins (`/code-review`, `/security-review`, `/run`, `/loop`, `/schedule`). If your version or harness names one differently, **any equivalent satisfies it**: `PRINCIPLES.md` requires the same work be done by the best means available — your own reviewer agent, security pass, or a careful hand pass — and the evidence line to **say which**. A gate is never skipped for a missing command, and never silently. Language- and framework-agnostic — it drives your process, not your stack.
 
 ## ⚡ Quick start
 
