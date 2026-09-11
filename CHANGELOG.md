@@ -3,6 +3,39 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.37.0] - 2026-09-11
+
+### Fixed — **the playbook composed 6 skills that do not exist; one of them sat inside a STOP gate** (#169)
+
+Twelve external skills were composed from three sources. Six existed in no surface a user installs.
+`/verify` appeared at **8 sites** across `/build`, `/test` and `/dev-check` — including a `STOP` gate
+reading *"live-path-works -> `/verify` + `/run` exercised the real path"*. A gate that composes a
+command which silently no-ops is **a skipped gate still reported as run**. `/deep-research` was the same
+shape. Meanwhile `README.md` claimed the playbook "installs fully standalone" while four
+`product-toolkit` skills were hard dependencies. Both could not be true.
+
+The gate now names the observable instead of the tool: *"`/run` exercised the real path **and the
+observable result was checked** - name the command **and what you saw**. An exit code is not the
+observable result."*
+
+The four toolkit dependencies were **rewritten inline rather than merged**, because what the playbook
+asked of each was a fraction of the skill: `/doc-audit` (13.5 KB) was wanted for one question asked three
+times; `github-pr-flow` (23.7 KB) for ~3 KB of silent-failure knowledge — a merge closes no issue unless
+`Closes #N` is in the PR **body**, now verified in the step with `gh issue view <N> --json state -q .state`.
+`/doc-create` was deleted outright: one of its three call sites composed it for **market benchmarking**,
+which it cannot do, so that composition had been silently ignored on every run since it was written.
+`/enterprise-ai-audit` stays external and is now hedged `if installed`.
+
+### Added — **composed skills are capabilities, not command names**
+
+One rule in `PRINCIPLES.md`, so this cannot recur for the five Claude Code built-ins that remain:
+every composed skill is a **capability**; if the command is unavailable, do the same work by the best
+means available and **never skip it**, then say which was done in the evidence line.
+**Degrading is fine; degrading invisibly is not.**
+
+Net: more text deleted than added (59 insertions, 45 deletions across 13 files). The dependency story is
+now one line — install product-playbook; the only external skills are Claude Code built-ins.
+
 ## [1.36.0] - 2026-09-10
 
 ### Added — **the transition guard: every phase reconciles intended against actual before it closes** (#145)
