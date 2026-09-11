@@ -34,6 +34,9 @@ is the only part the user reads:
      line, execute the command it names and check the artefact it names — `/drift-check`'s Step 0b
      §Claim-to-evidence pass, run at the transition over this phase's own claims. **No second format**:
      `docs/state-model.md` §2f's one line, here as everywhere.
+   - **An untracked command or artefact is `UNVERIFIED`, not `PASS`** (`docs/state-model.md` §2f). The
+     guard runs in the session that wrote the line, where a throwaway script still resolves; commit the
+     script, or report the criterion as judged rather than measured.
    - **Classify each with `docs/state-model.md` §2g's four verdicts** and say which. **`UNVERIFIED` never
      blocks a phase** — no evidence line, or a command that cannot run *here* (absent tooling, credentials,
      a live service), and the phase still completes. Never call that CONTRADICTED, which means a

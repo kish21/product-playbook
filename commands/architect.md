@@ -46,7 +46,15 @@ description: >
    Note whether it has a **user-facing UI** — this flags whether `/design-system` runs after `/structure`
    (UI products) or is skipped (backend/API/CLI only).
    Then name the **2–3 design patterns** that fit it and the **2–3 anti-patterns** to avoid (current-year), and how this design honours/avoids them — record the notable ones as ADRs.
-2. **Choose the stack core** (language · framework · datastore · key libs). One-line why each; flag anything paid and its trigger to adopt.
+2. **Choose the stack core** (language · framework · datastore · key libs). One-line why each; flag
+   anything paid and its trigger to adopt. **Two rules on how the rows are recorded:**
+   - **Every row carries its provenance** — `user-chosen` or `default taken, not user-chosen`. That flag
+     covered only custody · runtime · identity, so the *language* was picked silently and the owner found
+     out at the output. A default is fine; an **unvoiced** default is what nobody can decline.
+   - **A UI-tooling constraint binds the UI only.** React/shadcn decides what `frontend/` is written in and
+     says **nothing** about the server language. Letting it imply one is how a full-stack product became a
+     single TypeScript app that no later phase could question — `/structure` derives shape from this row,
+     so a collapsed row collapses the tree.
 3. **Custody + runtime target — three questions that are NOT stack trivia.** The deployment target decides
    whether a compose file is even the right artifact, whether connection strings or a local service get
    scaffolded, and it is expensive to reverse once `/structure` and `/foundation` have built on it:
@@ -63,12 +71,19 @@ description: >
 4. **List every external** and the **adapter interface** it will hide behind (e.g. `LLMProvider`, `Storage`) — *and* its **failure/resilience strategy** (timeouts · retry-transient-only · fallback/circuit-breaker). This is what keeps it swappable, testable, and resilient.
 5. **Set a rough perf/cost budget** where it matters (latency + cost-per-operation), since the stack choice locks it in — or mark **N/A**. **Derive the number from the dominant cost, don't guess it:** name the single most expensive step (a durable fsync, an LLM call, a network hop) and budget from a quick probe of *that* — or, if you can't probe now, write the budget as **explicitly aspirational** and commit to **re-measuring it in `/eval`**. A hard ADR number pulled from a hunch tends to miss by ~2× and erodes trust when `/eval` measures the truth.
 6. **Name the dev tooling** — hook runner (pre-commit · lefthook · husky) · secret scanner · task runner (`make` · npm scripts · just) · formatter/linter · dependency manifest. These look like trivia and are not: `/structure` scaffolds these files next, and an *unrecorded* slot is one it fills from habit rather than from the stack (a Python hook runner landing in a Node repo). Pick them **from the stack you just chose**, one line of why each.
-7. **If it's an AI product:** decide **prompt-versioning**, an **eval harness**, and **LLM tracing/observability** as ADRs (don't let them emerge).
+7. **If it's an AI product:** decide **prompt-versioning**, an **eval harness**, **LLM
+   tracing/observability** — and the **model runtime config**, as ADRs (don't let them emerge). The
+   runtime config is the one that was missing and the one the budget depends on: **model id · thinking /
+   reasoning effort · `max_tokens` · timeout · streaming · retry and refusal fallback · prompt caching**.
+   Current frontier models run adaptive thinking **by default** and thinking bills as output, so a budget
+   written without these is unachievable by construction — on a real run a recorded `≤$0.03/scan` was
+   ~$0.05 the moment defaults applied. **Tie the Step-5 budget to this recorded config**, so the number
+   and the settings that produce it are read together.
 8. **Record 2–4 ADRs** for the load-bearing choices (decision · why · rejected alternative).
 - Give **one recommendation** for the stack; get a yes/no. Keep it plain — explain *why* for a newcomer.
 
 ## Step 3 — Write back to `PRODUCT.md`
-Fill `#Architecture`: stack+tools+why · **data custody · runtime target · identity custody** · **dev tooling** (hook runner · secret scanner · task runner · formatter/linter · dependency manifest) · ADRs (patterns/anti-patterns) · externals behind adapters + resilience · perf/cost budget · migrations approach · (AI) prompt-versioning/eval/tracing.
+Fill `#Architecture`: stack+tools+why **with a provenance flag on every row** · **data custody · runtime target · identity custody** · (AI) **model runtime config** · **dev tooling** (hook runner · secret scanner · task runner · formatter/linter · dependency manifest) · ADRs (patterns/anti-patterns) · externals behind adapters + resilience · perf/cost budget · migrations approach · (AI) prompt-versioning/eval/tracing.
 
 ## Step 3b — Principle-gate: verify the decisions are real, not vague
 Walk this phase's load-bearing principles (Step 1) and confirm each is **concretely decided**, not hand-waved:

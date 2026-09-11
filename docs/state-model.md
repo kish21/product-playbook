@@ -134,6 +134,14 @@ in the repo, and re-verification is running the command it names.
 they are transcribed, never invented. A criterion whose evidence cannot be stated as a command someone
 else can run is not evidenced — it is asserted, and should be marked so honestly.
 
+**The command must SURVIVE the session that wrote it.** Evidence that names a throwaway script is a
+claim with a receipt that no longer exists: on a real run a phase reported *"PASS — mechanically verified
+— `verify_map.py`"*, and that file was in neither the tree nor git history. The claim happened to be
+true; the proof was gone, and the transition guard could not tell, because it runs **inside the session
+that created the temp file**, where the path still resolves. So: **a command or artefact that is not
+committed is `UNVERIFIED`, never `PASS`** — and a verification script worth citing is worth committing
+(`scripts/`), which costs one `git add` and makes every later re-run possible.
+
 **Evidence is optional; a MALFORMED evidence line is not.** A criterion with no evidence line is
 reported as `UNVERIFIED` and is a normal state — plenty of things are judged rather than measured. A
 line that *looks* like evidence but names no command or no date is worse than none, because it stops

@@ -91,41 +91,17 @@ description: >
 
 ## Step 2 — Lay the structure (pick the shape, then adapt names to the stack)
 
-### 2a — Choose the SHAPE: by concern, or by layer. State the choice.
+### 2a — The shape, in two decisions. **Open `references/choosing-the-shape.md` and follow it.**
 
-**One rule holds in both shapes and is not the question here:** dependencies point inward — routes may
-call domain logic; domain logic never imports a route or a vendor SDK.
-
-The question is **where a feature lives**. Take a real one — "how a bill is split" — and see how many
-folders it lands in. `PRINCIPLES.md` says *one module = one concern*, and in product terms a concern is
-`split`, `ocr`, `bills`. **`schemas/` is not a concern, it is a file type** — a tree of file types
-satisfies the letter of that rule while inverting it: the thing a developer actually changes is the one
-thing that is not modular.
-
-- **Domain modules — the default.** Take it when the product has **two or more concerns with their own
-  rules**, which is most products. One folder per thing the product *does*, each holding everything that
-  concern needs (its types, its persistence, its logic) and declaring what it may depend on.
-- **Layers** — take it for a genuinely single-concern service (one CRUD resource, a thin gateway, a
-  library), or where the team already works that way. Then the layer folders below are the shape.
-
-**Say which you chose and why, in one line, before you draw anything** — and record it in `STRUCTURE.md`.
-This was a silent default for every project the playbook scaffolded; a shape nobody chose is a decision
-nobody can revisit. It also sets this phase's own cost: `STRUCTURE.md` writes one rationale per folder,
-so four modules is a shorter document than thirteen layers, with no loss.
-
-```
-src/
-├── split/        # per-person totals: items + assignments + charges -> transfers. Pure. Depends on: nothing
-├── bills/        # persistence, share-slug identity, image lifecycle.        Depends on: db, storage
-├── ocr/          # image bytes -> typed ParsedBill, behind a config-selected interface. Depends on: LLM provider
-├── app/          # screens and routes — thin.                                Depends on: all of the above
-├── config/       # loader + layered config (see below)
-└── shared/       # only what two or more modules genuinely share — never a dumping ground
-```
-
-**Each module owns its own boundary types** — the typed contract in and out lives with the module, not in
-a global `schemas/`. A module's dependency line is part of its definition: write it down, and a module
-that depends on everything is a module that has not been decided yet.
+1. **The split is classified from the PRODUCT, not asked and not read off the stack.** UI *and*
+   server-side logic/data/externals → **full-stack → two folders** (a backend package and `frontend/`).
+   The stack names what is *inside* each; a UI-tooling constraint binds the UI only. **Collapsing them
+   into one app is the exception, recorded with a reason** — and if `#Architecture`'s stack implies a
+   shape that disagrees with this classification, **surface it rather than following the stack**.
+2. **Then how folders are organised: by concern (the default) or by layer.** Domain modules — one folder
+   per thing the product *does*, owning its own types, persistence and logic — unless this is a genuinely
+   single-concern service. Dependencies point inward either way. **Say which and why in one line, in
+   `STRUCTURE.md`, before drawing anything**: a shape nobody chose is a decision nobody can revisit.
 
 ### 2b — The layered shapes (when 2a chose layers)
 
