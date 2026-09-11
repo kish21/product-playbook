@@ -72,9 +72,10 @@ description: >
 
 ## Step 1 — Explain the map (once, briefly, plain language)
 Show the journey in one screen so the user has the mental model:
-`vision → validate → scope → plan` (Product) · `architect → structure → design-system* → foundation → contracts → tickets → build → dev-check` (*UI only —
+`vision → validate → scope → plan` (Product) · `architect → structure → design-system* → foundation → contracts → tickets → build → dev-check → deploy**†**` (*UI only —
 UI products also get `/new-component` to build one against `DESIGN.md` and `/frontend-audit` to check it; tools, not steps)
-(Development) · `test` · `eval` · `ship` · `learn` · `/drift-check` anytime. Note: each step asks a few
+(Development; **†** `/deploy` runs when something ahead needs a real URL — it executes the host
+`#Architecture` chose) · `test` · `eval` · `ship` · `learn` · `/drift-check` anytime. Note: each step asks a few
 questions and ends with a check before moving on — you stay in control.
 
 ## Step 2 — Run the next phase (one at a time)

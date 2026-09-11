@@ -83,6 +83,7 @@ Everything it needs ships in this one repo — no companion install.
 | 2 Dev | `/tickets` | Breaks down milestones into structured GitHub issue tickets with target file paths, modules, tasks, and DoD | docs/issues/*.md, .github/ISSUE_TEMPLATE/ |
 | 2 Dev | `/build` | Per-feature loop with security-in-DoD + per-feature doc | each feature in `#Build log` has DoD-met + how-verified + a `docs/features/*` doc; no secret in code; single-responsibility (no god-files); **lane mode:** writes only inside `ALLOW`, Build-log row goes in the feature doc, spine untouched |
 | 2 Dev | `/dev-check` | Checkpoint: verify every feature's exit criteria + security DoD | all `#Dev-complete` boxes checked, with evidence; no god-files; scans clean; **lane mode:** feature-doc Build-log rows reconciled into the spine (one writer), cross-lane seams tested on the merged base |
+| 2 Dev | `/deploy` | Execute the runtime target `#Architecture` chose: connect the repo to the host, write `docs/deployment.md` | a real request answered on the public URL (health path **and** one user path); env vars, migrations-on-deploy and the rollback path written down |
 | 3 Test | `/test` | Unit/integration/regression + adversarial (injection/authz) + golden dataset | `#Tests` shows coverage incl. live-path + security cases + a golden/eval dataset; fake keys only |
 | 4 Eval | `/eval` | Is it good? measure-first; confidence score | `#Evaluation` has measured result + confidence; operational-failures separated; cost-per-run (+ AI bias) |
 | 5 Ship | `/ship` | Deep review + security review + reconcile docs + rollout-safety + PR + handoff | `#Ship log` entry with review+security+docs-reconciled+PR + CHANGELOG + security checklist + **rollback/flag + post-deploy signal**; confidence reported; **lane mode:** `lanekeeper check` passed, `lane:` label on the PR, Ship log + CHANGELOG written on the base branch after merge |
@@ -139,4 +140,4 @@ security-in-the-build (fail-closed; OWASP LLM Top 10 for AI) · honest docs that
 measure before fixing · evidence-based "done" · generic-not-domain-specific · plain-language
 communication · `.env` is user-owned.
 
-<!-- skills: `/adopt` `/architect` `/build` `/contracts` `/design-system` `/dev-check` `/drift-check` `/eval` `/foundation` `/frontend-audit` `/learn` `/new-component` `/plan` `/playbook` `/scope` `/ship` `/structure` `/test` `/tickets` `/validate` `/vision` -->
+<!-- skills: `/adopt` `/architect` `/build` `/contracts` `/design-system` `/deploy` `/dev-check` `/drift-check` `/eval` `/foundation` `/frontend-audit` `/learn` `/new-component` `/plan` `/playbook` `/scope` `/ship` `/structure` `/test` `/tickets` `/validate` `/vision` -->

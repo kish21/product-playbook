@@ -115,6 +115,15 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - [ ] No hardcoding · prompts externalized · contracts typed · builds green
 - [ ] Scope re-check — nothing crept in
 
+## Deployment        <!-- /deploy --> (see docs/deployment.md for the full runbook)
+- **Host (copied from #Architecture, never re-decided) · category:**
+- **Live URL:**
+- **Env vars set on the host (names only — values are the user's to paste):**
+- **Migrations on deploy (the command, where it runs, what happens on failure):**
+- **Proof it answers:** `evidence: <command> -> <result> - <artefact> - <YYYY-MM-DD>`
+- **Rollback path:**
+- **Known gaps:**
+
 ## Tests             <!-- /test -->
 - **Isolated test datastore (the target the suite runs against) · bootstrap refuses dev/prod:**
 - **Unit / integration / regression coverage (critical path accounted for):**

@@ -53,7 +53,9 @@ description: >
    then check it is **REACHABLE**, which is a different question. Testable asks *could you verify it*;
    reachable asks *does anything in this plan produce what verifying it requires*. Name each
    prerequisite the criterion implies — **a deployed URL, credentials, seeded or real data, a physical
-   artefact, a second device, another person** — and point at the milestone that delivers it. Nothing
+   artefact, a second device, another person** — and point at the milestone that delivers it. **A public
+   URL is delivered by `/deploy`**, so a milestone that needs one schedules that phase rather than
+   assuming it. Nothing
    delivers it → **schedule it, or weaken the criterion.** (Real instance: M1's *"a diner opens it on a
    different phone"* needed a public URL that **no milestone scheduled**; the criterion was perfectly
    testable and unreachable for months.)
