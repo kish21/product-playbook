@@ -3,6 +3,112 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.38.0] - 2026-09-11
+
+The entire backlog from the first live end-to-end run — **24 issues across 9 PRs**, closing everything
+filed against the live test project (#149–#174) plus the size ceiling that blocked most of it. Only #125
+(the demo, which needs a real interactive session captured) stays open.
+
+### Added — **`/deploy`: the runtime target is finally EXECUTED** (#168)
+
+`/architect` decided the host and recorded it properly; `/ship`'s rollback path, post-deploy signal and
+staged rollout all **presupposed a deployed environment**; and no phase connected the repository to the
+host. Eleven phases in, with green CI and 111 passing tests, the live-test app had never been deployed
+anywhere and no document said how. Two things the spine *asserted* had nowhere to be true: migrations
+*"applied on deploy"*, and secrets living *"in the host's env"* — which the boot guard then fails closed
+on, exactly as designed, on the first deploy.
+
+The playbook is now **22 skills**. `/deploy` executes a recorded decision and never reopens it: the host
+is copied from `#Architecture`, the recipe is keyed to the runtime-target **category** (PaaS ·
+container-anywhere · VPS · the user's machine) rather than a vendor, `docs/deployment.md` carries the
+build/start commands, the env-var list **generated from `.env.example`**, how migrations run on deploy
+and the rollback path — and the gate is **a real request answered on the public URL**, never a green
+build. Secrets stay the user's to paste.
+
+### Added — **the `running` state, and the third option that makes the honest path usable** (#149)
+
+A timeboxed experiment left `#Validation` *full of text with its gate still open* — a state the model
+could not express, improvised identically in two runs. Now defined in `docs/state-model.md` with its
+transitions (`empty ──▶ running ──▶ filled`; `filled ──▶ running` illegal). The downstream half matters
+more: the menu was *wait a fortnight* or *override forever*, while the experiment ladder prices the
+serious rungs at 1–2 weeks — so **a gate whose honest path is unusable gets routed around**. **Proceed
+provisionally** is now a first-class third option: advisory for `/scope` and `/plan`, **blocking from
+`/architect` on**, and it clears when the result lands.
+
+### Added — **category J: the accessibility the audit was certifying** (#160)
+
+The 22 universal laws covered type, colour, depth, motion, tokens, tables, responsive and theming, and
+**nothing about assistive technology** — so a page whose live-updating total was inaudible to a screen
+reader scored 86 pass / 0 errors, while a milestone delegated its whole accessibility criterion to
+*"frontend-audit passes with no errors"*. **Laws 23–26** (live regions · semantics · accessible names ·
+heading order) ship with real checks in `audit.py`, and **every run now prints what it does not check** —
+keyboard traps, focus management, real screen-reader output, alt-text quality, colour-only meaning.
+
+### Fixed — **decide-but-never-execute, in four places** (#171, #166, #162, #168)
+
+The cross-cutting finding of the run, now a rule in `LESSONS.md`: *a decision nothing executes is
+deferred, not recorded.*
+
+- **#171** — `DESIGN.md` is a specification, not a stylesheet, and **no phase wrote CSS**. A component
+  referencing 14 correctly-specified tokens rendered as an unstyled browser button with typecheck, lint
+  and the audit all green; the token layer was finally written four phases later **by `/build`**, growing
+  to 94 tokens against the spec's 16. `/design-system` now emits the stylesheet the app loads,
+  `/new-component` resolves tokens against the app rather than the spec, and `/foundation` verifies the
+  import resolves at runtime.
+- **#166** — `#Contracts` *points at* the frozen schemas, and nothing said to open them: the phase found
+  a signpost where it needed a definition, **invented ten types** (including `costUsd: number` where the
+  frozen field is an integer `costMinor`) and **published 11 public issues** before its own self-check
+  caught it 22 minutes later. New `MECHANISMS.md` **§Follow the pointer**; every symbol a ticket names
+  must resolve; and **verification now happens before publishing**, because local files are the
+  reversible draft and `gh issue create` is not.
+- **#162** — five skills read the project's `CLAUDE.md`/`AGENTS.md` and `/drift-check` polices its rot;
+  **no phase ever wrote one**. `/structure` now scaffolds it from `templates/AGENTS.md` — a pointer to
+  the spine, never a copy — writing outside any tool-owned generated block.
+
+### Changed — **the prune rule now applies to the user's artefact too** (#167, #152)
+
+`references/mechanisms.md` sat at **81 bytes** of headroom, blocking the two highest-value fixes from the
+run. It is pruned to 3.1KB of headroom via a new `MECHANISMS-ON-DEMAND.md` companion that **installs**,
+and the same lever was applied to `tickets`, `design-system`, `structure`, `architect` and `foundation`
+(the last three becoming directory-form).
+
+Then the same rule reached the spine: `PRODUCT.md` was **73KB at 11/16 phases with five sections empty**,
+projecting ~125KB by M4 — 4.9× the ceiling the playbook imposes on itself. **A section is a RECORD, not a
+container:** under ~25KB total, no section over ~5KB, detail in companions. `/architect` now writes real
+**`docs/adr/NNNN-*.md` files** (the spine cited `ADR-1…ADR-5` eighteen times with no `docs/adr/`
+anywhere), `/foundation` writes `docs/runbook.md`, `/contracts` keeps the record and the paths.
+`/drift-check` reports a spine over the ceiling as a prune signal.
+
+### Changed — **reviews are evidence with a scope** (#173)
+
+One feature composed a deep review **up to six times** between `/build` and `/ship`, with no phase aware
+of the others — while both files state a cost rule citing a measured 97% cache bill. `/ship` now reads
+`#Build log` first: unchanged → cite and skip · changed → re-run and name what changed · none → run it.
+`/build` records the reviewed **commit**, which is what makes that mechanical. `/ship`'s second round
+stays, with a clause defending itself: its scope is *the fixes*, which no review has seen.
+
+### Changed — every run now commits, and closes in plain language (#150, #151)
+
+`MECHANISMS.md` only ever said *suggest* a commit message, so three phases behaved three ways and a real
+project sat at **zero commits after two full phases**. New **§Commit the work** (check the repo, name the
+branch, **offer and do it on a yes**, push only if asked) and **§Plain-language close** — *what just
+happened* with no playbook dialect, then a numbered ***what YOU do next***, which is the only defined
+place for real-world homework. Both are enforced by **check 17** in the gate-closing region, because two
+rules that already existed and were executed nowhere is exactly how this failure happened.
+
+### Also fixed
+
+- **#172** — all three structure shapes were layered; domain modules are now the **default**, chosen from
+  the product and recorded. **#155** — the split is classified from the product, and a UI-tooling
+  constraint no longer picks the backend language. **#174** — the map↔tree gate is a committed script.
+- **#153** — exit criteria are checked for **reachable**, not only testable. **#156** — an untracked
+  command is `UNVERIFIED`, never `PASS`. **#154** — AI products record the **model runtime config** the
+  cost budget depends on. **#161** — a test-datastore recipe per custody, never a vendor list.
+- **#163/#165** — evidence milestones leave a trace; milestone due dates survive publishing.
+  **#157/#158/#159/#164** — all 13 archetypes are named, sample logic is marked illustrative, a
+  within-run reversal is recorded, and open decisions are carried forward.
+- **check 18** — every state `docs/state-model.md` defines must be implemented by some skill.
+
 ## [1.37.0] - 2026-09-11
 
 ### Fixed — **the playbook composed 6 skills that do not exist; one of them sat inside a STOP gate** (#169)
