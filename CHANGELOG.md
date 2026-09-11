@@ -3,6 +3,33 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.39.0] - 2026-09-11
+
+### Added — every exit criterion cites the spine field that records it (#192, #194)
+
+`/vision` demanded *"a single sentence vision"* from the first commit with no template field to write it
+in. Three months of runs skipped it and the principle-gate passed them, because Step 3b walks the document
+it just wrote rather than the checklist. #188 fixed the instance; 1.38.3 closed the class for `/vision`
+alone. **This release completes it: all 87 criteria across all 12 section-writing skills now cite the
+field that records them, and check 20 enforces it repo-wide.**
+
+- scope 5 · contracts 5 · drift-check 5 · dev-check 6 · plan 8 · validate 8 · deploy 7 · eval 7 ·
+  test 9 · ship 11 · learn 9 · vision 7
+- **every field chosen by hand** — auto-mapping was measured and proposes wrong fields
+  (*"a real request succeeded against the deployed URL"* → `Rollback path`), and a wrong citation is worse
+  than an absent one because it reads as verified
+- `criteria_of()` reads a criterion as a whole, since most wrap across lines
+- table/checklist sections (`#Ship log`, `#Drift log`, `#Dev-complete`) cite the column or checklist item
+  that holds the answer — the question is "does this have a home", and a column is one
+- `adopt` and `new-component` excluded: neither writes a spine section
+
+`ship.md` crossed the 15KB ceiling once cited. Resolved per `PRINCIPLES.md` §Lesson format rather than by
+exempting the file — its inline war story moved verbatim into `references/case-files-ship.md` behind a
+pointer, leaving the rule itself untouched.
+
+Proven to fail before it passes: stripping a citation, deleting a cited field from the template, and
+stripping one from a *wrapped* criterion each turn the check red.
+
 ## [1.38.3] - 2026-09-11
 
 ### Added — exit criteria cite the spine field that records them (#192, #193)
