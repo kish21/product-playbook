@@ -3,6 +3,30 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.38.3] - 2026-09-11
+
+### Added — exit criteria cite the spine field that records them (#192, #193)
+
+#188 fixed the instance: `/vision` demanded *"a single sentence vision"* from the first commit with no
+template field to write it in. Nothing closed the class — `tools/check.py` had 19 checks and none
+compared a skill's exit criteria to the fields its section offers.
+
+Two cheaper designs were **measured and rejected**: token overlap between a criterion and its section's
+field labels flags 39 criteria that are correct today, and auto-mapping by best overlap proposes wrong
+fields (*"a real request succeeded against the deployed URL"* → `Rollback path`). A wrong citation is
+worse than an absent one because it reads as verified.
+
+So the link is **declared, not inferred**: a criterion ends with an arrow and one or more backticked
+field labels, each of which must occur verbatim in `templates/PRODUCT.md`.
+
+- `/vision`'s 7 criteria migrated, each field chosen by hand
+- **check 20** enforces citation + existence for skills in `CRITERIA_CITED`
+- proven to fail before it passes: stripping a citation, misspelling one, and deleting the vision field
+  from the template (the original bug) each turn it red
+
+**Scope:** `CRITERIA_CITED = {"vision"}`. The other 12 section-writing skills carry 87 criteria needing a
+human decision each and are **not** covered — rollout tracked in #194.
+
 ## [1.38.2] - 2026-09-11
 
 ### Fixed — a phase could commit into the user's home directory (#187, #190)
