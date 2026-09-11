@@ -56,10 +56,25 @@ is the only part the user reads:
 A phase that only *suggests* a commit message leaves its own output uncommitted, and says nothing at all
 when there is no repository to commit to. Every phase that writes ends with these four, in order:
 
-1. **Check the repo exists.** No `.git` → say so and offer `git init` once. **Never create a remote**, and
-   never push to one the user has not named.
-2. **Name the branch you are on.** A phase writing straight to `main`/`master` says so and offers a branch;
-   the user may decline, and that is their call to make knowingly.
+1. **Check the repo is THIS project's — not merely that a repo exists.** Run `git rev-parse
+   --show-toplevel` and compare it to the project directory. Git resolves *upward*, so in a project
+   whose folder has no repo of its own the answer is some parent — an accidentally `git init`-ed home
+   directory answers for every folder beneath it, and a check that only asks "is there a repo?" passes
+   for the wrong reason, then commits `PRODUCT.md` into `~` alongside Desktop, dotfiles and credentials.
+   - **Root == the project directory** → normal path, proceed.
+   - **Root is a PARENT directory** → **STOP. Do not commit.** Name both paths (`this project:
+     <dir>` · `git root: <root>`) and offer exactly two ways forward: `git init` here so the project owns
+     its own repo, or an explicit instruction from the user to commit into the outer repo. A monorepo is
+     the legitimate case and it is **the user's call, recorded once** (`Override <date>: commits into
+     <root> — <reason>` in the spine), never re-inferred by the next phase from the fact that
+     `git rev-parse` answered.
+   - **No repo anywhere** → say so and offer `git init` once.
+
+   **Never create a remote**, and never push to one the user has not named.
+2. **Name the branch AND the repository root you are on.** A phase writing straight to `main`/`master`
+   says so and offers a branch; the user may decline, and that is their call to make knowingly.
+   "committed on `main`" and "committed on `main` in `~/Downloads/Potluck`" cost the same line and only
+   one of them lets a human see a commit landing in the wrong repository.
 3. **Offer the commit, message included** — one line, in the repo's existing convention, built from the
    run's own summary (`docs: lock Scope in PRODUCT.md (core feature, deferred + triggers, non-goals)`).
    **Offer, then do it on a yes.** Suggest-and-stop is what left three phases behaving three different

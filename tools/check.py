@@ -72,6 +72,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+SECTION_SIGN = "§"
 LINE_BUDGET = 500
 # evals/evals.json: skill-creator's schema (references/schemas.md) requires id + prompt +
 # expected_output; `files` (input fixtures) and `expectations` (individually gradeable statements)
@@ -185,6 +186,8 @@ def main() -> int:
     check_transition_guard(files)
     check_close_the_loop(files)
     check_states_are_implemented(files)
+    # 19. §Commit the work checks THIS project's repo, not any ancestor's
+    check_commit_repo_root()
 
     return done(len(cmds))
 
@@ -625,6 +628,37 @@ def check_states_are_implemented(files: dict[str, Path]) -> None:
         if state not in corpus:
             fail(f"docs/state-model.md defines the `{state}` state and no skill implements it - a state "
                  f"nothing writes is a rule the product does not actually have")
+
+
+def check_commit_repo_root() -> None:
+    """19. §Commit the work compares the repo ROOT to the project, not merely that a repo exists.
+
+    Shipped in #177 as "No `.git` -> offer `git init`", which passes for the wrong reason: git resolves
+    upward, so an accidentally `git init`-ed home directory answers for every folder beneath it. Found on
+    a real machine - an empty project under a `~` repo with 126 dirty entries, where the rule would have
+    committed PRODUCT.md into the user's home directory and reported "committed on `main`", exactly what
+    a correct run reports (#187). The prose is the whole guard - nothing executes it - so the thing to
+    guarantee is that it keeps saying the load-bearing part.
+    """
+    text = (ROOT / "references" / "mechanisms.md").read_text(encoding="utf-8")
+    heading = "## " + SECTION_SIGN + "Commit the work"
+    if heading not in text:
+        fail(f"references/mechanisms.md has no {heading!r} section")
+        return
+    rest = text.split(heading, 1)[1]
+    nxt = re.search(r"^## ", rest, re.MULTILINE)
+    body = " ".join(rest[: nxt.start() if nxt else len(rest)].split())
+    for token, why in COMMIT_ROOT_OBLIGATIONS:
+        if token not in body:
+            fail(f"§Commit the work no longer states {token!r} - {why}")
+
+
+COMMIT_ROOT_OBLIGATIONS = (
+    ("git rev-parse", "without resolving the repo root the rule cannot tell THIS project's repo from a parent's"),
+    ("PARENT directory", "the parent-repo case is the defect; an unnamed case is an unhandled one"),
+    ("STOP. Do not commit", "detecting the wrong repo and proceeding anyway is the bug, not the fix"),
+    ("repository root", "a close that names only the branch lets a commit land in `~` looking normal"),
+)
 
 
 def check_skill_count(n: int, files: dict[str, Path]) -> None:
