@@ -72,5 +72,8 @@ do not hand off to Testing.** A failing checkpoint is the point of this skill.
 Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Scope`'s core list against `#Build log` — a feature marked done that scope never asked for, or a scoped feature quietly dropped. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
 
 ## Step 4 — Handoff
-"Development checkpoint passed (evidence recorded). Next run **`/test`** — unit, integration, regression,
-and adversarial/security cases on the LIVE path."
+"Development checkpoint passed (evidence recorded).
+- **Does anything ahead need the product to be REACHABLE?** A milestone criterion naming a second device,
+  a real user, or a link someone else opens needs a public URL — run **`/deploy`** first. It executes the
+  runtime target `#Architecture` already recorded; it does not re-decide the host.
+- Otherwise run **`/test`** — unit, integration, regression, and adversarial/security cases on the LIVE path."

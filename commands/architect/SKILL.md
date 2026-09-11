@@ -24,7 +24,16 @@ description: >
 - **Gate type:** `input` — since #129 the choice is made against the project's constraints - team size, operational appetite, budget, tolerable lock-in - and those live in the human. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Architecture` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria (the gate — small: is the section complete?):**
-  - [ ] `#Architecture` is complete and **traces to scope/plan** (no gold-plating): stack+tools+why **and the constraint set each choice was optimised against** (reliability · operational burden · team size · cost · compatibility · maturity · lock-in/exit cost), every external behind an adapter, key ADRs (incl. patterns applied / anti-patterns avoided), migrations approach, a **custody + runtime target** line (data custody · runtime target · identity custody — each an ADR or an explicit N/A, and a default taken without user input says so), a **Dev tooling** line naming the hook runner · secret scanner · task runner · formatter/linter · dependency manifest (the tools `/structure` will scaffold — leave one unnamed and `/structure` picks it blind), and the **decisions for the concern areas this product needs** — resilience · perf/cost budget · security/no-secret-in-code · observability, **+ (AI) prompt-versioning/eval/tracing** — each recorded or marked **N/A**.
+  - [ ] `#Architecture` is complete and **traces to scope/plan** (no gold-plating): stack+tools+why **with
+    a provenance flag on every row** and **the constraint set each choice was optimised against**
+    (reliability · operational burden · team size · cost · compatibility · maturity · lock-in/exit cost);
+    every external behind an adapter; key ADRs (patterns applied / anti-patterns avoided); the migrations
+    approach; a **custody + runtime target** line (data custody · runtime target · identity custody, each
+    an ADR or an explicit N/A); a **Dev tooling** line naming hook runner · secret scanner · task runner ·
+    formatter/linter · dependency manifest (leave one unnamed and `/structure` picks it blind); and the
+    **decisions for the concern areas this product needs** — resilience · perf/cost budget ·
+    security/no-secret-in-code · observability **+ (AI) prompt-versioning · eval · tracing · model runtime
+    config** — each recorded or marked **N/A**.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Vision/#Scope/#Plan`. If `#Scope`/`#Plan` are empty, warn and offer to run them first (allow
@@ -39,7 +48,10 @@ description: >
 
 ## Step 1 — Apply principles (this phase)
 - **Benchmark to the current year, then choose on constraints:** find what leading teams use *now* — that half is load-bearing and stops the AI reaching for a stale default. Then pick on **fit, not ideology**: reliability, operational burden, **the size of the team that has to run it**, cost, compatibility, maturity, and **lock-in (portability + exit cost)**. Open source often wins on the last one; it does not win automatically, and self-hosting infrastructure whose operating cost dwarfs the licence saving is a real failure mode for a solo builder. **Record the constraint set you optimised against** and why the winner won — one line each, in `#Architecture`, so the decision is auditable when a constraint changes.
-- **Check where approvals attach (the self-host blind spot):** for any integration gated by a third party's approval — social/platform publishing APIs, app-store distribution, payment-processor onboarding, healthcare/finance API access — ask *"does the approval attach to the developer app/account, or to the software?"* If it attaches to the app, **self-hosting OSS does not bypass it** (you still register + pass every review yourself — OSS saves code, not compliance), and vendors who rent out their approvals (aggregators) may legitimately beat both OSS and direct builds. Benchmark all three routes with time-to-first-working-result including review/audit wait, not just code effort. (Learned on a shipped video product's distribution stage: IG/TikTok/YouTube app-review wall — unapproved apps fail *silently*, e.g. YouTube force-privates uploads.)
+- **Check where approvals attach (the self-host blind spot):** where an integration is gated by a third
+  party's approval, ask *"does it attach to the app/account, or to the software?"* If it attaches to the
+  app, **self-hosting OSS does not bypass it** — OSS saves code, not compliance
+  (`references/decisions.md` §Where approvals attach).
 - **Patterns & anti-patterns awareness:** know the established design patterns for this kind of system *and* its common anti-patterns (e.g. god-objects, tight coupling to a vendor, dead config, N+1 / blocking the event loop, distributed-monolith). Apply the right patterns; consciously avoid the anti-patterns — adapted to *this* project, not cargo-culted.
 - **Provider/adapter for every external:** no vendor SDK in business logic — wrap it behind a config-selected interface so it's swappable via `.env`.
 - **No-hardcoding & typed contracts:** decisions must keep values in config and payloads typed.
@@ -58,33 +70,32 @@ description: >
      says **nothing** about the server language. Letting it imply one is how a full-stack product became a
      single TypeScript app that no later phase could question — `/structure` derives shape from this row,
      so a collapsed row collapses the tree.
-3. **Custody + runtime target — three questions that are NOT stack trivia.** The deployment target decides
-   whether a compose file is even the right artifact, whether connection strings or a local service get
-   scaffolded, and it is expensive to reverse once `/structure` and `/foundation` have built on it:
-   - **Where does the data live?** Local/self-hosted · managed-serverless · embedded. One line of trade-off
-     each, and name the **vision-driven** consideration (privacy · cost · portability · lock-in).
-   - **Where does this run?** Container-anywhere · a specific PaaS · a VPS · the user's own machine.
-     **This is what tells `/structure` and `/foundation` what to scaffold.**
-   - **Who holds identity?** Self-hosted auth vs the datastore vendor's auth + row-level security. If the
-     user already pays for a platform, the "free" self-hosted option may not be the cheaper one. Record
-     which, because the **test-isolation recipe follows from it** — `/foundation`'s
-     `references/test-datastore.md` branches on exactly this line, and a custody choice made without that
-     downstream cost in view is the one that makes the test datastore unaffordable later.
-   PRINCIPLES' *defer paid infra until a real need* biases all three toward local — a sensible default, but
-   **it must be a stated default the user can decline, not an unvoiced one.** If the user has no opinion,
-   recommend one with a reason and **record it as "default taken, not user-chosen"**. Get the same yes/no
-   the rest of the stack recommendation gets.
-4. **List every external** and the **adapter interface** it will hide behind (e.g. `LLMProvider`, `Storage`) — *and* its **failure/resilience strategy** (timeouts · retry-transient-only · fallback/circuit-breaker). This is what keeps it swappable, testable, and resilient.
-5. **Set a rough perf/cost budget** where it matters (latency + cost-per-operation), since the stack choice locks it in — or mark **N/A**. **Derive the number from the dominant cost, don't guess it:** name the single most expensive step (a durable fsync, an LLM call, a network hop) and budget from a quick probe of *that* — or, if you can't probe now, write the budget as **explicitly aspirational** and commit to **re-measuring it in `/eval`**. A hard ADR number pulled from a hunch tends to miss by ~2× and erodes trust when `/eval` measures the truth.
-6. **Name the dev tooling** — hook runner (pre-commit · lefthook · husky) · secret scanner · task runner (`make` · npm scripts · just) · formatter/linter · dependency manifest. These look like trivia and are not: `/structure` scaffolds these files next, and an *unrecorded* slot is one it fills from habit rather than from the stack (a Python hook runner landing in a Node repo). Pick them **from the stack you just chose**, one line of why each.
-7. **If it's an AI product:** decide **prompt-versioning**, an **eval harness**, **LLM
-   tracing/observability** — and the **model runtime config**, as ADRs (don't let them emerge). The
-   runtime config is the one that was missing and the one the budget depends on: **model id · thinking /
-   reasoning effort · `max_tokens` · timeout · streaming · retry and refusal fallback · prompt caching**.
-   Current frontier models run adaptive thinking **by default** and thinking bills as output, so a budget
-   written without these is unachievable by construction — on a real run a recorded `≤$0.03/scan` was
-   ~$0.05 the moment defaults applied. **Tie the Step-5 budget to this recorded config**, so the number
-   and the settings that produce it are read together.
+3. **Custody + runtime target — three questions that are NOT stack trivia.** *Where does the data live?*
+   (local/self-hosted · managed-serverless · embedded) · *Where does this run?* (container-anywhere · a
+   PaaS · a VPS · the user's machine) · *Who holds identity?* (self-hosted auth vs the vendor's auth +
+   RLS). They are expensive to reverse once `/structure` and `/foundation` have built on them, the
+   runtime target is what **`/deploy` later executes**, and the custody answer selects `/foundation`'s
+   test-datastore recipe. **Open `references/decisions.md` §Custody, runtime and identity** for the
+   trade-offs and the recorded-default rule: a default is fine, an **unvoiced** default is not.
+4. **List every external** and the **adapter interface** it hides behind (`LLMProvider`, `Storage`) — *and*
+   its **failure/resilience strategy** (timeouts · retry-transient-only · fallback/circuit-breaker). That
+   is what keeps it swappable, testable and resilient.
+5. **Set a rough perf/cost budget** where it matters (latency + cost-per-operation) — the stack choice
+   locks it in — or mark **N/A**. **Derive it from the dominant cost, don't guess:** name the single most
+   expensive step (a durable fsync, an LLM call, a network hop) and budget from a quick probe of *that*;
+   if you cannot probe now, write the budget as **explicitly aspirational** and commit to re-measuring in
+   `/eval`. A number pulled from a hunch misses by ~2× and erodes trust when `/eval` measures the truth.
+6. **Name the dev tooling** — hook runner (pre-commit · lefthook · husky) · secret scanner · task runner
+   (`make` · npm scripts · just) · formatter/linter · dependency manifest. These look like trivia and are
+   not: `/structure` scaffolds these files next, and an **unrecorded slot is one it fills from habit**
+   rather than from the stack (a Python hook runner landing in a Node repo). Pick them from the stack you
+   just chose, one line of why each.
+7. **If it's an AI product:** decide **prompt-versioning**, an **eval harness**, **LLM tracing** and the
+   **model runtime config** as ADRs — don't let them emerge. The runtime config is the one that was
+   missing and the one the budget depends on (thinking effort, `max_tokens`, timeout, streaming, retry
+   and refusal fallback, caching): frontier models run adaptive thinking **by default** and thinking
+   bills as output, so a budget written without it is unachievable by construction. **Tie the Step-5
+   budget to the recorded config** — `references/decisions.md` §AI runtime config.
 8. **Record 2–4 ADRs** for the load-bearing choices (decision · why · rejected alternative).
 - Give **one recommendation** for the stack; get a yes/no. Keep it plain — explain *why* for a newcomer.
 

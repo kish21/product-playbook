@@ -63,13 +63,13 @@
       "id": "architect",
       "category": "2-development",
       "purpose": "Decide stack + tools + key decisions (2026 OSS-first); ADRs",
-      "file": "commands/architect.md"
+      "file": "commands/architect/SKILL.md"
     },
     {
       "id": "structure",
       "category": "2-development",
       "purpose": "Clean folder layout + what each folder is for; prompts/ YAML for AI",
-      "file": "commands/structure.md"
+      "file": "commands/structure/SKILL.md"
     },
     {
       "id": "design-system",
@@ -87,7 +87,7 @@
       "id": "foundation",
       "category": "2-development",
       "purpose": "Walking skeleton that runs: config, logging, infra, tooling, CI",
-      "file": "commands/foundation.md"
+      "file": "commands/foundation/SKILL.md"
     },
     {
       "id": "contracts",
@@ -112,6 +112,12 @@
       "category": "2-development",
       "purpose": "Checkpoint tester: verify exit criteria + security DoD before testing",
       "file": "commands/dev-check.md"
+    },
+    {
+      "id": "deploy",
+      "category": "2-development",
+      "purpose": "Execute the recorded runtime target: the repo reaches a host, and docs/deployment.md says how",
+      "file": "commands/deploy.md"
     },
     {
       "id": "test",

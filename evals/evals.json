@@ -562,6 +562,20 @@
       "prompt": "development is done, close the gate — the Dev-complete criteria already carry evidence lines from last month",
       "expected_output": "Runs the transition guard at Step 3b (MECHANISMS.md §Step 3b item 4) instead of trusting the recorded lines: RE-RUNS each criterion's `evidence: <command> -> <result> · <artefact> · <date>` rather than re-reading it, and reports the criterion whose command now fails (or whose named artefact is gone) as CONTRADICTED — a measurement was taken and disagrees. A criterion with no evidence line, or one whose command cannot run here (missing tooling/credentials/service), is reported UNVERIFIED and does NOT block the phase; the two are never merged. No second evidence format is invented, and the stale line is not quietly re-dated — the gate fails on the CONTRADICTED criterion and says which command it ran to find out",
       "files": []
+    },
+    {
+      "id": "deploy-executes-the-recorded-host",
+      "skill": "deploy",
+      "prompt": "get it live so I can open it on my phone",
+      "expected_output": "Reads the runtime target from PRODUCT.md#Architecture and EXECUTES it rather than re-deciding the host, naming where the decision came from; scaffolds docs/deployment.md from templates/deployment.md with build/start commands, the env-var list GENERATED from .env.example, how migrations run on deploy, first-deploy steps, the proof-it-works command and the rollback path; never writes a secret or asks for one in chat - it names the variables and lets the user paste them into the host; and does not pass the gate on a green build, only on a real request answered by the public URL",
+      "files": []
+    },
+    {
+      "id": "deploy-refuses-to-choose-a-host",
+      "skill": "deploy",
+      "prompt": "just deploy it wherever is easiest",
+      "expected_output": "Does not pick a host: if #Architecture records a runtime target it executes that one and says so; if it records none it warns, offers /architect first and allows a RECORDED override (Override <date>: <reason> - bypassed <gate>) rather than deploying to a host nobody chose, because that is how a project acquires infrastructure it cannot justify later",
+      "files": []
     }
   ]
 }

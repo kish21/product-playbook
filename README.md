@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.37.0-blue.svg)](CHANGELOG.md)
-![Claude Code skills](https://img.shields.io/badge/Claude%20Code-21%20skills-8A2BE2.svg)
+![Claude Code skills](https://img.shields.io/badge/Claude%20Code-22%20skills-8A2BE2.svg)
 
 **AI writes code faster than anyone can reason about it. `product-playbook` puts the gates in between.**
 
@@ -120,7 +120,7 @@ To cut short the time of my next project and stay laser-focused, I needed a play
 
 > 👉 *This is the long version of the five failures at the top. Short on time? **[Go straight to the one command that starts it ->](#-quick-start)***
 
-`product-playbook` was born from my scars. It turns those lessons into a single, shared rulebook (`PRINCIPLES.md`) and maps them to **21 step-by-step commands (skills)** (18 journey phases + `/adopt` for projects that already have code + the `/frontend-audit` and `/new-component` UI-suite skills). It forces you to move one phase at a time, checking each gate against evidence in the repo before writing code — **a process that cannot silently skip a check.** What it enforces is the process; the judgment stays yours.
+`product-playbook` was born from my scars. It turns those lessons into a single, shared rulebook (`PRINCIPLES.md`) and maps them to **22 step-by-step commands (skills)** (18 journey phases + `/adopt` for projects that already have code + the `/frontend-audit` and `/new-component` UI-suite skills). It forces you to move one phase at a time, checking each gate against evidence in the repo before writing code — **a process that cannot silently skip a check.** What it enforces is the process; the judgment stays yours.
 
 </details>
 
@@ -270,6 +270,7 @@ The three-tier map is [above](#-before--after). This is the same journey at full
 | **Dev** | `/tickets` | Splits each milestone into 2-4 independently mergeable tickets — **vertical** thin end-to-end slices (each demoable on merge) or **horizontal** layer tickets — recommended per milestone and confirmed by you. Exact file paths, typed in/out, security DoD. Given a description instead, logs ONE ad-hoc bug against the owning file | `docs/issues/*` + issue/PR templates | After `/contracts`, before building; or any time you spot a bug |
 | **Dev** | `/build` | Implements feature with testable exit criteria and docs | Feature code + `docs/features/*` | Building feature-by-feature |
 | **Dev** | `/dev-check` | Verifies exit criteria and security DoD with evidence | `PRODUCT.md` -> **Dev-complete** | Prior to testing |
+| **Dev** | `/deploy` | Executes the runtime target `#Architecture` chose: the repo reaches a host, and `docs/deployment.md` says how | `docs/deployment.md` + `PRODUCT.md` -> **Deployment** | A real request answered on the public URL |
 | **Testing** | `/test` | Performs unit/integration/regression and adversarial tests | Test suites | Post-development check |
 | **Eval** | `/eval` | Measures quality and latencies against baseline | `PRODUCT.md` -> **Evaluation** | Validating performance/accuracy |
 | **Ship** | `/ship` | Does security review, doc audit, PR, and rollback plans | Release PR + CHANGELOG | Deploying to production |
@@ -322,7 +323,7 @@ builds against its tokens and `/frontend-audit` mechanically enforces them. Skip
 
 | | **A. Plugin** (recommended) | **B. Copy install** | **C. Copy install `--only`** |
 |---|---|---|---|
-| You get | all 21 skills | all 21 skills | just the skills you name |
+| You get | all 22 skills | all 22 skills | just the skills you name |
 | Best for | new to product work — take the whole guided journey | you want everything, without the plugin system | you already have a process and want a few steps of it |
 | Call a skill as | `/product-playbook:vision` | `/vision` (the bare names used throughout this README) | `/vision` |
 | Updates | Automatic, once you enable it (step 3 below) | Nothing tracks the copy — re-run the installer | Same — re-run with the same `--only` |
@@ -353,7 +354,7 @@ Context cost, from `claude plugin details`: ~3.5k tokens always-on per session; 
 | **Project-level** — teammates get it on clone | `./install.sh --project /path/to/project` then commit `<project>/.claude/` |
 | **Subset** — only the skills you name | `./install.sh --only build,ship` (remote: `curl -fsSL …/install.sh \| bash -s -- --only build,ship`) |
 
-What it puts where: the 21 skills → `~/.claude/commands/` (or `<project>/.claude/commands/`), plus the companions the skills read (`PRINCIPLES.md`, `MECHANISMS.md`, `LESSONS.md`, `VISION.md`, `PRODUCT.md` template) → `~/.claude/product-playbook/` (or `<project>/.claude/product-playbook/`).
+What it puts where: the 22 skills → `~/.claude/commands/` (or `<project>/.claude/commands/`), plus the companions the skills read (`PRINCIPLES.md`, `MECHANISMS.md`, `LESSONS.md`, `VISION.md`, `PRODUCT.md` template) → `~/.claude/product-playbook/` (or `<project>/.claude/product-playbook/`).
 
 **Updating:** re-run the exact same command. It overwrites in place. There is no version check — if you want to be told about updates, use route A.
 
@@ -370,7 +371,7 @@ Open a new Claude Code session and type `/playbook` (route A: `/product-playbook
 ### Uninstall
 
 - **A:** `/plugin uninstall product-playbook@product-playbook`, then `/plugin marketplace remove product-playbook`.
-- **B:** delete the 21 skill files/folders from `~/.claude/commands/` (or the project's) and the `product-playbook/` companions folder beside it.
+- **B:** delete the 22 skill files/folders from `~/.claude/commands/` (or the project's) and the `product-playbook/` companions folder beside it.
 
 ---
 
