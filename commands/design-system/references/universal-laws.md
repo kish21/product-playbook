@@ -34,15 +34,15 @@ recommendation that varies.** Every rule below is tagged with one of:
 - **`[PROCESS]`** — how the skill must *behave* while producing the design (it governs the run, not the
   artifact). Not something `/frontend-audit` checks on a built page.
 
-### The 22 rules, grouped by category
+### The 26 rules, grouped by category
 
-- **`[FLOOR]` (the mechanical gate):** 1 · 2 · 3 · 4 · 5 (restraint) · 7 · 9 · 10 · 11 · 13 · 14 · 15 (accessible components) · 20 (alignment) · 21 · 22
+- **`[FLOOR]` (the mechanical gate):** 1 · 2 · 3 · 4 · 5 (restraint) · 7 · 9 · 10 · 11 · 13 · 14 · 15 (accessible components) · 20 (alignment) · 21 · 22 · 23 · 24 · 25 · 26
 - **`[MEANS]` (recommendations — swap per stack/archetype):** 8 (OKLCH) · 12 (motion-library ladder) · 15 (shadcn/21st.dev)
 - **`[AESTHETIC]` (outcome + canonical example):** 6 (no default/gradient) · 20 (status = dot, not pill)
 - **`[PROCESS]` (skill behaviour, not artifact):** 16 · 17 · 18 · 19
 
 > Several rules (12, 15, 20) split across categories: a fixed **floor** + a **means/aesthetic** that
-> varies. The numbering 1–22 is kept stable because other files reference laws by number.
+> varies. The numbering is append-only — 1–22 never move, because other files reference laws by number; category J added 23–26.
 
 ---
 
@@ -268,6 +268,44 @@ recommendation that varies.** Every rule below is tagged with one of:
     states *why* and still provides a usable alternate.
     *Check:* a `.dark` (or equivalent) token block exists AND `prefers-color-scheme: dark` applies it; foreground/surface pairs pass AA in **both** modes.
 
+## J. Accessibility beyond colour (fixes "audits clean, silent to a screen reader")
+
+> Added because the first nine categories covered type, colour, depth, motion, tokens, process, tables,
+> responsive and theming — and **nothing about assistive technology**. A page whose live-updating total
+> was inaudible to a screen reader scored 86 pass / 0 errors, while a milestone delegated its whole
+> accessibility criterion to *"frontend-audit passes with no errors"*. **A check that cannot fail on what
+> it appears to certify stops anyone from looking.** Contrast (7) and focus (13) live in their own
+> categories and still count here.
+
+23. **A region that changes without a reload announces itself.** · `[FLOOR]`
+    *Why:* a sighted user sees a total change; a screen-reader user is told nothing unless the region is live.
+    *Law:* any element whose text is computed or updated in place carries `aria-live="polite"` (or
+    `role="status"`); errors and blocking failures use `aria-live="assertive"` / `role="alert"`. Announce the
+    **result**, not the keystroke — do not make a whole form live.
+    *Check:* `aria-live` or `role="status"` on the updating region. `audit.py` warns on a computed-looking
+    value with neither.
+24. **Semantic elements before ARIA.** · `[FLOOR]`
+    *Why:* a `<div onClick>` is unreachable by keyboard and unannounced; ARIA cannot add behaviour, only names
+    and roles. The first rule of ARIA is not to use it.
+    *Law:* `<button>`, `<a href>`, `<nav>`, `<main>`, `<table>`, `<label>`-bound inputs — real elements, with
+    ARIA only where no element exists. Never a clickable non-interactive element.
+    *Check:* `audit.py` errors on `<div onClick>` with no role.
+25. **Every control has an accessible name.** · `[FLOOR]`
+    *Why:* an icon-only button announces as "button", and "click here" is useless in a list-of-links view.
+    *Law:* icon-only controls carry `aria-label` or visually-hidden text; link text describes its destination;
+    every input has a bound `<label>`; every meaningful image has `alt`, decorative ones `alt=""`.
+    *Check:* `audit.py` errors on an icon-only control with no name, warns on empty link text.
+26. **The heading outline is real.** · `[FLOOR]`
+    *Why:* screen readers navigate by heading. A page starting at `<h2>`, or skipping `h2 → h4`, has an
+    outline with holes in it, and headings chosen for size are not an outline at all.
+    *Law:* one `<h1>` per page, no skipped levels, structure by meaning and size by tokens.
+    *Check:* `audit.py` warns on a first heading below `<h1>` and on any skipped level.
+
+**What this category does NOT cover, and what the audit therefore cannot certify:** keyboard traps and tab
+order, focus management across route changes, real screen-reader output, alt-text *quality*, and meaning
+carried by colour alone. Those need a human with a keyboard and a screen reader. `audit.py` prints this
+list on every run so a green result is read as a floor, never as an accessibility pass.
+
 ---
 
 ### The contract, in one line
@@ -282,7 +320,7 @@ names a specific tool or look is a recommendation, and is tagged as such.
 
 The laws that fail most often, and what "holds" means for each:
 
-**Before handing off, walk `references/universal-laws.md` and confirm all 22 hold** for the sample +
+**Before handing off, walk `references/universal-laws.md` and confirm all 26 hold** for the sample +
 `DESIGN.md` — especially: distinctive font (1), body ≥ min (3), one accent (5), AA contrast *computed* (7),
 elevation ladder not flat shadows (9), grid spacing (10), archetype layout (11), no `transition: all` +
 motion tier within the archetype ceiling + a `prefers-reduced-motion` fallback for any Tier ≥ 1 motion + the

@@ -283,6 +283,53 @@ def audit_text(path, text, findings):
         findings.append(("ERROR", "Law21-responsive", path,
                          "multi-column/grid layout with no responsive breakpoint (@media min/max-width, @container) - desktop-only"))
 
+# --- Category J - accessibility (Laws 23-26) -------------------------------
+# The 22 laws covered type, colour, depth, motion, tokens, tables, responsive and theming, and NOTHING
+# under assistive technology - so a page whose live total was silent to a screen reader scored 86 pass /
+# 0 errors, while #Plan delegated its accessibility criterion to "frontend-audit passes with no errors".
+# A check that cannot fail on what it appears to certify stops anyone from looking, which is worse than
+# no check. These four are the mechanically decidable subset; everything else stays a judgment law, and
+# the report says so rather than implying the category is covered.
+LIVE_HINT = re.compile(r"\{[^{}]*\b(?:total|sum|count|balance|owe[sd]?|remaining|status|result)\b",
+                       re.IGNORECASE)
+GENERIC_NAME = re.compile(r">\s*(?:click here|here|read more|learn more|more|\.\.\.)\s*<", re.IGNORECASE)
+
+def a11y_findings(path, text, findings):
+    if not path.lower().endswith((".html", ".htm", ".tsx", ".jsx", ".vue", ".svelte")):
+        return
+    # Law 23 - a region whose text changes without a reload must announce itself.
+    if LIVE_HINT.search(text) and "aria-live" not in text and 'role="status"' not in text:
+        findings.append(("WARN", "Law23-live-region", path,
+                         "a value that looks computed/updating, and no aria-live or role=status - a "
+                         "sighted user sees the total change and a screen-reader user hears nothing"))
+    # Law 24 - semantic elements. A clickable <div> is invisible to keyboard and AT.
+    if re.search(r"<div[^>]*\bonClick\b", text) and "role=" not in text:
+        findings.append(("ERROR", "Law24-semantics", path,
+                         "<div onClick> with no role - not focusable, not announced, not keyboard-"
+                         "operable; use <button>"))
+    # Law 25 - accessible names: an icon-only control, or link text that names nothing.
+    if re.search(r"<(?:button|a)\b[^>]*>\s*<(?:svg|img|i)\b", text) \
+            and "aria-label" not in text and "sr-only" not in text and "visually-hidden" not in text:
+        findings.append(("ERROR", "Law25-accessible-name", path,
+                         "icon-only control with no aria-label / visually-hidden text - announced as "
+                         "\"button\" with no indication of what it does"))
+    if GENERIC_NAME.search(text):
+        findings.append(("WARN", "Law25-link-text", path,
+                         "link text that names nothing (\"click here\", \"read more\") - useless in a "
+                         "screen reader's list-of-links view"))
+    # Law 26 - heading order: a document that starts at <h2>, or skips a level.
+    levels = [int(m.group(1)) for m in re.finditer(r"<h([1-6])\b", text)]
+    if levels:
+        if levels[0] != 1 and path.lower().endswith((".html", ".htm")):
+            findings.append(("WARN", "Law26-heading-order", path,
+                             f"first heading is <h{levels[0]}>, not <h1> - the page has no title in the "
+                             "heading outline AT navigates by"))
+        for a, b in zip(levels, levels[1:]):
+            if b > a + 1:
+                findings.append(("WARN", "Law26-heading-order", path,
+                                 f"heading level jumps h{a} -> h{b} - the outline has a hole in it"))
+                break
+
 def check_token_refs(defined, refs, findings):
     """Law 14b - a referenced token that nothing defines.
 
@@ -330,6 +377,7 @@ def main(argv):
         except OSError:
             continue
         audit_text(p, text, findings)
+        a11y_findings(p, text, findings)
         # Law 14b is cross-file by nature: `audit.py DESIGN.md frontend/` must resolve a component's
         # tokens against the DESIGN.md in the same run, so collect across the whole file set first.
         defined |= set(collect_tokens(text))
@@ -352,7 +400,9 @@ def main(argv):
     # Per-law roll-up (T5-4) so a clean run shows EVERY law was checked, not just contrast.
     LAWS = [("Law7", "contrast"), ("Law14", "no-raw-hex"), ("Law14b", "tokens-defined"),
             ("Law12", "motion"), ("Law1", "font"),
-            ("Law3", "type-floor"), ("Law13", "focus"), ("Law21", "responsive"), ("Law22", "theming")]
+            ("Law3", "type-floor"), ("Law13", "focus"), ("Law21", "responsive"), ("Law22", "theming"),
+            ("Law23", "live-regions"), ("Law24", "semantics"), ("Law25", "accessible-names"),
+            ("Law26", "heading-order")]
     roll = []
     for tag, name in LAWS:
         cat = [f for f in findings if f[1].startswith(tag + "-")]
@@ -361,6 +411,12 @@ def main(argv):
     print("-" * 60)
     print("  laws: " + "  ".join(roll))
     print(f"  {passes} pass | {warns} warn | {errors} error  ({len(paths)} files)")
+    # Say what this did NOT check. A green run on a page with no accessibility problems visible to a
+    # regex reads as "accessible" and stops anyone from looking - the exact failure category J was added
+    # for. Keyboard order, real AT behaviour and anything needing a rendered page stay out of reach here.
+    print("  NOT checked: keyboard traps/tab order, focus management, real screen-reader output,")
+    print("  alt-text quality, colour-only meaning, anything requiring a rendered page. Green here is")
+    print("  a floor, not an accessibility pass - a human still has to drive it with a keyboard.")
     return 1 if errors else 0
 
 if __name__ == "__main__":

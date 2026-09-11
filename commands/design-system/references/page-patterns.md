@@ -1,6 +1,6 @@
 # Page patterns — common SaaS page types → layout (2026, curated)
 
-> Loaded by `/design-system`. **ONE design system (tokens + the 22 laws) drives MANY pages — but each
+> Loaded by `/design-system`. **ONE design system (tokens + the 26 laws) drives MANY pages — but each
 > page TYPE has its own layout.** We don't build every page; we (a) infer which pages the app needs from
 > the vision/existing app, (b) build ONE representative sample, (c) record each needed page's pattern in
 > `DESIGN.md` §5 so every later build stays consistent (same tokens/fonts/laws, different layout).

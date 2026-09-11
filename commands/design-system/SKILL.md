@@ -16,7 +16,7 @@ description: >
 
 > Part of **product-playbook**. Reads the spine (`PRODUCT.md`, or the project's existing docs — resolve
 > per `MECHANISMS.md` §Spine resolution); writes `DESIGN.md` + `PRODUCT.md#Design`.
-> **Always enforces the quality floor** — load `references/universal-laws.md` (the 22 fixed UI laws) and
+> **Always enforces the quality floor** — load `references/universal-laws.md` (the 26 fixed UI laws) and
 > `PRINCIPLES.md` (*Accessibility (UI)* + 5-step spine). The look changes per product; the laws never do.
 
 > **Lens throughout: a brand-new, non-designer user.** Plain language, **decide FOR them with a clear
@@ -62,7 +62,7 @@ description: >
     is recorded in `DESIGN.md` §2. `DESIGN.md` is a specification; **a specification is not a stylesheet**,
     and a component written against tokens the app never defines renders unstyled while typecheck, lint
     and the audit all stay green.
-  - [ ] All **22 universal laws** satisfied (run the principle-gate, Step 6 self-check).
+  - [ ] All **26 universal laws** satisfied (run the principle-gate, Step 6 self-check).
 
 > **Scope of this version: greenfield core loop** — brand re-skin is in; deep token-extraction, full
 > retrofit and the gallery are follow-ups (`references/build-loop.md` §Scope of this version). An
@@ -92,9 +92,8 @@ description: >
 ## Step 1 — Design principles FIRST (think like a 2026 senior designer)
 
 Before any colour or font, reason the way an experienced designer does *today*, grounded in the
-product's **purpose + audience**. Write **4–6 short principle statements** — and for **each, show the
-*why* in plain language** (teach-mode), drawing on the real levers:
-The levers, a worked example, and what a principle looks like when it is doing work:
+product's **purpose + audience**. Write **4–6 short principle statements**, each with its
+*why* in plain language (teach-mode). The levers, a worked example, and what a principle looks like when it is doing work:
 `references/build-loop.md` §Design principles. Show them; **let the user adjust**. They constrain every
 later token, and become `DESIGN.md` §1 and `PRODUCT.md#Design`.
 
@@ -159,7 +158,7 @@ re-check before writing) are in `references/build-loop.md` §Emit `DESIGN.md`.
 
 ## Step 6 — Principle-gate self-check, then handoff
 
-**Before handing off, walk `references/universal-laws.md` and confirm all 22 hold** for the sample +
+**Before handing off, walk `references/universal-laws.md` and confirm all 26 hold** for the sample +
 `DESIGN.md` — its **§Self-check digest** names the ones that fail most often and what "holds" means for
 each. **If any law fails, STOP and fix it** — the floor is non-negotiable.
 

@@ -12,7 +12,7 @@ description: >
 # `/frontend-audit` — the UI quality gate (mechanical floor)
 
 > Part of the **product-playbook UI suite** (mastered here; see `/design-system`). `/design-system`
-> *decides* the look and writes `DESIGN.md` + the 22 universal laws; **this skill *enforces* the
+> *decides* the look and writes `DESIGN.md` + the 26 universal laws; **this skill *enforces* the
 > mechanically-checkable subset** so a guaranteed floor holds regardless of who built the screen.
 > It does **not** judge taste/archetype fit — it checks what a machine can prove.
 
@@ -41,6 +41,11 @@ python commands/frontend-audit/audit.py <file-or-dir> [more...]
 | **21 — responsive** | missing `<meta viewport>` (html) = ERROR; multi-column/grid layout with **no** `@media`/`@container`/`auto-fit`/`minmax` = ERROR (desktop-only) |
 | **22 — theming** | computes contrast in **both** `:root` (light) and `.dark`; `:root` colour tokens but no `.dark` block = WARN (single-mode); **a `.dark` block but no `prefers-color-scheme` rule that swaps tokens = WARN** (system preference ignored — manual-toggle-only) |
 
+| **23 — live regions** | a value that looks computed/updated (`total`, `count`, `balance`, `status`…) with no `aria-live` and no `role="status"` = WARN. Heuristic by nature — a regex cannot know what re-renders — so it warns rather than errors, and it is the check that would have caught a live "You owe ₹253" that was **silent to every screen reader** on a page scoring 86 pass / 0 errors |
+| **24 — semantics** | `<div onClick>` with no `role` = ERROR (not focusable, not announced, not keyboard-operable) |
+| **25 — accessible names** | icon-only `<button>`/`<a>` with no `aria-label` or visually-hidden text = ERROR; link text that names nothing ("click here", "read more") = WARN |
+| **26 — heading order** | first heading below `<h1>` (html) = WARN; a skipped level (`h2 → h4`) = WARN |
+
 Markdown is treated as spec: only its colour **tokens** are contrast-checked; code-pattern rules are
 skipped (so a `DESIGN.md` "Don't: no `transition: all`" line doesn't false-positive).
 
@@ -49,6 +54,13 @@ skipped (so a `DESIGN.md` "Don't: no `transition: all`" line doesn't false-posit
 Archetype fit, visual hierarchy, layout-matches-archetype (Law 11), "looks generic", whether the
 sample was confirmed (Law 16). Those stay with `/design-system`'s stop-and-confirm. Some laws are
 partial here (table header/cell alignment Law 20, caption tier Law 3) — flagged as v1 follow-ups.
+
+**Accessibility (category J) is a floor, never a pass.** Laws 23–26 are the mechanically decidable
+subset. **Not checked, and not checkable from source:** keyboard traps and tab order, focus management
+across route changes, real screen-reader output, alt-text *quality*, and meaning carried by colour
+alone. `audit.py` prints this list on every run, because a milestone that delegates its accessibility
+criterion to *"frontend-audit passes with no errors"* is relying on a check that cannot fail on most of
+what it appears to certify — and a check like that stops anyone from looking.
 
 ## How to use
 
