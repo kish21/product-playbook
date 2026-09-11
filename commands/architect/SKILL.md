@@ -96,11 +96,18 @@ description: >
    and refusal fallback, caching): frontier models run adaptive thinking **by default** and thinking
    bills as output, so a budget written without it is unachievable by construction. **Tie the Step-5
    budget to the recorded config** — `references/decisions.md` §AI runtime config.
-8. **Record 2–4 ADRs** for the load-bearing choices (decision · why · rejected alternative).
+8. **Record 2–4 ADRs** for the load-bearing choices — **as FILES, one per decision:
+   `docs/adr/NNNN-<slug>.md` with a `status:` line** (`accepted` / `superseded by ADR-N`), from
+   `templates/adr.md`. `#Architecture` then carries the **one-line summary and the pointer**, not the
+   paragraphs. An ADR's value is being individually addressable and individually **supersedable**; as a
+   buried paragraph it is neither, and the playbook has a `superseded` state with nothing per-decision to
+   attach it to. A real spine cited `ADR-1…ADR-5` **18 times** across four sections with no `docs/adr/`
+   anywhere — the vocabulary without the mechanism.
 - Give **one recommendation** for the stack; get a yes/no. Keep it plain — explain *why* for a newcomer.
 
 ## Step 3 — Write back to `PRODUCT.md`
-Fill `#Architecture`: stack+tools+why **with a provenance flag on every row** · **data custody · runtime target · identity custody** · (AI) **model runtime config** · **dev tooling** (hook runner · secret scanner · task runner · formatter/linter · dependency manifest) · ADRs (patterns/anti-patterns) · externals behind adapters + resilience · perf/cost budget · migrations approach · (AI) prompt-versioning/eval/tracing.
+**The section is a RECORD, not a container** (`PRINCIPLES.md`): one line per decision plus the pointer
+to `docs/adr/*`. Fill `#Architecture`: stack+tools+why **with a provenance flag on every row** · **data custody · runtime target · identity custody** · (AI) **model runtime config** · **dev tooling** (hook runner · secret scanner · task runner · formatter/linter · dependency manifest) · ADRs (patterns/anti-patterns) · externals behind adapters + resilience · perf/cost budget · migrations approach · (AI) prompt-versioning/eval/tracing.
 
 ## Step 3b — Principle-gate: verify the decisions are real, not vague
 Walk this phase's load-bearing principles (Step 1) and confirm each is **concretely decided**, not hand-waved:

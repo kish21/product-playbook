@@ -12,6 +12,14 @@ Rules:
   attempt, scaffold untouched (PRINCIPLES.md §Declined runs). An `Override <date>:` line is different —
   it is a deliberate skip, and it DOES count as filled.
 - Keep entries short and honest. Record HOW something was verified, not just "done".
+- **A section is a RECORD, not a container** (PRINCIPLES.md): summary, the decision, the evidence line,
+  and a pointer to where the detail lives — STRUCTURE.md, DESIGN.md, docs/adr/*, docs/runbook.md,
+  docs/features/*, docs/deployment.md, src/schemas/*. **Keep this file under ~25KB and no section over
+  ~5KB.** Past that a spine stops being read and starts being grepped, and a phase that greps instead of
+  reading is how a recorded decision gets missed by the one phase that needed it.
+- **A pointer is an instruction to open the file** (MECHANISMS.md §Follow the pointer). Every companion
+  is a new place a phase could find a signpost where it needed a definition — which is exactly how one
+  phase invented ten types that were already frozen in code.
 - Anything explicitly OUT OF SCOPE stays out until the recorded trigger fires.
 - Every skill, when it writes back, UPDATES the header line below — bump `Stage:` to its phase
   and set `Last updated:` to today.
@@ -61,7 +69,7 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Usability checkpoint before going public (which milestone, and its exit criterion):**
 - **Concern-area coverage (security · ai · observability · DX · testing · infra · docs · product → now/next/later/N-A + trigger):**
 
-## Architecture      <!-- /architect -->
+## Architecture      <!-- /architect --> (one line per decision; see docs/adr/* for the ADRs themselves)
 - **Stack + tools (and why, 2026 OSS-first):**
 - **Data custody (local/self-hosted · managed-serverless · embedded) + why (privacy/cost/portability/lock-in):**
 - **Runtime target (container-anywhere · PaaS · VPS · user's machine) — decides what `/structure` scaffolds:**
@@ -85,7 +93,7 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Tokens:** shadcn/ui-compatible CSS variables (OKLCH), WCAG-AA verified — see `DESIGN.md`
 - **Approved sample page (path):** · **DESIGN.md (path):**
 
-## Foundation        <!-- /foundation -->
+## Foundation        <!-- /foundation --> (the record; see docs/runbook.md for how to boot and verify it)
 - **Runs end-to-end (walking skeleton):**
 - **Config flows verified (no dead config):**
 - **Fail-loud/fail-closed guards (placeholder rejection · test-datastore refusal) · secret-scan + dependency-vuln scan · CI mirrors prod:**
@@ -94,7 +102,7 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Commit hooks + CI auto-run (lint/format/secret-scan/tests) · runs in its container · async-safe:**
 - **Observability wired (tracing / error-reporter, even a stub):**
 
-## Contracts         <!-- /contracts -->
+## Contracts         <!-- /contracts --> (the record + the paths; the types live in code, never here)
 - **Typed models / schemas / migrations:**
 - **Boundary units/scale agreed:**
 - **Contract versioning / back-compat approach:**

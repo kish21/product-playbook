@@ -17,7 +17,10 @@ description: >
 ## Contract
 - **Purpose:** lock the typed shapes (models, schemas, migrations, API/agent contracts) before logic.
 - **Reads:** `PRODUCT.md#Scope`, `#Architecture`, `#Structure`.
-- **Writes:** `PRODUCT.md#Contracts` — typed models/schemas/migrations · boundary units/scale agreed.
+- **Writes:** the schemas **in code** (`src/schemas/*`, the migrations, the route table / API spec) and
+  `PRODUCT.md#Contracts` as a **record**: what was frozen, the boundary units and scale, the evidence
+  line, and **the paths**. The section never restates the types — it points at them, and
+  `MECHANISMS.md` §Follow the pointer makes that pointer binding on every phase that reads it.
 - **Gate type:** `derivation` — computable from `#Scope` + `#Architecture`. Batchable - a `derivation` run may chain with its neighbours and end in ONE review. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Contracts` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria:**
