@@ -31,12 +31,13 @@ _Last updated: <date> · Stage: <phase> · AI product? <yes/no>_
 _Playbook: <phase order followed — or a dated override line if the canonical order was deliberately departed from>_
 
 ## Vision            <!-- /vision -->
+- **Vision (ONE sentence — the world this product creates, not what it does):**
 - **Who it's for:**
 - **Problem (why now):**
 - **Value proposition:**
-- **2026 market / competitor read (verified, not from memory):**
+- **Current-year market / competitor read (verified, not from memory):**
 - **North star — target + date (e.g. "400 accounts with 3+ subscriptions by 2027-03-31"):**
-- **North star — 2–3 input metrics (the weekly-moving numbers that drive it):**
+- **North star — 2–3 input metrics (the numbers that move between events/releases and drive it):**
 - **North star — 1 guardrail (what must NOT get worse while chasing it):**
 - **North star — instrumentation (how it gets measured; "nothing records this yet" is a finding):**
 - **Job-to-be-done (when <situation>, I want to <motivation>, so I can <outcome>):**
