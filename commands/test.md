@@ -22,20 +22,20 @@ description: >
 - **Gate type:** `verification` — pass/fail on repo evidence; no preference involved. Batchable, and **stops on red** - a failing check ends the batch there. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Tests` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria:**
-  - [ ] **Unit** tests for core logic (isolated via injection/mocks).
-  - [ ] **Integration** tests across real contracts/boundaries (not all mocked).
-  - [ ] **The suite can name its isolated target, and the bootstrap enforces it.** Real boundaries plus a teardown hook is a destructive combination: an integration suite pointed at the development datastore will truncate it. The target is the disposable one `/foundation` provisioned (or per-test transaction rollback), and the bootstrap **refuses to run** against the dev or production target — a suite that cannot name its isolated target **does not pass this gate**.
-  - [ ] **Live-path check:** the path the product actually runs is exercised end-to-end (not just isolated units).
-  - [ ] **Adversarial/security** cases: authz/tenant-isolation; for AI, prompt-injection & jailbreak (OWASP LLM Top 10).
+  - [ ] **Unit** tests for core logic (isolated via injection/mocks). → `Unit / integration / regression coverage`
+  - [ ] **Integration** tests across real contracts/boundaries (not all mocked). → `Unit / integration / regression coverage`
+  - [ ] **The suite can name its isolated target, and the bootstrap enforces it.** Real boundaries plus a teardown hook is a destructive combination: an integration suite pointed at the development datastore will truncate it. The target is the disposable one `/foundation` provisioned (or per-test transaction rollback), and the bootstrap **refuses to run** against the dev or production target — a suite that cannot name its isolated target **does not pass this gate**. → `Isolated test datastore`
+  - [ ] **Live-path check:** the path the product actually runs is exercised end-to-end (not just isolated units). → `Live-path verified`
+  - [ ] **Adversarial/security** cases: authz/tenant-isolation; for AI, prompt-injection & jailbreak (OWASP LLM Top 10). → `Adversarial/security`
   - [ ] **Real-user-environment** cases (products with a browser UI) — the environments a clean headless run
     never reproduces: **third-party DOM injection** (password managers, autofill, translation and
     accessibility extensions mutating the DOM before/during hydration) · **locale, timezone and date
     formatting** · **reduced motion, forced colours, zoom, small viewports** · **throttled network and a cold
     cache**. At minimum, one executable check that **first interactive paint survives injected DOM on an
-    auth/form surface**, run against a profile that is not pristine.
-  - [ ] A regression case for any bug fixed.
-  - [ ] A **golden / eval dataset** for quality-critical or AI behaviour (known inputs → expected outputs), so quality is measurable and regressions are caught.
-  - [ ] Tests use **fake placeholder keys**, never real secrets.
+    auth/form surface**, run against a profile that is not pristine. → `Real-user-environment`
+  - [ ] A regression case for any bug fixed. → `Unit / integration / regression coverage`
+  - [ ] A **golden / eval dataset** for quality-critical or AI behaviour (known inputs → expected outputs), so quality is measurable and regressions are caught. → `Golden/eval dataset location`
+  - [ ] Tests use **fake placeholder keys**, never real secrets. → `Isolated test datastore`
 
 ## Step 0 — Context + prior-gate check
 - Read `#Dev-complete`. If the dev checkpoint hasn't passed, warn ("development isn't verified complete")

@@ -21,15 +21,15 @@ description: >
 - **Gate type:** `input` — the metric is evidence, but iterate-or-kill is the user's call and is the phase's output. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Learnings` · `declined` ✓ · `override` ✓ · `superseded` n/a — append-only log: one entry per cycle
 - **Exit criteria:**
-  - [ ] A **success metric** named and its actual result captured (measured, not guessed).
-  - [ ] A short retro: what worked · what to change.
-  - [ ] A **next step decided from evidence**, re-checked against the vision (and against OUT-OF-SCOPE).
-  - [ ] Any deferred item carries the **trigger** that would activate it.
-  - [ ] The success metric is **actually instrumented** (events/analytics/dashboard), not back-of-envelope.
-  - [ ] At least one **real user/usage signal** incorporated (support, interview, usage data).
-  - [ ] **Kill/deprecate** is an allowed outcome — if the evidence says a feature isn't working, record the decision + trigger.
-  - [ ] Ongoing **observability** (dashboards/alerting) + **cost** monitored — the post-launch watch, not a one-off.
-  - [ ] **Reusable learning harvested:** any *generic* pattern, gotcha, or process fix surfaced this cycle is pushed back into the **phase skill that should have caught it** — or explicitly "nothing reusable this cycle". Generic learnings compound across future projects; project-specific ones stay in the project.
+  - [ ] A **success metric** named and its actual result captured (measured, not guessed). → `Success metric + result`
+  - [ ] A short retro: what worked · what to change. → `Retro (what worked / what to change)`
+  - [ ] A **next step decided from evidence**, re-checked against the vision (and against OUT-OF-SCOPE). → `Decided next`
+  - [ ] Any deferred item carries the **trigger** that would activate it. → `Decided next`
+  - [ ] The success metric is **actually instrumented** (events/analytics/dashboard), not back-of-envelope. → `Success metric + result`
+  - [ ] At least one **real user/usage signal** incorporated (support, interview, usage data). → `User/usage signal incorporated`
+  - [ ] **Kill/deprecate** is an allowed outcome — if the evidence says a feature isn't working, record the decision + trigger. → `Decided next`
+  - [ ] Ongoing **observability** (dashboards/alerting) + **cost** monitored — the post-launch watch, not a one-off. → `Observability + cost watch in place`
+  - [ ] **Reusable learning harvested:** any *generic* pattern, gotcha, or process fix surfaced this cycle is pushed back into the **phase skill that should have caught it** — or explicitly "nothing reusable this cycle". Generic learnings compound across future projects; project-specific ones stay in the project. → `Retro (what worked / what to change)`
 
 ## Step 0 — Context + prior-gate check
 - Read `#Vision/#Scope/#Evaluation/#Ship log`. If nothing has shipped yet, this is premature — say so.

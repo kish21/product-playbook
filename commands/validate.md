@@ -26,14 +26,14 @@ description: >
 - **Gate type:** `input` — the assumption, the threshold and the verdict are the user's, not derivable. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Validation` · `declined` ✓ · `override` ✓ · `running` ✓ (the timeboxed experiment — this phase is where that state comes from) · `superseded` n/a — append-only log: a new dated entry per run, so a second run cannot erase the first
 - **Exit criteria:**
-  - [ ] The assumption under test is stated as a **falsifiable sentence** ("<user> will <behaviour> because <reason>"), copied from `#Vision` or sharpened with the user.
-  - [ ] **One experiment** chosen, the cheapest that can falsify it — with the real people it reaches and a **time box** (days, not months).
-  - [ ] A **pass/fail threshold written down BEFORE the experiment runs** (a number, e.g. "≥ 3 of 10 interviewees describe doing this manually today" / "≥ 5% of visitors leave an email").
-  - [ ] A **measured result** — an actual number or quoted evidence, never "people seemed interested".
-  - [ ] A **verdict**: proceed / pivot / kill, with one sentence of reasoning tied to the threshold.
-  - [ ] If the user skips the experiment, an **explicit override** line (date + reason) is recorded instead — never a silent pass.
-  - [ ] **The override reason is pressure-tested against `#Vision` before it is recorded.** A reason implying a *different product* than the Vision describes ("personal use", "internal tool", "just for me" — against a Vision with a public customer, a north star and a business model) is a **contradiction, not a deferral**: name the `#Vision` line it contradicts and offer `/vision` first. The override stays allowed, but as an informed choice.
-  - [ ] **The override follows `MECHANISMS.md` §Declined runs** — the *deliberate-skip* shape of that rule: one dated line, the experiment fields kept and each marked `— not run (override <date>)`, never a blanked section. (Unlike a `Not run` note, an override **does** count as filled — the phase is not still owed — and every later phase surfaces it.)
+  - [ ] The assumption under test is stated as a **falsifiable sentence** ("<user> will <behaviour> because <reason>"), copied from `#Vision` or sharpened with the user. → `Assumption under test`
+  - [ ] **One experiment** chosen, the cheapest that can falsify it — with the real people it reaches and a **time box** (days, not months). → `Experiment (type`
+  - [ ] A **pass/fail threshold written down BEFORE the experiment runs** (a number, e.g. "≥ 3 of 10 interviewees describe doing this manually today" / "≥ 5% of visitors leave an email"). → `Pass/fail threshold`
+  - [ ] A **measured result** — an actual number or quoted evidence, never "people seemed interested". → `Measured result`
+  - [ ] A **verdict**: proceed / pivot / kill, with one sentence of reasoning tied to the threshold. → `Verdict (proceed / pivot / kill)`
+  - [ ] If the user skips the experiment, an **explicit override** line (date + reason) is recorded instead — never a silent pass. → `Override (only if skipped`
+  - [ ] **The override reason is pressure-tested against `#Vision` before it is recorded.** A reason implying a *different product* than the Vision describes ("personal use", "internal tool", "just for me" — against a Vision with a public customer, a north star and a business model) is a **contradiction, not a deferral**: name the `#Vision` line it contradicts and offer `/vision` first. The override stays allowed, but as an informed choice. → `Override (only if skipped`
+  - [ ] **The override follows `MECHANISMS.md` §Declined runs** — the *deliberate-skip* shape of that rule: one dated line, the experiment fields kept and each marked `— not run (override <date>)`, never a blanked section. (Unlike a `Not run` note, an override **does** count as filled — the phase is not still owed — and every later phase surfaces it.) → `Override (only if skipped`
 
 ## Step 0 — Context + prior-gate check
 - Read `PRODUCT.md#Vision`. If the **riskiest assumption** is missing or vague ("people will like it"),

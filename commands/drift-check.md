@@ -26,13 +26,13 @@ description: >
 - **Writes:** a drift report to the user + a dated row in `PRODUCT.md#Drift log` on any confirmed drift (its OWN section — never `/learn`'s `#Learnings`); does NOT advance the chain. **If there is no `PRODUCT.md`, do not create one** — report to the user and, if the project keeps a log/CHANGELOG, offer to append the drift note there.
 - **State model** (`docs/state-model.md` §2c): writes `#Drift log` · `declined` ✓ · `override` n/a — cross-cutting, it gates on nothing · `superseded` n/a — append-only log: one entry per run
 - **Exit criteria:**
-  - [ ] Built features cross-checked against `#Scope` — any OUT-OF-SCOPE item that got built is flagged as creep.
-  - [ ] Current direction cross-checked against `#Vision` — misalignment surfaced.
-  - [ ] Code↔docs drift checked — every stated capability / security control / supported path traced to the code that backs it.
+  - [ ] Built features cross-checked against `#Scope` — any OUT-OF-SCOPE item that got built is flagged as creep. → `Drift found (scope/vision/plan/docs)`
+  - [ ] Current direction cross-checked against `#Vision` — misalignment surfaced. → `Drift found (scope/vision/plan/docs)`
+  - [ ] Code↔docs drift checked — every stated capability / security control / supported path traced to the code that backs it. → `Drift found (scope/vision/plan/docs)`
   - [ ] **Claim-to-evidence pass:** every exit criterion recorded as met in the spine is given one of four
     verdicts — `VERIFIED` · `PARTIALLY VERIFIED` · `UNVERIFIED` · `CONTRADICTED` (`docs/state-model.md` §2g).
-    A claim with no evidence is **reported, never silently passed**.
-  - [ ] A clear verdict: on-track, or a specific list of drifts + a recommended cut/correction.
+    A claim with no evidence is **reported, never silently passed**. → `Drift found (scope/vision/plan/docs)`
+  - [ ] A clear verdict: on-track, or a specific list of drifts + a recommended cut/correction. → `Recommendation (cut / re-scope+trigger / fix)`
 
 ## Step 0b — Claim-to-evidence pass (re-verify, don't re-read)
 

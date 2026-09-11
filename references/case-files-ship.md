@@ -79,3 +79,9 @@ against the design the fixes had just quietly changed.
 
 **The rule:** a review is not done when the findings are fixed. Fixing is editing, and
 the edits have had no reviewer. Re-run the review on the fixed tree before the PR.
+
+## The last gate that never asked about tests
+
+On a real run this gate read the evaluation section alone and shipped a product whose `#Dev-complete`,
+`#Tests` and `#Evaluation` were all empty — the last gate before release never asked whether anything was
+tested. The gate was green because it was reading the one section that happened to be filled.

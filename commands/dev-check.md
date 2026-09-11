@@ -21,12 +21,12 @@ description: >
 - **Gate type:** `verification` — pass/fail on repo evidence; no preference involved. Batchable, and **stops on red** - a failing check ends the batch there. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Dev-complete` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria:**
-  - [ ] Every **core-scope** feature has a `#Build log` row, **runs**, and met its DoD (incl. security) — verified.
-  - [ ] No hardcoding · prompts externalized · contracts typed · schema↔code consistent · builds/CI green.
-  - [ ] No oversized god-files (single-responsibility held); secret-scan + dependency-vuln scan clean.
-  - [ ] **Scope re-check:** nothing built that's in OUT-OF-SCOPE (no creep).
-  - [ ] Every "done" has **HOW it was verified** recorded (evidence, not "done").
-  - [ ] **(Lane mode — MECHANISMS.md §Lane mode)** every `## Build log row` in `docs/features/*.md` is **reconciled into `#Build log`** (this is the spine's one writer), and the **cross-lane seams** — files two lanes both depend on through a contract — have an integration test that ran on the merged base.
+  - [ ] Every **core-scope** feature has a `#Build log` row, **runs**, and met its DoD (incl. security) — verified. → `Every core-scope feature built & runs`
+  - [ ] No hardcoding · prompts externalized · contracts typed · schema↔code consistent · builds/CI green. → `No hardcoding`
+  - [ ] No oversized god-files (single-responsibility held); secret-scan + dependency-vuln scan clean. → `Exit criteria + security DoD verified`
+  - [ ] **Scope re-check:** nothing built that's in OUT-OF-SCOPE (no creep). → `Scope re-check`
+  - [ ] Every "done" has **HOW it was verified** recorded (evidence, not "done"). → `Exit criteria + security DoD verified`
+  - [ ] **(Lane mode — MECHANISMS.md §Lane mode)** every `## Build log row` in `docs/features/*.md` is **reconciled into `#Build log`** (this is the spine's one writer), and the **cross-lane seams** — files two lanes both depend on through a contract — have an integration test that ran on the merged base. → `Every core-scope feature built & runs`
 
 ## Step 0 — Context + prior-gate check
 - Read `#Scope/#Plan/#Build log`. Cross-check the planned core features against what's actually in the build log.
