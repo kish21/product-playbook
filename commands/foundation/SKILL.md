@@ -39,7 +39,17 @@ description: >
   - [ ] Config loads from config/`.env`; **the value actually flows** (verify — no dead/overridden config).
   - [ ] **Fail-loud on misconfig, fail-closed on security**: boot refuses on missing/known-constant secrets.
   - [ ] **Placeholders are rejected BY NAME at boot, not by length or format** — the loader knows the `CHANGE_ME__<VAR>__CHANGE_ME` values `/structure` wrote to `.env.example` and refuses to start on any of them, naming the variable and how to generate a real one. A length/format check is not this: a 48-char placeholder passes `min(32)` and boots the app on a public signing key. **A test proves it** (copy `.env.example` → `.env` unedited → boot fails), and under production (`NODE_ENV`/`APP_ENV`) there is **no override** — see `PRINCIPLES.md` §Production safeguards.
-  - [ ] **An isolated, disposable test datastore is provisioned** — its own variable (`TEST_DATABASE_URL` or the chosen datastore's equivalent) in `.env.example`, created and torn down by the task runner. Per-test transaction rollback is an acceptable alternative; **sharing the development datastore is not.** The test bootstrap **fails closed**: handed the dev or production target, it refuses to run, names both, and exits non-zero — verified by pointing it at the dev one on purpose.
+  - [ ] **An isolated, disposable test datastore is provisioned** — its own variable (`TEST_DATABASE_URL`
+    or the chosen datastore's equivalent) in `.env.example`, created and torn down by the task runner.
+    Per-test transaction rollback is an acceptable alternative; **sharing the development datastore is
+    not.** The test bootstrap **fails closed**: handed the dev or production target, it refuses to run,
+    names both, and exits non-zero — verified by pointing it at the dev one on purpose.
+    **How you obtain it depends on the data custody `#Architecture` recorded** — a throwaway instance
+    (local/self-hosted), a **database branch or a second project** (managed-serverless), or a temp file
+    (embedded). The mechanics are not comparable: near-trivial on a container, real work on a managed
+    service, which is why the obvious shortcut is the one thing this forbids. **Open
+    `references/test-datastore.md` and follow the recipe for the recorded custody** — including what to
+    do when none is achievable today.
   - [ ] **The test runner loads config the same way the app does** (same loader, same precedence) — not whatever happened to be exported into the shell. A runner with its own config path is dead config on the test side, and it is how a suite ends up pointed at the wrong datastore.
   - [ ] Structured logging (no stray prints); dev tooling wired — lint/format + the **commit-hook runner and secret scanner `#Architecture` chose** (not a tool this skill picks).
   - [ ] **CI is in place and mirrors the prod bootstrap** (builds/migrates/tests from the real schema), green — a must, not optional.

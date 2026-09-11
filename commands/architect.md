@@ -66,7 +66,10 @@ description: >
    - **Where does this run?** Container-anywhere · a specific PaaS · a VPS · the user's own machine.
      **This is what tells `/structure` and `/foundation` what to scaffold.**
    - **Who holds identity?** Self-hosted auth vs the datastore vendor's auth + row-level security. If the
-     user already pays for a platform, the "free" self-hosted option may not be the cheaper one.
+     user already pays for a platform, the "free" self-hosted option may not be the cheaper one. Record
+     which, because the **test-isolation recipe follows from it** — `/foundation`'s
+     `references/test-datastore.md` branches on exactly this line, and a custody choice made without that
+     downstream cost in view is the one that makes the test datastore unaffordable later.
    PRINCIPLES' *defer paid infra until a real need* biases all three toward local — a sensible default, but
    **it must be a stated default the user can decline, not an unvoiced one.** If the user has no opinion,
    recommend one with a reason and **record it as "default taken, not user-chosen"**. Get the same yes/no
