@@ -22,7 +22,9 @@ description: >
 - **Exit criteria:**
   - [ ] Milestones ordered **core-first** (the core feature ships before nice-to-haves).
   - [ ] A rough timeline (relative is fine: M1, M2… or weeks).
-  - [ ] **Every milestone has a testable exit criterion** (a definition of done you could verify).
+  - [ ] **Every milestone has a testable exit criterion** (a definition of done you could verify) that is
+    also **reachable** — every prerequisite it implies (a deployed URL, credentials, seeded or real data,
+    a device, another person) is delivered by a milestone in this plan, or the criterion is weakened.
   - [ ] **Every milestone carries a four-risks row** — which of **value · usability · feasibility · viability** it retires, and how you will know. A plan that sequences only "can we build it" ships something buildable that nobody wants, nobody can use, or the business cannot sustain.
   - [ ] **At least one pre-public milestone has a usability exit criterion** — even five people attempting the core task unaided. Usability is the risk discovered *after* launch, when it is most expensive to fix.
   - [ ] A risk already retired **cites its evidence** (a `#Validation` entry, a prior milestone) instead of repeating the work.
@@ -44,7 +46,14 @@ description: >
 ## Step 2 — Guided planning
 1. **Slice the core feature into a thin end-to-end milestone** (M1): the smallest thing a user can actually do.
 2. **Sequence the rest core-first:** what must exist for M1; what builds on it (M2, M3…). Keep it short.
-3. For **each milestone**, write a one-line **exit criterion** — an observable, testable "done".
+3. For **each milestone**, write a one-line **exit criterion** — an observable, testable "done" — and
+   then check it is **REACHABLE**, which is a different question. Testable asks *could you verify it*;
+   reachable asks *does anything in this plan produce what verifying it requires*. Name each
+   prerequisite the criterion implies — **a deployed URL, credentials, seeded or real data, a physical
+   artefact, a second device, another person** — and point at the milestone that delivers it. Nothing
+   delivers it → **schedule it, or weaken the criterion.** (Real instance: M1's *"a diner opens it on a
+   different phone"* needed a public URL that **no milestone scheduled**; the criterion was perfectly
+   testable and unreachable for months.)
 4. **Add the four-risks row to each milestone.** The four product risks are **value** (do they want it),
    **usability** (can they use it), **feasibility** (can we build it) and **viability** (can the business
    sustain it) — a plan that sequences only feasibility has three blind spots. For each milestone, name which
@@ -61,7 +70,9 @@ per milestone** (value/usability/feasibility/viability + how you'll know, or the
 
 ## Step 3b — Self-verify (completeness gate)
 Check the boxes. **If any milestone lacks a testable exit criterion, STOP and add one** — a milestone
-without a verifiable "done" is where "is it finished?" arguments come from.
+without a verifiable "done" is where "is it finished?" arguments come from. **And for each criterion,
+name what it depends on and which milestone delivers that** — an unreachable criterion fails later, far
+from here, and reads as the milestone having failed rather than the plan.
 
 **Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done".
 
