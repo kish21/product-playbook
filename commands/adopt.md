@@ -89,11 +89,10 @@ filled from absence rather than evidence; a Non-goal was inferred from a missing
 gates against it, and `/drift-check` would then measure drift from fiction.
 
 **Close the loop (`MECHANISMS.md` §Step 3b):** set the header (`Stage: adopted <date>`, `Last updated:`),
-reconcile any number carried in from the repo against what the owner just confirmed, and end with a
-suggested one-line commit message in the repo's convention. Then **run the transition guard** (`MECHANISMS.md`
+reconcile any number carried in from the repo against what the owner just confirmed, and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md`
 §Step 3b, item 4): re-run any `evidence:` line this draft carried in and report a verdict for every
 criterion — an inferred spine is *full* of claims nobody has re-measured, so `UNVERIFIED` will be the
-common answer here, and saying so is the point — and check the transition is legal.
+common answer here, and saying so is the point — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the users own actions, dated where they are time-bound, or "Nothing — you're done".
 
 ## Step 3c — Contradiction check (before the gate closes)
 Per `MECHANISMS.md` §Step 3c, check the draft against decisions **already recorded** — here: the

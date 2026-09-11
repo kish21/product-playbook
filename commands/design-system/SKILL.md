@@ -20,8 +20,8 @@ description: >
 > `PRINCIPLES.md` (*Accessibility (UI)* + 5-step spine). The look changes per product; the laws never do.
 
 > **Lens throughout: a brand-new, non-designer user.** Plain language, **decide FOR them with a clear
-> default + the why explained** (teach-mode), never a jargon matrix. The user is here to *learn* design,
-> not just receive a file.
+> default + the why** (teach-mode), never a jargon matrix. They are here to *learn* design, not just
+> receive a file.
 
 > **You run as the designer; the laws are only your floor.** Reason in a senior designer's *order*, and
 > explain each move like a mentor: **(1) who's the user + their context → (2) content priority & visual
@@ -30,16 +30,16 @@ description: >
 > it never replaces the reasoning. **Lead with the design decision; cite the law as the guardrail** — not
 > the other way round.
 
-> **What this skill is — and isn't.** Its edge is **real apps** — the concrete, archetype-correct
-> defaults the popular tools omit — and it **reuses** shadcn/ui + 21st.dev rather than out-designing
-> them (`references/build-loop.md` §What this skill is — and isn't). **Honesty boundary (Law 19):**
-> for a *simple* pretty marketing/brochure page, say so and point the user to Anthropic's
-> `frontend-design` instead.
+> **What this skill is — and isn't** (`references/build-loop.md` §What this skill is — and isn't):
+> its edge is **real apps**, and it **reuses** shadcn/ui + 21st.dev rather than out-designing them.
+> **Honesty boundary (Law 19):** for a *simple* marketing/brochure page, say so and point the user to
+> Anthropic's `frontend-design` instead.
 
 ## Contract
 - **Purpose:** principles → confirmed sample page → a concrete, archetype-correct `DESIGN.md` harness.
 - **Reads:** spine `#Vision`/`#Scope`/`#Architecture` (or discovers the vision if there's none);
-  `references/universal-laws.md`, `references/archetypes.md`, `references/design-md-template.md`, `references/page-patterns.md`, `references/palettes.md`, `references/craft.md`, `references/theme-studio.md`, `references/build-loop.md`.
+  every file in `references/` — universal-laws · archetypes · design-md-template · page-patterns ·
+  palettes · craft · theme-studio · build-loop.
 - **Writes:** `DESIGN.md` (9-section standard, shadcn CSS-variable tokens) · one approved **sample page**
   · `PRODUCT.md#Design` (principles + archetype + token summary + paths).
 - **Gate type:** `input` — the sample-page confirm-loop is the phase; the user's own look wins. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
@@ -48,7 +48,9 @@ description: >
   - [ ] The vision was located (spine) or discovered (standalone), and the **UI gate** was applied — if the
     product has no user-facing UI, **nothing is written** and the skill stops with the reason.
   - [ ] **4–6 design principles** derived from the product's purpose + audience, each with a plain-language *why*.
-  - [ ] **The user was asked for their own reference BEFORE any archetype family was named**, and answered the 3-question picker themselves (each with a recommended answer offered). A proposal made first and an ask made second **does not pass this gate** — it anchors the answer. An archetype is then proposed as the default, and the user's own idea wins over it.
+  - [ ] **The user was asked for their own reference BEFORE any archetype family was named**, and answered
+    the 3-question picker themselves (a recommended answer offered for each). Proposing first and asking
+    second **fails this gate** — it anchors the answer. The user's own idea then wins over your proposal.
   - [ ] **Concrete foundations** chosen: font pairing (no default-only face), a real type scale with an
     archetype-correct base size, colour roles, spacing/density, depth — all from `archetypes.md`.
   - [ ] **ONE real sample page** built in the project's stack (or a standalone preview), **real content not
@@ -59,31 +61,29 @@ description: >
   - [ ] All **22 universal laws** satisfied (run the principle-gate, Step 6 self-check).
 
 > **Scope of this version: greenfield core loop** — brand re-skin is in; deep token-extraction, full
-> retrofit and the component gallery are documented follow-ups (`references/build-loop.md` §Scope of
-> this version). If an existing UI is detected, say so and proceed greenfield for new screens.
+> retrofit and the gallery are follow-ups (`references/build-loop.md` §Scope of this version). An
+> existing UI: say so, proceed greenfield for new screens.
 
 ---
 
 ## Step 0 — Find the vision (spine-optional) · detect mode · UI gate
 
-1. **Locate the vision (spine-first, flexible — `MECHANISMS.md` §Spine resolution):**
-   - `PRODUCT.md` exists → read `#Vision` / `#Scope` / `#Architecture`. State you're using it.
-   - No `PRODUCT.md` but docs exist → resolve from `CLAUDE.md` → `README.md` → `docs/`. State which file.
-   - **Neither exists → short vision-discovery** (so the skill runs standalone / greenfield). Ask, plainly:
-     *"What is it? · Who is it for? · What's the ONE job it does for them?"* Wait for answers. This is the
-     minimum needed to derive design — don't proceed without it.
+1. **Locate the vision (spine-first — `MECHANISMS.md` §Spine resolution):** `PRODUCT.md` exists → read
+   `#Vision` / `#Scope` / `#Architecture`, and say you are using it. **No spine at all → run the
+   three-question vision-discovery in `references/build-loop.md` §Standalone vision discovery** and wait
+   for the answers; it is the minimum design can be derived from.
 2. **Detect mode (informational this version):** is there a `frontend/` / UI code already? If **yes** →
    note *retrofit territory* but proceed **greenfield for new screens** (full retrofit is a follow-up).
    No UI yet → clean **greenfield**.
 3. **UI gate (mirror the existing AI-product conditional):** ask/decide — *"does this product have or need
    a user-facing UI?"* If the answer is **no** (pure backend/API/CLI/library) → **explain why a design
    system doesn't apply, write nothing, and stop.** Hand back to `/foundation`.
-4. **Re-running this phase — apply `MECHANISMS.md` §Re-run semantics to `#Design` in full.** A redesign that
-   quietly discards the archetype you rejected loses the most expensive thing in the section: the superseded
-   archetype, palette or type pairing stays with its dated `superseded <date>: <why>` line.
-5. **A run that stops at an unmet gate records that it stopped — `MECHANISMS.md` §Declined runs, in full.**
-   The one local rule: this does **not** apply to the UI gate at (3). A backend product is not *owed* a design
-   system, so it writes nothing at all — declining and being inapplicable are different states.
+4. **Re-running — `MECHANISMS.md` §Re-run semantics, in full.** The superseded archetype, palette or type
+   pairing keeps its dated `superseded <date>: <why>` line; so does an archetype **you recommended and the
+   user reversed inside this run**, which is this phase's normal mode.
+5. **Stopping — `MECHANISMS.md` §Declined runs, in full.** One local rule: it does **not** apply to the UI
+   gate at (3). A backend product is not *owed* a design system, so it writes nothing at all — declining
+   and being inapplicable are different states.
 
 ## Step 1 — Design principles FIRST (think like a 2026 senior designer)
 
@@ -97,24 +97,24 @@ product's **purpose + audience**. Write **4–6 short principle statements** —
 > Example (enterprise compliance): *"Calm authority · Density without clutter · Evidence first ·
 > Accessible by default"* — each with one line on why it serves **this** product's users.
 
-Show them; **let the user adjust**. These principles constrain every later token. (They become
-`DESIGN.md` §1 and `PRODUCT.md#Design`.)
+Show them; **let the user adjust**. They constrain every later token, and become `DESIGN.md` §1 and
+`PRODUCT.md#Design`.
 
 ## Step 2 — Ask what they want, THEN propose
 
-**Order matters here, and it is the opposite of `/architect`'s** — for aesthetics the user's taste is the
-primary input, so you ask before you propose. A confident proposal made *first* anchors them
-(`references/build-loop.md` §Why ask before proposing).
+**Opposite order to `/architect`'s** — for aesthetics the user's taste is the primary input, so you ask
+before you propose (`references/build-loop.md` §Why ask before proposing).
 
 1. **Before naming any family, ask for their own reference:** *"Do you have a look in mind — a product you
    admire, or bold vs minimal?"* Ask it plainly and wait. A named reference is the strongest signal you
    will get all session.
 2. **Run the 3-question picker WITH them** (`references/archetypes.md`) — read- vs scan-heavy · who uses
-   it and where · calm authority vs bold energy. These are questions about **their** product and users, so
-   they answer them; **offer a recommended answer to each** so it stays one short exchange, not an
-   interrogation. A user with no opinion just takes your recommendations and the step still costs one turn.
+   it and where · calm authority vs bold energy. They are questions about **their** product, so they
+   answer them; **offer a recommended answer to each** so it stays one short exchange.
 3. **Now propose ONE of the 13 aesthetic families** as the default, with a plain-language why that
-   references what they just told you.
+   references what they just told you. **Say that there are 13 and where they are** — a picker that can
+   only show a shortlist must name the full set (`references/archetypes.md`), or "Other" asks a
+   non-designer to invent a family nobody showed them.
 4. **The user's idea/reference wins;** otherwise your proposal stands. Confirm the archetype before moving on.
 
 ## Step 3 — Concrete foundations from the archetype
@@ -129,33 +129,32 @@ Give each as a **decided default + one-line why**; let the user tweak.
 
 ## Step 4 — Build ONE sample page · STOP · iterate until liked  *(the non-negotiable loop)*
 
-Generate **a single, representative screen of THIS product** using the Step-3 foundations:
-- **In the project's stack** if one exists (a real page/route); otherwise a **standalone preview HTML**
-  the user can open in a browser.
+Generate **a single, representative screen of THIS product** using the Step-3 foundations — in the
+project's stack if one exists, otherwise a **standalone preview HTML** the user can open in a browser.
+**Load `references/build-loop.md` §Build the sample page and follow it** — page inventory, the craft
+layer, mobile-first, the accessibility floor a preview does *not* escape, and the Theme Studio wiring.
 
-**Load `references/build-loop.md` §Build the sample page and follow it** — page inventory, the craft layer,
-mobile-first, the accessibility floor a preview does *not* escape, and the Theme Studio wiring.
+**The sample proves the LOOK, never the LOGIC.** Any numbers in it are illustrative: label them in the
+page ("illustrative figures — not the product's rules") and say so when you present it. This phase does
+not read `#Plan`, so its arithmetic has been checked against nothing — **do not copy sample logic into
+the product**; the real rules arrive with `/contracts` and `/build`.
 
-Then **STOP. Show it and confirm.** Describe what they should see, and (if possible) screenshot it and
-compare pixel-level: spacing, weight, exact colours, radius, alignment. **Confirm it at THREE widths —
-~375px (mobile), 768px (tablet), and desktop — not just desktop;** a phone view that overflows, clips, or
-is a shrunk desktop is a fail (Law 21). **If the user doesn't like it, ask what to change** (bolder /
-lighter / denser / different font / *"make it like <site>"*) and **generate another — loop until they
-approve.** The **Theme Studio** lets the user finalize colour / type-size / theme / roundness *themselves* (and **Export**
-the tokens); only *structural* changes (layout, content) need a regenerate. **Do not emit `DESIGN.md` until approved.**
+Then **STOP. Show it and confirm** — at **three widths, ~375px · 768px · desktop**, never desktop alone
+(Law 21). If they don't like it, ask what to change and **generate another; loop until they approve**.
+**Do not emit `DESIGN.md` until approved.** How to present it, what to compare, and what the Theme Studio
+lets the user finalize without a regenerate: `references/build-loop.md` §Confirm the sample.
 
 ## Step 5 — Emit `DESIGN.md` (only after approval)
 
-Load `references/design-md-template.md` and write **`DESIGN.md`** filling all **9 sections** with the
-*concrete approved values* (replace every placeholder — ship nothing un-filled):
-*1 Visual Theme · 2 Color & Roles · 3 Typography · 4 Components · 5 Layout · 6 Depth/Elevation ·
-7 Motion · 8 Do's & Don'ts · 9 Responsive & Agent Guide.*
-The per-section rules — OKLCH shadcn-compatible tokens, light **and** dark, the page inventory, the
-AA re-check before writing — are in `references/build-loop.md` §Emit `DESIGN.md`.
-- **Audit timing (T1-c) — actually RUN the engine, never just cite it.** `python commands/frontend-audit/audit.py <approved-sample> DESIGN.md` — on the approved sample at
-  confirm-time (Step 4) and on `DESIGN.md` **after** it is emitted here, never before approval (Law 16).
-  Fix every `[FAIL]`, triage every `[WARN]` before handing off, and **emit no "passes the laws" claim
-  you did not run the engine to back** (`references/build-loop.md` §Audit timing).
+Load `references/design-md-template.md` and write **`DESIGN.md`**, filling all **9 sections** with the
+*concrete approved values* — replace every placeholder, ship nothing un-filled. The section list and the
+per-section rules (OKLCH shadcn-compatible tokens, light **and** dark, the page inventory, the AA
+re-check before writing) are in `references/build-loop.md` §Emit `DESIGN.md`.
+- **Audit timing (T1-c) — RUN the engine, never just cite it:**
+  `python commands/frontend-audit/audit.py <approved-sample> DESIGN.md`, on the approved sample at
+  confirm-time (Step 4) and on `DESIGN.md` after it is emitted, never before approval (Law 16). Fix every
+  `[FAIL]`, triage every `[WARN]`, and **claim no "passes the laws" you did not run the engine to back**
+  (`references/build-loop.md` §Audit timing).
 - The **Agent Guide** (§9) tells every later build step how to obey this file.
 
 ## Step 6 — Principle-gate self-check, then handoff
@@ -167,10 +166,14 @@ each. **If any law fails, STOP and fix it** — the floor is non-negotiable.
 ### Step 3b — close the loop (`MECHANISMS.md` §Step 3b)
 Update the spine's `Stage:` header to this phase and `Last updated:` to today; **reconcile every number this
 phase introduced against `#Vision`** (a type scale or density that cannot serve the audience the vision names is
-a contradiction, not a detail); and **suggest a one-line commit message** in the repo's convention. Then **run the transition
+a contradiction, not a detail); and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the
+branch, offer the message, push only if a remote exists and the user says so). Then **run the transition
 guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines (here, the
 `/frontend-audit` behind the sample) and report a verdict for every exit criterion — `UNVERIFIED` is a
-normal outcome, silence is not — and check the transition is legal.
+normal outcome, silence is not — and check the transition is legal. **Close in plain language**
+(`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook
+dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or
+"Nothing — you're done".
 
 ### Step 3c — contradiction check (`MECHANISMS.md` §Step 3c)
 Compare what this phase just produced against decisions already recorded — `#Vision` (who it is for, and the

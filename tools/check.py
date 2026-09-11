@@ -580,11 +580,11 @@ def check_close_the_loop(files: dict[str, Path]) -> None:
     """
     for name in sorted(GUARD_DECLARING):
         text = files[name].read_text(encoding="utf-8")
-        start = re.search(r"^#{2,4}\s*Step 3b", text, re.MULTILINE)
+        start = re.search(r"^#{2,4}\s*Step 3b\b", text, re.MULTILINE)
         if not start:
             continue  # check 16 already failed this file; one message per defect
         rest = text[start.end():]
-        stop = re.search(r"^#{2,4}\s*Step 3c", rest, re.MULTILINE)
+        stop = re.search(r"^#{2,4}\s*Step 3c\b", rest, re.MULTILINE)
         body = " ".join(rest[: stop.start() if stop else len(rest)].split())
         for pointer, what, why in CLOSE_OBLIGATIONS:
             if pointer not in body:

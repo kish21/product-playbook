@@ -76,7 +76,37 @@ Generate **a single, representative screen of THIS product** using the §Concret
   **`@container` queries (not `@media`)** so the width buttons reflow (T5-1); use the `.light`/`.dark` **escape-hatch** dark
   pattern (template §2) so manual mode beats the OS (T5-6); load the font via `<link>` in the preview (T5-7).
 
+## §Confirm the sample
+
+**Trigger:** the sample page is built and you are about to show it (Step 4).
+
+Describe what they should see, and if you can, screenshot it and compare pixel-level: spacing, weight,
+exact colours, radius, alignment. **Three widths — ~375px (mobile), 768px (tablet), desktop.** A phone
+view that overflows, clips, or is a shrunk desktop is a fail (Law 21), not a detail to fix later.
+
+If the user doesn't like it, **ask what to change** — bolder / lighter / denser / different font /
+*"make it like <site>"* — and generate another. Loop until they approve; the loop is the phase.
+
+The **Theme Studio** lets the user finalize colour, type size, theme and roundness *themselves*, and
+**Export** the tokens. Only *structural* changes — layout, content — need a regenerate from you.
+
+## §Standalone vision discovery
+
+**Trigger:** Step 0 found no `PRODUCT.md` — this skill is running on its own.
+
+- **Docs but no `PRODUCT.md`** → resolve the spine from the project's own docs in order: `CLAUDE.md` →
+  `README.md` → `docs/`. **State which file you resolved as the spine** (`MECHANISMS-ON-DEMAND.md`
+  §Spine resolution (full)).
+- **Nothing at all** → ask these three, plainly, and wait: *"What is it? · Who is it for? · What's the ONE
+  job it does for them?"* Design cannot be derived from less, so do not proceed on a guess. What they
+  answer is what the principles in Step 1 are built from, and it belongs in `PRODUCT.md#Design` verbatim
+  enough that the next session can see what the design was aimed at.
+
 ## §Emit `DESIGN.md`
+
+**The 9 sections, in order:** *1 Visual Theme · 2 Color & Roles · 3 Typography · 4 Components ·
+5 Layout · 6 Depth/Elevation · 7 Motion · 8 Do's & Don'ts · 9 Responsive & Agent Guide.* Every one is
+filled with the concrete approved values — a placeholder that ships is a section that was never decided.
 
 - Tokens are **shadcn/ui-compatible CSS variables in OKLCH** (rebrand = change values; plugs into
   shadcn/21st.dev with no theme provider/build step).
