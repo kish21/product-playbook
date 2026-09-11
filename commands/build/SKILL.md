@@ -5,7 +5,7 @@ description: >
   time, a definition-of-done that INCLUDES security, reuse before writing, verify the LIVE path,
   review the diff, write the feature doc. Use to implement features, or run /build "build feature X",
   "implement", "add the feature". Appends to PRODUCT.md#Build log + writes docs/features/<feature>.md.
-  Composes /run, /verify, /code-review, /doc-create. Run /dev-check when all core-scope features are done.
+  Composes /run and /code-review. Run /dev-check when all core-scope features are done.
 ---
 
 # `/build` — Phase 2 · Development ⑤ · run as an **engineer**
@@ -67,11 +67,11 @@ description: >
      - an **ASYNC JOB** — work that outlives the request (spawn + poll, queue + callback) → **§Async jobs** (6 rules)
      - a **LATENCY / CONCURRENCY fix** → **§Latency and concurrency** (expect more than one serializer)
      - anything **shared across tenants, cached, AI-suggested, or keyed by a client-supplied selector** → **§Trust boundaries and shared state**
-4. **Run + verify the LIVE path** — compose `/run` and `/verify` to exercise the path the product actually runs, then **trace your change to its real callers** (green unit tests ≠ wired in).
+4. **Run + verify the LIVE path** — compose `/run` to exercise the path the product actually runs, **then check the observable result yourself** (the response, the row, the rendered page — not the exit code), then **trace your change to its real callers** (green unit tests ≠ wired in).
    - **Walk `references/live-path-checks.md`** — the checks that separate *the code exists* from *the product runs it*: production entrypoint, criterion altitude, delete-the-wire, validator placement, round-trip, third-party fixtures, browser-journey traps. Each one came from a live path that tested green and was dead.
 5. **Review the diff** — compose `/code-review`; fix findings (watch for "works in tests, dead in the real path").
-   - ⚠️ **`/code-review` is USER-INVOCABLE ONLY in some harnesses — if you cannot invoke it, ASK the user to run it, or do the deep pass by hand and say which you did.** A composed command that silently no-ops is a SKIPPED GATE that still gets reported as run. (A by-hand pass is worth the time: one such pass found three real defects.)
-6. **Document** — write/update `docs/features/<feature>.md` (compose `/doc-create`); reconcile it with the code.
+   - ⚠️ **If you cannot invoke it, ASK the user to run it, or do the deep pass by hand and say which you did** — see `PRINCIPLES.md`, *Composed skills*. (A by-hand pass is worth the time: one such pass found three real defects.)
+6. **Document** — write/update `docs/features/<feature>.md`; reconcile it with the code.
 
 ## Step 3 — Write back to `PRODUCT.md`
 Append a `#Build log` row: feature · DoD-incl-security met? · **how verified** · link to the feature doc.
@@ -83,9 +83,9 @@ lifts every un-reconciled row into `#Build log`. One writer for the spine; no la
 
 ## Step 3b — Principle-gate: verify each principle is ACTUALLY implemented (not just claimed)
 Walk **this phase's load-bearing principles (Step 1)** and confirm each is real in the code, **with evidence** — composing the existing checkers, not eyeballing:
-- security-in-DoD → **`/security-review`** passed.
+- security-in-DoD → **`/security-review`** (or the equivalent pass) passed — name which.
 - no secret in code / no-hardcoding → secret-scan clean.
-- live-path-works → **`/verify`** + **`/run`** exercised the real path.
+- live-path-works → **`/run`** exercised the real path **and the observable result was checked** — name the command **and what you saw**. An exit code is not the observable result.
 - reuse · no-swallowed-errors · single-responsibility → confirmed in the diff's **`/code-review`**.
 - (UI features) built-to-the-design → **`/frontend-audit`** 0 errors against `DESIGN.md`.
 - (lane mode) inside-the-lane → `git diff --name-only <base>` shows only `ALLOW` paths and no spine file;

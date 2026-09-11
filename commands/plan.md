@@ -53,7 +53,7 @@ description: >
    before anything goes public**, written as a milestone exit criterion, not a nice-to-have.
 5. Add a **rough timeline** (relative is fine). Flag any milestone that needs paid infra and record the trigger.
 6. **Concern-area coverage:** walk the production-readiness areas in `PRINCIPLES.md` (security, ai-specific, observability, DX, testing, infra, documentation, product) and mark each now / next / later / N-A with a trigger — so nothing is missed by accident (a product-grade, interview-worthy artifact).
-- Optionally compose `/doc-create` to scaffold a fuller `ROADMAP.md`; keep `PRODUCT.md#Plan` as the summary.
+- A fuller `ROADMAP.md` is optional; keep `PRODUCT.md#Plan` as the summary and the single source.
 
 ## Step 3 — Write back to `PRODUCT.md`
 Fill `#Plan`: phases/milestones (core-first) · timeline · exit criteria per milestone · **the four-risks row

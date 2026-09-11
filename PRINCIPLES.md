@@ -80,6 +80,18 @@
 - On completion, report a **Confidence Score (0–100%)** against the exit criteria: one line each on **solid** (verified), **risky/untested** (gaps), and **to raise it** (next check).
 - **Generic, not domain-specific** — prefer the generic mechanism; a domain/special-case branch baked into shared infra is a smell.
 
+## Composed skills — name the capability, not the command
+
+- **Every skill this playbook composes is a CAPABILITY, not a command name.** `/code-review`,
+  `/security-review`, `/run`, `/loop` and `/schedule` are Claude Code built-ins; another harness names
+  them differently, or not at all. **If the command is unavailable, do the same work by the best means
+  you have** — your default reviewer agent / review mode, your own security-audit pass, running the app
+  by hand — and **NEVER skip it**.
+- **Then say which one you did, in the evidence line.** A composed command that silently no-ops is a
+  **SKIPPED GATE still reported as run** — the one outcome that is never acceptable. Some harnesses make
+  a review command **user-invocable only**: then ASK the user to run it, or do the pass by hand and
+  record that. **Degrading is fine; degrading invisibly is not.**
+
 ---
 
 ## Production-readiness concern areas (the coverage checklist)

@@ -56,7 +56,7 @@ Ask these one block at a time; wait for answers. Keep it short — a newcomer sh
 5. **What's the riskiest assumption** this depends on? And is it **free, paid, or internal**?
 6. **Will it use AI / LLMs?** (yes flags the AI-security layer in later phases)
 
-Then **benchmark to the current year** — and actually check, don't guess (compose a web search and/or `/doc-create`):
+Then **benchmark to the current year** — and actually check, don't guess (compose a web search):
 - How do leading products solve this *now*? Name 2–3 **real** comparables and the current best-practice approach.
 - Frame the problem as a **job-to-be-done** ("when <situation>, I want to <motivation>, so I can <outcome>").
 - Surface **one sharpening insight**: a sharper angle, segment, or differentiator the user hadn't stated.

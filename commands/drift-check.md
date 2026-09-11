@@ -6,7 +6,7 @@ description: >
   and code↔docs drift. Use when you suspect creep, before a milestone, or run /drift-check "are we
   on track", "did we drift", "scope creep", "is this still the plan". Reports against the project
   spine (PRODUCT.md, or the project's existing docs / inferred-from-code — see MECHANISMS.md
-  §Spine resolution); composes /doc-audit. Does not advance the phase chain.
+  §Spine resolution). Does not advance the phase chain.
 ---
 
 # `/drift-check` — Cross-cutting · run as a **skeptical reviewer**
@@ -28,7 +28,7 @@ description: >
 - **Exit criteria:**
   - [ ] Built features cross-checked against `#Scope` — any OUT-OF-SCOPE item that got built is flagged as creep.
   - [ ] Current direction cross-checked against `#Vision` — misalignment surfaced.
-  - [ ] Code↔docs drift checked (claims that don't match reality), composing `/doc-audit`.
+  - [ ] Code↔docs drift checked — every stated capability / security control / supported path traced to the code that backs it.
   - [ ] **Claim-to-evidence pass:** every exit criterion recorded as met in the spine is given one of four
     verdicts — `VERIFIED` · `PARTIALLY VERIFIED` · `UNVERIFIED` · `CONTRADICTED` (`docs/state-model.md` §2g).
     A claim with no evidence is **reported, never silently passed**.
@@ -100,7 +100,7 @@ and nobody else will ever run it.
    never built is drift of the most expensive kind — it surfaces at ship time as "we can't launch without
    this". An item marked **Deferred** whose **trigger has now fired** is the same finding with a date on it.
 4. **Plan / concern-area drift:** milestones skipped or reordered off core-first? Re-read `#Plan`'s concern-area checklist — any "now" still unbuilt, any "next" overdue?
-5. **Doc drift:** compose **`/doc-audit`**; flag claims that don't match the code. If the `#Build log` itself is stale vs the code, flag that as drift too.
+5. **Doc drift:** grep the docs' **concrete** claims — paths, flags, model names, field names, stage lists — against the code, and flag each that no longer holds. Prose re-reading finds nothing; a stale instruction is worse than none because it gets followed. If the `#Build log` itself is stale vs the code, flag that as drift too.
 6. **Agent-instruction drift — the project's OWN skills/commands/`CLAUDE.md`.** These rot exactly like docs, but they are far more dangerous, because they are **executed, not read**: a stale `docs/` page misleads a human who can sanity-check it, while a stale `.claude/skills/*` is picked up and *acted on*. Check each skill's concrete, falsifiable claims against the code — file paths and directory layout, storage/vendor, model + provider, contract field names, stage list and count, and any "always/never do X" rule. Flag three things: claims that are **false**, skills that contradict **each other**, and skills that contradict a **locked decision** in the spine. *(Real instance: a project's three most task-relevant skills were each materially wrong — a stage documented as "no LLM, schema check only" that actually runs a vision judge; a contract listing fields deleted a session earlier plus a storage vendor the project had migrated off; and an "X is blocking" claim that inverted a locked blocking-vs-advisory split. Two also contradicted each other on whether a whole backend technology was permitted. Nobody had noticed, because sessions read the code directly and never opened the skills.)*
 
    **The structural fix, once you find the drift: make docs POINT, don't RE-TYPE.** Audit the rotted

@@ -46,7 +46,7 @@ description: >
    inside a worktree. For every `docs/features/*.md` whose `## Build log row` is not yet in `#Build log`,
    append it verbatim (feature · DoD met · how verified · date · ticket). `/build` could not write it from
    inside a lane; this is the single writer that keeps every lane PR clean of the spine.
-1. **Coverage:** every core-scope feature present + runs (spot-run the live paths, compose `/verify`/`/run`).
+1. **Coverage:** every core-scope feature present + runs (spot-run the live paths with `/run`, and check the observable result — not just that the command exited 0).
 2. **Quality bar:** no hardcoded values; prompts in `prompts/` YAML; contracts typed; schema↔code consistent; CI green.
 3. **Security DoD:** each feature's security checks are actually present (not just promised) — for AI, prompt-injection defence exists.
 4. **Scope re-check:** compare built features to OUT-OF-SCOPE; flag any creep. **Lane mode:** also compare
@@ -60,7 +60,7 @@ description: >
 Fill `#Dev-complete`: tick each box **only with evidence**; list any failing item explicitly.
 
 ## Step 3b — Principle-gate: phase-level verification (evidence)
-Beyond ticking the per-feature boxes, do a phase-level check: compose a holistic **`/security-review`**
+Beyond ticking the per-feature boxes, do a phase-level check: a holistic **`/security-review`** (or equivalent)
 across the auth/data surface and confirm CI (the auto-layer) is green. Then **report a phase Confidence
 Score (0–100%)** with one line each on solid / risky-untested / to-raise-it (per `PRINCIPLES.md`).
 **If any box can't be ticked with evidence, the gate FAILS — STOP and report exactly what's missing;

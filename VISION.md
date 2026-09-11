@@ -60,7 +60,7 @@ Quality comes from `PRINCIPLES.md` (single-source rules) baked into every phase.
 **compose existing Claude Code skills** (`/code-review`, `/verify`, `/doc-create`, …) rather
 than reinventing them.
 
-This is distinct from `product-toolkit` (a grab-bag of individual dev/quality skills).
+Everything it needs ships in this one repo — no companion install.
 `product-playbook` is the opinionated *journey*.
 
 ## The journey (phases → skills)
