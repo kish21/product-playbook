@@ -17,7 +17,8 @@ description: >
 ## Contract
 - **Purpose:** turn a rough idea into a sharp, benchmarked product vision.
 - **Reads:** nothing required (this is the first phase) — or an existing `PRODUCT.md`/codebase if present.
-- **Writes:** `PRODUCT.md#Vision` — fields: who it's for · problem (why now) · value proposition · 2026 market/competitor read.
+- **Writes:** `PRODUCT.md#Vision` — fields: the one-sentence vision · who it's for · problem (why now) · value proposition ·
+  current-year market/competitor read.
 - **Gate type:** `input` — who it is for, the job, the north star - the answers exist only in the user's head. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Vision` · `declined` ✓ · `override` n/a — `/vision` opens the chain; there is no prior section to bypass · `superseded` ✓
 - **Exit criteria:**
@@ -43,13 +44,18 @@ description: >
 
 ## Step 2 — Guided discovery (ask, then sharpen)
 Ask these one block at a time; wait for answers. Keep it short — a newcomer should not feel interrogated.
-1. **In one line, what is this product and who is it for?**
+1. **In one line, what is this product and who is it for?** Then sharpen the answer into the
+   **one-sentence vision — the world this creates once it works**, not a description of the product
+   ("nobody has to ask what to bring", not "an app for claiming dishes"). Every later phase checks
+   alignment against this sentence, so it is written down, not implied.
 2. **What painful problem does it solve, and why is now the right time?** (regulation, tech shift, cost, new behaviour)
 3. **How do people solve this today, and why is that not good enough?**
 4. **How will you know it's working?** — the **north star, in five parts**. Ask for them together; a bare
    direction is the usual answer and is not yet a metric:
    - **Target + date** — "400 accounts with 3+ subscriptions by 2027-03-31", not "growth".
-   - **2–3 input metrics** — the weekly-moving numbers that *drive* it. A north star moves too slowly to steer by.
+   - **2–3 input metrics** — the numbers that move between events/releases and *drive* it. A north star
+     moves too slowly to steer by. Cadence follows the product: weekly for a SaaS, per-event for a tool
+     used a few times a month — a metric that cannot move weekly is not thereby a bad metric.
    - **1 guardrail** — what must NOT get worse while chasing it (churn, p95 latency, support load).
    - **Instrumentation** — *how* it gets measured, named now. **If nothing can currently record it, that is a
      finding, not a detail for later** — say so plainly.
@@ -63,7 +69,8 @@ Then **benchmark to the current year** — and actually check, don't guess (comp
 - Give **one clear recommendation** on the crispest framing; get a yes/no. Keep it plain — no jargon.
 
 ## Step 3 — Write back to `PRODUCT.md`
-Fill `#Vision`: who · problem (why now) · value proposition · verified market/competitor read · north star
+Fill `#Vision`: the one-sentence vision · who · problem (why now) · value proposition · verified
+market/competitor read · north star
 (**target+date · input metrics · guardrail · instrumentation**) · job-to-be-done · riskiest assumption ·
 business model. Set the header `AI product? <yes/no>`.
 
@@ -71,7 +78,8 @@ business model. Set the header `AI product? <yes/no>`.
 Walk the exit criteria and confirm each is **concrete with evidence** — the competitor read cites *real*
 named products (not from memory), the metric is a measurable number, the JTBD/risk are specific. **If any
 field is empty or vague, STOP and fill it with the user** — **a north star missing its target, date, input
-metrics, guardrail or instrumentation line is vague by definition** — a fuzzy vision is the root of later drift.
+metrics, guardrail or instrumentation line is vague by definition**, and so is **a vision sentence that
+describes the product instead of the world it creates** — a fuzzy vision is the root of later drift.
 
 **Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done".
 
