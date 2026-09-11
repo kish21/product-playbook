@@ -321,6 +321,7 @@ COUNT_PATTERNS = (
 # Where a `§`-pointer's file name resolves to on disk. Skills name the INSTALLED filename (companions
 # land beside each other in ~/.claude/product-playbook/), not the repo path.
 POINTER_FILES = {"PRINCIPLES.md": "PRINCIPLES.md", "MECHANISMS.md": "references/mechanisms.md",
+                 "MECHANISMS-ON-DEMAND.md": "references/mechanisms-on-demand.md",
                  "LESSONS.md": "references/lessons.md"}
 # ~15KB is the prune threshold MECHANISMS.md §Lesson format sets for everyone; it is enforced on the
 # governing files every session loads AND on every skill file. The exemption set is EMPTY (#138): build,
@@ -330,7 +331,9 @@ POINTER_FILES = {"PRINCIPLES.md": "PRINCIPLES.md", "MECHANISMS.md": "references/
 # ships with the skill but is opened only when the situation calls for it.
 SIZE_LIMIT = 15 * 1024
 SIZE_EXEMPT: dict[str, str] = {}
-POINTER_RE = re.compile(r"`?(PRINCIPLES\.md|MECHANISMS\.md)`?\s+§([^\n]{2,60})")
+# MECHANISMS-ON-DEMAND first: the alternation is ordered longest-first so a pointer at the companion can
+# never be matched as the shorter MECHANISMS.md branch and validated against the wrong file's headings.
+POINTER_RE = re.compile(r"`?(MECHANISMS-ON-DEMAND\.md|PRINCIPLES\.md|MECHANISMS\.md)`?\s+§([^\n]{2,60})")
 
 
 def headings(path: Path) -> set[str]:
@@ -365,7 +368,8 @@ def check_section_pointers(files: dict[str, Path]) -> None:
             return
         known[label] = headings(path)
     extra = {ROOT / "README.md", ROOT / "VISION.md", ROOT / "PRINCIPLES.md",
-             ROOT / "references" / "mechanisms.md"}
+             ROOT / "references" / "mechanisms.md",
+             ROOT / "references" / "mechanisms-on-demand.md"}
     for path in sorted(set(files.values()) | extra):
         text = path.read_text(encoding="utf-8")
         where = path.relative_to(ROOT).as_posix()
@@ -386,7 +390,8 @@ def check_file_sizes(files: dict[str, Path]) -> None:
     is loaded by EVERY skill, so its size is the per-session attention cost of the whole system. A rule
     with no check is how it got there.
     """
-    for rel in ("PRINCIPLES.md", "references/mechanisms.md", "references/lessons.md"):
+    for rel in ("PRINCIPLES.md", "references/mechanisms.md", "references/mechanisms-on-demand.md",
+                "references/lessons.md"):
         size = (ROOT / rel).stat().st_size
         if size > SIZE_LIMIT:
             fail(f"{rel} is {size / 1024:.1f}KB (> {SIZE_LIMIT // 1024}KB) - the prune rule it defines "
