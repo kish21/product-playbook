@@ -65,8 +65,31 @@ A `PRODUCT.md` section is in exactly one of these. Nothing else is a state.
 | **empty** | the scaffold, unfilled | no | **empty** — this is the frontier |
 | **declined** | `_Not run <date>: <what was missing> — run <phase> first._` | no | **empty**, but names the earlier attempt instead of proposing blind |
 | **filled** | the phase's required fields, non-empty and evidenced | yes | done |
+| **running** | `_Running <date>, due <date>: <what is being measured>._` + the section's fields filled, `PENDING` where the result goes | **no** — the gate is open | **not the frontier, and not done**: the work started and finishes later |
 | **overridden** | `Override <date>: <reason> — bypassed <gate>` | **yes** — the phase is not still owed | done, **and surfaced every time a later phase orients** |
 | **superseded** | `superseded <date>: <why>` beside the old entry | n/a — a property of an *entry*, not a section | unchanged |
+
+**`running` is for work that has genuinely started and cannot finish today** — a two-week
+Wizard-of-Oz experiment, a pre-sale, a measurement that needs real users. It is **full of text with its
+gate still open**, the one case the four-state model could not express: a later reader saw content and
+had no way to tell whether to wave it through. It was improvised, well and identically, in two separate
+runs before it was defined here.
+
+**What a downstream phase does with a `running` section — the third option.** The honest menu used to be
+*wait a fortnight* or *override forever*, and the experiment ladder itself prices the serious rungs at
+1–2 weeks, so the override wins every time: **a gate whose honest path is unusable gets routed around**,
+which is the silent skip this playbook exists to prevent. So:
+
+- **Phase 1 document phases (`/scope`, `/plan`) treat a `running` gate as ADVISORY.** Proceed
+  **provisionally**, mark what depends on the pending result, and say so. They produce documents, not
+  code — blocking them buys little.
+- **From `/architect` onward it BLOCKS**, like any unmet gate, and needs a real override to pass.
+  Blocking `/build` on an untested behavioural assumption buys a great deal.
+- **Proceeding provisionally is not an override.** It expects a result, it is due-dated, and the mark
+  **clears when the result lands** rather than only by a new experiment. If the experiment fails, the
+  provisional work is revisited — `/validate`'s pivot/kill path already says how.
+- **An overdue `running` section is a drift finding** (`/drift-check`): past its due date with no result
+  is a stalled gate, and nothing was emitting it.
 
 **No state is terminal.** Every one can be re-entered by a re-run; that is the point of §Re-run
 semantics. `superseded` is deliberately not a section state — a section holding a superseded ADR is
@@ -76,6 +99,10 @@ still `filled`, and treating it otherwise would make every reversal look like re
 
 ```
 empty ──▶ filled          a normal run
+empty ──▶ running         the work started and finishes later (a timeboxed experiment, a measurement)
+running ──▶ filled        the result landed; PENDING fields are replaced and the gate closes
+running ──▶ running       a re-run that extends or re-scopes the experiment, dated
+running ──▶ overridden    the user chose to proceed without waiting for the result
 empty ──▶ declined        the prior gate was unmet and the run stopped (§Declined runs)
 empty ──▶ overridden      the prior gate was unmet and the user chose to proceed (#128)
 declined ──▶ filled       the missing phase ran; the Not-run line is REPLACED, never appended to
@@ -83,6 +110,10 @@ declined ──▶ overridden   the user chose to proceed without it
 filled ──▶ filled         a re-run: show what changes, ask first, date what it reverses
 overridden ──▶ filled     the skipped phase was run after all
 ```
+
+**`filled ──▶ running` is illegal**, for the same reason as the line below: a closed gate does not
+re-open into "still measuring". A new experiment over a filled section is `filled ──▶ filled` through
+§Re-run semantics, which keeps the first result rather than replacing it with a pending one.
 
 **`filled ──▶ declined` is illegal.** A phase that ran does not un-run; a section that needs redoing
 goes `filled ──▶ filled` through §Re-run semantics, which keeps the reason the other option lost.

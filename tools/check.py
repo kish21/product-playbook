@@ -176,6 +176,7 @@ def main() -> int:
     # 16. every section-writing skill actually invokes the transition guard at its Step 3b
     check_transition_guard(files)
     check_close_the_loop(files)
+    check_states_are_implemented(files)
 
     return done(len(cmds))
 
@@ -597,6 +598,25 @@ CLOSE_OBLIGATIONS = (
     ("§Plain-language close", "closing in plain language",
      "a run that ends in gates, states and verdicts has not told the user what happened or what they do next"),
 )
+
+
+def check_states_are_implemented(files: dict[str, Path]) -> None:
+    """18. Every state docs/state-model.md defines is implemented by at least one skill.
+
+    The `running` state existed in two live runs before it existed in the model: a section full of text
+    with its gate still open, improvised well and identically, with no state, no transition, no
+    downstream rule and no check. The reverse failure is the one this catches - a state defined in the
+    model that no skill ever writes is a rule the product does not have, and it reads as though it does.
+    """
+    model = (ROOT / "docs" / "state-model.md").read_text(encoding="utf-8")
+    block = model.split("### 2a.", 1)[-1].split("### 2b.", 1)[0]
+    states = {m.group(1) for m in re.finditer(r"^\|\s*\*\*(\w+)\*\*\s*\|", block, re.MULTILINE)}
+    states -= {"superseded"}  # a property of an entry, not a section - §2a says so explicitly
+    corpus = "\n".join(p.read_text(encoding="utf-8") for p in sorted(set(files.values())))
+    for state in sorted(states):
+        if state not in corpus:
+            fail(f"docs/state-model.md defines the `{state}` state and no skill implements it - a state "
+                 f"nothing writes is a rule the product does not actually have")
 
 
 def check_skill_count(n: int, files: dict[str, Path]) -> None:

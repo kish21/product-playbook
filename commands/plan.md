@@ -32,7 +32,10 @@ description: >
   - [ ] A **concern-area coverage checklist** (security · ai-specific · observability · developer-experience · testing · infra · documentation · product) — each marked **now / next / later / N-A** with a trigger.
 
 ## Step 0 — Context + prior-gate check
-- Read `#Vision` and `#Scope`. If `#Scope` is missing/empty, warn and offer `/scope` first (allow override).
+- Read `#Vision` and `#Scope`. If `#Scope` is missing/empty, warn and offer `/scope` first (allow
+  override). **A `running` gate upstream is advisory here** (`docs/state-model.md` §2a) — plan
+  provisionally, mark the milestones that depend on the pending result, and note that it blocks from
+  `/architect` on.
 - **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Plan` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
 
 - **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** if the section is already filled, **show what would change and ask before replacing it** — never a silent overwrite — and leave a reversed decision in place with a dated `superseded <date>: <why>` line. A first run over an empty section is unchanged.
