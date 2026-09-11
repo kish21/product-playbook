@@ -3,6 +3,28 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.38.1] - 2026-09-11
+
+### Fixed — the one-sentence vision had nowhere to be written (#188)
+
+`/vision` exit criterion #1 has demanded *"a single sentence vision (the world this product creates)"*
+since the first commit (2026-06-04). That line was the **only** mention of it in the repo: Step 2 never
+asked for it, Step 3 never wrote it, and `templates/PRODUCT.md` had no field for it. Three months of runs
+skipped it silently, and Step 3b's principle-gate passed them — it walks the document it just wrote, not
+the checklist. Found by running `/vision` end-to-end on a real project and diffing criteria against the
+template field by field.
+
+- `templates/PRODUCT.md` — the field now exists, first in `#Vision`
+- `/vision` Step 2 asks for it, Step 3 writes it, Step 3b calls out a sentence that describes the
+  product instead of the world it creates
+- **`2026 market` was hardcoded** in the template and the Contract line since the first commit, directly
+  beside the benchmark-to-current-year principle it contradicts → now `current-year`
+- **"the weekly-moving numbers that drive it"** (#97) assumed a SaaS; a tool used a few times a month
+  cannot have weekly-moving inputs → cadence now follows the product
+
+**Known gap:** nothing checks that a skill's exit criteria have a home in the template — which is why
+this survived three months. `tools/check.py` has no such check; it needs a design, not a regex.
+
 ## [1.38.0] - 2026-09-11
 
 The entire backlog from the first live end-to-end run — **24 issues across 9 PRs**, closing everything
