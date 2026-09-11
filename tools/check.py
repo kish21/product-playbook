@@ -56,6 +56,14 @@ Checks:
      it OWNS the claim-to-evidence pass the guard runs, so a pointer back to itself would be circular. The
      guard was deferred (docs/state-model.md 4) until 131 made evidence re-runnable; a guard nobody
      invokes is the opt-in /drift-check it was meant to stop relying on, so participation is checked.
+ 17. Every skill that writes a spine section CLOSES IT PROPERLY: the gate-closing region names
+     MECHANISMS.md Commit the work (offer the commit, never just suggest a message) and Plain-language
+     close (what just happened + what YOU do next). Both rules pre-existed and neither was executed
+     anywhere - three phases behaved three ways and a real project sat at zero commits after two of
+     them - so the obligation is checked in the region, not trusted to the prose that defines it.
+ 18. Every STATE docs/state-model.md defines is implemented by at least one skill. The `running` state
+     was improvised in two live runs before it existed in the model; the mirror failure is a state
+     defined in the model that no skill writes, which reads as a rule the product does not have.
 """
 from __future__ import annotations
 import json

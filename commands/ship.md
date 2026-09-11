@@ -50,12 +50,28 @@ description: >
 ## Step 1 — Apply principles (this phase)
 - **Reviews are DEEP:** trace the change to its real callers; hunt the "green tests, dead in the live path" bug. **Verify any review/audit finding against the real code** — don't rubber-stamp; some findings are already done or misdiagnosed.
 - **Security fail-closed** on auth/data; **docs must match reality** (a false claim is a diligence liability).
+- **Composed reviews are the biggest line on that bill.** The cost rule below is not only about session
+  length: **the most expensive operation in the chain is the one most worth de-duplicating.** Read
+  `#Build log` before composing any review (Step 0).
 - **One subtask per session:** ship this, then hand off — don't roll into the next subtask. This is also the **cost lever**: agent-session cost grows ~quadratically with length (every API call re-reads the full history), so a fresh session after the PR is materially cheaper than continuing — measured on a shipped project (97% of a month's token spend was cache re-reads from overlong sessions), not a vibe.
 
 ## Step 2 — Ship
-1. **Deep review:** run **`/code-review`** *if available* — otherwise your default code-reviewer agent / review mode, inspecting the diff against `PRINCIPLES.md`. **NEVER skip the review.** Fix real findings; verify each against the code before acting.
-   - **Then review AGAIN — the fixes are new code, and nothing has reviewed them.** A round of fixes edits the same files under time pressure with the finding, not the design, in view; re-running the review is the only thing that looks at what the fixing produced (case file: The second review round).
-2. **Security:** run **`/security-review`** *if available* on auth/data — otherwise your default security-audit pass over auth, capability tokens and data paths against `PRINCIPLES.md`'s production safeguards. For AI, run the OWASP LLM Top 10 / prompt-injection checklist.
+0. **First, read what has ALREADY been reviewed.** `#Build log` records each review with its result,
+   scope and date — **a review is evidence with a scope, not a step that always fires.** Compare that
+   scope to the diff you are shipping and take one of three paths, explicitly:
+   - **unchanged since that review** → say so, **cite the `#Build log` line as the evidence, and skip it**
+   - **changed** → re-run, and **name what changed** (new commits, a wider diff, a round of fixes)
+   - **no recorded review** → run it
+   A deep review over a full diff is the most expensive operation in this chain, and one feature can
+   compose one **up to six times** between `/build` and here — on the one-feature-per-session rule,
+   `/build`'s diff and this diff are frequently *the same diff*. Skipping a duplicate is not cutting a
+   corner: it is the session-economy rule above, applied to the priciest thing the playbook does. There
+   is a correctness cost too — a reviewer handed an already-fixed diff **re-reports closed findings**,
+   which is why this step has always needed the "some findings are already done" warning.
+1. **Deep review:** run **`/code-review`** *if available* — otherwise your default code-reviewer agent / review mode, inspecting the diff against `PRINCIPLES.md`. **NEVER skip the review** on a diff nothing has reviewed. Fix real findings; verify each against the code before acting.
+   - **Then review AGAIN — the fixes are new code, and nothing has reviewed them.** A round of fixes edits the same files under time pressure with the finding, not the design, in view; re-running the review is the only thing that looks at what the fixing produced (case file: The second review round). **This round is never the duplicate Step 0 prunes** — its scope is *the fixes*, which by definition no review has seen. Do not let a mechanical reading of Step 0 delete it.
+2. **Security:** apply Step 0 to this one too — `#Build log` may already record a `/security-review`
+   over an unchanged auth/data surface. Otherwise run **`/security-review`** *if available* on auth/data — otherwise your default security-audit pass over auth, capability tokens and data paths against `PRINCIPLES.md`'s production safeguards. For AI, run the OWASP LLM Top 10 / prompt-injection checklist.
 3. **Reconcile docs:** walk every **capability / security / “supported” claim** in `PRODUCT.md`, `docs/features/*` and the README and find the code that backs it — grep the concrete nouns (paths, flags, model names, field names), don't re-read the prose. Update whichever side is wrong. **Gate the PR on this:** a doc that overstates the product is a false security claim, not a typo.
 4. **Rollout safety:** state the **rollback path** (revert PR / migration-down / flag-off); put risky/irreversible changes behind a **flag or staged rollout**; name the **post-deploy signal to watch** (the bridge to `/learn`); bump **semver** where versioned.
    - **Post-deploy live verification must never mutate a record sitting in a human's review/approval state — dry-run the same code path on the real data with persistence off.** A no-persist harness proves the deployed logic on production inputs while the human's pending decision stays untouched (case file: Dry-run live verify).
