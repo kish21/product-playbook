@@ -22,17 +22,17 @@ description: >
 - **Gate type:** `verification` — review, security and doc gates pass or they do not. Batchable, and **stops on red** - a failing check ends the batch there. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Ship log` · `declined` ✓ · `override` ✓ · `superseded` n/a — append-only log: one entry per release
 - **Exit criteria:**
-  - [ ] **Deep review** done (`/code-review`, or the equivalent your harness has) — findings traced to real callers/cross-file impact, not a skim.
-  - [ ] **Security review** on auth/data changes (`/security-review`, or equivalent — and say which); for AI, the OWASP LLM Top 10 checklist (esp. prompt injection).
-  - [ ] **Docs reconciled to reality** — every **capability and security claim** in `PRODUCT.md`, `docs/features/*` and the README checked against the code that backs it. A claim with no implementation is the finding; delete it or build it.
-  - [ ] **Confidence score (0–100%)** reported (solid / risky-untested / to-raise-it).
-  - [ ] PR opened with **`Closes #N`** in the body where a tracked issue exists; a smooth **handoff** written; user told to start a fresh session.
-  - [ ] **Tracker reconciled after merge:** the linked issue is **Closed** and (if a project board exists) its card moved to **Done** — **if the project keeps a board**; the playbook does not create one, so audit what exists rather than a structure nothing here provisions — *verified against the tracker*, not assumed from "shipped" (Step 7 below).
-  - [ ] A **CHANGELOG / release note** entry (+ a **semver** bump where versioned).
-  - [ ] Security checklist cleared: dependency-vuln scan, CORS prod domain, cookie-based auth (not localStorage), and data-deletion/GDPR for data products.
-  - [ ] **No placeholder can boot this build** — `.env.example`'s values are still rejected by name at startup (the `/foundation` guard and its test are intact, with no production override). A release that boots on a committed secret is a live incident, not a finding.
-  - [ ] **Rollout safety:** a stated **rollback path** (revert PR / migration-down / flag-off); risky changes behind a **flag / staged rollout**; the **post-deploy signal to watch** named.
-  - [ ] **(Lane mode — MECHANISMS.md §Lane mode)** `lanekeeper check` passed before the PR was opened; the PR carries exactly one `lane: <name>` label; the `#Ship log` + CHANGELOG entries were written **on the base branch after merge**, never from inside the lane.
+  - [ ] **Deep review** done (`/code-review`, or the equivalent your harness has) — findings traced to real callers/cross-file impact, not a skim. → `/security-review`
+  - [ ] **Security review** on auth/data changes (`/security-review`, or equivalent — and say which); for AI, the OWASP LLM Top 10 checklist (esp. prompt injection). → `/security-review`
+  - [ ] **Docs reconciled to reality** — every **capability and security claim** in `PRODUCT.md`, `docs/features/*` and the README checked against the code that backs it. A claim with no implementation is the finding; delete it or build it. → `Docs reconciled`
+  - [ ] **Confidence score (0–100%)** reported (solid / risky-untested / to-raise-it). → `What shipped`
+  - [ ] PR opened with **`Closes #N`** in the body where a tracked issue exists; a smooth **handoff** written; user told to start a fresh session. → `PR`
+  - [ ] **Tracker reconciled after merge:** the linked issue is **Closed** and (if a project board exists) its card moved to **Done** — **if the project keeps a board**; the playbook does not create one, so audit what exists rather than a structure nothing here provisions — *verified against the tracker*, not assumed from "shipped" (Step 7 below). → `PR`
+  - [ ] A **CHANGELOG / release note** entry (+ a **semver** bump where versioned). → `CHANGELOG`
+  - [ ] Security checklist cleared: dependency-vuln scan, CORS prod domain, cookie-based auth (not localStorage), and data-deletion/GDPR for data products. → `/security-review`
+  - [ ] **No placeholder can boot this build** — `.env.example`'s values are still rejected by name at startup (the `/foundation` guard and its test are intact, with no production override). A release that boots on a committed secret is a live incident, not a finding. → `/security-review`
+  - [ ] **Rollout safety:** a stated **rollback path** (revert PR / migration-down / flag-off); risky changes behind a **flag / staged rollout**; the **post-deploy signal to watch** named. → `Rollback / flag`
+  - [ ] **(Lane mode — MECHANISMS.md §Lane mode)** `lanekeeper check` passed before the PR was opened; the PR carries exactly one `lane: <name>` label; the `#Ship log` + CHANGELOG entries were written **on the base branch after merge**, never from inside the lane. → `Skipped phases`
 
 ## Step 0 — Context + prior-gate check
 - Read `#Dev-complete`, `#Tests`, `#Evaluation` and the diff. **Name every one of them that is empty** and
@@ -42,9 +42,7 @@ description: >
 - **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Ship log` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
 - **The exception is bounded, not vague.** A change may skip `/eval` only when it touches no product
   behaviour — a docs/typo/comment change, or a revert. **Anything that changes what the product does needs
-  its tests recorded**; "small" is not a judgement the shipper makes about their own change.
-- *(On a real run this gate read the evaluation section alone and shipped a product whose `#Dev-complete`, `#Tests` and
-  `#Evaluation` were all empty — the last gate before release never asked whether anything was tested.)*
+  its tests recorded**; "small" is not a judgement the shipper makes about their own change. (case file: The last gate that never asked about tests)
 - **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** write ONE dated line at the top of `#Ship log` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
 
 ## Step 1 — Apply principles (this phase)

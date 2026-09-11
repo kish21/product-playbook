@@ -664,6 +664,25 @@ COMMIT_ROOT_OBLIGATIONS = (
 )
 
 
+def criteria_of(text: str) -> list[str]:
+    """Exit criteria as whole criteria - a `- [ ]` line plus its wrapped continuation lines.
+
+    A criterion that wraps is still one criterion; reading line-by-line would demand a citation on the
+    first physical line and put the arrow mid-sentence.
+    """
+    if "**Exit criteria:**" not in text:
+        return []
+    block = text.split("**Exit criteria:**", 1)[1].split("\n## ", 1)[0]
+    out: list[str] = []
+    for line in block.splitlines():
+        s = line.strip()
+        if s.startswith("- [ ]"):
+            out.append(s[5:].strip())
+        elif out and s and not s.startswith("- ") and not s.startswith("<!--"):
+            out[-1] += " " + s
+    return out
+
+
 def check_criteria_have_a_home(files: dict[str, Path]) -> None:
     """20. Every exit criterion cites the spine field that records it, and that field exists.
 
@@ -691,12 +710,7 @@ def check_criteria_have_a_home(files: dict[str, Path]) -> None:
         if "**Exit criteria:**" not in text:
             fail(f"{name} is in CRITERIA_CITED but declares no exit criteria")
             continue
-        block = text.split("**Exit criteria:**", 1)[1].split("\n## ", 1)[0]
-        for line in block.splitlines():
-            s = line.strip()
-            if not s.startswith("- [ ]"):
-                continue
-            crit = s[5:].strip()
+        for crit in criteria_of(text):
             if ARROW not in crit:
                 fail(f"{name}: exit criterion cites no spine field - {crit[:70]!r} - a criterion with "
                      f"nowhere to be written is skipped silently while the gate still passes")
@@ -713,7 +727,8 @@ def check_criteria_have_a_home(files: dict[str, Path]) -> None:
 
 # Skills whose exit criteria have been migrated to cite their spine field (#192). Grows one skill at a
 # time; each migration is a human decision per criterion, so the set is explicit rather than inferred.
-CRITERIA_CITED = {"vision"}
+CRITERIA_CITED = {"vision", "validate", "scope", "plan", "contracts", "dev-check", "deploy",
+                  "test", "eval", "ship", "learn", "drift-check"}
 
 
 def check_skill_count(n: int, files: dict[str, Path]) -> None:

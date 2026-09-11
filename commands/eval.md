@@ -21,13 +21,13 @@ description: >
 - **Gate type:** `verification` — measured against a recorded baseline. Batchable, and **stops on red** - a failing check ends the batch there. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Evaluation` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria:**
-  - [ ] A measurable definition of "good" tied to the vision/goal (a metric or a rubric) — **for a product with a north star, that definition IS `#Vision`'s target + date**, not a fresh rubric invented here.
-  - [ ] **The guardrail metric is measured too, and reported alongside.** A north-star number that improved while the guardrail got worse is not a pass — say so plainly.
-  - [ ] **Measured** against real or representative inputs (not asserted from vibes).
-  - [ ] **Operational failures (errored/blocked/dropped) are separated** from genuine low quality.
-  - [ ] An honest **confidence score (0–100%)** with solid / risky-untested / to-raise-it lines.
-  - [ ] **Cost-per-run** captured (token/compute spend) where relevant; for AI, a **scoring-bias** check.
-  - [ ] Result compared to a **recorded baseline** — a regression below threshold **fails** (gates as config, not hardcoded).
+  - [ ] A measurable definition of "good" tied to the vision/goal (a metric or a rubric) — **for a product with a north star, that definition IS `#Vision`'s target + date**, not a fresh rubric invented here. → `Is it good?`
+  - [ ] **The guardrail metric is measured too, and reported alongside.** A north-star number that improved while the guardrail got worse is not a pass — say so plainly. → `Metrics + confidence score`
+  - [ ] **Measured** against real or representative inputs (not asserted from vibes). → `Is it good?`
+  - [ ] **Operational failures (errored/blocked/dropped) are separated** from genuine low quality. → `Operational failures`
+  - [ ] An honest **confidence score (0–100%)** with solid / risky-untested / to-raise-it lines. → `Metrics + confidence score`
+  - [ ] **Cost-per-run** captured (token/compute spend) where relevant; for AI, a **scoring-bias** check. → `Cost-per-run`
+  - [ ] Result compared to a **recorded baseline** — a regression below threshold **fails** (gates as config, not hardcoded). → `Is it good?`
 
 ## Step 0 — Context + prior-gate check
 - Read `#Vision/#Scope/#Plan` for the goal and `#Tests` for what's covered.

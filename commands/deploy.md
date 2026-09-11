@@ -34,21 +34,21 @@ description: >
   `running` ✓ (a first deploy waiting on an account, a DNS record or a quota) · `superseded` ✓
 - **Exit criteria:**
   - [ ] **The host is the one `#Architecture` recorded** — copied verbatim, with its provenance. A
-    different host here is a contradiction, not a detail (`MECHANISMS.md` §Step 3c).
+    different host here is a contradiction, not a detail (`MECHANISMS.md` §Step 3c). → `Host (copied from #Architecture`
   - [ ] **`docs/deployment.md` exists** and carries: host · build and start commands · the exact env-var
     list · how migrations run on deploy · first-deploy steps · the one command or URL that proves it
-    worked · the rollback path.
+    worked · the rollback path. → `docs/deployment.md`
   - [ ] **The env-var list is GENERATED from `.env.example`**, not retyped — so it cannot drift from the
-    loader's own guard. Every variable the boot guard requires appears in it.
+    loader's own guard. Every variable the boot guard requires appears in it. → `Env vars set on the host`
   - [ ] **Migrations on deploy are defined, not asserted.** `#Architecture` typically says *"applied on
-    deploy"*; name the command, where it runs, and what happens when it fails.
+    deploy"*; name the command, where it runs, and what happens when it fails. → `Migrations on deploy`
   - [ ] **A real request succeeded** against the deployed URL — the health path *and* one real user path.
-    A build that went green is not a product that answers.
+    A build that went green is not a product that answers. → `Proof it answers`
   - [ ] **`/foundation`'s placeholder guard was considered before the first deploy**, not discovered by
     it: the guard is working as designed when it refuses to boot on an unset host variable, and that is
-    the single most likely first-deploy failure.
+    the single most likely first-deploy failure. → `Env vars set on the host`
   - [ ] **No secret was written by this skill, or asked for in chat.** The document says *which* variables
-    the host needs and how to generate each value; **the user pastes them into the host themselves**.
+    the host needs and how to generate each value; **the user pastes them into the host themselves**. → `Env vars set on the host`
 
 ## Step 0 — Context + prior-gate check
 - Read `#Architecture`'s **runtime target**, **data custody** and **migrations approach**, `#Foundation`,

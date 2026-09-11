@@ -20,11 +20,11 @@ description: >
 - **Gate type:** `input` — what gets cut is a preference no prior section encodes. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Scope` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria:**
-  - [ ] Exactly **one** core feature named (the thing that, alone, delivers the core value).
-  - [ ] A short in-scope list, each item tied to the vision's value proposition **and** plausibly moving the north-star metric.
-  - [ ] A **non-empty Deferred list**, each item with the **trigger** that would bring it in — **and** a **Non-goals** list (things we deliberately will *never* build).
-  - [ ] Each in-scope item traces to a customer outcome, not a feature wish.
-  - [ ] **The table-stakes checklist is fully sorted** — every item explicitly **in-scope now**, **Deferred (with trigger)** or **N/A (with reason)**. **No item may be left unsorted**: an unsorted item fails this gate, because these are the things nobody proposes and everybody expects.
+  - [ ] Exactly **one** core feature named (the thing that, alone, delivers the core value). → `THE core feature`
+  - [ ] A short in-scope list, each item tied to the vision's value proposition **and** plausibly moving the north-star metric. → `In scope (now)`
+  - [ ] A **non-empty Deferred list**, each item with the **trigger** that would bring it in — **and** a **Non-goals** list (things we deliberately will *never* build). → `Deferred (out for now` · `Non-goals`
+  - [ ] Each in-scope item traces to a customer outcome, not a feature wish. → `In scope (now)`
+  - [ ] **The table-stakes checklist is fully sorted** — every item explicitly **in-scope now**, **Deferred (with trigger)** or **N/A (with reason)**. **No item may be left unsorted**: an unsorted item fails this gate, because these are the things nobody proposes and everybody expects. → `Table stakes`
 
 ## Step 0 — Context + prior-gate check
 - Read `PRODUCT.md#Vision`. If it is missing/empty, warn: "`/vision` looks incomplete — scope without

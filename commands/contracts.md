@@ -24,11 +24,11 @@ description: >
 - **Gate type:** `derivation` — computable from `#Scope` + `#Architecture`. Batchable - a `derivation` run may chain with its neighbours and end in ONE review. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Contracts` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria:**
-  - [ ] Core domain entities defined as **typed models** (not raw dicts/free text).
-  - [ ] Persistence via a **migration** (never hand-edited schema); **schema matches what code reads/writes**.
-  - [ ] Every cross-boundary payload (API in/out, agent in/out) is a typed contract.
-  - [ ] **Units/scale/shape agreed on both sides** of each boundary (the classic "0–1 vs 0–10" trap); a unit captured at the source (e.g. currency) is used everywhere, not re-derived.
-  - [ ] Public API/agent contracts are documented (e.g. an OpenAPI/schema export), not just in code.
+  - [ ] Core domain entities defined as **typed models** (not raw dicts/free text). → `Typed models / schemas / migrations`
+  - [ ] Persistence via a **migration** (never hand-edited schema); **schema matches what code reads/writes**. → `Typed models / schemas / migrations`
+  - [ ] Every cross-boundary payload (API in/out, agent in/out) is a typed contract. → `Typed models / schemas / migrations`
+  - [ ] **Units/scale/shape agreed on both sides** of each boundary (the classic "0–1 vs 0–10" trap); a unit captured at the source (e.g. currency) is used everywhere, not re-derived. → `Boundary units/scale agreed`
+  - [ ] Public API/agent contracts are documented (e.g. an OpenAPI/schema export), not just in code. → `Typed models / schemas / migrations`
 
 ## Step 0 — Context + prior-gate check
 - Read `#Scope/#Architecture/#Structure`. If `#Foundation` isn't done, warn (you need a place to run migrations) but allow override.

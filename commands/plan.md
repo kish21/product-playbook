@@ -20,16 +20,16 @@ description: >
 - **Gate type:** `input` — the timeline and the ordering are the user's constraints. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Plan` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria:**
-  - [ ] Milestones ordered **core-first** (the core feature ships before nice-to-haves).
-  - [ ] A rough timeline (relative is fine: M1, M2… or weeks).
+  - [ ] Milestones ordered **core-first** (the core feature ships before nice-to-haves). → `Phases / milestones (core first)`
+  - [ ] A rough timeline (relative is fine: M1, M2… or weeks). → `Timeline`
   - [ ] **Every milestone has a testable exit criterion** (a definition of done you could verify) that is
     also **reachable** — every prerequisite it implies (a deployed URL, credentials, seeded or real data,
-    a device, another person) is delivered by a milestone in this plan, or the criterion is weakened.
-  - [ ] **Every milestone carries a four-risks row** — which of **value · usability · feasibility · viability** it retires, and how you will know. A plan that sequences only "can we build it" ships something buildable that nobody wants, nobody can use, or the business cannot sustain.
-  - [ ] **At least one pre-public milestone has a usability exit criterion** — even five people attempting the core task unaided. Usability is the risk discovered *after* launch, when it is most expensive to fix.
-  - [ ] A risk already retired **cites its evidence** (a `#Validation` entry, a prior milestone) instead of repeating the work.
-  - [ ] Out-of-scope items remain out (referenced, not scheduled).
-  - [ ] A **concern-area coverage checklist** (security · ai-specific · observability · developer-experience · testing · infra · documentation · product) — each marked **now / next / later / N-A** with a trigger.
+    a device, another person) is delivered by a milestone in this plan, or the criterion is weakened. → `Exit criteria per milestone`
+  - [ ] **Every milestone carries a four-risks row** — which of **value · usability · feasibility · viability** it retires, and how you will know. A plan that sequences only "can we build it" ships something buildable that nobody wants, nobody can use, or the business cannot sustain. → `Four-risks row per milestone`
+  - [ ] **At least one pre-public milestone has a usability exit criterion** — even five people attempting the core task unaided. Usability is the risk discovered *after* launch, when it is most expensive to fix. → `Usability checkpoint before going public`
+  - [ ] A risk already retired **cites its evidence** (a `#Validation` entry, a prior milestone) instead of repeating the work. → `Four-risks row per milestone`
+  - [ ] Out-of-scope items remain out (referenced, not scheduled). → `Phases / milestones (core first)`
+  - [ ] A **concern-area coverage checklist** (security · ai-specific · observability · developer-experience · testing · infra · documentation · product) — each marked **now / next / later / N-A** with a trigger. → `Concern-area coverage`
 
 ## Step 0 — Context + prior-gate check
 - Read `#Vision` and `#Scope`. If `#Scope` is missing/empty, warn and offer `/scope` first (allow
