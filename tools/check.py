@@ -745,9 +745,10 @@ COMPANION = {"vision": "docs/vision.md", "validate": "docs/validation.md", "scop
              "plan": "docs/plan.md", "contracts": "docs/contracts.md", "test": "docs/tests.md",
              "eval": "docs/evaluation.md", "learn": "docs/learnings.md"}
 COMPANION_OBLIGATIONS = (
-    ("MECHANISMS-ON-DEMAND.md §Section size", "reporting the size of what it just wrote",
-     "a cap checked only by a skill the user runs BY CHOICE is not a cap - #Vision reached 5,131 bytes "
-     "on the first of seventeen sections and nothing said a word"),
+    ("MECHANISMS-ON-DEMAND.md §Section is a record", "reporting the size of what it just wrote and "
+     "applying the record test",
+     "a spine nobody measures reached 73KB, and a spine measured against a NUMBER was trimmed instead of "
+     "relocated - #Vision lost 30 bytes of answers while its companion was written in addition (#200)"),
     ("MECHANISMS-ON-DEMAND.md §Read receipt", "receipting the companions it opened",
      "a pointer nobody can prove was followed is how a phase reads the record, invents what the artefact "
      "would have said, and publishes eleven wrong issues"),
@@ -759,8 +760,10 @@ def check_companion_docs(files: dict[str, Path]) -> None:
 
     Two failures with one cause. `templates/PRODUCT.md` has said "a section is a RECORD, not a container"
     since v1.38.0, and eight sections had no container to be the alternative to - so every one of them
-    wrote its detail into the spine, and /vision breached the ~5KB per-section cap on the FIRST section of
-    a live run with nothing to catch it. Moving that detail out is only safe if following a pointer is
+    wrote its detail into the spine, and /vision wrote 5.1KB of reasoning into the FIRST section of a live
+    run with nothing to catch it. There is NO byte cap (#200: the template's 95 required fields make one
+    unreachable by construction, and a cap trims answers instead of relocating reasoning); the instrument
+    is the record test - decision stays, reasoning moves. Moving that detail out is only safe if following a pointer is
     verifiable, and MECHANISMS.md Follow the pointer - the guard against exactly that - was named in 2 of
     22 skills and enforced by NO check, while claiming to be "greppable, so it is a gate, not an
     intention". Nothing grepped it. So the split and the proof ship together, and this is the grep.
@@ -772,11 +775,11 @@ def check_companion_docs(files: dict[str, Path]) -> None:
             continue
         if comp not in tpl:
             fail(f"templates/PRODUCT.md never names {comp} - the section it belongs to points nowhere, so "
-                 f"its detail has only the spine to go into, which is how the cap was breached")
+                 f"its detail has only the spine to go into, which is how it filled with reasoning")
         text = files[name].read_text(encoding="utf-8")
         if f"`{comp}`" not in text:
-            fail(f"{name} writes a section capped at ~5KB but never names its companion {comp} - a phase "
-                 f"with nowhere to put the reasoning puts it in the spine")
+            fail(f"{name} writes a section that must be a RECORD but never names its companion {comp} - a "
+                 f"phase with nowhere to put the reasoning puts it in the spine")
         start = re.search(r"^#{2,4}\s*Step 3b\b", text, re.MULTILINE)
         if not start:
             continue  # check 16 already failed this file; one message per defect

@@ -14,9 +14,11 @@ Rules:
 - Keep entries short and honest. Record HOW something was verified, not just "done".
 - **A section is a RECORD, not a container** (PRINCIPLES.md): summary, the decision, the evidence line,
   and a pointer to where the detail lives — STRUCTURE.md, DESIGN.md, docs/adr/*, docs/runbook.md,
-  docs/features/*, docs/deployment.md, src/schemas/*. **Keep this file under ~25KB and no section over
-  ~5KB.** Past that a spine stops being read and starts being grepped, and a phase that greps instead of
-  reading is how a recorded decision gets missed by the one phase that needed it.
+  docs/features/*, docs/deployment.md, src/schemas/*. **There is no byte cap** — the test is per field:
+  *is this the decision, or the reasoning behind it?* Reasoning moves to the companion; a required field
+  answered tightly stays, however many bytes it is. **Never trim to a number.** A spine that holds only
+  records stays readable; one that holds reasoning gets grepped instead of read, and a phase that greps
+  is how a recorded decision gets missed by the one phase that needed it.
 - **A pointer is an instruction to open the file** (MECHANISMS.md §Follow the pointer). Every companion
   is a new place a phase could find a signpost where it needed a definition — which is exactly how one
   phase invented ten types that were already frozen in code.

@@ -95,13 +95,16 @@ and nobody else will ever run it.
 > Each phase now runs its own **Step 3c** contradiction check before its gate closes (`MECHANISMS.md` §Step 3c), so a contradiction *between* two spine sections should be rare and dated. This sweep is what catches the ones that escaped — and a conflict you find here that carries **no `superseded by` line** means a phase skipped its Step 3c: report that as drift in its own right.
 
 1. **Scope creep:** list features in the code/build log not justified by `#Scope`; flag anything built that's a **Non-goal** or a **Deferred** item whose trigger never fired. Also flag the inverse: a deliberate pivot the spine never recorded → recommend updating `#Scope`/`#Vision`, not cutting code.
-2. **The spine's own size.** `PRODUCT.md` over **~25KB**, or any section over **~5KB**, is a prune
-   signal — the same rule the playbook applies to its own files, applied to the artefact the user
-   maintains (`PRINCIPLES.md`). Name the offending sections by size and say which companion the detail
-   belongs in (`docs/adr/*`, `docs/runbook.md`, `STRUCTURE.md`, `DESIGN.md`, `docs/features/*`,
-   `src/schemas/*`). A real spine reached **73KB with five sections still empty**, projecting ~125KB by
-   M4 — at that size nobody reads it, they grep it, and a phase that greps instead of reading is the
-   mechanism behind several findings in this list.
+2. **The spine's own size — a signal, not a verdict.** There is **no byte cap** on `PRODUCT.md` or any
+   section (`PRINCIPLES.md`, `MECHANISMS-ON-DEMAND.md §Section is a record`). Report the file size and
+   name the largest sections (*"`#Vision` is the largest section at 5.1KB — worth a look"*), then apply
+   the **record test** to the ones you name: a field holding *reasoning* rather than a decision, evidence
+   line or pointer is the finding, and the fix is to move that reasoning into its companion
+   (`docs/<phase>.md`, `docs/adr/*`, `docs/runbook.md`, `STRUCTURE.md`, `DESIGN.md`, `docs/features/*`,
+   `src/schemas/*`) — never to trim the answer. A big section made of tight required answers is not a
+   finding. A real spine reached **73KB with five sections still empty** because it held reasoning; at
+   that size nobody reads it, they grep it, and a phase that greps instead of reading is the mechanism
+   behind several findings in this list.
 3. **A stalled `running` gate.** A section in the `running` state (`docs/state-model.md` §2a) **past its
    due date with no result** is a finding nobody was emitting: the experiment was scheduled, the chain
    moved on provisionally, and the result never landed. Report it with the date it was due and what

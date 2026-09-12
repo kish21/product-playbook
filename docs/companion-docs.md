@@ -100,7 +100,7 @@ conflating them is how the size cap ended up unenforced.
 |---|---|---|---|
 | **L1 — declaration** | `tools/check.py`, this repo | the skill that OWNS a section declares its companion, and the template points at it | **Yes** — static text |
 | **L2 — receipt** | the user's project | the receipt exists, and the quoted fragment occurs in the named file | **Yes** — string match |
-| **L3 — size** | the user's project | section over ~5KB / spine over ~25KB is reported by the phase that wrote it, not only by `/drift-check` | **Yes** — byte count |
+| **L3 — record** | the user's project | the phase that wrote a section reports its size and applies the record test per field (decision stays, reasoning moves) — **no byte cap** (#200) | **Partly** — size is a byte count; the record test is a judgement |
 
 **L1 is a new check in `check.py`.** L2 and L3 become obligations in the gate-closing region of every
 section-writing skill, in the style check 17 already enforces for §Commit the work — so the *obligation*
@@ -114,7 +114,7 @@ is verified statically here, and the *act* is verified at runtime there.
 - eight skills — `vision` `validate` `scope` `plan` `contracts` `test` `eval` `learn`: write the
   companion, emit the receipt, report their own size
 - every skill with a `**Reads:**` naming a companion-backed section — receipt obligation
-- `references/mechanisms.md` — §Follow the pointer gains the receipt format; a new §Section size rule
+- `references/mechanisms.md` — §Follow the pointer gains the receipt format; a new §Section is a record rule (built in `mechanisms-on-demand.md`; named §Section size until #200)
 - `tools/check.py` — L1 check; extend check 17's region test to the receipt + size obligations
 - `commands/drift-check.md` — keeps the size check; it is no longer the *only* place it lives
 
@@ -127,7 +127,7 @@ is verified statically here, and the *act* is verified at runtime there.
 - [ ] Receipt format in `MECHANISMS.md`, with the verbatim-quotation rule stated
 - [ ] Receipt + size obligations named in all eight skills' gate-closing regions, enforced like check 17
 - [ ] `check.py` green; skill count unchanged at 22; no skill file over 15KB
-- [ ] **Re-run `/vision` on a clean folder: `#Vision` lands under 5KB and `docs/vision.md` exists**
+- [ ] **Re-run `/vision` on a clean folder: `#Vision` holds only decisions/evidence/pointers, its size is reported (not trimmed to), and `docs/vision.md` exists** _(rewritten by #200 — was "lands under 5KB")_
 
 The last one is the only criterion that proves the original defect is gone, and it is a live run, not
 a unit test.
@@ -163,3 +163,21 @@ way of saying the same thing is how one of them drifts.
 writes no `Read:` line is caught by check 21 only at its *own* gate-closing region (the obligation is
 declared), not by a check that the receipt was actually produced in the user's project. That verification
 is runtime (L2) and belongs to `/drift-check`. **Unfiled and owed.**
+
+---
+
+## 7. Reversal on record — the byte caps are gone (#200, 2026-09-12)
+
+**Designed and built (v1.40.0):** L3 measured `#Section` against ~5KB and `PRODUCT.md` against ~25KB, both
+inherited from the #167 fix.
+
+**Measured on the next live run:** `#Vision` landed at 5,101 B after being "trimmed twice to squeeze
+under" — 14 required fields at ~360 B each, none bloated, nothing left to move — while `docs/vision.md`
+(9.6 KB) was written *in addition*. The cap produced trimming, not relocation. The template's 95 required
+fields at a tight 300 B each come to ~40 KB, so the 25 KB total was unreachable by construction, and the
+two caps never agreed with each other (17 × 5 KB = 85 KB).
+
+**Owner decision:** *"I never asked it to cap, but to have a separate document and keep PRODUCT.md
+reasonable and relevant."* **No byte caps on the spine.** The instrument is the record test — per field,
+*decision or reasoning?* — with size reported as a signal for `/drift-check`, never enforced. Check 21
+keeps all three assertions; only its prose and the pointer name (`§Section is a record`) changed.

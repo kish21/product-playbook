@@ -24,15 +24,15 @@ description: >
 - **Gate type:** `derivation` — computable from `#Scope` + `#Architecture`. Batchable - a `derivation` run may chain with its neighbours and end in ONE review. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Contracts` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Companion:** `docs/contracts.md` — the reasoning, workings and raw notes. `PRODUCT.md#Contracts` stays a
-  RECORD (summary · decision · evidence · pointer), capped at ~5KB.
+  RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay.
 - **Exit criteria:**
   - [ ] Core domain entities defined as **typed models** (not raw dicts/free text). → `Typed models / schemas / migrations`
   - [ ] Persistence via a **migration** (never hand-edited schema); **schema matches what code reads/writes**. → `Typed models / schemas / migrations`
   - [ ] Every cross-boundary payload (API in/out, agent in/out) is a typed contract. → `Typed models / schemas / migrations`
   - [ ] **Units/scale/shape agreed on both sides** of each boundary (the classic "0–1 vs 0–10" trap); a unit captured at the source (e.g. currency) is used everywhere, not re-derived. → `Boundary units/scale agreed`
   - [ ] Public API/agent contracts are documented (e.g. an OpenAPI/schema export), not just in code. → `Typed models / schemas / migrations`
-  - [ ] `#Contracts` is a **RECORD**: the reasoning lives in `docs/contracts.md`, and the section measures
-    **under ~5KB**, measured after writing rather than assumed. → `Detail:`
+  - [ ] `#Contracts` is a **RECORD** — every field is a decision, evidence line or pointer; the reasoning is
+    in `docs/contracts.md`. Size is reported, never trimmed to. → `Detail:`
   - [ ] **Every companion opened is receipted** — one line per file, quoting a fragment that
     occurs verbatim in it. → `Read (file · date · verbatim quote)`
 
@@ -68,7 +68,7 @@ contracts have a **versioning** approach; persisted entities carry a **tenant ke
 **idempotency key**; PII is classified. **If schema and code disagree, or a boundary's units are unstated,
 STOP and fix it** — a scale mismatch across a boundary is a silent wrong-answer bug that looks healthy.
 
-**Measure what you wrote and receipt what you read** (`MECHANISMS-ON-DEMAND.md §Section size`, `MECHANISMS-ON-DEMAND.md §Read receipt`): report the section and file size in one line, and move reasoning into the companion if the section is over ~5KB; write one `Read:` line per companion opened, each quoting a fragment that occurs verbatim in that file. A pointer nobody can prove was followed is how a phase invents what the artefact would have said.
+**Measure what you wrote and receipt what you read** (`MECHANISMS-ON-DEMAND.md §Section is a record`, `MECHANISMS-ON-DEMAND.md §Read receipt`): report the section and file size in one line, then apply the record test to every field — reasoning moves into the companion, a tight answer stays whatever it weighs, never trim to a number; write one `Read:` line per companion opened, each quoting a fragment that occurs verbatim in that file. A pointer nobody can prove was followed is how a phase invents what the artefact would have said.
 
 **Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done".
 
