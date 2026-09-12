@@ -30,7 +30,7 @@ Rules:
 _Last updated: <date> · Stage: <phase> · AI product? <yes/no>_
 _Playbook: <phase order followed — or a dated override line if the canonical order was deliberately departed from>_
 
-## Vision            <!-- /vision -->
+## Vision            <!-- /vision --> (the record; see docs/vision.md for the reasoning)
 - **Vision (ONE sentence — the world this product creates, not what it does):**
 - **Who it's for:**
 - **Problem (why now):**
@@ -43,8 +43,10 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Job-to-be-done (when <situation>, I want to <motivation>, so I can <outcome>):**
 - **Riskiest assumption this depends on:**
 - **Business model (free / paid / internal):**
+- **Detail:** `docs/vision.md` (reasoning + workings; this section stays a RECORD)
+- **Read (file · date · verbatim quote):**
 
-## Validation        <!-- /validate --> (test the riskiest assumption BEFORE code; append a dated entry per run)
+## Validation        <!-- /validate --> (the record; see docs/validation.md for the raw notes. Append a dated entry per run)
 - **Assumption under test (falsifiable: <user> will <behaviour> because <reason>):**
 - **Experiment (type · who it reaches · time box · due date):**
 - **Pass/fail threshold (written BEFORE the result):**
@@ -52,8 +54,10 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Verdict (proceed / pivot / kill) + one-line reason:**
 - **Override (only if skipped: date · reason · "assumption untested" · checked against #Vision):**
   _An override marks the fields above `— not run (override <date>)`; it never deletes them._
+- **Detail:** `docs/validation.md` (reasoning + workings; this section stays a RECORD)
+- **Read (file · date · verbatim quote):**
 
-## Scope             <!-- /scope -->
+## Scope             <!-- /scope --> (the record; see docs/scope.md for the reasoning)
 - **THE core feature (the one thing):**
 - **In scope (now):**
 - **Deferred (out for now + the trigger that would bring it in):**
@@ -61,14 +65,18 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Table stakes (each: in-scope now / Deferred + trigger / N-A + reason — none may be blank):**
   - password reset · email verification · account deletion + data export · empty/loading/error states ·
     privacy policy + terms · accessibility baseline · a way to report a problem
+- **Detail:** `docs/scope.md` (reasoning + workings; this section stays a RECORD)
+- **Read (file · date · verbatim quote):**
 
-## Plan              <!-- /plan -->
+## Plan              <!-- /plan --> (the record; see docs/plan.md for the milestone detail)
 - **Phases / milestones (core first):**
 - **Timeline:**
 - **Exit criteria per milestone:**
 - **Four-risks row per milestone (value · usability · feasibility · viability — which this milestone retires and how you'll know; cite evidence for one already retired):**
 - **Usability checkpoint before going public (which milestone, and its exit criterion):**
 - **Concern-area coverage (security · ai · observability · DX · testing · infra · docs · product → now/next/later/N-A + trigger):**
+- **Detail:** `docs/plan.md` (reasoning + workings; this section stays a RECORD)
+- **Read (file · date · verbatim quote):**
 
 ## Architecture      <!-- /architect --> (one line per decision; see docs/adr/* for the ADRs themselves)
 - **Stack + tools (and why, 2026 OSS-first):**
@@ -103,11 +111,13 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Commit hooks + CI auto-run (lint/format/secret-scan/tests) · runs in its container · async-safe:**
 - **Observability wired (tracing / error-reporter, even a stub):**
 
-## Contracts         <!-- /contracts --> (the record + the paths; the types live in code, never here)
+## Contracts         <!-- /contracts --> (the record + the paths; see docs/contracts.md. The types live in code, never here)
 - **Typed models / schemas / migrations:**
 - **Boundary units/scale agreed:**
 - **Contract versioning / back-compat approach:**
 - **PII/sensitive fields classified · tenant-owner key · idempotency/natural key:**
+- **Detail:** `docs/contracts.md` (reasoning + workings; this section stays a RECORD)
+- **Read (file · date · verbatim quote):**
 
 ## Build log         <!-- /build --> (one entry per feature; see docs/features/*)
 | Feature | DoD (incl. security) met? | How verified | Doc |
@@ -133,30 +143,36 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Rollback path:**
 - **Known gaps:**
 
-## Tests             <!-- /test -->
+## Tests             <!-- /test --> (the record; see docs/tests.md for the test plan)
 - **Isolated test datastore (the target the suite runs against) · bootstrap refuses dev/prod:**
 - **Unit / integration / regression coverage (critical path accounted for):**
 - **Adversarial/security (prompt-injection, authz) cases:**
 - **Real-user-environment (DOM injection · locale/timezone · reduced motion/forced colours/zoom · degraded network):**
 - **Live-path verified (not just isolated units):**
 - **Golden/eval dataset location · tests deterministic · run in CI (red blocks merge):**
+- **Detail:** `docs/tests.md` (reasoning + workings; this section stays a RECORD)
+- **Read (file · date · verbatim quote):**
 
-## Evaluation        <!-- /eval -->
+## Evaluation        <!-- /eval --> (the record; see docs/evaluation.md for the measurements)
 - **Is it good? (measured vs a recorded baseline; regression fails):**
 - **Metrics + confidence score:**
 - **Cost-per-run · (AI) scoring-bias:**
 - **Operational failures (separated from quality):**
+- **Detail:** `docs/evaluation.md` (reasoning + workings; this section stays a RECORD)
+- **Read (file · date · verbatim quote):**
 
 ## Ship log          <!-- /ship -->
 | Date | What shipped | Review + /security-review | Skipped phases (none = full chain ran) | Docs reconciled | CHANGELOG | Rollback / flag | PR |
 |---|---|---|---|---|---|---|---|
 
-## Learnings         <!-- /learn -->
+## Learnings         <!-- /learn --> (the record; see docs/learnings.md for the retro detail)
 - **Success metric + result (instrumented, not guessed):**
 - **User/usage signal incorporated:**
 - **Retro (what worked / what to change):**
 - **Decided next — build / iterate / KILL (from evidence):**
 - **Observability + cost watch in place:**
+- **Detail:** `docs/learnings.md` (reasoning + workings; this section stays a RECORD)
+- **Read (file · date · verbatim quote):**
 
 ## Drift log         <!-- /drift-check (run anytime) -->
 | Date | Drift found (scope/vision/plan/docs) | Recommendation (cut / re-scope+trigger / fix) |

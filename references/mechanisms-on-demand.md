@@ -120,3 +120,48 @@ none is optional: **which gate** was bypassed, **a reason in the user's own word
 paraphrase, and not "user said continue"), and **the date**. A verbal "yes, continue" that reaches no file
 turns a gated workflow into an advisory one. Both lines are dated, both are one line, both keep the
 scaffold; they differ only in whether the phase is still owed.
+
+## §Read receipt — proving a pointer was followed
+
+
+**Trigger:** the section you are reading has a **`Detail:` companion file**. With no companion there is
+nothing to follow and nothing to prove.
+
+`MECHANISMS.md` §Follow the pointer makes opening the file an obligation. An obligation nobody can check
+is a suggestion — it was named in 2 of 22 skills and enforced by no check, while the failure it exists to
+prevent (a phase reading the record, inventing what the artefact would have said, and publishing eleven
+wrong issues) had already happened once.
+
+**So the proof is a quotation, not an assertion.** A phase that consumes a companion writes, into its own
+section's `Read` field, one line per file opened:
+
+```
+Read: docs/scope.md (2026-09-12) — "no accounts for the organiser either"
+```
+
+- **The quoted fragment must occur VERBATIM in the named file.** That is the whole mechanism: the
+  quotation cannot be produced without opening the file, and it is verifiable by string match rather
+  than by trust. *"I read it"* is not checkable; a fragment is.
+- **Quote something you actually used** — the line that decided what you wrote, not the first heading.
+  A receipt quoting the title proves the file was opened and not that it was read.
+- **One line per companion**, in the order read. A phase reading three companions writes three.
+- **The file is missing or empty** → say so and write `Read: <file> — MISSING`, then treat the gap as a
+  finding. Never infer the content; inventing it is the exact failure this prevents.
+
+## §Section size — the phase that writes a section reports its size
+
+
+**Trigger:** a phase has just written a spine section. (`PRODUCT.md` caps: **~25KB total, ~5KB per
+section** — stated in the template header.)
+
+A cap written in a template comment and checked only by `/drift-check` — a skill the user runs by choice
+— is not a cap. A real spine reached **5,131 bytes in `#Vision` on the FIRST of seventeen sections** and
+nothing said a word, on a repo that had already shipped a fix for exactly this.
+
+**After writing, before closing the gate:** measure the section and the file, and report both in one line.
+
+- Section **over ~5KB** → **move the reasoning into the `Detail:` companion and leave the record**, then
+  re-measure. Do not close the gate over the cap without saying so.
+- File **over ~25KB** → say which sections are largest and that a prune is now owed.
+- Under both → one line confirming it (`#Vision 2.1KB · PRODUCT.md 12.4KB — both under cap`). Silence
+  reads as unmeasured, and unmeasured is how it reached 73KB last time.

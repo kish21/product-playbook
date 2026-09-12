@@ -20,6 +20,8 @@ description: >
 - **Writes:** `PRODUCT.md#Evaluation` — measured result · metrics + confidence · separated failures.
 - **Gate type:** `verification` — measured against a recorded baseline. Batchable, and **stops on red** - a failing check ends the batch there. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Evaluation` · `declined` ✓ · `override` ✓ · `superseded` ✓
+- **Companion:** `docs/evaluation.md` — the reasoning, workings and raw notes. `PRODUCT.md#Evaluation` stays a
+  RECORD (summary · decision · evidence · pointer), capped at ~5KB.
 - **Exit criteria:**
   - [ ] A measurable definition of "good" tied to the vision/goal (a metric or a rubric) — **for a product with a north star, that definition IS `#Vision`'s target + date**, not a fresh rubric invented here. → `Is it good?`
   - [ ] **The guardrail metric is measured too, and reported alongside.** A north-star number that improved while the guardrail got worse is not a pass — say so plainly. → `Metrics + confidence score`
@@ -28,6 +30,10 @@ description: >
   - [ ] An honest **confidence score (0–100%)** with solid / risky-untested / to-raise-it lines. → `Metrics + confidence score`
   - [ ] **Cost-per-run** captured (token/compute spend) where relevant; for AI, a **scoring-bias** check. → `Cost-per-run`
   - [ ] Result compared to a **recorded baseline** — a regression below threshold **fails** (gates as config, not hardcoded). → `Is it good?`
+  - [ ] `#Evaluation` is a **RECORD**: the reasoning lives in `docs/evaluation.md`, and the section measures
+    **under ~5KB**, measured after writing rather than assumed. → `Detail:`
+  - [ ] **Every companion opened is receipted** — one line per file, quoting a fragment that
+    occurs verbatim in it. → `Read (file · date · verbatim quote)`
 
 ## Step 0 — Context + prior-gate check
 - Read `#Vision/#Scope/#Plan` for the goal and `#Tests` for what's covered.
@@ -64,6 +70,8 @@ Confirm: the number was **actually measured** against representative inputs (rep
 it's compared to a **recorded baseline** and a regression **fails**; operational failures are counted
 **separately** from quality. **If the result is asserted rather than measured, or failures are blended
 into the quality number, STOP and fix it** — an un-measured or contaminated number is worse than none.
+
+**Measure what you wrote and receipt what you read** (`MECHANISMS-ON-DEMAND.md §Section size`, `MECHANISMS-ON-DEMAND.md §Read receipt`): report the section and file size in one line, and move reasoning into the companion if the section is over ~5KB; write one `Read:` line per companion opened, each quoting a fragment that occurs verbatim in that file. A pointer nobody can prove was followed is how a phase invents what the artefact would have said.
 
 **Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done".
 

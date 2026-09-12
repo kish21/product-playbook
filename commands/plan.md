@@ -19,6 +19,8 @@ description: >
 - **Writes:** `PRODUCT.md#Plan` — fields: phases/milestones (core first) · timeline · exit criteria per milestone.
 - **Gate type:** `input` — the timeline and the ordering are the user's constraints. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Plan` · `declined` ✓ · `override` ✓ · `superseded` ✓
+- **Companion:** `docs/plan.md` — the reasoning, workings and raw notes. `PRODUCT.md#Plan` stays a
+  RECORD (summary · decision · evidence · pointer), capped at ~5KB.
 - **Exit criteria:**
   - [ ] Milestones ordered **core-first** (the core feature ships before nice-to-haves). → `Phases / milestones (core first)`
   - [ ] A rough timeline (relative is fine: M1, M2… or weeks). → `Timeline`
@@ -30,6 +32,10 @@ description: >
   - [ ] A risk already retired **cites its evidence** (a `#Validation` entry, a prior milestone) instead of repeating the work. → `Four-risks row per milestone`
   - [ ] Out-of-scope items remain out (referenced, not scheduled). → `Phases / milestones (core first)`
   - [ ] A **concern-area coverage checklist** (security · ai-specific · observability · developer-experience · testing · infra · documentation · product) — each marked **now / next / later / N-A** with a trigger. → `Concern-area coverage`
+  - [ ] `#Plan` is a **RECORD**: the reasoning lives in `docs/plan.md`, and the section measures
+    **under ~5KB**, measured after writing rather than assumed. → `Detail:`
+  - [ ] **Every companion opened is receipted** — one line per file, quoting a fragment that
+    occurs verbatim in it. → `Read (file · date · verbatim quote)`
 
 ## Step 0 — Context + prior-gate check
 - Read `#Vision` and `#Scope`. If `#Scope` is missing/empty, warn and offer `/scope` first (allow
@@ -78,6 +84,8 @@ Check the boxes. **If any milestone lacks a testable exit criterion, STOP and ad
 without a verifiable "done" is where "is it finished?" arguments come from. **And for each criterion,
 name what it depends on and which milestone delivers that** — an unreachable criterion fails later, far
 from here, and reads as the milestone having failed rather than the plan.
+
+**Measure what you wrote and receipt what you read** (`MECHANISMS-ON-DEMAND.md §Section size`, `MECHANISMS-ON-DEMAND.md §Read receipt`): report the section and file size in one line, and move reasoning into the companion if the section is over ~5KB; write one `Read:` line per companion opened, each quoting a fragment that occurs verbatim in that file. A pointer nobody can prove was followed is how a phase invents what the artefact would have said.
 
 **Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done".
 

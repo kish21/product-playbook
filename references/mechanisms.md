@@ -140,6 +140,8 @@ is how a phase finds a signpost where it needed a definition, and **fills the ga
 - **It failed exactly this way once:** the phase downstream of `/contracts` read the record, invented ten
   types, a float money field and an event that did not exist, and **published eleven public issues**
   before its own self-check caught it 22 minutes later.
+- **Proof is a quotation, not an assertion** — a phase that opens a companion writes one `Read:`
+  line per file, quoting a fragment that occurs VERBATIM in it (`MECHANISMS-ON-DEMAND.md §Read receipt`).
 
 ## §Seam — who owns the dependency manifest
 
