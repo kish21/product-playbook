@@ -61,6 +61,10 @@ Checks:
      close (what just happened + what YOU do next). Both rules pre-existed and neither was executed
      anywhere - three phases behaved three ways and a real project sat at zero commits after two of
      them - so the obligation is checked in the region, not trusted to the prose that defines it.
+ 21. A spine section with a COMPANION doc declares it, the template points at it, and the phase both
+     reports the size of what it wrote and receipts every companion it opened with a verbatim quotation.
+     The "a section is a RECORD" rule had no container for eight sections, and Follow the pointer - the
+     guard that makes moving detail out safe - was named in 2 of 22 skills and checked by none.
  18. Every STATE docs/state-model.md defines is implemented by at least one skill. The `running` state
      was improvised in two live runs before it existed in the model; the mirror failure is a state
      defined in the model that no skill writes, which reads as a rule the product does not have.
@@ -191,6 +195,8 @@ def main() -> int:
     check_commit_repo_root()
     # 20. every exit criterion cites a spine field that actually exists
     check_criteria_have_a_home(files)
+    # 21. a section with a companion declares it, and proves the pointer was followed
+    check_companion_docs(files)
 
     return done(len(cmds))
 
@@ -729,6 +735,57 @@ def check_criteria_have_a_home(files: dict[str, Path]) -> None:
 # time; each migration is a human decision per criterion, so the set is explicit rather than inferred.
 CRITERIA_CITED = {"vision", "validate", "scope", "plan", "contracts", "dev-check", "deploy",
                   "test", "eval", "ship", "learn", "drift-check"}
+
+
+# A spine section whose detail lives in a companion file -> skill that owns it. The six older pairings
+# (#Architecture->docs/adr, #Structure->STRUCTURE.md, #Design->DESIGN.md, #Foundation->docs/runbook.md,
+# #Build log->docs/features, #Deployment->docs/deployment.md) predate the receipt and are not in this set
+# yet; each joins as its skill is migrated, exactly as CRITERIA_CITED grows.
+COMPANION = {"vision": "docs/vision.md", "validate": "docs/validation.md", "scope": "docs/scope.md",
+             "plan": "docs/plan.md", "contracts": "docs/contracts.md", "test": "docs/tests.md",
+             "eval": "docs/evaluation.md", "learn": "docs/learnings.md"}
+COMPANION_OBLIGATIONS = (
+    ("MECHANISMS-ON-DEMAND.md §Section size", "reporting the size of what it just wrote",
+     "a cap checked only by a skill the user runs BY CHOICE is not a cap - #Vision reached 5,131 bytes "
+     "on the first of seventeen sections and nothing said a word"),
+    ("MECHANISMS-ON-DEMAND.md §Read receipt", "receipting the companions it opened",
+     "a pointer nobody can prove was followed is how a phase reads the record, invents what the artefact "
+     "would have said, and publishes eleven wrong issues"),
+)
+
+
+def check_companion_docs(files: dict[str, Path]) -> None:
+    """21. A section with a companion DECLARES it, the template POINTS at it, and the phase PROVES it read it.
+
+    Two failures with one cause. `templates/PRODUCT.md` has said "a section is a RECORD, not a container"
+    since v1.38.0, and eight sections had no container to be the alternative to - so every one of them
+    wrote its detail into the spine, and /vision breached the ~5KB per-section cap on the FIRST section of
+    a live run with nothing to catch it. Moving that detail out is only safe if following a pointer is
+    verifiable, and MECHANISMS.md Follow the pointer - the guard against exactly that - was named in 2 of
+    22 skills and enforced by NO check, while claiming to be "greppable, so it is a gate, not an
+    intention". Nothing grepped it. So the split and the proof ship together, and this is the grep.
+    """
+    tpl = (ROOT / "templates" / "PRODUCT.md").read_text(encoding="utf-8")
+    for name, comp in sorted(COMPANION.items()):
+        if name not in files:
+            fail(f"COMPANION names {name!r}, which is not a skill")
+            continue
+        if comp not in tpl:
+            fail(f"templates/PRODUCT.md never names {comp} - the section it belongs to points nowhere, so "
+                 f"its detail has only the spine to go into, which is how the cap was breached")
+        text = files[name].read_text(encoding="utf-8")
+        if f"`{comp}`" not in text:
+            fail(f"{name} writes a section capped at ~5KB but never names its companion {comp} - a phase "
+                 f"with nowhere to put the reasoning puts it in the spine")
+        start = re.search(r"^#{2,4}\s*Step 3b", text, re.MULTILINE)
+        if not start:
+            continue  # check 16 already failed this file; one message per defect
+        rest = text[start.end():]
+        stop = re.search(r"^#{2,4}\s*Step 3c", rest, re.MULTILINE)
+        body = " ".join(rest[: stop.start() if stop else len(rest)].split())
+        for pointer, what, why in COMPANION_OBLIGATIONS:
+            if pointer not in body:
+                fail(f"{name} closes its gate without {what} ({pointer}) - {why}")
 
 
 def check_skill_count(n: int, files: dict[str, Path]) -> None:

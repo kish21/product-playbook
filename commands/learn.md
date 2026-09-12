@@ -20,6 +20,8 @@ description: >
 - **Writes:** `PRODUCT.md#Learnings` — success metric + result · retro · decided next (from evidence).
 - **Gate type:** `input` — the metric is evidence, but iterate-or-kill is the user's call and is the phase's output. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Learnings` · `declined` ✓ · `override` ✓ · `superseded` n/a — append-only log: one entry per cycle
+- **Companion:** `docs/learnings.md` — the reasoning, workings and raw notes. `PRODUCT.md#Learnings` stays a
+  RECORD (summary · decision · evidence · pointer), capped at ~5KB.
 - **Exit criteria:**
   - [ ] A **success metric** named and its actual result captured (measured, not guessed). → `Success metric + result`
   - [ ] A short retro: what worked · what to change. → `Retro (what worked / what to change)`
@@ -30,6 +32,10 @@ description: >
   - [ ] **Kill/deprecate** is an allowed outcome — if the evidence says a feature isn't working, record the decision + trigger. → `Decided next`
   - [ ] Ongoing **observability** (dashboards/alerting) + **cost** monitored — the post-launch watch, not a one-off. → `Observability + cost watch in place`
   - [ ] **Reusable learning harvested:** any *generic* pattern, gotcha, or process fix surfaced this cycle is pushed back into the **phase skill that should have caught it** — or explicitly "nothing reusable this cycle". Generic learnings compound across future projects; project-specific ones stay in the project. → `Retro (what worked / what to change)`
+  - [ ] `#Learnings` is a **RECORD**: the reasoning lives in `docs/learnings.md`, and the section measures
+    **under ~5KB**, measured after writing rather than assumed. → `Detail:`
+  - [ ] **Every companion opened is receipted** — one line per file, quoting a fragment that
+    occurs verbatim in it. → `Read (file · date · verbatim quote)`
 
 ## Step 0 — Context + prior-gate check
 - Read `#Vision/#Scope/#Evaluation/#Ship log`. If nothing has shipped yet, this is premature — say so.
@@ -56,6 +62,8 @@ Fill `#Learnings`: metric + result (instrumented) · user signal · retro · dec
 ## Step 3b — Self-verify (completeness gate)
 Check the boxes. **If the next step isn't backed by evidence, or it quietly pulls in an OUT-OF-SCOPE
 item without a trigger, STOP and reconsider** — that's how the next cycle starts drifting.
+
+**Measure what you wrote and receipt what you read** (`MECHANISMS-ON-DEMAND.md §Section size`, `MECHANISMS-ON-DEMAND.md §Read receipt`): report the section and file size in one line, and move reasoning into the companion if the section is over ~5KB; write one `Read:` line per companion opened, each quoting a fragment that occurs verbatim in that file. A pointer nobody can prove was followed is how a phase invents what the artefact would have said.
 
 **Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done".
 

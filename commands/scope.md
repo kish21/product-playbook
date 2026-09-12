@@ -19,12 +19,18 @@ description: >
 - **Writes:** `PRODUCT.md#Scope` — fields: THE core feature · in-scope (now) · Deferred (+trigger) · Non-goals (never).
 - **Gate type:** `input` — what gets cut is a preference no prior section encodes. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Scope` · `declined` ✓ · `override` ✓ · `superseded` ✓
+- **Companion:** `docs/scope.md` — the reasoning, workings and raw notes. `PRODUCT.md#Scope` stays a
+  RECORD (summary · decision · evidence · pointer), capped at ~5KB.
 - **Exit criteria:**
   - [ ] Exactly **one** core feature named (the thing that, alone, delivers the core value). → `THE core feature`
   - [ ] A short in-scope list, each item tied to the vision's value proposition **and** plausibly moving the north-star metric. → `In scope (now)`
   - [ ] A **non-empty Deferred list**, each item with the **trigger** that would bring it in — **and** a **Non-goals** list (things we deliberately will *never* build). → `Deferred (out for now` · `Non-goals`
   - [ ] Each in-scope item traces to a customer outcome, not a feature wish. → `In scope (now)`
   - [ ] **The table-stakes checklist is fully sorted** — every item explicitly **in-scope now**, **Deferred (with trigger)** or **N/A (with reason)**. **No item may be left unsorted**: an unsorted item fails this gate, because these are the things nobody proposes and everybody expects. → `Table stakes`
+  - [ ] `#Scope` is a **RECORD**: the reasoning lives in `docs/scope.md`, and the section measures
+    **under ~5KB**, measured after writing rather than assumed. → `Detail:`
+  - [ ] **Every companion opened is receipted** — one line per file, quoting a fragment that
+    occurs verbatim in it. → `Read (file · date · verbatim quote)`
 
 ## Step 0 — Context + prior-gate check
 - Read `PRODUCT.md#Vision`. If it is missing/empty, warn: "`/vision` looks incomplete — scope without
@@ -94,6 +100,8 @@ happens, the move is an **explicit recorded reversal, never silent drift**:
    with its own doc, not an editor button). Name it separately so its true size is visible.
 If the assistant notices work quietly contradicting a Non-goal without this protocol, that is
 drift — surface it (`/drift-check` treats an unrecorded reversal as a finding, not a decision).
+
+**Measure what you wrote and receipt what you read** (`MECHANISMS-ON-DEMAND.md §Section size`, `MECHANISMS-ON-DEMAND.md §Read receipt`): report the section and file size in one line, and move reasoning into the companion if the section is over ~5KB; write one `Read:` line per companion opened, each quoting a fragment that occurs verbatim in that file. A pointer nobody can prove was followed is how a phase invents what the artefact would have said.
 
 **Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the users own actions, dated where they are time-bound, or "Nothing — you're done".
 
