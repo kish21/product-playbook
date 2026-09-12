@@ -28,7 +28,7 @@ and relevant."* **No byte caps on the spine. No new number anywhere.**
   the record test.
 - **Eight skills** (`vision` `validate` `scope` `plan` `contracts` `test` `eval` `learn`): companion
   bullet, exit criterion and gate-closing obligation reworded — `#X is a RECORD — every field is a
-  decision, evidence line or pointer; the reasoning is in docs/x.md → \`Detail:\``. Same cited field, so
+  decision, evidence line or pointer; the reasoning is in docs/x.md → Detail:`. Same cited field, so
   check 20 still holds.
 - **`/drift-check`** keeps reporting size as a *signal* (*"`#Vision` is the largest section at 5.1KB —
   worth a look"*) and applies the record test to what it names; a big section made of tight required
