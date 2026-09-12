@@ -22,7 +22,7 @@ description: >
 - **Gate type:** `input` — who it is for, the job, the north star - the answers exist only in the user's head. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Vision` · `declined` ✓ · `override` n/a — `/vision` opens the chain; there is no prior section to bypass · `superseded` ✓
 - **Companion:** `docs/vision.md` — the reasoning, workings and raw notes. `PRODUCT.md#Vision` stays a
-  RECORD (summary · decision · evidence · pointer), capped at ~5KB.
+  RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay.
 - **Exit criteria:**
   - [ ] A single sentence vision (the world this product creates). → `Vision (ONE sentence`
   - [ ] Named target user + the concrete problem they have, and **why now**. → `Who it's for` · `Problem (why now)`
@@ -31,8 +31,8 @@ description: >
   - [ ] A **north-star metric with all five parts** — a **target number + date**, **2–3 input metrics**, **1 guardrail**, and an **instrumentation line**. A direction ("more people tracking subscriptions") is a slogan, not a metric, and **fails this gate**: `/eval` would have nothing to measure against. → `North star`
   - [ ] The **job-to-be-done**, the **riskiest assumption**, and the **business model** (free/paid/internal) captured. → `Job-to-be-done` · `Riskiest assumption` · `Business model`
   - [ ] Recorded whether this is an **AI product** (uses LLMs) — flags the AI-security layer downstream. → `AI product?`
-  - [ ] `#Vision` is a **RECORD**: the reasoning lives in `docs/vision.md`, and the section measures
-    **under ~5KB**, measured after writing rather than assumed. → `Detail:`
+  - [ ] `#Vision` is a **RECORD** — every field is a decision, evidence line or pointer; the reasoning is
+    in `docs/vision.md`. Size is reported, never trimmed to. → `Detail:`
 
 ## Step 0 — Context + prior-gate check
 - If `PRODUCT.md` exists, read `#Vision`; you are refining, not overwriting blindly.
@@ -85,7 +85,7 @@ field is empty or vague, STOP and fill it with the user** — **a north star mis
 metrics, guardrail or instrumentation line is vague by definition**, and so is **a vision sentence that
 describes the product instead of the world it creates** — a fuzzy vision is the root of later drift.
 
-**Measure what you wrote and receipt what you read** (`MECHANISMS-ON-DEMAND.md §Section size`, `MECHANISMS-ON-DEMAND.md §Read receipt`): report the section and file size in one line, and move reasoning into the companion if the section is over ~5KB; write one `Read:` line per companion opened, each quoting a fragment that occurs verbatim in that file. A pointer nobody can prove was followed is how a phase invents what the artefact would have said.
+**Measure what you wrote and receipt what you read** (`MECHANISMS-ON-DEMAND.md §Section is a record`, `MECHANISMS-ON-DEMAND.md §Read receipt`): report the section and file size in one line, then apply the record test to every field — reasoning moves into the companion, a tight answer stays whatever it weighs, never trim to a number; write one `Read:` line per companion opened, each quoting a fragment that occurs verbatim in that file. A pointer nobody can prove was followed is how a phase invents what the artefact would have said.
 
 **Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done".
 

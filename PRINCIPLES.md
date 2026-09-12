@@ -66,11 +66,12 @@
 
 - Before a big task, create a short design doc. On completion, **reconcile code ↔ doc**; gate the merge on the doc matching reality. Docs that drift are worse than none — a false capability/security claim is a liability.
 - **A spine section is a RECORD, not a container.** Summary · the decision · the evidence line · a pointer
-  to where the detail lives. The prune rule this file imposes on itself applies to the artefact the user
-  maintains: **`PRODUCT.md` stays under ~25KB and no section over ~5KB** — past that, move detail into a
-  companion (`STRUCTURE.md`, `DESIGN.md`, `docs/adr/*`, `docs/runbook.md`, `docs/features/*`) and leave
-  the pointer. At 73KB with five sections still empty, a spine stops being read and starts being grepped,
-  and a phase that greps instead of reading is how a standing open decision gets dropped.
+  to where the detail lives. **No byte cap on the spine** — the instrument is the record test, per
+  field: *decision, or the reasoning behind it?* Reasoning moves into a companion (`STRUCTURE.md`,
+  `DESIGN.md`, `docs/adr/*`, `docs/runbook.md`, `docs/features/*`, `docs/<phase>.md`) and the pointer
+  stays; a required field answered tightly stays whatever it weighs. Size is *reported*, never
+  *enforced*: a cap trims answers instead of relocating reasoning (#200). A spine full of reasoning gets
+  grepped instead of read, and a phase that greps is how a standing open decision gets dropped.
 - **Then the pointer is binding** (`MECHANISMS.md` §Follow the pointer): every companion added is a new
   place a phase can find a signpost where it needed a definition. Splitting without that rule is worse
   than not splitting.

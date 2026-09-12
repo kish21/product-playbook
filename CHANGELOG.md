@@ -3,6 +3,42 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.40.1] - 2026-09-12
+
+### Fixed — the spine's byte caps were unreachable by construction and produced the wrong behaviour (#200)
+
+v1.40.0 measured every section against **~5KB** and `PRODUCT.md` against **~25KB**, both inherited from the
+#167 fix without checking the template's own demand. Measured on the next live run: `#Vision` landed at
+**5,101 B after being "trimmed twice to squeeze under"** — 14 required fields at ~360 B each, none bloated,
+nothing left to move — while `docs/vision.md` (9.6 KB) was written *in addition*. The spine shrank by 30
+bytes. **The cap produced trimming, not relocation.** The template asks for 95 required fields across 17
+sections; at a tight 300 B each that is ~40 KB with zero reasoning in it, so the 25 KB total could never
+be met, and the two caps never agreed with each other (17 × 5 KB = 85 KB). From `/architect` on, every
+phase would have correctly reported "over cap, prune owed" on a spine holding nothing but answers.
+
+Owner decision: *"I never asked it to cap, but to have a separate document and keep PRODUCT.md reasonable
+and relevant."* **No byte caps on the spine. No new number anywhere.**
+
+- **`MECHANISMS-ON-DEMAND.md §Section size` → `§Section is a record`.** After writing: report section +
+  file size in one line (kept — silence reads as unmeasured), then answer one question per field, invented
+  fields included: *is this the decision, or the reasoning behind it?* Reasoning moves to the companion;
+  a required field answered tightly stays, however many bytes it is. **Never trim to a number.** If a
+  threshold is ever wanted, derive it from the template's field count — never hardcode one.
+- **`templates/PRODUCT.md`**, **`PRINCIPLES.md`** §Documentation-driven: the cap sentence is replaced by
+  the record test.
+- **Eight skills** (`vision` `validate` `scope` `plan` `contracts` `test` `eval` `learn`): companion
+  bullet, exit criterion and gate-closing obligation reworded — `#X is a RECORD — every field is a
+  decision, evidence line or pointer; the reasoning is in docs/x.md → Detail:`. Same cited field, so
+  check 20 still holds.
+- **`/drift-check`** keeps reporting size as a *signal* (*"`#Vision` is the largest section at 5.1KB —
+  worth a look"*) and applies the record test to what it names; a big section made of tight required
+  answers is not a finding.
+- **check 21** keeps all three assertions (companion declared · template points at it · both obligations
+  in the gate-closing region); only its prose and the pointer name changed. **Four mutations re-run,
+  each red, tree green after restore.** `docs/companion-docs.md` §7 records the reversal.
+- **Left alone, different rule:** the ~15KB prune rule on the playbook's *own* skill files
+  (`LESSONS.md` §Lesson format, check 11) still stands.
+
 ## [1.40.0] - 2026-09-12
 
 ### Added — eight sections get a companion doc, and a pointer you can prove was followed (#198)

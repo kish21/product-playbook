@@ -148,20 +148,28 @@ Read: docs/scope.md (2026-09-12) — "no accounts for the organiser either"
 - **The file is missing or empty** → say so and write `Read: <file> — MISSING`, then treat the gap as a
   finding. Never infer the content; inventing it is the exact failure this prevents.
 
-## §Section size — the phase that writes a section reports its size
+## §Section is a record — the phase that writes a section reports its size and applies the record test
 
+**Trigger:** a phase has just written a spine section.
 
-**Trigger:** a phase has just written a spine section. (`PRODUCT.md` caps: **~25KB total, ~5KB per
-section** — stated in the template header.)
+**There is no byte cap on `PRODUCT.md` or on any section.** A cap produces trimming, not relocation: on a
+live run `#Vision` was "trimmed twice to squeeze under" a number, landed at 14 required fields of ~360
+bytes each with nothing left to move, and the reasoning was written to the companion *in addition* — the
+spine shrank by 30 bytes. The template's own 95 required fields make its old 25KB total unreachable by
+construction (#200). The instrument is the **record test**, not a number.
 
-A cap written in a template comment and checked only by `/drift-check` — a skill the user runs by choice
-— is not a cap. A real spine reached **5,131 bytes in `#Vision` on the FIRST of seventeen sections** and
-nothing said a word, on a repo that had already shipped a fix for exactly this.
+**After writing, before closing the gate:**
 
-**After writing, before closing the gate:** measure the section and the file, and report both in one line.
+1. **Measure and report** the section and the file in one line (`#Vision 5.1KB · PRODUCT.md 12.4KB`).
+   Silence reads as unmeasured, and unmeasured is how it reached 73KB once. The number is a *signal* for
+   `/drift-check`, never a verdict.
+2. **Apply the record test to every field, invented fields included** — *is this the decision, or the
+   reasoning behind it?* A decision, an evidence line or a pointer **stays, however many bytes it is**.
+   Reasoning, workings, alternatives considered and raw notes **move to the `Detail:` companion**, and the
+   field keeps the one-line conclusion plus the pointer.
+3. **Never trim to a number.** Shortening a required answer to fit is the failure this replaces: the
+   field loses information and the companion gains nothing. If a threshold is ever wanted, derive it from
+   the template's field count — never hardcode one.
+4. A field that is *only* reasoning with no decision in it is not a record yet: write the decision, then
+   move the reasoning.
 
-- Section **over ~5KB** → **move the reasoning into the `Detail:` companion and leave the record**, then
-  re-measure. Do not close the gate over the cap without saying so.
-- File **over ~25KB** → say which sections are largest and that a prune is now owed.
-- Under both → one line confirming it (`#Vision 2.1KB · PRODUCT.md 12.4KB — both under cap`). Silence
-  reads as unmeasured, and unmeasured is how it reached 73KB last time.
