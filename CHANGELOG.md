@@ -3,6 +3,46 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.40.0] - 2026-09-12
+
+### Added — eight sections get a companion doc, and a pointer you can prove was followed (#198)
+
+`templates/PRODUCT.md` has said **"a section is a RECORD, not a container"** since v1.38.0. Six sections
+had a container to be the alternative to (`STRUCTURE.md`, `DESIGN.md`, `docs/adr/*`, `docs/runbook.md`,
+`docs/features/*`, `docs/deployment.md`). **Eight had none** — so every one of them wrote its reasoning
+into the spine, because there was nowhere else for it to go.
+
+Measured on a live run: **`/vision` wrote 5,131 bytes into `#Vision` against the ~5,120-byte per-section
+cap — the FIRST of seventeen sections — and nothing said a word.** The cap lived in a template comment
+and in `/drift-check`, a skill the user runs *by choice*; no section-writing phase measured its own
+output. At that rate the file projects to 73–83KB, the number #167 was filed about and believed fixed.
+
+- **Eight companions** — `docs/vision.md` · `validation.md` · `scope.md` · `plan.md` · `contracts.md` ·
+  `tests.md` · `evaluation.md` · `learnings.md`, each declared in its skill's contract and pointed at
+  from the template. The section keeps summary · decision · evidence · pointer.
+- **`MECHANISMS-ON-DEMAND.md §Section size`** — the phase that writes a section measures it and reports
+  section + file size in one line. Over ~5KB, the reasoning moves to the companion and it re-measures.
+- **`MECHANISMS-ON-DEMAND.md §Read receipt`** — **proof is a quotation, not an assertion.** A phase that
+  opens a companion writes `Read: <file> (<date>) — "<fragment>"`, and the fragment must occur **verbatim**
+  in that file. *"I read it"* is not checkable; a fragment is. A missing file is receipted `MISSING` and
+  treated as a finding — never inferred.
+- **check 21** enforces all three: the companion is declared, the template points at it, and the
+  gate-closing region carries both obligations.
+
+**The split and the proof ship together, deliberately.** `MECHANISMS.md` §Follow the pointer — the guard
+against reading a signpost instead of the artefact — was named in **2 of 22 skills and enforced by no
+check**, while claiming to be *"greppable, so it is a gate, not an intention"*. Nothing grepped it.
+Moving detail out of eight sections while that stayed true would have reproduced #166 in eight new
+places, so this is one piece of work, not two.
+
+**Proven to fail before it passes** — dropping a skill's companion, dropping either obligation from a
+gate-closing region, and breaking the template's pointer each turn the check red. The obligation half
+was **vacuous on its first attempt**: a `` written into a non-raw Python string became a literal
+backspace byte, so the region regex never matched and the loop never ran — the same failure as check
+17's first version, caught only because the mutation test was run. Mechanism lives in
+`MECHANISMS-ON-DEMAND.md` (3.6KB of headroom) rather than `MECHANISMS.md`, which has 209 bytes left
+against the 15KB rule it sets for everyone else.
+
 ## [1.39.0] - 2026-09-11
 
 ### Added — every exit criterion cites the spine field that records it (#192, #194)

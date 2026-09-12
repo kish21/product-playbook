@@ -98,7 +98,7 @@ conflating them is how the size cap ended up unenforced.
 
 | Layer | Where | Enforces | Mechanically checkable? |
 |---|---|---|---|
-| **L1 — declaration** | `tools/check.py`, this repo | a skill reading a section that HAS a companion must name that companion in its `**Reads:**` | **Yes** — static text |
+| **L1 — declaration** | `tools/check.py`, this repo | the skill that OWNS a section declares its companion, and the template points at it | **Yes** — static text |
 | **L2 — receipt** | the user's project | the receipt exists, and the quoted fragment occurs in the named file | **Yes** — string match |
 | **L3 — size** | the user's project | section over ~5KB / spine over ~25KB is reported by the phase that wrote it, not only by `/drift-check` | **Yes** — byte count |
 
@@ -142,3 +142,24 @@ a unit test.
   the file is.
 - **No remote-repo change.** `MECHANISMS.md` §Commit the work keeps *"never create a remote"* — the
   owner set that aside on 2026-09-12 as out of scope for this work.
+
+---
+
+## 6. Built vs designed — one recorded deviation
+
+**Designed:** L1 would require every *consuming* skill to name the companion in its `**Reads:**` list.
+
+**Built:** L1 checks that the skill which *owns* a section declares its companion and that the template
+points at it. Consumers are bound instead by the two rules that already exist — the section they read now
+literally contains `Detail: docs/<name>.md`, and `MECHANISMS.md` §Follow the pointer makes a named file an
+instruction to open it — with the receipt proving they did.
+
+**Why the change:** a `Reads:` entry declares *intent to open*, which is the weaker of the two claims and
+the one already superseded by the receipt (*a verbatim quotation*). Requiring both would edit every skill
+in the chain to restate an obligation the receipt already proves, and check 17's history is that a second
+way of saying the same thing is how one of them drifts.
+
+**What this leaves open, stated plainly:** a consumer that reads the record, never opens the companion and
+writes no `Read:` line is caught by check 21 only at its *own* gate-closing region (the obligation is
+declared), not by a check that the receipt was actually produced in the user's project. That verification
+is runtime (L2) and belongs to `/drift-check`. **Unfiled and owed.**

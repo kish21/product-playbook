@@ -777,11 +777,11 @@ def check_companion_docs(files: dict[str, Path]) -> None:
         if f"`{comp}`" not in text:
             fail(f"{name} writes a section capped at ~5KB but never names its companion {comp} - a phase "
                  f"with nowhere to put the reasoning puts it in the spine")
-        start = re.search(r"^#{2,4}\s*Step 3b", text, re.MULTILINE)
+        start = re.search(r"^#{2,4}\s*Step 3b\b", text, re.MULTILINE)
         if not start:
             continue  # check 16 already failed this file; one message per defect
         rest = text[start.end():]
-        stop = re.search(r"^#{2,4}\s*Step 3c", rest, re.MULTILINE)
+        stop = re.search(r"^#{2,4}\s*Step 3c\b", rest, re.MULTILINE)
         body = " ".join(rest[: stop.start() if stop else len(rest)].split())
         for pointer, what, why in COMPANION_OBLIGATIONS:
             if pointer not in body:
