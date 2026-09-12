@@ -7,8 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ### Fixed — the spine's byte caps were unreachable by construction and produced the wrong behaviour (#200)
 
-v1.40.0 measured every section against **~5KB** and `PRODUCT.md` against **~25KB**, both inherited from the
-#167 fix without checking the template's own demand. Measured on the next live run: `#Vision` landed at
+**No byte caps on the spine — the record test replaces them.** v1.40.0 measured every section against
+~5KB and `PRODUCT.md` against ~25KB, both inherited from the #167 fix without checking the template's own
+demand. Measured on the next live run: `#Vision` landed at
 **5,101 B after being "trimmed twice to squeeze under"** — 14 required fields at ~360 B each, none bloated,
 nothing left to move — while `docs/vision.md` (9.6 KB) was written *in addition*. The spine shrank by 30
 bytes. **The cap produced trimming, not relocation.** The template asks for 95 required fields across 17
