@@ -20,9 +20,11 @@ Product Playbook adds a product-development workflow around your coding agent.
 idea → vision → validate → scope → plan → build → test → ship → learn
 ```
 
+*(The short version. The full 18 steps are in the table below.)*
+
 Each step checks the one before it. Each step writes its decision into one file, `PRODUCT.md`, next to your code. No step is skipped silently — a step that can't show its evidence stops and says so.
 
-**For:** developers and founders building a real product with Claude Code, without a product manager, designer, QA or security engineer on hand. The playbook plays those roles. Any language, any stack, AI product or not.
+**For:** developers and founders building a real product with Claude Code, without a product manager, designer, QA or security engineer on hand. The playbook asks the questions those roles would ask, at every step. Any language, any stack, AI product or not.
 
 ## 🤔 Why it works
 
@@ -47,7 +49,9 @@ Each one is a decision that was never made, or never checked. So every step of t
 /plugin install product-playbook@product-playbook
 ```
 
-**2. Start with your idea:**
+If it says `Run /reload-plugins to activate.`, run that.
+
+**2. Start with your idea** — open Claude Code in an empty folder and type:
 
 ```
 /product-playbook:vision I want to build a walk-in waitlist for small restaurants.
@@ -61,7 +65,7 @@ Not sure where you are? `/product-playbook:playbook` looks at your project and o
 
 ## 🪄 See it in action
 
-Take the waitlist idea. This is what each step gives you.
+Take the waitlist idea. This is what each step gives you. (You type each command with the plugin prefix — `/product-playbook:scope` — shortened here to `/scope`.)
 
 | | Step | You type | You get |
 |---|---|---|---|
@@ -84,14 +88,14 @@ Take the waitlist idea. This is what each step gives you.
 | 📈 | **Learn** | `/learn` | Did the number move? What to build next, from evidence. |
 | 🛑 | **Drift check** | `/drift-check` | *(Any time.)* "Are we still building what we set out to build?" |
 
-Each step reads what the earlier steps decided. Nothing is skipped silently: a step that can't show its evidence stops and says so.
+Each step reads what the earlier steps decided.
 
 ---
 
 ## 🧭 Does it fit my product?
 
-- **Has screens** → the design steps run. **API or CLI only** → they're skipped.
-- **Uses an LLM** → prompt files, a swappable provider, prompt-injection tests. **No LLM** → those checks are skipped, not faked.
+- **Has screens** → the design steps run: `/design-system` for the look, `/new-component` for each piece of UI, `/frontend-audit` to check it. **API or CLI only** → they're skipped.
+- **Uses an LLM** → extra checks for AI: the model can be swapped without touching your logic, prompts live in files, and the tests try to trick it. **No LLM** → those checks are skipped, not faked.
 - **Needs a public URL** → `/deploy` runs. **Laptop only** → it doesn't.
 - **Already have code?** → start with `/product-playbook:adopt`. It reads your repo and drafts the decisions for you to confirm.
 - **More than one builder?** → the ticket board already has a lane and an owner per module.
@@ -123,7 +127,7 @@ One sentence is enough.
 
 ## 📚 Contents — the thinking behind the skills
 
-| | |
+| Read | What it covers |
 |---|---|
 | [The personal story](#story) | why this exists — the five failures in full |
 | [The full walkthrough](docs/how-it-works.md#walkthrough) | every skill: what it asks, what it writes, what it prevents |
