@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.43.0] - 2026-09-13
+
 ### Added — chain mode: `/architect` may continue straight into `/structure`, every question kept (#205)
 
 **Chaining is following, not collapsing.** The neighbour of batch mode (#204): an `input` phase followed by
