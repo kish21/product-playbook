@@ -215,6 +215,8 @@ def main() -> int:
     check_close_is_last(files)
     # 26. a module folder is a complete lane; hub files are named; /build gates on the seat
     check_module_is_a_lane(files)
+    # 27. batch mode is a mechanism, and the phases that may offer it do
+    check_batch_mode_offered(files)
 
     return done(len(cmds))
 
@@ -1046,6 +1048,35 @@ def check_module_is_a_lane(files: dict[str, Path]) -> None:
         if token not in step0:
             fail(f"build Step 0 never mentions {token!r} - a ticket's lane and owner are a gate, and a "
                  f"session working another seat's lane must stop before it cuts a branch")
+
+
+BATCH_POINTER = f"{SECTION_SIGN}Batch mode"
+BATCH_OFFERING = {"playbook", "structure", "design-system"}
+
+
+def check_batch_mode_offered(files: dict[str, Path]) -> None:
+    """27. Batch mode exists as a mechanism, and the phases that may offer it do.
+
+    docs/state-model.md §2d has said since #121 that derivation phases "may batch and end in one
+    review", /structure's contract line repeats it, and nothing ever offered it: /playbook proposed
+    exactly one phase and every handoff was singular (#204). A rule the playbook wrote about itself and
+    never built. The mechanism lives once in MECHANISMS-ON-DEMAND.md; /playbook and the two handoffs
+    that precede a legal batch must point at it, and §2d must say where the offer lives.
+    """
+    ondemand = (ROOT / "references" / "mechanisms-on-demand.md").read_text(encoding="utf-8")
+    if not re.search(r"^##\s+§Batch mode", ondemand, re.MULTILINE):
+        fail("references/mechanisms-on-demand.md has no §Batch mode section - the rule is back to living "
+             "only in a table nothing executes")
+    for name in sorted(BATCH_OFFERING):
+        text = files[name].read_text(encoding="utf-8")
+        region = text if name == "playbook" else handoff_region(text)
+        if BATCH_POINTER not in region:
+            fail(f"{name} never offers a batch ({BATCH_POINTER}) where one is legal - a user runs the "
+                 f"derivation phases one session each because that is the only thing they are shown")
+    sm = (ROOT / "docs" / "state-model.md").read_text(encoding="utf-8")
+    if BATCH_POINTER not in sm:
+        fail("docs/state-model.md §2d does not say where the batch offer lives - rule and mechanism will "
+             "drift apart again")
 
 
 def done(n: int = 0) -> int:

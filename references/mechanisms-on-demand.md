@@ -154,9 +154,8 @@ Read: docs/scope.md (2026-09-12) — "no accounts for the organiser either"
 
 **There is no byte cap on `PRODUCT.md` or on any section.** A cap produces trimming, not relocation: on a
 live run `#Vision` was "trimmed twice to squeeze under" a number, landed at 14 required fields of ~360
-bytes each with nothing left to move, and the reasoning was written to the companion *in addition* — the
-spine shrank by 30 bytes. The template's own 95 required fields make its old 25KB total unreachable by
-construction (#200). The instrument is the **record test**, not a number.
+bytes each with nothing left to move, and the spine shrank by 30 bytes. The template's own 95 required
+fields make its old 25KB total unreachable by construction (#200). The instrument is the **record test**.
 
 **After writing, before closing the gate:**
 
@@ -172,6 +171,19 @@ construction (#200). The instrument is the **record test**, not a number.
    the template's field count — never hardcode one.
 4. A field that is *only* reasoning with no decision in it is not a record yet: write the decision, then
    move the reasoning.
+
+## §Batch mode — consecutive derivation phases, one review at the end
+
+**Trigger:** the next unfilled phase and the one after it are both `derivation` (`docs/state-model.md`
+§2d) with no `input` phase between: `foundation → contracts → tickets`; a UI product runs `structure`
+alone, then `design-system`, then the batch. `/playbook` and the `/structure` + `/design-system` handoffs
+**offer** it; the user chooses; one phase per session stays the default.
+
+1. **Nothing inside a phase changes** — every step and gate runs in full; a confirm still stops.
+2. **One commit per phase** on one batch branch — the record stays traceable, §Re-run semantics unchanged.
+3. **Stop on the first red** — that phase closes normally; later phases get a `_Not run_` line each.
+4. **One plain-language close** at the end — a line per phase, one guard report per phase, one *next*.
+5. **A batch is one session** — §Context hygiene applies harder: files, progress lines, measured metrics.
 
 ## §Context hygiene — bulky output to files, a progress line per step, measured close metrics
 

@@ -80,6 +80,12 @@ questions and ends with a check before moving on — you stay in control.
 
 ## Step 2 — Run the next phase (one at a time)
 1. Tell the user the next phase in plain language: *what it does and why it matters now.*
+   - **Offer a batch when it is legal — and only then** (`MECHANISMS-ON-DEMAND.md` §Batch mode): the next
+     phase and the one after it are both `derivation` (`docs/state-model.md` §2d) with no `input` phase
+     between. *"Run `/foundation` alone, or `/foundation` + `/contracts` + `/tickets` as one batch? The batch
+     still stops where a phase asks you to confirm; one commit per phase, one review at the end."* An
+     `input` phase splits the batch (UI product: `structure` alone → `design-system` → batch the three).
+     The user's choice is a choice, not a default.
 2. **Invoke that phase's skill** (e.g. run `/vision`). Let it ask its questions and do its work.
 3. When that skill reaches its **exit gate**, surface the result and **pause** — confirm with the user
    that it's right before continuing. **Never advance past an unmet gate.**

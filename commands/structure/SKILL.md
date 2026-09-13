@@ -151,4 +151,6 @@ Per `MECHANISMS.md` §Step 3c, check what this phase produced against decisions 
 "Clean structure + root scaffolding in place and explained in `STRUCTURE.md`.
 - **User-facing UI?** Run **`/design-system`** next — principles, a confirmed sample page and a concrete
   `DESIGN.md` *before* any screen is built, so the UI doesn't end up generic. Then `/foundation`.
-- **Backend/API/CLI only:** straight to **`/foundation`** for a walking skeleton that actually runs."
+- **Backend/API/CLI only:** straight to **`/foundation`** for a walking skeleton that actually runs —
+  alone, or as a **batch** `/foundation` + `/contracts` + `/tickets` with one review at the end
+  (`MECHANISMS-ON-DEMAND.md` §Batch mode); the batch still stops wherever a phase asks you to confirm."
