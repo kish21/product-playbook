@@ -85,6 +85,8 @@ description: >
 - **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate, ask for the **reason in the user's own words**, and write `Override <date>: <reason> — bypassed <gate>` at the top of `#Structure` before continuing. Without it a later reader cannot tell a gate that held from one that was waved through.
 - Brownfield: read the existing tree; propose a clean target layout + a migration note — don't blindly move files.
 - **Re-running — `MECHANISMS.md` §Re-run semantics, in full.** The section is already filled → show what would change and ask first; a reversed decision keeps its dated `superseded` line.
+- **A shape-changing re-run after `/tickets` rewrites every ticket's path list — named AND planned files — and closes the finding; lanes, order and owners stay.** Stale paths send the next `/build` to recreate the folder just emptied. (case file: The move that came a phase late)
+- **A file moved from a shared folder into a lane carries its imports with it — check the import graph, not just the tree.** Hand cross-lane needs across in the composition root and enforce the arrows with a check beside `check_structure.py`. (case file: The move that came a phase late)
 - **Stopping at an unmet gate — `MECHANISMS.md` §Declined runs, in full.** One dated `_Not run_` line at the top of `#Structure`, nothing else touched; the section stays unfilled so `/playbook` still routes here.
 
 ## Step 1 — Apply principles (this phase)
@@ -126,7 +128,9 @@ runner's generic targets.
 ## Step 3 — Write back
 Write **`STRUCTURE.md`** (one line per folder — *what goes here and why*, plain language) **with a
 `## Hub files` section** listing every file all lanes may touch by one line (the registries, the config
-loader, the dependency manifest). Fill `PRODUCT.md#Structure` with the summary + the prompts location (AI).
+loader, the dependency manifest) **as a table or list, one backticked path per row** — `check_structure.py`
+verifies the first backticked token of each row and ignores prose. Fill `PRODUCT.md#Structure` with the
+summary + the prompts location (AI).
 
 ## Step 3b — Self-verify (completeness gate)
 **Copy `templates/check_structure.py` into the project** (`scripts/`, or wherever `STRUCTURE.md` puts

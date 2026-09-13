@@ -8,8 +8,9 @@ committed, not a scratch file: a gate whose evidence is a script that no longer 
 What it checks, in both directions:
   * every folder DRAWN in the fenced tree block of STRUCTURE.md exists on disk
   * every folder ON DISK (minus the ignore list) appears in the map
-  * every path listed under a `## Hub files` heading exists (the files every lane may touch by one line;
-    a hub file that has moved leaves /tickets and Lanekeeper pointing at nothing)
+  * every path listed under a `## Hub files` heading exists - one per table row or list item, the first
+    backticked token (the files every lane may touch by one line; a hub file that has moved leaves
+    /tickets and Lanekeeper pointing at nothing)
 
 A drawn-but-uncreated folder is silent doc<->code drift; an undrawn folder on disk is a layout decision
 nobody recorded. Reading 25 folders by eye is slower and less reliable than this, and it turns a
@@ -46,12 +47,22 @@ def drawn_folders(structure_md):
 
 
 def hub_files(structure_md):
-    """Backticked paths under the `## Hub files` heading, if the map has one."""
+    """The hub paths under the `## Hub files` heading, if the map has one.
+
+    One path per row: the FIRST backticked token of every table row (| `path` | ... |) or list item
+    (- `path` ...). Prose in the section is ignored, so a sentence like "run `pnpm api`" there cannot
+    fail the gate - only what the section actually lists as a hub is verified.
+    """
     text = open(structure_md, encoding="utf-8").read()
     m = re.search(r"^##\s+Hub files.*?$(.*?)(?=^##\s|\Z)", text, re.M | re.S)
     if not m:
         return None
-    return sorted(set(re.findall(r"`([^`\n]+)`", m.group(1))))
+    paths = set()
+    for line in m.group(1).splitlines():
+        row = re.match(r"^\s*(?:\||[-*])\s*`([^`\n]+)`", line)
+        if row:
+            paths.add(row.group(1))
+    return sorted(paths)
 
 
 def disk_folders(root):
