@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.44.1] - 2026-09-13
+
 ### Fixed — `/tickets`: an owner-confirmed regroup may edit published issues; the board's built-in Status field
 
 Two gaps found regrouping the Potluck backlog into module lanes under 1.44.0. `references/publishing.md` §Dedup
