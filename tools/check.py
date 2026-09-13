@@ -217,6 +217,8 @@ def main() -> int:
     check_module_is_a_lane(files)
     # 27. batch mode is a mechanism, and the phases that may offer it do
     check_batch_mode_offered(files)
+    # 28. /adopt routes in chain order and never to a phase whose Step 0 would reject the project
+    check_adopt_routes_in_chain_order(files)
 
     return done(len(cmds))
 
@@ -1077,6 +1079,31 @@ def check_batch_mode_offered(files: dict[str, Path]) -> None:
     if BATCH_POINTER not in sm:
         fail("docs/state-model.md §2d does not say where the batch offer lives - rule and mechanism will "
              "drift apart again")
+
+
+ADOPT_ORDER = ["/vision", "/validate", "/scope", "/playbook"]
+
+
+def check_adopt_routes_in_chain_order(files: dict[str, Path]) -> None:
+    """28. /adopt's handoff recommends phases in chain order and guards on the target's prerequisites.
+
+    On a real adoption (2026-09-13) the handoff rules were "no Non-goals -> /scope" first, and non-goals
+    are almost never inferable from a repo, so /scope was recommended to a project whose #Vision was
+    empty; /scope's own Step 0 refused it and sent the user to /vision (#216). A handoff is a routing
+    decision: it walks the chain in order and never names a phase whose Step 0 would reject the project.
+    """
+    region = handoff_region(files["adopt"].read_text(encoding="utf-8"))
+    positions = [region.find(p) for p in ADOPT_ORDER]
+    if any(pos < 0 for pos in positions):
+        fail(f"adopt handoff does not name every phase it may route to ({', '.join(ADOPT_ORDER)}) - the "
+             f"earliest unmet phase must be a candidate, or the user is sent past it")
+    elif positions != sorted(positions):
+        fail("adopt handoff lists its phases out of chain order - the first matching rule fires, so the "
+             "order of the rules IS the routing, and /scope before /vision sends a user to a gate that "
+             "sends them back")
+    if "Step 0" not in region:
+        fail("adopt handoff has no guard against recommending a phase whose own Step 0 would reject the "
+             "project - a skill that will not start is not a next step")
 
 
 def done(n: int = 0) -> int:
