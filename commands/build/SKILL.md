@@ -76,7 +76,7 @@ description: >
    command for `/ship` instead of a judgement call, and that is what lets it skip a duplicate review of
    the same diff rather than paying for the chain's most expensive operation twice.
    - ⚠️ **If you cannot invoke it, ASK the user to run it, or do the deep pass by hand and say which you did** — see `PRINCIPLES.md`, *Composed skills*. (A by-hand pass is worth the time: one such pass found three real defects.)
-6. **Document** — write/update `docs/features/<feature>.md`; reconcile it with the code.
+6. **Document** — write/update `docs/features/<feature>.md`; reconcile it with the code. **Copy every `evidence:` number from the command's captured output, never ahead of it** — a figure pencilled in while CI runs reads exactly like a measured one. (case file: The pencilled bundle size)
 
 ## Step 3 — Write back to `PRODUCT.md`
 Append a `#Build log` row: feature · DoD-incl-security met? · **how verified** · link to the feature doc.
