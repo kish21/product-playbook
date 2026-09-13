@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Added — chain mode: `/architect` may continue straight into `/structure`, every question kept (#205)
+
+**Chaining is following, not collapsing.** The neighbour of batch mode (#204): an `input` phase followed by
+the derivation phase that depends on it, in one session. `/architect` → `/structure` is the only pair (the
+shape question is where Potluck reversed ADR-0001, and seeing the architecture with its folder consequences
+may surface such reversals sooner). Offered at `/architect` Step 0, **never the default**; every input
+question still asked; no close between; two records, two commits, one close; a red `/architect` gate never
+reaches `/structure`; read receipts still from the file. Defined in `MECHANISMS-ON-DEMAND.md` §Batch mode
+beside batch, recorded in `docs/state-model.md` §2d, held by **check 27** (red on the pre-fix files).
+
 ## [1.42.0] - 2026-09-13
 
 ### Added — `/tickets`: module lanes, a Delivery Board, and a proposal that is shown before it is confirmed (#213, #210)

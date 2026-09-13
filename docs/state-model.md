@@ -224,7 +224,9 @@ Not by the user's experience level. By whether the answer is **derivable**:
 
 **Where the batch offer lives (record test):** `MECHANISMS-ON-DEMAND.md` §Batch mode is the mechanism;
 `/playbook` Step 2 and the `/structure` + `/design-system` handoffs make the offer; check 27 holds all four
-to it. Until 2026-09-13 this table was the only place batching existed (#204).
+to it. Until 2026-09-13 this table was the only place batching existed (#204). **Chain** is defined in the
+same section: an `input` phase followed by its derivation phase (`/architect` → `/structure`) in one
+session with every input question kept — offered at `/architect` Step 0, never the default (#205).
 
 Two assignments deserve their reasoning, because they are not the audit's:
 
