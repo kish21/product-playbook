@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.44.2] - 2026-09-13
+
 ### Added — `/structure`: a shape-changing re-run owns the ticket paths and the import graph
 
 Three lessons from re-running `/structure` on Potluck the day `/tickets` recorded its structure finding
