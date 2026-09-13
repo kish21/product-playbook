@@ -20,7 +20,7 @@ Product Playbook adds a product-development workflow around your coding agent.
 idea → vision → validate → scope → plan → build → test → ship → learn
 ```
 
-*(The short version. The full 18 steps are in the table below.)*
+*(The short version. The table below has all 18 steps. The other four of the 22 skills are helpers, not steps: `/playbook` guides you through the steps, `/adopt` brings in a project that already has code, and `/new-component` and `/frontend-audit` help build and check screens.)*
 
 Each step checks the one before it. Each step writes its decision into one file, `PRODUCT.md`, next to your code. No step is skipped silently — a step that can't show its evidence stops and says so.
 
@@ -92,36 +92,15 @@ Each step reads what the earlier steps decided.
 
 ---
 
-## 🧭 Does it fit my product?
+## 🧭 Does it fit what I'm building?
 
-- **Has screens** → the design steps run: `/design-system` for the look, `/new-component` for each piece of UI, `/frontend-audit` to check it. **API or CLI only** → they're skipped.
-- **Uses an LLM** → extra checks for AI: the model can be swapped without touching your logic, prompts live in files, and the tests try to trick it. **No LLM** → those checks are skipped, not faked.
-- **Needs a public URL** → `/deploy` runs. **Laptop only** → it doesn't.
-- **Already have code?** → start with `/product-playbook:adopt`. It reads your repo and drafts the decisions for you to confirm.
-- **More than one builder?** → the ticket board already has a lane and an owner per module.
+Yes — the playbook adapts to the kind of product. A few examples:
 
----
-
-## ⚙️ Ways to run it
-
-- **Guided** — `/product-playbook:playbook`. It knows where you are and offers the next step.
-- **One step at a time** — run any skill on its own, in any order.
-- **A few steps in one go** — when offered, say yes to run foundation → contracts → tickets together, or architect → structure. Every question is still asked; you get one review at the end.
-- **Log a bug mid-build** — `/product-playbook:tickets "Bug: …"` files one issue and touches nothing else.
-
-Under the hood it uses Claude Code's own `/code-review`, `/security-review`, `/run`, `/loop` and `/schedule`.
-
----
-
-## 🧪 Try your own idea
-
-```
-/product-playbook:vision I want to build a tool that turns a support inbox into a weekly list of the top five complaints.
-/product-playbook:vision I want to build an app that helps a running club organise who drives to which race.
-/product-playbook:vision I want to build a CLI that finds cloud resources nobody has touched in 90 days.
-```
-
-One sentence is enough.
+- **You're building an app people will use on their phones** — say, the waitlist above. Before any screen is built, the playbook helps you agree on how it should look, from one sample page. Every screen after that matches it, and a check tells you if the text is too small or too hard to read.
+- **You're building something with no screens at all** — a command-line tool, or a service other software talks to. The design steps simply don't run. You go from the plan to the code.
+- **Your product uses AI** — it summarises, answers, or decides something. You get extra safety checks: the AI model can be swapped out later without rewriting your code, and the tests try to trick it the way a bad actor would.
+- **You already have code**, but it grew without a plan. Start with `/product-playbook:adopt`. It reads what you have, writes down what it thinks you decided, and asks you to confirm each part before it moves on.
+- **You're not building alone** — a friend, a colleague, or a second AI agent is helping. The tickets come grouped by area, each with an owner, so two people never end up editing the same thing at the same time.
 
 ---
 
