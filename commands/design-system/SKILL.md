@@ -185,7 +185,9 @@ contradiction.
 Then write `PRODUCT.md#Design` (principles + archetype + token summary + `DESIGN.md`/sample paths) and hand off:
 
 > "Design system agreed and captured in **`DESIGN.md`** (your build harness), proven on an approved
-> sample page. Next run **`/foundation`** to stand up the walking skeleton. When you build screens,
+> sample page. Next run **`/foundation`** to stand up the walking skeleton — alone, or as a **batch**
+> `/foundation` + `/contracts` + `/tickets` with one review at the end (`MECHANISMS-ON-DEMAND.md`
+> §Batch mode); the batch still stops wherever a phase asks you to confirm. When you build screens,
 > `/new-component` builds against these tokens (reusing shadcn/ui + 21st.dev), and a future
 > `/frontend-audit` will enforce `DESIGN.md` + the universal laws across the app."
 

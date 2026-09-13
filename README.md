@@ -195,6 +195,10 @@ When you run `/playbook` or an individual command, the AI is instructed to:
     can run with its neighbours, ending in one review; a **verification** gate (`/dev-check`, `/test`,
     `/ship`) reports pass or fail against the repo and only stops you on red. Most of the eighteen stops
     are interviews, not signatures.
+    **Two ways to run the development phases.** One phase per session is the default. Where two or more
+    `derivation` phases follow each other with no `input` phase between (`/foundation` → `/contracts` →
+    `/tickets`), `/playbook` and the handoffs offer a **batch**: the phases run in full, one commit each,
+    stopping wherever a phase asks you to confirm and on the first red, with one review at the end.
 
 ### 4. The Forms (`templates/`)
 Think of a template as a printed form with blank boxes. A skill fills the boxes so every ticket and every pull request looks the same and nothing gets forgotten. All three are ordinary text files in your repo: edit the wording if you like, and no skill will ever overwrite a form you already have.

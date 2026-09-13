@@ -222,6 +222,10 @@ Not by the user's experience level. By whether the answer is **derivable**:
 | **derivation** | prior `PRODUCT.md` sections + the repo | `/structure` `/foundation` `/contracts` `/tickets` `/build` `/new-component` | Yes — one review at the end of the batch |
 | **verification** | repo evidence; no preference involved | `/dev-check` `/test` `/eval` `/ship` (`/frontend-audit`\*) | Yes, and **stops on red** |
 
+**Where the batch offer lives (record test):** `MECHANISMS-ON-DEMAND.md` §Batch mode is the mechanism;
+`/playbook` Step 2 and the `/structure` + `/design-system` handoffs make the offer; check 27 holds all four
+to it. Until 2026-09-13 this table was the only place batching existed (#204).
+
 Two assignments deserve their reasoning, because they are not the audit's:
 
 - **`/architect` is `input`, not `derivation`.** The stack looks derivable from `#Scope` and a

@@ -5,6 +5,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Added — batch mode for consecutive derivation phases, offered where it is legal (#204)
+
+**A rule the playbook wrote about itself and never built.** `docs/state-model.md` §2d has said since #121
+that derivation phases "may batch and end in one review"; `/playbook` proposed exactly one phase and every
+handoff was singular, so a user ran `/foundation`, `/contracts` and `/tickets` in three sessions because that
+was the only thing they were shown.
+
+- `MECHANISMS-ON-DEMAND.md` **§Batch mode** — the mechanism, once: trigger (two `derivation` phases in a
+  row, no `input` phase between; a UI product batches after `/design-system`), **nothing inside a phase
+  changes**, one commit per phase, stop on the first red (later phases get a `_Not run_` line), one
+  plain-language close, and §Context hygiene applies harder because a batch is one session.
+- `/playbook` Step 2 offers the batch when and only when it is legal; `/structure` (non-UI) and
+  `/design-system` (UI) handoffs name both modes. One phase per session stays the default.
+- README: "Two ways to run the development phases". `docs/state-model.md` §2d records where the offer lives.
+- **check 27** — the section exists, the three offering skills point at it, §2d names it. Proven red on the
+  pre-fix files (5 failures).
+
 ### Changed — `/structure`: a module folder is a complete lane; `/build` gates on the ticket's seat (#215)
 
 **A module keeps its routes, store and tests; the app reaches it through one registry line.** On the Potluck
