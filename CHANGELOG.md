@@ -5,6 +5,40 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Changed — `/structure`: a module folder is a complete lane; `/build` gates on the ticket's seat (#215)
+
+**A module keeps its routes, store and tests; the app reaches it through one registry line.** On the Potluck
+run `/structure` chose domain modules and then put every module's handlers in `http/`, every store in
+`platform/` and all the wiring in `index.ts`, with a by-tool frontend — and `/tickets` named `index.ts` in
+seven of fifteen tickets. Whichever way that backlog was grouped, two people would have collided in the
+shared folders.
+
+- `references/choosing-the-shape.md` **§A module is a complete lane** — routes, handlers, store and tests
+  inside the module; one registry line in `app.ts`; `platform/` holds only what no module owns; the same
+  rule for the frontend; **hub files named in `STRUCTURE.md` under `## Hub files`**. The worked example now
+  shows it. New exit criterion in `/structure`; Step 3 writes the Hub files section.
+- `templates/check_structure.py` verifies every path under `## Hub files` exists (red on a moved hub file).
+- `/build` Step 0: **the ticket's lane and owner are a gate** — a session sitting in a seat stops on a ticket
+  that is not its lane (MarkVid's `/jr-ticket` rule). Reviews (`/code-review`, `/security-review`) run
+  **before the commit and the close**, so their verdicts reach the `#Build log` row and the row can cite the sha.
+- **check 26** — the shape reference carries the complete-lane rules, `/structure`'s criteria bind to them,
+  the template checks hub files, and `/build` Step 0 names the seat gate. Proven red on the pre-fix files.
+- Case files: *The drawers everyone reached into* (`references/case-files-structure.md`, new), *Working the
+  wrong seat* (`references/case-files-build.md`).
+
+### Fixed — the plain close is the run's LAST message; a composed report is never the close (#212)
+
+`/build` on Potluck M1-SLICE-01 committed, then ran `/security-review`, and the review's report was the
+session's final message — no plain close, no verdicts, no cost line, no commit offer. `MECHANISMS.md`
+§Plain-language close now says the close is the run's LAST message and a composed skill's report is input to
+it; `/build`, `/ship`, `/test` and `/eval` repeat the sentence where they close their gate. **check 25**
+enforces both, proven red on the pre-fix files. Case file: *The report that became the close*.
+
+### Fixed — `check.py` measures file size with LF line endings, as CI does
+
+A Windows checkout under `core.autocrlf=true` adds a byte per line, so a skill at the cap read green in CI
+and red locally after every `git pull`. The ~15KB rule is about content; the check now normalises line endings.
+
 ### Added — `/tickets`: module lanes, a Delivery Board, and a proposal that is shown before it is confirmed (#213, #210)
 
 **The backlog never assumes one builder.** On the Potluck live run (2026-09-13) `/tickets` wrote 15 vertical

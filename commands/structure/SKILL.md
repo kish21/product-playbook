@@ -37,6 +37,10 @@ description: >
   - [ ] **The SHAPE was chosen, stated and recorded** — domain modules (the default: one folder per thing
     the product does) or layers — with a one-line why in `STRUCTURE.md`. A shape nobody chose is a
     decision nobody can revisit. Dependencies point inward either way; no god-files.
+  - [ ] **A module is a complete lane** (`references/choosing-the-shape.md` §A module is a complete lane):
+    routes, handlers, store and tests live inside the module folder; the app reaches it through one
+    registry line; `platform/` holds only what no module owns; the frontend follows the same rule. **`STRUCTURE.md`
+    names the hub files** under `## Hub files`, each verified to exist by `check_structure.py`.
   - [ ] `STRUCTURE.md` explains **what each folder is for and why**, in plain language.
   - [ ] **`STRUCTURE.md`'s map and the real tree agree BOTH ways** — proven by `scripts/check_structure.py`
     (Step 3b), not by eye. A drawn-but-uncreated folder is silent doc↔code drift; an unmapped folder on
@@ -99,9 +103,10 @@ description: >
    into one app is the exception, recorded with a reason** — and if `#Architecture`'s stack implies a
    shape that disagrees with this classification, **surface it rather than following the stack**.
 2. **Then how folders are organised: by concern (the default) or by layer.** Domain modules — one folder
-   per thing the product *does*, owning its own types, persistence and logic — unless this is a genuinely
-   single-concern service. Dependencies point inward either way. **Say which and why in one line, in
-   `STRUCTURE.md`, before drawing anything**: a shape nobody chose is a decision nobody can revisit.
+   per thing the product *does*, owning its own types, persistence, logic, **routes and tests**, reached
+   through one registry line (§A module is a complete lane) — unless this is a genuinely single-concern
+   service. Dependencies point inward either way. **Say which and why in one line, in `STRUCTURE.md`,
+   before drawing anything**: a shape nobody chose is a decision nobody can revisit.
 
 ### 2b — The layered shapes (when 2a chose layers)
 
@@ -119,8 +124,9 @@ list, the per-tool choices, the conditional files (containers, CI, migrations, e
 runner's generic targets.
 
 ## Step 3 — Write back
-Write **`STRUCTURE.md`** (one line per folder — *what goes here and why*, plain language). Fill
-`PRODUCT.md#Structure` with the summary + the prompts location (AI).
+Write **`STRUCTURE.md`** (one line per folder — *what goes here and why*, plain language) **with a
+`## Hub files` section** listing every file all lanes may touch by one line (the registries, the config
+loader, the dependency manifest). Fill `PRODUCT.md#Structure` with the summary + the prompts location (AI).
 
 ## Step 3b — Self-verify (completeness gate)
 **Copy `templates/check_structure.py` into the project** (`scripts/`, or wherever `STRUCTURE.md` puts

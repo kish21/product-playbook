@@ -46,17 +46,40 @@ modular.
 
 ```
 src/
-├── split/        # per-person totals: items + assignments + charges -> transfers. Pure. Depends on: nothing
-├── bills/        # persistence, share-slug identity, image lifecycle.        Depends on: db, storage
-├── ocr/          # image bytes -> typed ParsedBill, behind a config-selected interface. Depends on: LLM provider
-├── app/          # screens and routes - thin.                                Depends on: all of the above
-├── config/       # loader + layered config
-└── shared/       # only what two or more modules genuinely share - never a dumping ground
+├── split/        # per-person totals. service.ts · routes.ts · schema.ts · split.test.ts   Depends on: nothing
+├── bills/        # persistence, share-slug identity, image lifecycle. + store.ts          Depends on: db, storage
+├── ocr/          # image bytes -> typed ParsedBill, behind a config-selected interface.  Depends on: LLM provider
+├── platform/     # ONLY what no module owns: db connection, clock, ids, logger, config loader
+└── app.ts        # the registry: registerSplit(app) · registerBills(app) · registerOcr(app) - one line each
 ```
 
 **Each module owns its own boundary types** — the typed contract in and out lives with the module, not in
 a global `schemas/`. A module's dependency line is part of its definition: write it down, and a module
 that depends on everything is a module nobody has decided yet.
+
+## §A module is a complete lane — routes and tests inside, one registry line outside
+
+A module folder that holds only the rules, while *every* module's handlers sit in one `http/` folder and
+*every* module's stores in one `platform/` folder, is by-role in name and by-tool in practice: the thing
+two people change at once is the shared folder. On the Potluck run seven of fifteen tickets named
+`backend/src/index.ts`, and the backlog could not be split between two people however it was grouped.
+(case file: The drawers everyone reached into)
+
+1. **A module folder holds everything for its responsibility** — its rules, its own store or adapter,
+   **its routes and handlers**, its boundary types, **its tests**. `events/{service,store,routes,schema}.ts
+   + events.test.ts`, not `http/event-handlers.ts` + `platform/sqlite-events-store.ts` + `tests/events/`.
+2. **The app reaches a module through ONE registry line.** `app.ts` (the route table, the DI wiring) is the
+   only code file every module touches, and each module adds exactly one line to it. A shared handlers or
+   routes folder is the layer shape wearing a module's name.
+3. **`platform/` (or `shared/`) holds only what no module owns** — the db connection, clock, ids, logger,
+   the config loader. A store used by one module lives in that module.
+4. **The frontend follows the same rule** when it has more than one module: `create-event/`, `board/`,
+   `claim/` each with its page, its components, its API calls and its tests; `ui/` only for the
+   `DESIGN.md` parts with no product logic; `app.tsx` is the route registry.
+5. **Name the hub files in `STRUCTURE.md`** under a `## Hub files` heading — the registry files, the
+   config loader, the dependency manifest: the files every lane may touch by one line. `/tickets` lists
+   them as shared, Lanekeeper can declare them `shared:`, and `check_structure.py` verifies each exists.
+   Three or more hub files that are not registries is the tell that a folder is still shared by tool.
 
 **Cost, as a side effect:** `STRUCTURE.md` writes one rationale per folder, so four modules is a shorter
 document than thirteen layers, with nothing lost.

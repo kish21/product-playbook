@@ -637,3 +637,25 @@ log and the PR body were one step from carrying a number no command had printed,
 **The general rule:** an evidence line is a transcript, not a forecast. Write the command first, run it, then
 copy the result, even when the number "can't have moved much".
 
+
+## The report that became the close
+
+Potluck, M1-SLICE-01 (2026-09-13). The build was good: live curl on the built server, a headless-Chrome
+journey, three mutation tests, a real leak found and fixed. Then the run committed without offering, and
+ran `/security-review` *after* the commit. The review's report — clean, well written — was the last thing
+printed, and the session ended there. No plain "what just happened / what YOU do next", no verdict per exit
+criterion, no measured cost line, no "committed locally, not pushed". The owner's next message was
+*"i get this error"*. The security verdict also reached no record: the `#Build log` row and the feature
+doc had been written before it ran, so `/ship` would have to run it again. M1-SLICE-02, one session later,
+ran the review mid-session and closed properly — the order was the whole difference.
+
+**The general rule:** a composed skill returns *input to* the close, never the close. Reviews run before
+the commit so their verdicts land in the record, and the plain close is the run's last message.
+
+## Working the wrong seat
+
+MarkVid, 2026-08. Two developers pushed from one GitHub account, so assignees carried nothing; the board's
+Owner and Seat fields and the `owner:` label were the only map of who owned which lane. A junior session
+that had read the ticket but not its label started on a senior-lane file, and the first sign was a
+merge conflict on someone else's branch. The `/jr-ticket` command's Step 0 now reads the label before the
+branch is cut and refuses a ticket that is not its own — lane ownership is a gate, not a formality.

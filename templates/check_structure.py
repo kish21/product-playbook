@@ -8,6 +8,8 @@ committed, not a scratch file: a gate whose evidence is a script that no longer 
 What it checks, in both directions:
   * every folder DRAWN in the fenced tree block of STRUCTURE.md exists on disk
   * every folder ON DISK (minus the ignore list) appears in the map
+  * every path listed under a `## Hub files` heading exists (the files every lane may touch by one line;
+    a hub file that has moved leaves /tickets and Lanekeeper pointing at nothing)
 
 A drawn-but-uncreated folder is silent doc<->code drift; an undrawn folder on disk is a layout decision
 nobody recorded. Reading 25 folders by eye is slower and less reliable than this, and it turns a
@@ -43,6 +45,15 @@ def drawn_folders(structure_md):
     return names
 
 
+def hub_files(structure_md):
+    """Backticked paths under the `## Hub files` heading, if the map has one."""
+    text = open(structure_md, encoding="utf-8").read()
+    m = re.search(r"^##\s+Hub files.*?$(.*?)(?=^##\s|\Z)", text, re.M | re.S)
+    if not m:
+        return None
+    return sorted(set(re.findall(r"`([^`\n]+)`", m.group(1))))
+
+
 def disk_folders(root):
     names = set()
     for dirpath, dirnames, _ in os.walk(root):
@@ -65,17 +76,22 @@ def main(argv):
         return 2
     missing = sorted(drawn - disk)   # drawn in the map, absent on disk
     unmapped = sorted(disk - drawn)  # on disk, absent from the map
+    hubs = hub_files(structure_md)
+    lost = [h for h in (hubs or []) if not os.path.exists(os.path.join(root, h))]
 
     for name in missing:
         print(f"  [FAIL] drawn in {structure_md} but not on disk: {name}/")
     for name in unmapped:
         print(f"  [FAIL] on disk but not in {structure_md}: {name}/")
+    for path in lost:
+        print(f"  [FAIL] listed under Hub files in {structure_md} but not on disk: {path}")
     checked = len(drawn | disk)
-    if missing or unmapped:
-        print(f"check_structure: {len(missing)} missing | {len(unmapped)} unmapped "
-              f"({checked} folders compared)")
+    hub_note = f", {len(hubs)} hub files" if hubs is not None else ", no Hub files section"
+    if missing or unmapped or lost:
+        print(f"check_structure: {len(missing)} missing | {len(unmapped)} unmapped | {len(lost)} hub "
+              f"files lost ({checked} folders compared{hub_note})")
         return 1
-    print(f"check_structure: map and tree agree both ways ({checked} folders compared)")
+    print(f"check_structure: map and tree agree both ways ({checked} folders compared{hub_note})")
     return 0
 
 

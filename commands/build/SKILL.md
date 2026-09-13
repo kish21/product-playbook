@@ -43,10 +43,14 @@ description: >
   file level** — the same finding `/scope` makes at feature level: **STOP and flag it** (widen the ticket's
   Target Files with the user, or split the work), never quietly touch it — the merge gate will fail the PR
   anyway, and a silent widening is exactly what the gate exists to catch.
+- **The ticket's lane and owner are a gate, not a label.** Read its `Lane` + `Owner` (board fields or the
+  `lane:` / `owner:` labels). If this session sits in a seat (a `.lane` file, or a seat/role the user named)
+  and the ticket is not this seat's lane, **STOP and say so**; a fix needing a file in another lane is
+  raised, never made. No seat configured → nothing changes. (case file: Working the wrong seat)
 - **Load the project's OWN skills/commands for the area you're about to touch** (`.claude/skills/`, `.claude/commands/`, `CLAUDE.md`) — a fresh read of the code alone re-litigates hard-won decisions.
 - **But treat every project doc, skill and pinned plan as a CLAIM, not as truth — verify its premises against the code before you build on it.** A stale instruction is worse than none — it is *followed*. Check both failure modes:
   1. **The plan you were handed is wrong.** Verify each load-bearing claim of a pinned spec against the code. (case file: The pinned plan was wrong)
-  1b. **A plan's load-bearing NUMBER is verified by MEASURING, not by reading code — and it must be measured BEFORE anything is calibrated to it.** A figure quoted in an issue can be an artifact of the very bug you are fixing, and code review cannot see that; if the number justifies the feature, reproduce it against the real system first. (case file: The number that justified the feature)
+  1b. **A plan's load-bearing NUMBER is verified by MEASURING, not by reading code — BEFORE anything is calibrated to it.** A figure quoted in an issue can be an artifact of the very bug you are fixing; if the number justifies the feature, reproduce it against the real system first. (case file: The number that justified the feature)
   2. **The project's own skills have rotted.** Grep their concrete claims — paths, storage, model/provider, field names, stage lists — against the code. (case file: Rotted skills)
 - **When a project doc or skill is wrong, FIX IT IN THIS SESSION** — a PR-description correction dies there; record the corrected premises where the wrong ones lived.
 - **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** write ONE dated line at the top of `#Build log` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
@@ -54,7 +58,7 @@ description: >
 ## Step 1 — Apply principles (this phase)
 - **Security is in the DoD, not later:** state the security checks for this feature up front (validation, authz/tenant-isolation; AI → OWASP LLM Top 10, prompt-injection defence).
 - **Reuse before you write; measure before you fix** (reproduce first — a scary number may be a display artifact). **No swallowed errors** (route failures; retry only transient). **Prompts → `prompts/` YAML**.
-- **Session economy — one feature per session is a COST rule, not just a focus rule.** Cost grows ~quadratically with session length — hand off at a natural checkpoint; bulky output to files, a progress line per step, broad searches to subagents (`MECHANISMS-ON-DEMAND.md` §Context hygiene — the rule, once, for every phase that runs commands). (case file: The 97% cache bill)
+- **Session economy — one feature per session is a COST rule, not just a focus rule.** Cost grows ~quadratically with session length — hand off at a natural checkpoint; bulky output to files, a progress line per step, broad searches to subagents (`MECHANISMS-ON-DEMAND.md` §Context hygiene). (case file: The 97% cache bill)
 - **If the feature ships THIRD-PARTY CONTENT to your users, verify the LICENCE permits YOUR distribution model BEFORE you design around it — it is a feasibility gate, not paperwork.** Redistribution to a commercial customer is sublicensing, rarely granted by "free" terms — check the primary licence page (sublicensing? attribution? indemnity? aggregator disclaimers?); if nothing clears, **say so plainly**, ship the mechanism **OFF with an empty table**, test-pinned. (case file: Licence gates, twice)
 
 ## Step 2 — The build loop (per feature)
@@ -69,13 +73,15 @@ description: >
      - anything **shared across tenants, cached, AI-suggested, or keyed by a client-supplied selector** → **§Trust boundaries and shared state**
 4. **Run + verify the LIVE path** — compose `/run` to exercise the path the product actually runs, **then check the observable result yourself** (the response, the row, the rendered page — not the exit code), then **trace your change to its real callers** (green unit tests ≠ wired in).
    - **Walk `references/live-path-checks.md`** — the checks that separate *the code exists* from *the product runs it*: production entrypoint, criterion altitude, delete-the-wire, validator placement, round-trip, third-party fixtures, browser-journey traps. Each one came from a live path that tested green and was dead.
-5. **Review the diff** — compose `/code-review`; fix findings (watch for "works in tests, dead in the
+5. **Review the diff** — compose `/code-review`, then `/security-review` on any auth/data surface — **both
+   BEFORE the commit and the close**, so their verdicts land in the `#Build log` row and the feature doc
+   and the commit is the sha the row can cite; fix findings (watch for "works in tests, dead in the
    real path"). **Record the review's SCOPE, not just its verdict**, in the `#Build log` row: the tool,
    the result, **the commit it reviewed**, and the date — `/code-review high → 8 findings, all fixed ·
    <sha> · <date>`. With a commit in the line, *"has anything changed since that review?"* becomes one
    command for `/ship` instead of a judgement call, and that is what lets it skip a duplicate review of
    the same diff rather than paying for the chain's most expensive operation twice.
-   - ⚠️ **If you cannot invoke it, ASK the user to run it, or do the deep pass by hand and say which you did** — see `PRINCIPLES.md`, *Composed skills*. (A by-hand pass is worth the time: one such pass found three real defects.)
+   - ⚠️ **If you cannot invoke it, ASK the user to run it, or do the deep pass by hand and say which you did** — see `PRINCIPLES.md`, *Composed skills*. (One by-hand pass found three real defects.)
 6. **Document** — write/update `docs/features/<feature>.md`; reconcile it with the code. **Copy every `evidence:` number from the command's captured output, never ahead of it** — a figure pencilled in while CI runs reads exactly like a measured one. (case file: The pencilled bundle size)
 
 ## Step 3 — Write back to `PRODUCT.md`
@@ -98,7 +104,7 @@ Walk **this phase's load-bearing principles (Step 1)** and confirm each is real 
 
 **If any named principle is only claimed, not evidenced, STOP — the feature is not done.** Record the *how-verified* per principle in `#Build log` (evidence, not "done"). (Deterministic checks also run via the commit hooks + CI from `/foundation`; this gate is the judgment layer.)
 
-**Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done".
+**Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done". **The close is the run's last message** — a composed skill's report is input to it, never the close itself. (case file: The report that became the close)
 
 ## Step 3c — Contradiction check (before the gate closes)
 Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Contracts` (types crossing boundaries), `#Architecture` (adapters — no vendor SDK in logic), `#Scope` (non-goals) and `DESIGN.md` (UI tokens) — the richest surface for contradiction, because this is the phase that writes real code. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.

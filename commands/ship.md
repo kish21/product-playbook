@@ -61,11 +61,9 @@ description: >
    - **changed** → re-run, and **name what changed** (new commits, a wider diff, a round of fixes)
    - **no recorded review** → run it
    A deep review over a full diff is the most expensive operation in this chain, and one feature can
-   compose one **up to six times** between `/build` and here — on the one-feature-per-session rule,
-   `/build`'s diff and this diff are frequently *the same diff*. Skipping a duplicate is not cutting a
-   corner: it is the session-economy rule above, applied to the priciest thing the playbook does. There
-   is a correctness cost too — a reviewer handed an already-fixed diff **re-reports closed findings**,
-   which is why this step has always needed the "some findings are already done" warning.
+   compose one **up to six times** between `/build` and here — `/build`'s diff and this diff are often
+   *the same diff*. Skipping a duplicate is the session-economy rule applied to the priciest thing the
+   playbook does; and a reviewer handed an already-fixed diff **re-reports closed findings**.
 1. **Deep review:** run **`/code-review`** *if available* — otherwise your default code-reviewer agent / review mode, inspecting the diff against `PRINCIPLES.md`. **NEVER skip the review** on a diff nothing has reviewed. Fix real findings; verify each against the code before acting.
    - **Then review AGAIN — the fixes are new code, and nothing has reviewed them.** A round of fixes edits the same files under time pressure with the finding, not the design, in view; re-running the review is the only thing that looks at what the fixing produced (case file: The second review round). **This round is never the duplicate Step 0 prunes** — its scope is *the fixes*, which by definition no review has seen. Do not let a mechanical reading of Step 0 delete it.
 2. **Security:** apply Step 0 to this one too — `#Build log` may already record a `/security-review`
@@ -91,7 +89,7 @@ empty `#Tests` section is not a disclosure, it is an absence, and absence reads 
 Check the boxes. **If review/security/docs aren't actually done, or a doc claim doesn't match the
 code, STOP — do not open the PR.** Shipping a false claim is the exact failure to avoid.
 
-**Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done".
+**Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done". **The close is the run's last message** — a composed review's report is input to it, never the close itself.
 
 ## Step 3c — Contradiction check (before the gate closes)
 Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: the whole spine against what actually shipped — docs claiming a capability the code lacks, and the version in the CHANGELOG against every manifest surface. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.

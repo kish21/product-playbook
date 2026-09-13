@@ -211,6 +211,10 @@ def main() -> int:
     check_context_hygiene(files)
     # 24. /tickets groups by module lane, stamps the board, shows the list it confirms
     check_lanes_and_board(files)
+    # 25. a skill that composes a reviewer says the plain close is the run's last message
+    check_close_is_last(files)
+    # 26. a module folder is a complete lane; hub files are named; /build gates on the seat
+    check_module_is_a_lane(files)
 
     return done(len(cmds))
 
@@ -419,6 +423,13 @@ def check_section_pointers(files: dict[str, Path]) -> None:
         # names one of the governing files is a claim this repo can be held to.
 
 
+def content_size(path: Path) -> int:
+    """Bytes with LF line endings - what CI measures. A Windows checkout under core.autocrlf=true adds a
+    byte per line, so the same file read 15.0KB in CI and 15.1KB locally and the gate flipped with the
+    line endings instead of the content."""
+    return len(path.read_bytes().replace(b"\r\n", b"\n"))
+
+
 def check_file_sizes(files: dict[str, Path]) -> None:
     """11. The ~15KB prune rule applies to the file that wrote it.
 
@@ -428,12 +439,12 @@ def check_file_sizes(files: dict[str, Path]) -> None:
     """
     for rel in ("PRINCIPLES.md", "references/mechanisms.md", "references/mechanisms-on-demand.md",
                 "references/lessons.md"):
-        size = (ROOT / rel).stat().st_size
+        size = content_size(ROOT / rel)
         if size > SIZE_LIMIT:
             fail(f"{rel} is {size / 1024:.1f}KB (> {SIZE_LIMIT // 1024}KB) - the prune rule it defines "
                  f"applies to it first: move mechanism into references/, or condense")
     for name, path in sorted(files.items()):
-        size = path.stat().st_size
+        size = content_size(path)
         if size > SIZE_LIMIT and name not in SIZE_EXEMPT:
             fail(f"{name} is {size / 1024:.1f}KB (> {SIZE_LIMIT // 1024}KB) - run a prune pass, or add "
                  f"a named exemption with a reason to SIZE_EXEMPT")
@@ -956,6 +967,85 @@ def check_lanes_and_board(files: dict[str, Path]) -> None:
         if token not in pub:
             fail(f"tickets/references/publishing.md never mentions {token!r} - the board procedure, its "
                  f"permission scope and the lowercase read-back keys are what make the stamping real")
+
+
+# Skills whose gate-closing region composes another skill that prints its own report. The report is the
+# thing most likely to be mistaken for the close, so these are the skills that must say the close comes last.
+COMPOSING_REVIEWERS = {"build", "ship", "test", "eval"}
+CLOSE_LAST = "The close is the run's last message"
+
+
+def check_close_is_last(files: dict[str, Path]) -> None:
+    """25. A skill that composes a reviewer says the plain close is the run's LAST message.
+
+    Potluck M1-SLICE-01 (2026-09-13): /build committed, then ran /security-review, and the review's
+    report was the final message of the session - no plain close, no verdict per criterion, no cost
+    line, no commit offer, and the security verdict reached no record because the Build-log row had
+    been written before it ran. One session later the same skill ran the review mid-session and closed
+    properly. The rule lives once in MECHANISMS.md §Plain-language close; each composing skill must
+    repeat the one sentence where it closes its gate, because that is the region the agent is reading
+    when the composed report comes back.
+    """
+    mech = (ROOT / "references" / "mechanisms.md").read_text(encoding="utf-8")
+    if "LAST message" not in mech:
+        fail("references/mechanisms.md §Plain-language close no longer says the close is the run's LAST "
+             "message - a composed skill's report will be taken for the close again")
+    for name in sorted(COMPOSING_REVIEWERS):
+        text = files[name].read_text(encoding="utf-8")
+        start = re.search(r"^#{2,4}\s*Step 3b\b", text, re.MULTILINE)
+        if not start:
+            continue  # check 16 already failed this file
+        rest = text[start.end():]
+        stop = re.search(r"^#{2,4}\s*Step 3c\b", rest, re.MULTILINE)
+        body = " ".join(rest[: stop.start() if stop else len(rest)].split())
+        if CLOSE_LAST not in body:
+            fail(f"{name} composes a reviewer but its gate-closing region never says {CLOSE_LAST!r} - "
+                 f"on a live run the reviewer's report became the final message and the user never got "
+                 f"the plain close, the verdicts or their next steps")
+
+
+# The obligations that make a module folder a complete lane (#215). Each token names a rule the shape
+# reference must carry, and the exit criterion that binds /structure to it.
+LANE_SHAPE_TOKENS = ("complete lane", "registry line", "routes", "tests", "platform/", "frontend", "Hub files")
+BUILD_SEAT_TOKENS = ("Owner", "seat", "STOP")
+
+
+def check_module_is_a_lane(files: dict[str, Path]) -> None:
+    """26. /structure makes a module a complete lane and names the hub files; /build gates on the seat.
+
+    Potluck (2026-09-12/13): /structure chose domain modules and drew them, then put every module's
+    handlers in one http/ folder, every store in one platform/ folder and all the wiring in index.ts;
+    the frontend was by tool throughout. /tickets then named index.ts in seven of fifteen tickets, and
+    the backlog could not be split between two people however it was grouped - the folders each person
+    would change were the shared ones. The rule is one registry line per module and everything else
+    inside the module; the hub files are named in STRUCTURE.md so /tickets and Lanekeeper can treat
+    them as shared, and check_structure.py verifies each exists. On the /build side, MarkVid's
+    /jr-ticket refuses a ticket whose owner label is not its own - lane ownership is a gate.
+    """
+    shape = (ROOT / "commands" / "structure" / "references" / "choosing-the-shape.md").read_text(encoding="utf-8")
+    for token in LANE_SHAPE_TOKENS:
+        if token not in shape:
+            fail(f"structure/references/choosing-the-shape.md never says {token!r} - a module that keeps "
+                 f"its rules and sends its routes, store and tests to shared folders is by-tool where two "
+                 f"people collide")
+    text = files["structure"].read_text(encoding="utf-8")
+    m = re.search(r"Exit criteria:\*\*(.*?)^## Step 0", text, re.MULTILINE | re.DOTALL)
+    criteria = m.group(1) if m else ""
+    for token in ("complete lane", "Hub files", "check_structure.py"):
+        if token not in criteria:
+            fail(f"structure exit criteria never name {token!r} - the rule exists in the reference but "
+                 f"nothing binds the phase to it")
+    tmpl = (ROOT / "templates" / "check_structure.py").read_text(encoding="utf-8")
+    if "Hub files" not in tmpl:
+        fail("templates/check_structure.py does not verify the Hub files section - a hub file that moved "
+             "leaves /tickets and Lanekeeper pointing at nothing")
+    build = files["build"].read_text(encoding="utf-8")
+    m = re.search(r"^## Step 0\b(.*?)^## Step 1\b", build, re.MULTILINE | re.DOTALL)
+    step0 = m.group(1) if m else ""
+    for token in BUILD_SEAT_TOKENS:
+        if token not in step0:
+            fail(f"build Step 0 never mentions {token!r} - a ticket's lane and owner are a gate, and a "
+                 f"session working another seat's lane must stop before it cuts a branch")
 
 
 def done(n: int = 0) -> int:
