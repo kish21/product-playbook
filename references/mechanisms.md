@@ -87,9 +87,8 @@ when there is no repository to commit to. Every phase that writes ends with thes
 
 
 `PRINCIPLES.md` demands plain, non-technical language and nothing implemented it: runs ended in playbook
-dialect — gates, states, verdicts, confidence scores. Two short blocks close every phase — **printed
-first**, before the transition-guard table and the confidence score (the bookkeeping is done by then; the
-user reads top-down and should meet their own language before the dialect):
+dialect. Two short blocks close every phase — **printed first**, before the transition-guard table and
+the confidence score (the user reads top-down and should meet their own language before the dialect):
 
 - **What just happened** — two or three sentences. No skill names, no `#Section` references, no state
   vocabulary. What the product now has that it did not have an hour ago.
@@ -100,6 +99,9 @@ user reads top-down and should meet their own language before the dialect):
   `/<next phase>` when you're ready"**, which is also a complete answer.
 
 The agent's own next step is *not* this list. Anything the skill will do itself belongs in the handoff.
+**The close is the run's LAST message.** A composed skill (`/code-review`, `/security-review`, `/run`)
+returns a report; that report is evidence *for* the close, never the close — keep going until the two
+blocks above have been printed.
 
 ## §Re-run semantics — a second run must not erase the first
 

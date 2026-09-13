@@ -77,7 +77,7 @@ description: >
   user-visible surface slices badly vertically; a user-facing milestone slices badly horizontally.
 - **Every ticket declares the contract it exposes**, so dependent work can start against a stub rather than
   waiting for a merge — what makes either strategy parallelisable.
-- **Security is not a ticket.** It is a DoD line on *every* ticket. Never emit an "add security" ticket.
+- **Security is not a ticket** — a DoD line on *every* ticket; never emit an "add security" ticket.
 
 ## Step 2 — Provision templates + pre-flight remote guard (both modes)
 **The four guards, one line each — procedure in `references/publishing.md` §Provision and pre-flight:**
@@ -128,7 +128,7 @@ First: **every type, route, field and event name a ticket uses must resolve to a
 files `#Contracts` points at. Then slicing, lanes, paths, IDs, dedup, the security DoD, mergeability, the
 board read-back. Nothing reaches `gh issue create` until it is green.
 
-**Keep the context lean (`MECHANISMS-ON-DEMAND.md` §Context hygiene):** a command's output longer than a screen goes to a scratch file; read the tail or grep the verdict, and cite the file in the evidence line.
+**Keep the context lean (`MECHANISMS-ON-DEMAND.md` §Context hygiene):** output longer than a screen goes to a scratch file; read the tail or grep the verdict, cite the file in the evidence line.
 
 **Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done".
 
