@@ -51,6 +51,11 @@ description: >
 
 ## Step 1 — Apply principles (this phase)
 - **Benchmark to the current year, then choose on constraints:** find what leading teams use *now* — that half is load-bearing and stops the AI reaching for a stale default. Then pick on **fit, not ideology**: reliability, operational burden, **the size of the team that has to run it**, cost, compatibility, maturity, and **lock-in (portability + exit cost)**. Open source often wins on the last one; it does not win automatically, and self-hosting infrastructure whose operating cost dwarfs the licence saving is a real failure mode for a solo builder. **Record the constraint set you optimised against** and why the winner won — one line each, in `#Architecture`, so the decision is auditable when a constraint changes.
+- **Search discipline — the benchmark is bounded, not open-ended:** **one search per open decision row**,
+  a comparison page over several vendor pages, and **the search list recorded in `docs/architecture.md`**
+  (query · what it settled). Every result page is first-time tokens; seventeen searches on one live run
+  were the phase's largest cost after its own output, and a search that settled nothing is not benchmark
+  evidence. The bound never lowers a verdict — a row that is still open after its search says so.
 - **Check where approvals attach (the self-host blind spot):** where an integration is gated by a third
   party's approval, ask *"does it attach to the app/account, or to the software?"* If it attaches to the
   app, **self-hosting OSS does not bypass it** — OSS saves code, not compliance

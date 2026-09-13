@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Changed — `/architect`'s benchmark is bounded and recorded; a session's cost is one command (#203)
+
+**One search per open decision row, written down.** On the Potluck run `/architect` ran 17 web searches and
+they were the phase's largest cost after its own output. The benchmark stays load-bearing; Step 1 now bounds
+it (one search per open row, a comparison page over vendor pages, the list recorded in
+`docs/architecture.md`) and **check 29** holds the rule. `tools/session_cost.py` reads a session log and
+prints calls, minutes, tokens and ≈ cost, so §Context hygiene item 4 ("measured or absent") has a command
+behind it. **Declined, with the reason recorded:** lowering the reasoning effort on document phases, and
+replacing the rulebook read with section pointers — both trade attention for cost, and `PRINCIPLES.md` says
+quality is never traded for speed or cost (owner decision 2026-09-13).
+
 ## [1.43.0] - 2026-09-13
 
 ### Added — chain mode: `/architect` may continue straight into `/structure`, every question kept (#205)
