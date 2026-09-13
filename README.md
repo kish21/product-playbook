@@ -51,162 +51,41 @@ One rough sentence is enough. You do not need to know the other skills yet.
 
 ## 🪄 See it in action
 
-One product — the waitlist app — through every skill. Each card: what you type, what it asks, what it writes, what it prevents.
+One product — the waitlist app — through every skill: what you type, what it asks or does, what it writes, and the failure it prevents.
 
-### Phase 1 · Product — decide what is worth building
+**Phase 1 · Product — decide what is worth building**
 
-#### 💡 `/vision` — a rough idea becomes a sharp one
+| Skill | You type | It asks / does | It writes | It prevents |
+|---|---|---|---|---|
+| 💡 `/vision` | `/vision I want to build a walk-in waitlist for small restaurants …` | Who exactly is the user? What job are they hiring this for? Which one number says it worked? Checks the current-year market. | One-sentence vision · the user (*host of a 40-seat restaurant on a Friday night*) · north star (*80 % of walk-ins seated without chasing, by March*) · the **riskiest assumption** (*guests scan a code instead of giving a name*) | Every later "should we add X?" having no answer |
+| 🔎 `/validate` | `/validate` | What is the cheapest real-world test, and what counts as a pass — *set before running it*? | The experiment (*paper QR on the door, one Friday, pass mark 60 % scan*) · the measured result · **proceed / pivot / kill**. Slow result → later phases run *provisionally* | Building something nobody wanted |
+| ✂️ `/scope` | `/scope` | Which single behaviour delivers the value? | **THE core feature** (*guest joins the queue, is told when the table is ready*) · deferred items, each with its trigger · **non-goals**: reservations, payments, menus, accounts | Scope creep — every later skill checks this list; reopening a non-goal is recorded with a date and reason |
+| 🗺️ `/plan` | `/plan` | Sequences the scope, core first | Milestones with a testable exit each — M1 *guest gets a text, laptop demo* · M2 *host seats the queue* · M3 *one real Friday night* | Milestones that are wishes |
 
-```
-/vision I want to build a walk-in waitlist for small restaurants …
-```
+**Phase 2 · Development — build it so it holds**
 
-- **Asks you:** who exactly is the user, what job are they hiring this for, which one number says it worked.
-- **Writes:** the one-sentence vision · the user (*the host of a 40-seat restaurant on a Friday night*) · the north star (*80 % of walk-ins seated without the host chasing anyone, by March*) · the **riskiest assumption** (*guests will scan a code instead of giving their name at the door*) · a current-year read of who already does this.
-- **Prevents:** every later "should we add X?" having no answer.
+| Skill | You type | It asks / does | It writes | It prevents |
+|---|---|---|---|---|
+| 🏗️ `/architect` | `/architect` | Budget? Where will it run? Who maintains it? Benchmarks current-year options. Offers to **chain into `/structure`** | The stack and key decisions as ADRs — runtime target, commit-hook tool, every external (the SMS provider) behind an adapter | A vendor SDK welded into business logic |
+| 📁 `/structure` | `/structure` | Draws the folder shape | One module per thing the product does (`queue/`, `notify/`, `host/`), each with its routes, store and tests · root scaffolding (agent instructions, `.env.example`, secret-scan, hooks, task runner) · `prompts/` if there is an LLM · `STRUCTURE.md` | "Where does this go?" having no answer |
+| 🎨 `/design-system` *(UI only)* | `/design-system` | What look do *you* want? Proposes an archetype, builds **one real sample page**, stops until you like it | `DESIGN.md` — the tokens every later screen reuses | The generic AI look, too-small fonts |
+| 🧱 `/foundation` | `/foundation` | Builds the walking skeleton | Dependencies · config loader · structured logging · DB wired · lint and hooks · CI that mirrors the production boot. A placeholder secret **refuses to boot, by name** | Config that silently does nothing |
+| 📐 `/contracts` | `/contracts` | Types before logic | Typed models, schemas, migrations, the API contract — front and back agree on what a `QueueEntry` is | Two halves disagreeing about one field |
+| 🎫 `/tickets` | `/tickets` | **Shows the proposal**, waits for your confirm, then files it | Tickets in **lanes by module** (`queue`, `notify`, `host`) as GitHub issues on a **Delivery Board** — Status · Owner · Lane · Seat — each with exact files, typed in/out, a security DoD | One backlog blocking a second builder (solo: every seat is you) |
+| 🎫 `/tickets "…"` | `/tickets "Bug: the SMS send is not retried on a 5xx"` | Files **one** issue against the owning file | One `[ADHOC-nn]` ticket, on the board | Derailing the backlog for one bug |
+| 🛠️ `/build` | `/build M1-SLICE-01` | Reuse before writing · verifies the **live path** · `/code-review` on the diff · commits | Feature code + `docs/features/<name>.md`; ends with the plain close — built, verified how, what you do next | Green tests over a dead live path |
+| ✅ `/dev-check` | `/dev-check` | Is every core feature built, running, at its exit criteria and security DoD? | `#Dev-complete` with **evidence you can re-run** | A claim standing in for proof |
+| 🌐 `/deploy` *(needs a URL)* | `/deploy` | Executes the runtime target `/architect` chose; never reopens it | `docs/deployment.md` + `#Deployment`; done when someone who is not you loads the page | A host decided and never executed |
 
-#### 🔎 `/validate` — test the riskiest assumption before any code
+**Phases 3–6 · Test, evaluate, ship, learn**
 
-```
-/validate
-```
-
-- **Asks you:** what is the cheapest real-world test, and what result counts as a pass — *set before you run it*.
-- **Writes:** the experiment (*a paper QR code on the door, one Friday night, pass mark 60 % of walk-ins scan*) · the measured result · the verdict: **proceed, pivot or kill**. If the result takes weeks, later phases run *provisionally* and say so.
-- **Prevents:** building something nobody wanted.
-
-#### ✂️ `/scope` — one core feature, and what you will *not* build
-
-```
-/scope
-```
-
-- **Asks you:** which single behaviour delivers the value.
-- **Writes:** **THE core feature** (*a guest joins the queue and is told when the table is ready*) · deferred items, each with the trigger that brings it back · **non-goals**: reservations, payments, menus, accounts.
-- **Prevents:** scope creep. Every later skill checks against this list; reopening a non-goal is allowed but recorded with a date and a reason.
-
-#### 🗺️ `/plan` — milestones with a testable exit each
-
-```
-/plan
-```
-
-- **Writes:** core-first milestones — M1 *a guest joins and gets a text, on a laptop demo* · M2 *the host sees and seats the queue* · M3 *one real Friday night at a real restaurant* — each with an exit criterion you can check.
-- **Prevents:** milestones that are wishes. `/dev-check` and `/ship` measure against these later.
-
-### Phase 2 · Development — build it so it holds
-
-#### 🏗️ `/architect` — the stack, decided against *your* constraints
-
-```
-/architect
-```
-
-- **Asks you:** budget, where it will run, who maintains it.
-- **Writes:** the stack and the key decisions as ADRs, each benchmarked against **current-year** options — the runtime target, the commit-hook tool, and every external service (the SMS provider) behind an adapter. Offers to **chain straight into `/structure`** in the same session.
-- **Prevents:** a vendor SDK welded into business logic — the most expensive thing to undo.
-
-#### 📁 `/structure` — where every file goes, and why
-
-```
-/structure
-```
-
-- **Writes:** one module per thing the product does (`queue/`, `notify/`, `host/`), each holding its own routes, store and tests · root scaffolding: agent instructions, `.env.example`, secret-scan, commit hooks, a task runner · a `prompts/` folder if there is an LLM · `STRUCTURE.md`.
-- **Prevents:** "where does this go?" ever having no answer.
-
-#### 🎨 `/design-system` — *UI products only* — the look, decided once
-
-```
-/design-system
-```
-
-- **Asks you:** what look *you* want; proposes an archetype; builds **one real sample page** and stops until you like it.
-- **Writes:** `DESIGN.md` with the tokens every later screen reuses.
-- **Prevents:** the generic AI look and the too-small fonts. Skipped for a backend, API or CLI product.
-
-#### 🧱 `/foundation` — a skeleton that actually runs
-
-```
-/foundation
-```
-
-- **Writes:** dependencies · config loader · structured logging · the database wired · lint and hooks · a CI that mirrors the production boot. A placeholder secret left in `.env` **refuses to boot, by name**.
-- **Prevents:** config that silently does nothing.
-
-#### 📐 `/contracts` — types before logic
-
-```
-/contracts
-```
-
-- **Writes:** typed models, schemas, migrations and the API contract — so front and back agree on what a `QueueEntry` is before either is written.
-- **Prevents:** two halves of the product disagreeing about the same field.
-
-#### 🎫 `/tickets` — small tickets, on a board, in lanes
-
-```
-/tickets
-```
-
-- **Shows you** the proposal first, then after you confirm:
-- **Writes:** tickets grouped into **lanes by module** (`queue`, `notify`, `host`), filed as GitHub issues on a **Delivery Board** — Status · Owner · Lane · Seat. Each ticket names its exact files, typed inputs and outputs, and a definition of done that includes security.
-- **Prevents:** one person's backlog blocking a second builder. Solo, every seat is you.
-
-One bug, mid-build, without touching the backlog:
-
-```
-/tickets "Bug: the SMS send is not retried on a 5xx"
-```
-
-#### 🛠️ `/build` — one ticket at a time
-
-```
-/build M1-SLICE-01
-```
-
-- **Does:** reuse before writing · verifies the **live path** (the request the product actually serves, not a function in isolation) · `/code-review` on the diff · the feature doc · commit.
-- **Ends with:** a plain close — what was built, how it was verified, what you do next. Always the last message.
-- **Prevents:** green tests over a dead live path.
-
-#### ✅ `/dev-check` — is development actually complete?
-
-```
-/dev-check
-```
-
-- **Checks:** every core-scope feature is built, runs, and met its exit criteria and security definition of done — with **evidence you can re-run**, not a claim.
-
-#### 🌐 `/deploy` — *when the product needs a real URL*
-
-```
-/deploy
-```
-
-- **Does:** executes the runtime target `/architect` already chose; never reopens it.
-- **Done when:** someone who is not you loads the page.
-
-### Phases 3–6 · Test, evaluate, ship, learn
-
-#### 🧪 `/test`
-
-- Unit (mocked) · integration (real seams) · regression · **adversarial**: the wrong host token, a double claim on the last table, prompt injection if there is an LLM.
-
-#### 📊 `/eval`
-
-- Is it actually *good*? Measured against the criteria set in `/plan`; operational failures separated from quality; an honest confidence score. AI products can add `/enterprise-ai-audit`.
-
-#### 🚢 `/ship`
-
-- Fresh-eyes `/code-review` · `/security-review` · docs reconciled to what was really built · a rollback path · the PR · a handoff note · *"start a new session"*.
-
-#### 📈 `/learn`
-
-- After the real Friday night: did the north star move? A short retro, then the next cycle from evidence — back to `/scope` or `/plan`. Sets up `/loop` or `/schedule` to re-measure on a cadence.
-
-#### 🛑 `/drift-check` — *any time*
-
-- *"Are we still building the vision?"* Finds features that were non-goals, docs that no longer match the code, an API spec describing routes that were never built. Reports; never advances the chain.
+| Skill | You type | It asks / does | It writes | It prevents |
+|---|---|---|---|---|
+| 🧪 `/test` | `/test` | Unit (mocked) · integration (real seams) · regression · **adversarial** (wrong host token, double claim on the last table, prompt injection if there is an LLM) | The suite + `#Tests` | Functions that pass while the product fails |
+| 📊 `/eval` | `/eval` | Is it actually *good*, measured against `/plan`'s criteria? Operational failures separated from quality | `#Evaluation` with an honest confidence score (AI products: `/enterprise-ai-audit` optional) | "It works" without a number |
+| 🚢 `/ship` | `/ship` | Fresh-eyes `/code-review` · `/security-review` · docs reconciled to reality · rollback path | The PR · `#Ship log` · a handoff note · *"start a new session"* | Shipping what the docs no longer describe |
+| 📈 `/learn` | `/learn` | Did the north star move after the real Friday night? Short retro | `#Learnings` · the next cycle, back to `/scope` or `/plan` · `/loop` or `/schedule` to re-measure | Deciding what is next from feeling, not evidence |
+| 🛑 `/drift-check` *(any time)* | `/drift-check` | Are we still building the vision? Features that were non-goals, docs that no longer match code | A report · a dated `#Drift log` row on confirmed drift; never advances the chain | Drift nobody noticed |
 
 ---
 
