@@ -44,9 +44,15 @@ def section(version: str | None = None) -> tuple[str, str]:
 
 
 def title(version: str, body: str) -> str:
-    """'v1.6.1 — <first bold phrase>' — the changelog opens every bullet with a bold summary."""
-    m = re.search(r"\*\*(.+?)\*\*", body)
-    headline = m.group(1).rstrip(".:") if m else ""
+    """'v1.6.1 — <first bold phrase>' — the changelog opens every bullet with a bold summary.
+
+    DOTALL, because the changelog wraps at ~100 columns and a lead sentence often spans two lines: without
+    it the first bold span that fits on ONE line wins, which on v1.41.0 was the fragment between `walks.**`
+    and `**tickets**` — a release titled "`commands/playbook.md` says contracts →". Whitespace is collapsed
+    so the wrapped phrase reads as one line.
+    """
+    m = re.search(r"\*\*(.+?)\*\*", body, re.DOTALL)
+    headline = " ".join(m.group(1).split()).rstrip(".:") if m else ""
     return f"v{version} — {headline}" if headline else f"v{version}"
 
 

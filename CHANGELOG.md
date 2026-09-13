@@ -7,8 +7,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ### Fixed — `/contracts` handed off to `/build` and skipped `/tickets` (#207)
 
-**Every handoff names the phase that follows it in the chain, and a check compares all sixteen to the one
-order `/playbook` walks.** `commands/playbook.md` says contracts → **tickets** → build; `/contracts` said
+**Every handoff names the next phase in the chain, checked against the one order `/playbook` walks.**
+`commands/playbook.md` says contracts → **tickets** → build; `/contracts` said
 "run `/build`" in its description and its Step 4. On the Potluck live run the owner did what the skill said,
 `/tickets` never ran, and M1 reached `/build` as one undivided milestone. Sixteen skills each named their own
 "next" and nothing compared them — a hole only a user following the chain could find.
