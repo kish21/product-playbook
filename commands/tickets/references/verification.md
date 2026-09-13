@@ -13,6 +13,10 @@ failure into a hard red before anything is written to GitHub — including `cost
 frozen field is `costMinor` (an integer), a `status: "draft"` outside the `open | finalized` enum, an
 event outside the closed `EVENT_TYPES` tuple, and ten response types that existed nowhere.
 
+**Resolve against the contract files OR a path some ticket's Target Files creates; then plant one invented
+name and watch it fail.** A component the backlog itself creates is not an invention — without that list the
+check drowns real misses in false positives, and a checker never seen failing proves nothing. (case file: The checker that cried wolf)
+
 ## §The rest of the gate
 
 Walk the principles and prove each against the files just written — do not assert it:
@@ -24,6 +28,9 @@ Walk the principles and prove each against the files just written — do not ass
 - **Vertical:** slice 1 runs end to end on its own. If it needs slice 2 to do anything, the order is wrong.
 - **Horizontal:** no ticket lists files from two layers; no layer-3 ticket exists when `STRUCTURE.md`
   declares no component directory; layer 4 contains no per-layer unit tests.
+- **Every `#Plan` item has a home: a ticket, or a named later phase with its sequence point.** Items a phase
+  owns (real-environment tests → `/test`, hosting → `/deploy`) get one line in `docs/issues/README.md` saying
+  when that phase runs — never a ticket, never silence. (case file: The tests that fell between phases)
 - **IDs unique.** Every ID appears exactly once across `docs/issues/` and the fetched GitHub issues.
 - **Dedup ran.** Confirm `gh issue list` was fetched before any `gh issue create`, and that no remote
   repository was created.
