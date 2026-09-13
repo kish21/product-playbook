@@ -5,6 +5,38 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Added — `/tickets`: module lanes, a Delivery Board, and a proposal that is shown before it is confirmed (#213, #210)
+
+**The backlog never assumes one builder.** On the Potluck live run (2026-09-13) `/tickets` wrote 15 vertical
+slices as one dependency chain with 15 one-ticket lanes, no Owner and no board — its README said *"one person
+builds this"* — and when the owner asked whether two people could take it, they could not. The same work,
+grouped by the modules `STRUCTURE.md` already drew, lets a solo builder hand any lane to a friend or a second
+agent on the day they want to, at no cost to the solo case. This is the base MarkVid's Delivery Board
+(60+ cards) already runs on.
+
+- `references/slicing.md` **§Lanes are modules** — one lane per `STRUCTURE.md` module (a feature only under a
+  layered shape); every ticket carries `Lane` + `Owner` (Senior by default); ordered inside a lane, parallel
+  across; cross-lane dependencies become **coordination points** and shared files a **hub-file list** in
+  `docs/issues/README.md`, with the **parallel table** (which lanes can run at once). The "solo build"
+  strategy example is gone.
+- `references/publishing.md` **§The Delivery Board** — created once (`Status · Owner · Lane · Seat`), every
+  issue a card with all four fields set **and read back** (lowercase keys); labels `lane: <module>` +
+  `owner: <role>`; idempotent; the `project` scope joins the capability pre-flight and a missing scope is
+  said in the close with the command that grants it, never half-stamped. Lanekeeper stays the optional gate;
+  the board is the map.
+- **Step 3A.1 prints the whole proposal** (every ticket: ID · title · lane · owner, grouped by lane) before
+  asking for a yes, and a set that changes after the yes is shown and confirmed again — closes **#210**,
+  where the run asked "as proposed (17 tickets)?" with no list above it and published 15.
+- `templates/feature_ticket_template.md`: Lane is a module; a new **Owner** heading.
+- **check 24** — the tickets exit criteria name module lanes and the four board fields with a read-back,
+  Step 3A.1 prints and re-confirms the proposal, the template carries Lane + Owner, and `publishing.md`
+  carries the board procedure. Proven red on the pre-fix files (10 failures), green after. Its first
+  version repeated check 17's backspace-byte defect (`\b` written through a non-raw string) and was caught
+  by the same red-first test.
+- `MECHANISMS.md` / `MECHANISMS-ON-DEMAND.md` §Lane mode: a lane is a module, never a technology layer.
+  Case files: *The fifteen-step recipe*, *The base MarkVid runs on*, *Confirmed as proposed, never shown*,
+  *Eleven issues against an invented API* in `references/case-files-tickets.md`.
+
 ### Changed — `/build`: a poll needs a deadline; evidence numbers are copied, never pencilled
 
 **Two lessons from the Potluck M1-SLICE-02 run (2026-09-13).** `references/feature-archetypes.md` §Async jobs

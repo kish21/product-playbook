@@ -203,7 +203,7 @@ against a self-guessed baseline**). Both cases, and how a *writing* phase degrad
 **Trigger:** the project has `.lanekeeper/config.yaml` or a root `lanes.yaml` (the policy), or the current
 worktree has a `.lane` file (this session IS one agent's seat). Either → **lane mode**, and the four rules
 in `MECHANISMS-ON-DEMAND.md` §Lane mode (full) apply to every phase — **open it before writing anything in
-a lane.** They fix, in one place: the ticket's file list *is* the lane, a lane is a feature slice and never
+a lane.** They fix, in one place: the ticket's file list *is* the lane, a lane is a module and never
 a technology layer, the spine gets exactly one writer, and the label form is `lane: <name>` with a space,
 on both the issue and the PR.
 

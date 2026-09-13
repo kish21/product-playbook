@@ -209,6 +209,8 @@ def main() -> int:
     check_handoff_chain(files)
     # 23. the long derivation phases carry the context-hygiene rule
     check_context_hygiene(files)
+    # 24. /tickets groups by module lane, stamps the board, shows the list it confirms
+    check_lanes_and_board(files)
 
     return done(len(cmds))
 
@@ -907,6 +909,53 @@ def check_context_hygiene(files: dict[str, Path]) -> None:
             fail(f"{name} never points at MECHANISMS-ON-DEMAND.md {HYGIENE_POINTER} - a phase that runs "
                  f"commands for most of a session re-reads every byte of their output on every later call "
                  f"unless the rule is in front of it")
+
+
+# The tickets skill's obligations for a backlog that never assumes one builder (#213). Each token is an
+# obligation the skill's exit criteria or Step 3A must name; the board fields are checked one by one
+# because a card with one of them unset is invisible on that view (case-files-build.md, the read-back).
+BOARD_TOKENS = ("Delivery Board", "Status", "Owner", "Lane", "Seat", "read back")
+LANE_TOKENS = ("Lanes are modules", "STRUCTURE.md", "Owner", "coordination points", "hub files")
+TEMPLATE_HEADINGS = ("### 🛣️ Lane", "### 👤 Owner")
+
+
+def check_lanes_and_board(files: dict[str, Path]) -> None:
+    """24. /tickets groups by module lane, files every ticket on the board, and shows the list it confirms.
+
+    On the Potluck live run (2026-09-13) /tickets wrote 15 vertical slices as one dependency chain with
+    15 one-ticket lanes and no board - its README said "one person builds this". The owner then asked
+    whether two people could take it, and they could not. The grouping the modules already offered was
+    never used because the skill's only two strategies were "thin slice per milestone" and "one ticket
+    per layer". This check reads the obligations, not the outcome: the skill must name module lanes,
+    the four board fields and the read-back, the template must carry Lane and Owner, and Step 3A.1 must
+    print the proposal it asks the user to confirm (#210: "as proposed (17)" with no list above it).
+    """
+    text = files["tickets"].read_text(encoding="utf-8")
+    m = re.search(r"Exit criteria:\*\*(.*?)^## Step 0", text, re.MULTILINE | re.DOTALL)
+    criteria = m.group(1) if m else ""
+    for token in LANE_TOKENS:
+        if token not in criteria:
+            fail(f"tickets exit criteria never name {token!r} - a backlog that is not grouped by module "
+                 f"lane assumes one builder, and the day a second person arrives it has to be re-planned")
+    for token in BOARD_TOKENS:
+        if token not in criteria:
+            fail(f"tickets exit criteria never name {token!r} - a ticket that is not a board card with "
+                 f"every field set is invisible on the lane view the team actually reads")
+    m = re.search(r"^### 3A\.1\b(.*?)^### 3A\.2", text, re.MULTILINE | re.DOTALL)
+    step = " ".join((m.group(1) if m else "").split())
+    if not m or "print the whole proposal" not in step or "confirmed again" not in step:
+        fail("tickets Step 3A.1 does not print the whole proposal before asking for a yes, or does not "
+             "re-confirm a set that changed after it - a confirmation of a count is not a confirmation of a list")
+    template = (ROOT / "templates" / "feature_ticket_template.md").read_text(encoding="utf-8")
+    for heading in TEMPLATE_HEADINGS:
+        if heading not in template:
+            fail(f"templates/feature_ticket_template.md has no {heading!r} heading - the ticket form is "
+                 f"where the lane and its owner are written, and the board only mirrors them")
+    pub = (ROOT / "commands" / "tickets" / "references" / "publishing.md").read_text(encoding="utf-8")
+    for token in ("§The Delivery Board", "project", "lowercase"):
+        if token not in pub:
+            fail(f"tickets/references/publishing.md never mentions {token!r} - the board procedure, its "
+                 f"permission scope and the lowercase read-back keys are what make the stamping real")
 
 
 def done(n: int = 0) -> int:

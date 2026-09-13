@@ -38,11 +38,11 @@ and every skill behaves as before. The companion tool is
 Lanekeeper divides it up and gates every PR to its lane.*
 
 1. **The ticket's file list IS the lane.** Lanekeeper reads the `Target Files` / `Allowed File Paths`
-   section of the issue as the boundary, and a `Lane` heading as the feature name. A ticket with no files
+   section of the issue as the boundary, and a `Lane` heading as the module name. A ticket with no files
    has no safety guarantee; a ticket that lists a *folder* has a boundary too wide to protect anyone.
    Exact paths, always — and the paths a ticket names must include **everything the build will write**,
    feature doc included.
-2. **A lane is a feature slice, never a technology layer.** Vertical tickets are lanes by construction. A
+2. **A lane is a module (a feature area), never a technology layer.** Vertical tickets sit inside one lane by construction. A
    horizontal (per-layer) ticket turns one feature into N lanes and makes every change a collision — in
    lane mode the default is vertical, and horizontal needs a recorded reason.
 3. **The spine is a shared file — it gets ONE writer.** `PRODUCT.md`, `CHANGELOG.md`, `STRUCTURE.md` and
