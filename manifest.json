@@ -1,6 +1,6 @@
 {
   "name": "product-playbook",
-  "version": "1.40.1",
+  "version": "1.41.0",
   "description": "AI writes code faster than anyone can reason about it. product-playbook puts evidence gates between the phases: 21 Claude Code skills that walk a product from idea to shipped, one gate at a time, recording every decision in one file in your repo. For technical builders shipping with AI coding agents. Anti-scope-creep by design.",
   "author": "kish21",
   "license": "MIT",

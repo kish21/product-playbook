@@ -54,7 +54,7 @@ description: >
 ## Step 1 — Apply principles (this phase)
 - **Security is in the DoD, not later:** state the security checks for this feature up front (validation, authz/tenant-isolation; AI → OWASP LLM Top 10, prompt-injection defence).
 - **Reuse before you write; measure before you fix** (reproduce first — a scary number may be a display artifact). **No swallowed errors** (route failures; retry only transient). **Prompts → `prompts/` YAML**.
-- **Session economy — one feature per session is a COST rule, not just a focus rule.** Cost grows ~quadratically with session length — hand off at a natural checkpoint, bulky output to files, broad searches to subagents. (case file: The 97% cache bill)
+- **Session economy — one feature per session is a COST rule, not just a focus rule.** Cost grows ~quadratically with session length — hand off at a natural checkpoint; bulky output to files, a progress line per step, broad searches to subagents (`MECHANISMS-ON-DEMAND.md` §Context hygiene — the rule, once, for every phase that runs commands). (case file: The 97% cache bill)
 - **If the feature ships THIRD-PARTY CONTENT to your users, verify the LICENCE permits YOUR distribution model BEFORE you design around it — it is a feasibility gate, not paperwork.** Redistribution to a commercial customer is sublicensing, rarely granted by "free" terms — check the primary licence page (sublicensing? attribution? indemnity? aggregator disclaimers?); if nothing clears, **say so plainly**, ship the mechanism **OFF with an empty table**, test-pinned. (case file: Licence gates, twice)
 
 ## Step 2 — The build loop (per feature)

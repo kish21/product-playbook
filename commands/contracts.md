@@ -4,7 +4,7 @@ description: >
   Phase 2 (Development), step 4 of product-playbook. Define typed data models, schemas, DB migrations,
   and API/agent contracts BEFORE business logic — so boundaries are typed and units/scale agree. Use
   after /foundation, or run /contracts "define the models", "schema", "data types", "api contract".
-  Writes the Contracts section of PRODUCT.md. Run /build next.
+  Writes the Contracts section of PRODUCT.md. Run /tickets next, then /build.
 ---
 
 # `/contracts` — Phase 2 · Development ④ · run as an **engineer**
@@ -40,6 +40,7 @@ description: >
 - Read `#Scope/#Architecture/#Structure`. If `#Foundation` isn't done, warn (you need a place to run migrations) but allow override.
 - **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Contracts` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
 - Brownfield: read existing models/migrations; extend, don't duplicate.
+- **Ask the open decisions NOW, in one card, before any file is written.** Earlier sections carry items marked open for this phase (`#Scope` / `#Plan` / `#Architecture` — a tie-break rule, a retention choice); collect every one at Step 0, then run unattended and say so. A question asked six minutes in stalls the rest of the phase behind it (37 minutes, on a live run).
 
 - **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** if the section is already filled, **show what would change and ask before replacing it** — never a silent overwrite — and leave a reversed decision in place with a dated `superseded <date>: <why>` line. A first run over an empty section is unchanged.
 - **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** write ONE dated line at the top of `#Contracts` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
@@ -50,6 +51,7 @@ description: >
 - **Agree units/scale/shape** explicitly at each boundary — write the unit into the field name/comment if ambiguous (e.g. `score_0_10`).
 
 ## Step 2 — Define the contracts
+Print one line as each numbered step lands (`MECHANISMS-ON-DEMAND.md` §Context hygiene).
 1. **Domain models** for the core-feature entities (typed; validated at construction).
 2. **Persistence schema** + a **migration**; confirm the schema matches the models and the queries.
    - **Seed data that mirrors a code registry must be PINNED to it by a test** (parse the seed migration, assert its rows are in lockstep with the registry constant). A seed is a copy of a code contract frozen in SQL — without the pin, the registry evolves and the DB silently offers keys the code no longer recognises, or misses ones it requires. *(Real instance: per-intent option seeds pinned to the active intent registry by a migration-parsing test — a registry rename now fails the build instead of orphaning seeded rows.)*
@@ -70,11 +72,15 @@ STOP and fix it** — a scale mismatch across a boundary is a silent wrong-answe
 
 **Measure what you wrote and receipt what you read** (`MECHANISMS-ON-DEMAND.md §Section is a record`, `MECHANISMS-ON-DEMAND.md §Read receipt`): report the section and file size in one line, then apply the record test to every field — reasoning moves into the companion, a tight answer stays whatever it weighs, never trim to a number; write one `Read:` line per companion opened, each quoting a fragment that occurs verbatim in that file. A pointer nobody can prove was followed is how a phase invents what the artefact would have said.
 
+**Keep the context lean (`MECHANISMS-ON-DEMAND.md` §Context hygiene):** a command's output longer than a screen goes to a scratch file; read the tail or grep the verdict, and cite the file in the evidence line. Same commands, same verdicts, a fraction of the tokens.
+
 **Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done".
 
 ## Step 3c — Contradiction check (before the gate closes)
 Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Architecture` (datastore · migrations approach) and `#Scope` — types for an entity no scoped feature needs, or a schema that bypasses the recorded migration path. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
 
 ## Step 4 — Handoff
-"Typed contracts and migrations are in place. Now build features against them: run **`/build`** — one
-feature at a time, security in the definition-of-done."
+"Typed contracts and migrations are in place. Next run **`/tickets`** — it cuts each milestone into small,
+independently mergeable tickets whose types and routes resolve to these contracts. Then **`/build`**, one
+ticket at a time, security in the definition-of-done. Ship when a milestone's exit criterion holds —
+`/ship` is per release, not per project."

@@ -573,3 +573,38 @@ can report presence. Point it at a known-positive first. This is not specific to
 `grep` with the wrong flag, a query with the wrong filter, a test file the runner never collected,
 and a scan whose glob excludes its own target all report "clean" in exactly the same voice as a
 genuine pass, and none of them raise.
+
+## The seventy-dollar skeleton
+
+One live run, one project, one day (2026-09-13), every phase reviewed against the real files. Read
+from the session logs, not the closes:
+
+| Phase | Calls | Output tokens | Cache-read tokens | Questions to the owner | ≈ Cost |
+|---|---|---|---|---|---|
+| `/structure` | 107 | 190k | 13.6 M | 4 | $13 |
+| `/design-system` | 94 | 271k | 16.0 M | 3 | $20 |
+| `/foundation` | 385 | 706k | 90.0 M | 1 | $75 |
+| `/contracts` | 326 | 657k | 87.4 M | 1 | $70 |
+
+The output was good — every guard the closes claimed had been triggered, every test they named was
+green, the schema matched the migrations, the pointers resolved. The bill was the problem. About 60 %
+of each derivation phase was **cache re-reads of a context that tool output had grown**: `pnpm run ci`
+logs pasted whole, files read back in full after every edit, Docker build output, three-screen test
+runs. `/build` Step 1 had said "bulky output to files, broad searches to subagents" since #31. Three
+consecutive phases did not do it, because `/build` was not the skill running.
+
+The closes compounded it: `/design-system` estimated "$1.50–2.50" (real: ~$20); `/foundation` and
+`/contracts` said "cost not visible here" with the figures sitting in the session JSONL; `/contracts`
+reported "~1 h" for a session that had spent 37 of its 85 minutes waiting on one card asked six minutes
+in. The owner asked "why is it taking so long" twice, because a 50-minute phase with one question at
+the end looks exactly like a hung one.
+
+**What was rejected, deliberately.** Splitting a phase across subagents would reset the context per
+step — and a worker doing step 5 would not know why step 2 chose what it chose. Owner's decision: the
+playbook is maturing; nothing that could degrade output is introduced for speed. Only what a run
+*carries* is trimmed, never what it *checks*.
+
+**The general rule this earns:** a rule about how any phase spends its context cannot live in one
+skill's prose — it binds only that skill. It lives once (`MECHANISMS-ON-DEMAND.md` §Context hygiene),
+the phases that run commands point at it, and a check (23) fails when one does not. And a close that
+reports a number it did not measure is worse than a close that says "not measured".

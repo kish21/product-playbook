@@ -133,6 +133,8 @@ resolve to a real symbol** in the files `#Contracts` points at. The rest proves 
 dedup, the security DoD, independent mergeability and the lane rules. Nothing reaches `gh issue create`
 until it is green.
 
+**Keep the context lean (`MECHANISMS-ON-DEMAND.md` §Context hygiene):** a command's output longer than a screen goes to a scratch file; read the tail or grep the verdict, and cite the file in the evidence line.
+
 **Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done".
 
 ## Step 3c — Contradiction check (before the gate closes)
