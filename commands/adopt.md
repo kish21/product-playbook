@@ -102,11 +102,16 @@ never silently prefer one. A doc that has drifted from its code is the single mo
 adoption finds, and recording *which* was stale is worth more than quietly picking the code.
 
 ## Step 4 — Handoff
-Write `PRODUCT.md`, then recommend the next skill **from what is still empty** — in one line, with why:
-- no Non-goals → **`/scope`** (the anti-creep list is the most valuable thing a half-built project lacks);
-- a riskiest assumption that was never tested → **`/validate`**;
-- Vision confirmed and the rest empty → **`/playbook`**, which will now orient properly because the spine
-  exists.
+Write `PRODUCT.md`, then recommend **the earliest phase in the chain that is not done** — in one line,
+with why. **Never recommend a phase whose own Step 0 would reject the project**: read the target skill's
+`Reads:` line first; if what it reads is empty, recommend the phase that fills it instead.
+(case file: Sent to a gate that sends you back)
+- `#Vision` has no vision sentence, audience or value proposition → **`/vision`** (code shows *what* was
+  built, never *why* or *for whom* — an empty Vision is the normal result of adopting);
+- a riskiest assumption recorded but never tested (`#Validation` empty) → **`/validate`**;
+- Vision confirmed, no core feature or no Non-goals → **`/scope`** (the anti-creep list is the most
+  valuable thing a half-built project lacks);
+- otherwise → **`/playbook`**, which will now orient properly because the spine exists.
 
 > "Adopted: `PRODUCT.md` written from <files>, confirmed by you. <N> sections left empty because the repo
 > couldn't evidence them — that is accurate, not missing. Next: **`/<skill>`**, because <reason>."
