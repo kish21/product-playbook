@@ -173,3 +173,30 @@ construction (#200). The instrument is the **record test**, not a number.
 4. A field that is *only* reasoning with no decision in it is not a record yet: write the decision, then
    move the reasoning.
 
+## §Context hygiene — bulky output to files, a progress line per step, measured close metrics
+
+**Trigger:** a phase that runs commands for most of a session (`/foundation`, `/contracts`, `/tickets`,
+`/build`). Any phase may apply it.
+
+**Why this exists.** Session cost grows with everything already in the context, because every call
+re-reads all of it. On one live run `/foundation` (385 calls) and `/contracts` (326 calls) each cost
+~$70–75, about 60 % of it cache re-reads — and what had grown the context was **tool output**: full test
+logs, whole files read back, long shell output. `/build` had carried "bulky output to files" as one
+sentence since #31; a rule in one skill's Step 1 bound nobody. **Nothing here changes what a phase checks,
+writes or verifies — reporting and context only.** (case file: The seventy-dollar skeleton)
+
+1. **Bulky output goes to a file.** A command whose output would exceed a screen is redirected to the
+   scratchpad (`> <scratch>/ci.log 2>&1`); the phase reads the tail or greps for the verdict line, and the
+   `evidence:` line cites the file. Same command, same verdict. Read a file in full only when you are
+   about to edit it; otherwise the range you need.
+2. **One progress line per named step**, the moment it lands (*"3/8 — config loader + guards: boots,
+   refuses the placeholder"*). A 50-minute phase with one question at the end is indistinguishable from a
+   hung one; the owner should never have to ask "why is it taking so long".
+3. **Blocking decisions up front.** A decision an earlier section left open for this phase is asked at
+   Step 0, in one card, before any file is written; then the phase runs unattended and says so. A card
+   asked six minutes in stalled everything behind it for 37 minutes.
+4. **Close metrics are measured or absent.** If the close reports time, tokens or cost, the numbers come
+   from the session log — call count, wall-clock first→last timestamp, output tokens, cache read/write —
+   or the line reads *"not measured"*. Never an estimate: live closes guessed "$1.50–2.50" for a $20 run
+   and "not visible" for a $75 one.
+

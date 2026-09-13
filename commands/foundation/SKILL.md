@@ -75,7 +75,8 @@ description: >
 
 ## Step 2 — Build the skeleton
 **Open `references/skeleton-steps.md` and work through all eight** — each carries the detail, the
-ownership seam and the failure it prevents:
+ownership seam and the failure it prevents. **Print one line as each step lands** (`MECHANISMS-ON-DEMAND.md`
+§Context hygiene): a 50-minute phase with one question at the end is indistinguishable from a hung one.
 
 1. **Dependency manifest: contents and provability** (`MECHANISMS.md` §Seam — `/structure` owns its shape)
    — pin, install, write the tool configs, get the first real run green. Then a runnable entrypoint with
@@ -111,6 +112,8 @@ Walk this phase's principles and prove each — don't assume:
 - **test-isolation guard → point it at the dev datastore on purpose** and show it refusing to run, naming both targets. Then confirm the suite's teardown cannot reach the dev data. This one is verified by *attempting the destruction*, because the failure mode is silent until the data is gone.
 - **placeholder guard → replay the real failure:** copy `.env.example` to `.env` **unedited**, start the app, and show it **refusing to boot** with a readable message. If it starts, the guard is decorative and the product ships a public secret.
 **If any is "should" not "shown", STOP and make it real.** Record HOW in `#Foundation`.
+
+**Keep the context lean (`MECHANISMS-ON-DEMAND.md` §Context hygiene):** a command's output longer than a screen goes to a scratch file; read the tail or grep the verdict, and cite the file in the evidence line. Same commands, same verdicts, a fraction of the tokens.
 
 **Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done".
 

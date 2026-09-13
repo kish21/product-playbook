@@ -87,8 +87,9 @@ when there is no repository to commit to. Every phase that writes ends with thes
 
 
 `PRINCIPLES.md` demands plain, non-technical language and nothing implemented it: runs ended in playbook
-dialect — gates, states, verdicts, confidence scores. Two short blocks close every phase, after the
-bookkeeping and before the handoff:
+dialect — gates, states, verdicts, confidence scores. Two short blocks close every phase — **printed
+first**, before the transition-guard table and the confidence score (the bookkeeping is done by then; the
+user reads top-down and should meet their own language before the dialect):
 
 - **What just happened** — two or three sentences. No skill names, no `#Section` references, no state
   vocabulary. What the product now has that it did not have an hour ago.

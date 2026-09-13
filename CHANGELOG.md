@@ -3,6 +3,45 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [1.41.0] - 2026-09-13
+
+### Fixed — `/contracts` handed off to `/build` and skipped `/tickets` (#207)
+
+**Every handoff names the phase that follows it in the chain, and a check compares all sixteen to the one
+order `/playbook` walks.** `commands/playbook.md` says contracts → **tickets** → build; `/contracts` said
+"run `/build`" in its description and its Step 4. On the Potluck live run the owner did what the skill said,
+`/tickets` never ran, and M1 reached `/build` as one undivided milestone. Sixteen skills each named their own
+"next" and nothing compared them — a hole only a user following the chain could find.
+
+- `/contracts` now hands off to `/tickets`, then `/build`, and says ship is per release, not per project.
+- **check 22** — every phase skill's handoff region names the next phase in `CHAIN` (optional phases —
+  `design-system`, `deploy` — may be skipped over), and `CHAIN` must equal the order stated in
+  `playbook.md` Step 0, so the chain keeps one source. Proven red on the pre-fix `contracts.md`.
+- `.claude-plugin/plugin.json` description now lists `tickets` in the chain.
+
+### Changed — context hygiene for the long derivation phases, without changing what any phase does (#206)
+
+**Quality is never traded for speed or cost** — now a `PRINCIPLES.md` line: a change to how a phase runs is
+adopted only when the same exit criteria return the same verdicts on a real run. What this release trims is
+what a run *carries*, never what it *checks*. Measured on the live run: `/foundation` 385 calls ≈ $75,
+`/contracts` 326 calls ≈ $70, ~60 % of each cache re-reads of tool output; the closes guessed their own
+cost by up to 10× (case file: The seventy-dollar skeleton).
+
+- **`MECHANISMS-ON-DEMAND.md §Context hygiene`** — the rule once: bulky command output to a scratch file
+  (read the tail, cite the file in the evidence line) · one progress line per named step · blocking
+  decisions asked at Step 0 in one card · close metrics measured from the session log or "not measured",
+  never estimated.
+- `/foundation`, `/contracts`, `/tickets`, `/build` point at it where they close their gate; `/foundation`
+  and `/contracts` print a line per step; `/contracts` Step 0 collects the open decisions before writing.
+- **check 23** — the four phases that run commands for most of a session must carry the pointer. Proven red
+  before the pointers were added.
+- `MECHANISMS.md §Plain-language close`: the two plain blocks are **printed first**, before the
+  transition-guard table and the confidence score.
+- Splitting a phase across subagents was considered and **rejected** (owner decision, recorded in the case
+  file): it could degrade output; the saving is unproven.
+- **Owed, not done here:** #206's own proof — re-run one derivation phase on a scratch copy and show the same
+  exit-criteria verdicts with fewer cache-read tokens. The next live phase run is the measurement.
+
 ## [1.40.1] - 2026-09-12
 
 ### Fixed — the spine's byte caps were unreachable by construction and produced the wrong behaviour (#200)

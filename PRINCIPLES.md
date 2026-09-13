@@ -89,6 +89,7 @@
 - **Vision alignment is the top priority** — continually ask *"does this serve the product's vision?"* and surface misalignment instead of drifting.
 - On completion, report a **Confidence Score (0–100%)** against the exit criteria: one line each on **solid** (verified), **risky/untested** (gaps), and **to raise it** (next check).
 - **Generic, not domain-specific** — prefer the generic mechanism; a domain/special-case branch baked into shared infra is a smell.
+- **Quality is never traded for speed or cost.** A change to how a phase or pipeline runs is adopted only when the same exit criteria return the same verdicts on a real run; a cheaper or faster run that lowers a verdict is the degraded one. Trim what a run *carries* (`MECHANISMS-ON-DEMAND.md` §Context hygiene), never what it *checks*.
 
 ## Composed skills — name the capability, not the command
 

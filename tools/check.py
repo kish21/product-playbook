@@ -68,6 +68,14 @@ Checks:
  18. Every STATE docs/state-model.md defines is implemented by at least one skill. The `running` state
      was improvised in two live runs before it existed in the model; the mirror failure is a state
      defined in the model that no skill writes, which reads as a rule the product does not have.
+ 22. Every phase skill's HANDOFF names the phase that follows it in the canonical chain (optional phases
+     may be skipped over). /contracts said "run /build" while the chain says contracts -> tickets -> build;
+     on a live run the owner did what the skill said and /tickets never ran. Sixteen handoffs, one wrong,
+     and nothing compared them to the order /playbook walks - so the chain had a hole only a user could find.
+ 23. The long derivation phases (foundation, contracts, tickets, build) carry the CONTEXT-HYGIENE rule -
+     bulky command output goes to a file, one progress line per named step, close metrics measured or
+     "not measured". Four phases in a row ignored /build's "bulky output to files" sentence and cost
+     $70-75 each, ~60% of it re-reading tool output; a rule in one skill's prose bound nobody.
 """
 from __future__ import annotations
 import json
@@ -197,6 +205,10 @@ def main() -> int:
     check_criteria_have_a_home(files)
     # 21. a section with a companion declares it, and proves the pointer was followed
     check_companion_docs(files)
+    # 22. every handoff names the next phase in the chain /playbook walks
+    check_handoff_chain(files)
+    # 23. the long derivation phases carry the context-hygiene rule
+    check_context_hygiene(files)
 
     return done(len(cmds))
 
@@ -816,6 +828,85 @@ def check_skill_count(n: int, files: dict[str, Path]) -> None:
     if sorted(listed) != sorted(files):
         fail(f"VISION.md skills comment lists {len(listed)} skills, commands/ has {n}: "
              f"{set(listed) ^ set(files)}")
+
+
+# The canonical phase order /playbook walks (commands/playbook.md Step 0, one source — check 22 asserts this
+# list equals it). A handoff may skip over an OPTIONAL phase: design-system runs for UI products only, and
+# deploy only when the product must be reachable before /test.
+CHAIN = ["vision", "validate", "scope", "plan", "architect", "structure", "design-system", "foundation",
+         "contracts", "tickets", "build", "dev-check", "deploy", "test", "eval", "ship", "learn"]
+OPTIONAL_PHASES = {"design-system", "deploy"}
+# The phases that run real commands for most of a session, where tool output is what grows the context.
+HYGIENE_DECLARING = {"foundation", "contracts", "tickets", "build"}
+HYGIENE_POINTER = f"{SECTION_SIGN}Context hygiene"
+
+
+def handoff_region(text: str) -> str:
+    """The skill's closing text: from its handoff heading (else its last `Step N` heading) to the end."""
+    heads = list(re.finditer(r"^#{2,3}\s*Step\s+\d+[a-z]?\b.*$", text, re.MULTILINE))
+    if not heads:
+        return ""
+    named = [h for h in heads if "handoff" in h.group(0).lower()]
+    return text[(named or heads)[-1].end():]
+
+
+def check_handoff_chain(files: dict[str, Path]) -> None:
+    """22. Every phase skill hands off to the phase that follows it in the canonical chain.
+
+    /contracts closed with "run /build" while /playbook's order is contracts -> tickets -> build. On the
+    Potluck live run (2026-09-13) the owner did what the skill said, /tickets never ran, and M1 reached
+    /build undivided. Sixteen skills each name their own "next" and nothing compared those sixteen words
+    to the one order /playbook walks - a hole in the chain that only a user following it could find.
+    """
+    # One source for the order: the Step 0 line in playbook.md. Keep CHAIN equal to it (deploy is drawn
+    # as a branch on a later line there, so it is not part of this comparison).
+    pb = files["playbook"].read_text(encoding="utf-8")
+    m = re.search(r"in order:\s*(.*?)\.\s*That's the next phase", pb, re.DOTALL)
+    if not m:
+        fail("playbook.md Step 0 no longer states the phase order as 'in order: A -> B ... That's the next phase' "
+             "- check 22 reads the canonical chain from that sentence")
+    else:
+        listed = []
+        for raw in m.group(1).split(ARROW):
+            word = re.sub(r"\(.*?\)|\*", "", raw).strip().lower()
+            listed.append("design-system" if word.startswith("design") else word)
+        want = [c for c in CHAIN if c != "deploy"]
+        if listed != want:
+            fail(f"check 22's CHAIN {want} differs from playbook.md Step 0 {listed} - the chain has one source")
+    for i, name in enumerate(CHAIN[:-1]):
+        if name not in files:
+            continue
+        allowed: list[str] = []
+        for nxt in CHAIN[i + 1:]:
+            allowed.append(nxt)
+            if nxt not in OPTIONAL_PHASES:
+                break
+        region = handoff_region(files[name].read_text(encoding="utf-8"))
+        if not region:
+            fail(f"{name} has no handoff region (no `## Step N` heading) - check 22 cannot see what it hands off to")
+            continue
+        if not any(f"/{a}" in region for a in allowed):
+            fail(f"{name} hands off without naming the next phase in the chain "
+                 f"({' or '.join('/' + a for a in allowed)}) - a user who follows the skill skips a step the "
+                 f"chain requires (contracts said 'run /build' and /tickets never ran on a live run)")
+
+
+def check_context_hygiene(files: dict[str, Path]) -> None:
+    """23. The long derivation phases point at the context-hygiene rule where they close their gate.
+
+    /build has said "bulky output to files, broad searches to subagents" since #31, and on the Potluck
+    run /foundation (385 calls) and /contracts (326 calls) each cost ~$70-75 with ~60% of it cache
+    re-reads of tool output - full test logs, whole files read back, long shell output. A sentence in one
+    skill's Step 1 bound nobody; the rule now lives once in MECHANISMS-ON-DEMAND.md and each phase that
+    runs commands for most of a session must point at it. Reporting and context only - the rule changes
+    nothing a phase checks, writes or verifies.
+    """
+    for name in sorted(HYGIENE_DECLARING):
+        text = files[name].read_text(encoding="utf-8")
+        if HYGIENE_POINTER not in text:
+            fail(f"{name} never points at MECHANISMS-ON-DEMAND.md {HYGIENE_POINTER} - a phase that runs "
+                 f"commands for most of a session re-reads every byte of their output on every later call "
+                 f"unless the rule is in front of it")
 
 
 def done(n: int = 0) -> int:
