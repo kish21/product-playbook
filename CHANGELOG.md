@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — `/tickets`: an owner-confirmed regroup may edit published issues; the board's built-in Status field
+
+Two gaps found regrouping the Potluck backlog into module lanes under 1.44.0. `references/publishing.md` §Dedup
+index now allows the one edit a published issue gets: an owner-confirmed regroup that changes only lane/owner
+labels and lines, after a pre-flight shows no body was edited on GitHub. §The Delivery Board says a new project
+already carries `Status` without `In Queue`, and how to set it before the first card. Case files: *Regrouping a
+backlog already on GitHub*, *The Status field that was already there* (`references/case-files-tickets.md`).
+
 ### Changed — the README is a getting-started guide, not an argument
 
 A first-time tester did not know where, or whether, to start. The front page now opens with *is this for you*,
