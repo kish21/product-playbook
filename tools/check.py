@@ -219,6 +219,8 @@ def main() -> int:
     check_batch_mode_offered(files)
     # 28. /adopt routes in chain order and never to a phase whose Step 0 would reject the project
     check_adopt_routes_in_chain_order(files)
+    # 29. /architect's benchmark is one search per open decision row, recorded
+    check_architect_search_bound(files)
 
     return done(len(cmds))
 
@@ -1118,6 +1120,26 @@ def check_adopt_routes_in_chain_order(files: dict[str, Path]) -> None:
     if "Step 0" not in region:
         fail("adopt handoff has no guard against recommending a phase whose own Step 0 would reject the "
              "project - a skill that will not start is not a next step")
+
+
+SEARCH_BOUND_TOKENS = ("one search per open decision", "docs/architecture.md")
+
+
+def check_architect_search_bound(files: dict[str, Path]) -> None:
+    """29. /architect's benchmark is bounded and its searches are recorded.
+
+    On the Potluck run (2026-09-12) /architect ran 17 web searches; each result page entered the context
+    once at the cache-write rate and the searches were the phase's largest cost after its own output
+    (#203). The benchmark is load-bearing and stays; what changes is that it is one search per open
+    decision row, and the list is written down, so a later reader can see what each search settled.
+    """
+    text = files["architect"].read_text(encoding="utf-8")
+    m = re.search(r"^## Step 1\b(.*?)^## Step 2\b", text, re.MULTILINE | re.DOTALL)
+    step1 = m.group(1) if m else ""
+    for token in SEARCH_BOUND_TOKENS:
+        if token not in step1:
+            fail(f"architect Step 1 never says {token!r} - an unbounded benchmark is the phase's largest "
+                 f"cost after its own output, and an unrecorded one settles nothing a reader can check")
 
 
 def done(n: int = 0) -> int:
