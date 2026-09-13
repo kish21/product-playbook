@@ -181,14 +181,16 @@
       "id": "tickets-strategy-proposed-and-confirmed",
       "skill": "tickets",
       "prompt": "Break down the milestones in PRODUCT.md into GitHub issue tickets",
-      "expected_output": "Recommends a slice strategy (vertical or horizontal) per milestone with a one-line reason and STOPS for confirmation before writing; naming the strategy in the invocation skips the proposal and records it on every ticket of that milestone; emits 2-4 milestone-scoped tickets (M<n>-SLICE-<nn> / M<n>-TICK-<nn>), each mergeable as an isolated PR with exact target file paths, typed inputs/outputs and a security definition of done; verifies the remote and dedups against `gh issue list` before any `gh issue create`",
+      "expected_output": "Groups the tickets into module lanes read from STRUCTURE.md (one lane per module, an Owner on every ticket, ordered inside a lane, parallel across lanes) and recommends a slice strategy (vertical or horizontal) per milestone with a one-line reason; PRINTS the full proposal (every ticket: ID, title, lane, owner) and STOPS for confirmation before writing; naming the strategy in the invocation skips the strategy question, not the list; emits 2-4 milestone-scoped tickets (M<n>-SLICE-<nn> / M<n>-TICK-<nn>), each mergeable as an isolated PR with exact target file paths, typed inputs/outputs and a security definition of done; verifies the remote and dedups against `gh issue list` before any `gh issue create`; files every issue as a card on a Delivery Board with Status, Owner, Lane and Seat set and read back",
       "expected_artifacts": [
         "docs/issues/*.md",
         ".github/ISSUE_TEMPLATE/feature_ticket.md"
       ],
       "expectations": [
-        "A slice strategy (vertical or horizontal) is RECOMMENDED per milestone with a one-line reason, and the run STOPS for confirmation before writing tickets",
-        "Naming the strategy in the invocation (/tickets \"vertical\") skips the proposal",
+        "Tickets are grouped into module lanes read from STRUCTURE.md, every ticket carries a Lane and an Owner, and the backlog never assumes a single builder",
+        "A slice strategy (vertical or horizontal) is RECOMMENDED per milestone with a one-line reason, the FULL proposal (ID, title, lane, owner per ticket) is printed, and the run STOPS for confirmation before writing tickets",
+        "Naming the strategy in the invocation (/tickets \"vertical\") skips the strategy question but never the printed list",
+        "Every published issue is a card on the Delivery Board with Status, Owner, Lane and Seat set and read back; a missing project scope is reported, never half-stamped",
         "The chosen strategy is recorded on every ticket of that milestone",
         "Each milestone yields 2-4 tickets, each mergeable as an isolated PR",
         "Every ticket names exact target file paths, never a bare directory, and states typed inputs and outputs",

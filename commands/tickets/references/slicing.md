@@ -4,19 +4,48 @@
 > stop-for-confirmation gate; this file owns *how* each strategy actually splits a milestone and what
 > goes inside every ticket. Mode B (ad-hoc capture) never loads it.
 
+## §Lanes are modules — group first, slice second
+
+**Never assume one builder.** A backlog written as one chain — every ticket needing the one before it —
+gives a second person, or a second agent, nothing to start until the first finishes; and a backlog grouped
+by module costs a solo builder nothing, because solo simply means every seat is theirs. So the grouping
+is always there, and the user decides per lane who sits in it. (case file: The fifteen-step recipe)
+
+1. **A lane is a module.** Read the module folders `STRUCTURE.md` draws (`events/`, `claims/`, `board/`)
+   and make one lane per module, named after the folder. Layered shape (no module folders) → one lane per
+   feature, and say so. **A lane is never a technology layer** (`backend`, `ui`).
+2. **Every ticket carries `Lane` (its module) and `Owner`** — the role that owns the lane, `Senior` by
+   default; the user re-assigns lanes to `Junior` on the board, never in the tickets. Owner follows the
+   files, not the difficulty.
+3. **Order inside a lane, parallel across lanes.** The tickets of one lane are ordered by `Depends On`;
+   two lanes may run side by side. Where a ticket in lane X needs a ticket in lane Y first, write it as a
+   **coordination point** in `docs/issues/README.md` — *"claims #8 starts after board #6 merges"* — not
+   only inside the ticket.
+4. **Hub files.** A file named by tickets in two or more lanes (the route registry, the config loader, the
+   dependency manifest) is a **hub file**: list them in `docs/issues/README.md` so `/build` treats a change
+   there as a one-line merge and Lanekeeper can declare them `shared:`. Three or more hub files, or a
+   handler/store folder shared by every module, is a structure finding — say so, and point at `/structure`.
+5. **The parallel table** goes into `docs/issues/README.md` and into the close: lane · owner · tickets in
+   order · which lanes can run at once · hub files. That table is the answer to "can two people work on
+   this?", and it must exist before anyone asks.
+
+The live map is the **Delivery Board** (`publishing.md` §The Delivery Board): Lane and Owner are also
+board fields, `Seat` is the chair actually working (a person or an agent instance, one by default), and
+`Status` moves as work happens.
+
 ## §Choose the strategy — the recommendation table
 
-Decide **per milestone**, not once for the repo.
+Decide **per milestone**, not once for the repo — and always *inside* the lanes above.
 
 | Recommend | When |
 |---|---|
-| **Vertical** (default lean) | Solo or small team · one full-stack codebase · the milestone has a user-visible surface · early product where "show it working" matters more than parallelism. |
-| **Horizontal** | Separate frontend/backend trees owned by different people · a milestone that is mostly infrastructure with no user-visible surface · contracts already frozen in `#Contracts`, so layers can safely run in parallel. |
+| **Vertical** (default lean) | The milestone has a user-visible surface · one full-stack codebase · early product where "show it working" matters. Each slice stays inside one lane where it can. |
+| **Horizontal** | A milestone that is mostly infrastructure with no user-visible surface · contracts already frozen in `#Contracts`, so layers can safely run in parallel. |
 
-**Lane mode overrides the table:** the default is **vertical**, because a vertical slice *is* a lane
-(one feature, top to bottom) and a horizontal ticket turns one feature into N lanes that collide on every
-change (§Lane mode rule 2). If the user still wants horizontal, say so plainly, **record the reason on
-every ticket of that milestone**, and expect Lanekeeper to report the collisions.
+**Lane mode overrides the table:** the default is **vertical**, because a vertical slice sits inside one
+lane and a horizontal ticket turns one feature into N lanes that collide on every change (§Lane mode rule 2).
+If the user still wants horizontal, say so plainly, **record the reason on every ticket of that
+milestone**, and expect Lanekeeper to report the collisions.
 
 ## §Vertical slicing (thin end-to-end increments)
 Split the milestone into **2–4 slices, each one user-observable behaviour**, going through whatever layers
@@ -58,8 +87,9 @@ ID: `[M<milestone>-TICK-<nn>]`.
 Fill the provisioned `feature_ticket.md` template for each ticket:
 - **ID + title:** `[M<milestone>-SLICE-<nn>]` or `[M<milestone>-TICK-<nn>]`, then the concern in plain words.
   The `M<milestone>` prefix is what keeps IDs unique across milestones; without it, dedup misfires on re-run.
-- **Lane:** the feature name this ticket belongs to (`checkout`, `export`) — never a layer. Vertical: the slice's
-  feature. Horizontal: the milestone's feature (all its layer tickets share one lane). Lanekeeper reads it.
+- **Lane:** the module this ticket lives in (`claims`, `board`) — §Lanes are modules — never a layer.
+  Horizontal: all of a milestone's layer tickets share one lane. Lanekeeper reads it.
+- **Owner:** the role that owns the lane — `Senior` unless the board says otherwise.
 - **Target files:** exact paths, derived from `STRUCTURE.md` — `src/services/quoteEngine.ts`, not `src/services/`.
   **The list is the boundary**, so it must name **everything `/build` will write**: the code, its tests, *and*
   `docs/features/<feature>.md`. **Never list `PRODUCT.md`, `CHANGELOG.md` or `STRUCTURE.md`** — the spine is

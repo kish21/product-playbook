@@ -22,11 +22,16 @@ labels: ["enhancement", "product-playbook"]
 - [ ] ↔️ Horizontal — single architectural layer
 - [ ] 🐛 Ad-hoc — bug · edge-case · tech-debt · security
 
-<!-- Lane (next heading): the FEATURE this ticket belongs to, top to bottom ("checkout", "export"), never a technology
-     layer ("backend", "ui"). Optional; Lanekeeper reads the text under the heading as the lane name and groups tickets
-     that share it. Leave it empty to let Lanekeeper propose one from the Target Files. This comment sits ABOVE the
-     heading so an empty field stays empty. -->
+<!-- Lane (next heading): the MODULE this ticket lives in - a folder STRUCTURE.md draws ("claims", "board"), never a
+     technology layer ("backend", "ui"). One lane = one owner; the lane's tickets go in order, lanes run side by side.
+     Lanekeeper reads the text under the heading as the lane name and groups tickets that share it. This comment sits
+     ABOVE the heading so an empty field stays empty. -->
 ### 🛣️ Lane
+
+
+<!-- Owner (next heading): the ROLE that owns the lane - Senior or Junior. Follows the files, not the difficulty.
+     Senior unless the Delivery Board says otherwise; the board's Seat field says who actually sits there today. -->
+### 👤 Owner
 
 
 ### 🧱 Layer(s)

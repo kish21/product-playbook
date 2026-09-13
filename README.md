@@ -267,7 +267,7 @@ The three-tier map is [above](#-before--after). This is the same journey at full
 | **UI suite** | `/new-component` | (bundled support skill) Builds/skins ONE React component against the `DESIGN.md` tokens — CSS-vars, interactive states, a11y; reuses shadcn/ui + 21st.dev | Component file | Building any UI component |
 | **Dev** | `/foundation` | Builds walking skeleton with logging, config, commit hooks and CI | Running app + CI workflows | Bootstrapping the codebase |
 | **Dev** | `/contracts` | Writes typed schemas/migrations BEFORE business logic | Schema files + migrations | Writing data layers |
-| **Dev** | `/tickets` | Splits each milestone into 2-4 independently mergeable tickets — **vertical** thin end-to-end slices (each demoable on merge) or **horizontal** layer tickets — recommended per milestone and confirmed by you. Exact file paths, typed in/out, security DoD. Given a description instead, logs ONE ad-hoc bug against the owning file | `docs/issues/*` + issue/PR templates | After `/contracts`, before building; or any time you spot a bug |
+| **Dev** | `/tickets` | Splits each milestone into 2-4 independently mergeable tickets, **grouped into module lanes** (one per `STRUCTURE.md` module, ordered inside, parallel across) with an Owner — **vertical** thin slices or **horizontal** layer tickets, proposed and confirmed by you — and files them on a **Delivery Board** (Status · Owner · Lane · Seat) so one person or four can take the same backlog. Exact file paths, typed in/out, security DoD. Given a description instead, logs ONE ad-hoc bug against the owning file | `docs/issues/*` + issue/PR templates | After `/contracts`, before building; or any time you spot a bug |
 | **Dev** | `/build` | Implements feature with testable exit criteria and docs | Feature code + `docs/features/*` | Building feature-by-feature |
 | **Dev** | `/dev-check` | Verifies exit criteria and security DoD with evidence | `PRODUCT.md` -> **Dev-complete** | Prior to testing |
 | **Dev** | `/deploy` | Executes the runtime target `#Architecture` chose: the repo reaches a host, and `docs/deployment.md` says how | `docs/deployment.md` + `PRODUCT.md` -> **Deployment** | A real request answered on the public URL |
@@ -288,7 +288,8 @@ The three-tier map is [above](#-before--after). This is the same journey at full
 > up.* Each `/tickets` ticket's **Target Files** list is the lane Lanekeeper enforces on every PR. When a
 > project is in **lane mode** (a `.lanekeeper/` policy or a `.lane` file is present), `/tickets`, `/build`,
 > `/dev-check` and `/ship` follow the four rules in `MECHANISMS.md` §Lane mode — ticket = boundary, lanes are
-> features not layers, the spine has one writer, the PR carries its lane. The design note behind that seam is
+> modules not layers, the spine has one writer, the PR carries its lane. Lanekeeper is the optional **gate**; the
+> Delivery Board `/tickets` creates is the **map** — a lane per module, an Owner, and a Seat the user assigns. The design note behind that seam is
 > [`docs/lane-mode.md`](docs/lane-mode.md).
 >
 > **Single-master rule for the UI suite.** The UI suite — `/design-system`, `/frontend-audit`, and

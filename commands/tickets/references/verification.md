@@ -20,7 +20,15 @@ check drowns real misses in false positives, and a checker never seen failing pr
 ## §The rest of the gate
 
 Walk the principles and prove each against the files just written — do not assert it:
-- **Strategy was confirmed**, not assumed, and is recorded on every ticket of that milestone.
+- **Strategy was confirmed**, not assumed, and is recorded on every ticket of that milestone — and **the set
+  confirmed is the set published**: the proposal shown before the yes listed every ticket (ID · title ·
+  lane · owner), and any ticket added, dropped or renamed after that yes was shown again and re-confirmed.
+  (case file: Confirmed as proposed, never shown)
+- **Lanes are modules.** Every ticket's `Lane` is a module folder `STRUCTURE.md` draws (or a feature, with
+  the layered-shape reason recorded) and every ticket carries an `Owner`; `docs/issues/README.md` carries
+  the parallel table (lane · owner · tickets in order · lanes that can run at once · hub files) and every
+  cross-lane dependency as a coordination point. A backlog whose lanes form one chain across modules, or
+  whose hub-file list has three or more entries, is reported as such — never published silently.
 - **Every path resolves.** Check each target path against the real tree (or against `STRUCTURE.md` for a
   not-yet-created file). A ticket pointing at a directory, or at a path this project will never have, fails.
 - **Vertical:** every slice names an observable outcome. **A slice whose Demo field says "n/a" is a layer
@@ -34,9 +42,13 @@ Walk the principles and prove each against the files just written — do not ass
 - **IDs unique.** Every ID appears exactly once across `docs/issues/` and the fetched GitHub issues.
 - **Dedup ran.** Confirm `gh issue list` was fetched before any `gh issue create`, and that no remote
   repository was created.
-- **Structure mirrored + idempotent.** Every published ticket carries its milestone and its `lane: <name>`
-  label; a second run created no duplicate milestone, label or issue (**re-run it and show that**); no link
-  points at a feature doc that does not exist yet; permissions were checked **before** the first create.
+- **Structure mirrored + idempotent.** Every published ticket carries its milestone, its `lane: <name>` and
+  its `owner: <role>` label; a second run created no duplicate milestone, label, board field or issue
+  (**re-run it and show that**); no link points at a feature doc that does not exist yet; permissions —
+  `project` scope included — were checked **before** the first create.
+- **The board reads back set.** Every published issue is a card on the Delivery Board and
+  `gh project item-list --format json` shows Status, Owner, Lane and Seat set on each (lowercase keys); the
+  close states the count. No board (scope missing) → the close says so and names the command that grants it.
 - **Security DoD present** on every ticket, including the ad-hoc ones.
 - **Independently mergeable.** For each ticket ask: could one developer open a PR containing only these
   files and have it reviewed on its own? **If not, the split is wrong — STOP and re-split before publishing.**
