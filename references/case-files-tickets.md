@@ -77,7 +77,7 @@ irreversible step.
 
 ## Regrouping a backlog already on GitHub
 
-**Potluck live run, 2026-09-13 (playbook 1.44.0).** Thirteen open issues had been published under 1.43 with
+**Potluck live run, 2026-09-13 (playbook 1.44.0).** Thirteen open issues had been published under 1.40.1 with
 one lane per slice and no Owner. The owner asked for them to be regrouped into module lanes and put on a
 board. The dedup rule — *skip a match, never edit an existing issue* — would have made the run a no-op: every
 ID already existed, so nothing would change. Editing freely instead risked the failure *Eleven issues against
