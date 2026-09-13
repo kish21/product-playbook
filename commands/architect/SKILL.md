@@ -42,6 +42,9 @@ description: >
   pending result needs the result, or a recorded override.
 - **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Architecture` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
 - Brownfield: detect the existing stack from the repo and record it as the starting point.
+- **Offer the chain, never default to it** (`MECHANISMS-ON-DEMAND.md` §Batch mode, *chain*): *"Stop after
+  the architecture (default), or continue straight into `/structure` in this session — every question
+  still asked, two records, two commits, one close at the end?"* A red gate here never reaches `/structure`.
 
 - **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** if the section is already filled, **show what would change and ask before replacing it** — never a silent overwrite — and leave a reversed decision in place with a dated `superseded <date>: <why>` line. A first run over an empty section is unchanged.
 - **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** write ONE dated line at the top of `#Architecture` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
@@ -125,4 +128,4 @@ Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decis
 
 ## Step 4 — Handoff
 "Stack and decisions recorded. Now build the **first concrete thing**: run **`/structure`** to lay
-out clean folders and explain what each is for."
+out clean folders and explain what each is for — or, if you chose the chain at Step 0, it starts now."

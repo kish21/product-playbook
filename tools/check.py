@@ -1079,6 +1079,20 @@ def check_batch_mode_offered(files: dict[str, Path]) -> None:
     if BATCH_POINTER not in sm:
         fail("docs/state-model.md §2d does not say where the batch offer lives - rule and mechanism will "
              "drift apart again")
+    # Chain (#205): the input -> derivation neighbour of batch. Defined beside it, offered by /architect
+    # at Step 0 (never the default), and named in §2d so the two terms cannot drift.
+    if "Chain mode" not in ondemand:
+        fail("references/mechanisms-on-demand.md §Batch mode no longer defines chain mode - /architect "
+             "would offer a mode nothing specifies")
+    arch = files["architect"].read_text(encoding="utf-8")
+    m = re.search(r"^## Step 0\b(.*?)^## Step 1\b", arch, re.MULTILINE | re.DOTALL)
+    step0 = m.group(1) if m else ""
+    if "chain" not in step0.lower() or BATCH_POINTER not in step0 or "default" not in step0:
+        fail("architect Step 0 does not offer the chain into /structure as an option with stop-after as the "
+             "default - a chain that is never offered is a table entry, and one that is the default "
+             "collapses an input gate")
+    if "Chain" not in sm:
+        fail("docs/state-model.md §2d does not define chain next to batch - the two terms will drift")
 
 
 ADOPT_ORDER = ["/vision", "/validate", "/scope", "/playbook"]

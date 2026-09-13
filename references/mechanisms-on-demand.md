@@ -160,24 +160,23 @@ fields make its old 25KB total unreachable by construction (#200). The instrumen
 **After writing, before closing the gate:**
 
 1. **Measure and report** the section and the file in one line (`#Vision 5.1KB · PRODUCT.md 12.4KB`).
-   Silence reads as unmeasured, and unmeasured is how it reached 73KB once. The number is a *signal* for
-   `/drift-check`, never a verdict.
+   Silence reads as unmeasured, and unmeasured is how it reached 73KB once. A *signal* for `/drift-check`,
+   never a verdict.
 2. **Apply the record test to every field, invented fields included** — *is this the decision, or the
    reasoning behind it?* A decision, an evidence line or a pointer **stays, however many bytes it is**.
-   Reasoning, workings, alternatives considered and raw notes **move to the `Detail:` companion**, and the
-   field keeps the one-line conclusion plus the pointer.
-3. **Never trim to a number.** Shortening a required answer to fit is the failure this replaces: the
-   field loses information and the companion gains nothing. If a threshold is ever wanted, derive it from
-   the template's field count — never hardcode one.
+   Reasoning, workings, alternatives and raw notes **move to the `Detail:` companion**; the field keeps the
+   one-line conclusion plus the pointer.
+3. **Never trim to a number.** Shortening a required answer to fit loses information and the companion
+   gains nothing. A threshold, if ever wanted, derives from the template's field count — never hardcoded.
 4. A field that is *only* reasoning with no decision in it is not a record yet: write the decision, then
    move the reasoning.
 
-## §Batch mode — consecutive derivation phases, one review at the end
+## §Batch mode — consecutive derivation phases, one review at the end; chain = input → its derivation
 
 **Trigger:** the next unfilled phase and the one after it are both `derivation` (`docs/state-model.md`
-§2d) with no `input` phase between: `foundation → contracts → tickets`; a UI product runs `structure`
-alone, then `design-system`, then the batch. `/playbook` and the `/structure` + `/design-system` handoffs
-**offer** it; the user chooses; one phase per session stays the default.
+§2d) with no `input` phase between: `foundation → contracts → tickets` (a UI product runs `structure`, then
+`design-system`, then the batch). `/playbook` and the `/structure` + `/design-system` handoffs **offer**
+it; the user chooses; one phase per session stays the default.
 
 1. **Nothing inside a phase changes** — every step and gate runs in full; a confirm still stops.
 2. **One commit per phase** on one batch branch — the record stays traceable, §Re-run semantics unchanged.
@@ -185,30 +184,31 @@ alone, then `design-system`, then the batch. `/playbook` and the `/structure` + 
 4. **One plain-language close** at the end — a line per phase, one guard report per phase, one *next*.
 5. **A batch is one session** — §Context hygiene applies harder: files, progress lines, measured metrics.
 
+**Chain mode is the neighbour: an `input` phase followed by the derivation phase that depends on it, in
+one session — `/architect` → `/structure` only.** Offered at `/architect` Step 0, never the default. Chaining
+is *following*, not *collapsing*: **every input question is still asked** (§2d — input gates never batch);
+no close between; rules 1–5 apply (two sections, two commits, one close; a red `/architect` never reaches
+`/structure`); **read receipts still come from the file** — the chain loses the fresh re-read that guards
+carried assumptions.
+
 ## §Context hygiene — bulky output to files, a progress line per step, measured close metrics
 
-**Trigger:** a phase that runs commands for most of a session (`/foundation`, `/contracts`, `/tickets`,
-`/build`). Any phase may apply it.
+**Trigger:** a phase that runs commands for most of a session (`/foundation` `/contracts` `/tickets`
+`/build`); any phase may apply it.
 
-**Why this exists.** Session cost grows with everything already in the context, because every call
-re-reads all of it. On one live run `/foundation` (385 calls) and `/contracts` (326 calls) each cost
-~$70–75, about 60 % of it cache re-reads — and what had grown the context was **tool output**: full test
-logs, whole files read back, long shell output. `/build` had carried "bulky output to files" as one
-sentence since #31; a rule in one skill's Step 1 bound nobody. **Nothing here changes what a phase checks,
-writes or verifies — reporting and context only.** (case file: The seventy-dollar skeleton)
+**Why this exists.** Every call re-reads everything already in the context; on one live run `/foundation`
+and `/contracts` each cost ~$70–75, ~60 % of it cache re-reads of **tool output**. **Nothing here changes
+what a phase checks, writes or verifies — reporting and context only.** (case file: The seventy-dollar skeleton)
 
-1. **Bulky output goes to a file.** A command whose output would exceed a screen is redirected to the
-   scratchpad (`> <scratch>/ci.log 2>&1`); the phase reads the tail or greps for the verdict line, and the
-   `evidence:` line cites the file. Same command, same verdict. Read a file in full only when you are
-   about to edit it; otherwise the range you need.
+1. **Bulky output goes to a file.** Output that would exceed a screen is redirected to the scratchpad
+   (`> <scratch>/ci.log 2>&1`); read the tail or grep the verdict line; the `evidence:` line cites the
+   file. Read a file in full only when about to edit it; otherwise the range you need.
 2. **One progress line per named step**, the moment it lands (*"3/8 — config loader + guards: boots,
-   refuses the placeholder"*). A 50-minute phase with one question at the end is indistinguishable from a
-   hung one; the owner should never have to ask "why is it taking so long".
-3. **Blocking decisions up front.** A decision an earlier section left open for this phase is asked at
-   Step 0, in one card, before any file is written; then the phase runs unattended and says so. A card
-   asked six minutes in stalled everything behind it for 37 minutes.
-4. **Close metrics are measured or absent.** If the close reports time, tokens or cost, the numbers come
-   from the session log — call count, wall-clock first→last timestamp, output tokens, cache read/write —
-   or the line reads *"not measured"*. Never an estimate: live closes guessed "$1.50–2.50" for a $20 run
-   and "not visible" for a $75 one.
+   refuses the placeholder"*). A 50-minute phase with one question at the end looks hung.
+3. **Blocking decisions up front.** A decision an earlier section left open is asked at Step 0, in one
+   card, before any file is written; then the phase runs unattended and says so. A card asked six
+   minutes in stalled everything behind it for 37 minutes.
+4. **Close metrics are measured or absent.** Time, tokens or cost come from the session log — call
+   count, wall-clock first→last, output tokens, cache read/write — or the line reads *"not measured"*.
+   Never an estimate: live closes guessed "$1.50–2.50" for a $20 run and "not visible" for a $75 one.
 
