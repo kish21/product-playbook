@@ -89,6 +89,28 @@ One product — the waitlist app — through every skill: what you type, what it
 
 ---
 
+## 📚 Contents
+
+| | |
+|---|---|
+| [Which skills apply to your product?](#which-skills) | UI or not, LLM or not, needs a URL, existing code, more than one builder |
+| [Ways to run it](#ways-to-run) | guided, one phase, batch, chain, ad-hoc ticket, adopt, drift-check, re-measure — and the Claude Code skills it calls |
+| [Try your own idea](#try-it) | four starter sentences covering the product types |
+| [Why not just Claude Code?](#why) | the five failures, the evidence gate, the one file |
+| [The playbook journey](#journey) | three tiers over six phases, with the gate after each |
+| [The personal story: the vibe coding trap](#story) | the long version of the five failures |
+| [How it works: the files and principles](docs/how-it-works.md#how-it-works) | `PRODUCT.md`, `PRINCIPLES.md`, the commands, the templates |
+| [Why this is not a set of templates](docs/how-it-works.md#not-templates) | the executable proof |
+| [Case study: the playbook auditing its own work](docs/case-study-subscription-tracker.md) | 9 real findings, unsoftened |
+| [Skill reference](docs/how-it-works.md#skill-reference) | every skill, and what each one writes |
+| [Installation and setup](docs/install.md) | plugin, copy install, subset, updating, uninstalling |
+| [Feedback](#feedback) · [Contributing](#contributing) | tell me what helped; adding or changing a skill |
+| [VISION.md](VISION.md) · [PRINCIPLES.md](PRINCIPLES.md) · [CHANGELOG.md](CHANGELOG.md) | the contract, the rulebook, the history |
+
+---
+
+<a id="which-skills"></a>
+
 ## 🧭 Which skills apply to *your* product?
 
 Every product runs the spine above. A few skills switch on or off depending on what you are building — the playbook works it out from `PRODUCT.md`. Here is why each one matters:
@@ -107,6 +129,8 @@ Every product runs the spine above. A few skills switch on or off depending on w
 
 ---
 
+<a id="ways-to-run"></a>
+
 ## ⚙️ Ways to run it
 
 | You want to… | Type | What happens |
@@ -124,6 +148,8 @@ Every product runs the spine above. A few skills switch on or off depending on w
 
 ---
 
+<a id="try-it"></a>
+
 ## 🧪 Try your own idea
 
 Paste one into a new session in an empty folder, or write your own — one sentence is enough:
@@ -138,6 +164,8 @@ Paste one into a new session in an empty folder, or write your own — one sente
 An AI product with no UI · a web app · a CLI · an AI product that needs a real deployment. Watch which skills switch on.
 
 ---
+
+<a id="why"></a>
 
 ## 🤔 Why not just Claude Code?
 
@@ -155,6 +183,14 @@ The answer is narrow on purpose: **a process that cannot silently skip a check.*
 
 **Everything connects through one file.** `PRODUCT.md` sits at your repo root; `#Vision`, `#Scope`, `#Architecture`, `#Tests`, `#Ship log` are its sections. Each phase reads the ones before it and writes its own. An empty section means that phase is not done. It lives in Git beside the code, so the next session — or the next person — picks up exactly where you stopped.
 
+---
+
+<a id="journey"></a>
+
+## 🗺️ The playbook journey
+
+Three tiers over six phases, an evidence gate after each. The tiers are a way to hold the map in your head; the six phases are what the skills are numbered by.
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/journey-dark.svg">
   <img alt="The playbook journey: three tiers over six phases. Tier 1 Product thinking — /vision, /validate, /scope, /plan — then an evidence gate: a named user and job-to-be-done, a measured experiment, ONE core feature, non-goals. Tier 2 Engineering discipline — /architect, /structure, /design-system (UI only), /foundation, /contracts, /tickets, /build, /dev-check — then an evidence gate: it runs end to end, every feature's definition-of-done met with how it was verified. Tier 3 Shipping and learning — /test, /eval, /ship, /learn — then an evidence gate: measured against a baseline, security-reviewed with a rollback path, metric instrumented." src="docs/diagrams/journey-light.svg">
@@ -163,20 +199,6 @@ The answer is narrow on purpose: **a process that cannot silently skip a check.*
 <sub>Diagram source: <a href="docs/diagrams/journey.mmd"><code>docs/diagrams/journey.mmd</code></a> (regenerate with <code>sh tools/render-diagrams.sh</code>).</sub>
 
 ---
-
-## 📚 Contents
-
-| | |
-|---|---|
-| [The personal story: the vibe coding trap](#story) | the long version of the five failures above |
-| [How it works: the files and principles](docs/how-it-works.md#how-it-works) | `PRODUCT.md`, `PRINCIPLES.md`, the commands, the templates |
-| [Why this is not a set of templates](docs/how-it-works.md#not-templates) | the executable proof |
-| [Case study: the playbook auditing its own work](docs/case-study-subscription-tracker.md) | 9 real findings, unsoftened |
-| [The playbook journey](docs/how-it-works.md#journey) | the phase map |
-| [Skill reference](docs/how-it-works.md#skill-reference) | every skill, and what each one writes |
-| [Installation and setup](docs/install.md) | plugin, copy install, subset, updating, uninstalling |
-| [Contributing](#contributing) | adding or changing a skill |
-| [VISION.md](VISION.md) · [PRINCIPLES.md](PRINCIPLES.md) · [CHANGELOG.md](CHANGELOG.md) | the contract, the rulebook, the history |
 
 <a id="story"></a>
 <details>
@@ -202,6 +224,8 @@ So I wrote a playbook. Not a document — **executable skills with evidence-base
 </details>
 
 ---
+
+<a id="feedback"></a>
 
 ## ⭐ Feedback
 
