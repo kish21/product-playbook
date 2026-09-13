@@ -608,3 +608,32 @@ playbook is maturing; nothing that could degrade output is introduced for speed.
 skill's prose — it binds only that skill. It lives once (`MECHANISMS-ON-DEMAND.md` §Context hygiene),
 the phases that run commands point at it, and a check (23) fails when one does not. And a close that
 reports a number it did not measure is worse than a close that says "not measured".
+
+## The board that stopped refreshing
+
+Potluck, M1-SLICE-02 (2026-09-13). The board page polled every 20 s with the textbook guards: one timer
+re-armed after each answer, never `setInterval`, and at most one request in flight so a slow answer could not
+stack requests. Every polling test passed: interval, paused while hidden, failed refresh shown, deleted event
+turns into not-found.
+
+`/code-review high` found the hole the guards themselves made. "At most one in flight" meant a request that
+never answered (a phone switching from Wi-Fi to mobile data mid-poll leaves exactly that) blocked every later
+poll, the visibility refresh, and the "Refresh now" button. Nothing failed, so the failed-refresh message never
+appeared; the page kept showing a board that was going stale with no sign of it. The fix was a deadline equal to
+the interval: abort, record a network failure, re-arm; and user-triggered refreshes replace the stuck request.
+A test with a fetch that never resolves and ignores its abort signal pins it.
+
+**The general rule:** single-flight is a correctness guard *and* a liveness hazard. Any poller that refuses to
+start while one request is outstanding must bound how long "outstanding" can last.
+
+## The pencilled bundle size
+
+Same session. While the final `pnpm run ci` ran in the background, the feature doc and the `#Build log` row were
+written with the initial-JS figure pencilled in as "74.49 kB", a guess from the previous run's 74.28. CI finished
+at **74.43 kB**. It was caught only because the agent read the CI output before committing; the doc, the build
+log and the PR body were one step from carrying a number no command had printed, in the exact
+`evidence: command -> result` form that says it had.
+
+**The general rule:** an evidence line is a transcript, not a forecast. Write the command first, run it, then
+copy the result, even when the number "can't have moved much".
+

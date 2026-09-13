@@ -24,7 +24,7 @@ Trigger: **the feature is a GATE — a validator, quality check, policy engine, 
 
 ## §Async jobs
 
-Trigger: **the feature is an ASYNC JOB — work that outlives the request (spawn + poll, queue + callback)** — six rules, same provenance
+Trigger: **the feature is an ASYNC JOB — work that outlives the request (spawn + poll, queue + callback)** — seven rules, same provenance
 
 1. **The job handle IS the money — the component that polls must be the component that spawns.** Pick ONE spawner; unattended processing = durable backend job store + server-side poller — built fully or deferred *explicitly*.
 2. **Sign the handle you give the client.** HMAC it server-side binding `{tenant/project, resource, vendor-id, attempt}`; verification failure is a refusal, never a lookup.
@@ -32,6 +32,7 @@ Trigger: **the feature is an ASYNC JOB — work that outlives the request (spawn
 4. **Know your vendor's timeout taxonomy.** "Pending" and "died by timeout" may share a type (Modal's `FunctionTimeoutError` *subclasses* `TimeoutError`) — catch the terminal one FIRST; surface refused handles as failed.
 5. **A mid-batch action must merge, never replace** — a retry that resets the outstanding set abandons every other in-flight handle.
 6. **A whole-set computation that runs on the FINAL batch reads the earlier batches from storage — so the loop must persist each batch BEFORE requesting the next.** Client-driven batching plus a persist-at-the-end write means the last call sees batches 1..n-1 as missing and emits a confidently wrong verdict; the single-batch tests all pass. (case file: The final-batch verdict)
+7. **A poll needs a DEADLINE, not only an interval — a single-flight poller behind one request that never answers stops polling, and the screen keeps showing the last good answer as if it were current.** Abort the request when the next poll is due, surface it as a failed refresh, and let a user-triggered refresh replace an in-flight request rather than wait behind it. (case file: The board that stopped refreshing)
 
 ## §Latency and concurrency
 

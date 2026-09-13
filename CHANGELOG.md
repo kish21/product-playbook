@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Changed — `/build`: a poll needs a deadline; evidence numbers are copied, never pencilled
+
+**Two lessons from the Potluck M1-SLICE-02 run (2026-09-13).** `references/feature-archetypes.md` §Async jobs
+rule 7: a single-flight poller must abort a request that never answers when the next poll is due, or the screen
+freezes on a stale answer with no failure shown. `SKILL.md` Step 2.6: every `evidence:` number is copied from the
+command's captured output, never written while the command is still running. Case files: *The board that stopped
+refreshing*, *The pencilled bundle size* in `references/case-files-build.md`.
+
 ### Changed — `/tickets`: draw `docs/issues/` in the map, resolve created names, give every #Plan item a home
 
 **A backlog that is correct by every existing gate can still break CI, drown the symbol check in false reds, and
