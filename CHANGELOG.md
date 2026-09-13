@@ -3,6 +3,17 @@
 All notable changes to product-playbook are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/); this project uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed — `/tickets`: draw `docs/issues/` in the map, resolve created names, give every #Plan item a home
+
+**A backlog that is correct by every existing gate can still break CI, drown the symbol check in false reds, and
+drop a planned item.** Three rules from the Potluck live run (2026-09-13), in the skill's own references:
+`publishing.md` §Provision item 5 (draw `docs/issues/` before writing it; the first `/build` owes `docs/features/`),
+`verification.md` §Resolve every symbol first (resolve against contracts OR the backlog's Target Files, and plant
+an invented name to prove the check fails), and §The rest of the gate (every `#Plan` item maps to a ticket or a
+named later phase). Case files: `references/case-files-tickets.md`.
+
 ## [1.41.0] - 2026-09-13
 
 ### Fixed — `/contracts` handed off to `/build` and skipped `/tickets` (#207)

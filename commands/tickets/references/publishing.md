@@ -29,6 +29,9 @@
    or close an existing issue.
 4. **Numbering.** Derive the next free number from `docs/issues/` **and** the fetched issue list together,
    so a re-run after a partial publish cannot reuse an ID.
+5. **Draw `docs/issues/` in the structure map before the first ticket file exists.** A two-way map check
+   (`STRUCTURE.md` ↔ tree) fails CI on an undrawn folder; the first `/build` PR owes the same line for
+   `docs/features/` — say so in `docs/issues/README.md`. (case file: The folder the map did not draw)
 
 ## §Mirror the plan structure onto GitHub
 `#Plan` → milestones → lanes → tickets has a native GitHub equivalent at every level, and a flat list uses
