@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.44.0] - 2026-09-13
+
 ### Changed — `/architect`'s benchmark is bounded and recorded; a session's cost is one command (#203)
 
 **One search per open decision row, written down.** On the Potluck run `/architect` ran 17 web searches and
