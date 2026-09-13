@@ -74,3 +74,23 @@ eleven issues had been written against response types that existed nowhere in th
 team the window is not 22 minutes, it is *until someone reads them* — and GitHub tells nobody that every
 issue they saw yesterday has been rewritten. Verification runs over the local files; publishing is the
 irreversible step.
+
+## Regrouping a backlog already on GitHub
+
+**Potluck live run, 2026-09-13 (playbook 1.44.0).** Thirteen open issues had been published under 1.43 with
+one lane per slice and no Owner. The owner asked for them to be regrouped into module lanes and put on a
+board. The dedup rule — *skip a match, never edit an existing issue* — would have made the run a no-op: every
+ID already existed, so nothing would change. Editing freely instead risked the failure *Eleven issues against
+an invented API* warns about: overwriting whatever someone had changed on GitHub since. The run did the narrow
+thing. It showed the full proposal and got a yes. It compared every GitHub body with its committed file (both
+matched) before any write. It changed only the `lane:`/`owner:` labels and the Lane/Owner lines, deleted the
+13 per-slice labels no issue used any more, and re-ran the whole publish to show zero actions the second time.
+
+## The Status field that was already there
+
+**Potluck live run, 2026-09-13.** `gh project create` gives every new board a built-in single-select
+`Status` with `Todo · In Progress · Done`. The procedure said *add fields only when missing*, and Status was not
+missing, so the literal reading leaves the board without `In Queue`. `gh project field-create` cannot add an
+option to an existing field. The run set the four options through GraphQL `updateProjectV2Field`, keeping every
+existing option, while the board had no cards yet. It did not test what re-setting options does to cards
+already holding a value, so the rule says *before the first card*.

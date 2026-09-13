@@ -29,6 +29,9 @@
    Match a planned ticket to an existing issue by its **ID tag** (`[M2-SLICE-01]`, `[M2-TICK-01]`, `[ADHOC-07]`)
    first, exact title second. On a match: skip and log `Skipping [M2-TICK-01]: exists as #<num>`. Never edit
    or close an existing issue.
+   **The one exception is an owner-confirmed regroup** (new lanes on a backlog already published): change only
+   the `lane:`/`owner:` labels and the Lane/Owner lines of the body, and only after a pre-flight shows every
+   GitHub body still equals its committed file — a body edited on GitHub stops the run. (case file: Regrouping a backlog already on GitHub)
 4. **Numbering.** Derive the next free number from `docs/issues/` **and** the fetched issue list together,
    so a re-run after a partial publish cannot reuse an ID.
 5. **Draw `docs/issues/` in the structure map before the first ticket file exists.** A two-way map check
@@ -66,6 +69,8 @@ the base a project keeps for its whole life. (case file: The base MarkVid runs o
    · `In Progress` · `Done`) · **Owner** (`Senior` · `Junior`) · **Lane** (one option per lane from
    `slicing.md` §Lanes are modules) · **Seat** (`SR1` by default; the user adds `SR2`, `JR1` … when they
    want a second chair). Link the project to the repository.
+   **A new project already has `Status`, with no `In Queue`** — `field-create` cannot extend it; set all four
+   options with GraphQL `updateProjectV2Field` (every existing option kept) *before* the first card. (case file: The Status field that was already there)
 2. **Add every published issue as a card and set all four fields** — `gh project item-add`, then
    `gh project item-edit --field-id ... --single-select-option-id ...` for Status (`Todo`), Owner (the
    ticket's), Lane (the ticket's) and Seat (`SR1` unless the user named seats). **A card added without its
