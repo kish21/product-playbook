@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Added — `/structure`: a shape-changing re-run owns the ticket paths and the import graph
+
+Three lessons from re-running `/structure` on Potluck the day `/tickets` recorded its structure finding
+(the project is the case file for §A module is a complete lane). Step 0 now says that a re-run which
+changes the shape rewrites every ticket's path list — the files tickets name and the files they plan to
+create — and closes the finding, with lanes, order and owners unchanged; and that moving a shared-folder
+file into a lane turns its imports into lane-to-lane arrows, to be handed across in the composition root
+and enforced with an import check. Step 3 now says the `## Hub files` section is a table or list with one
+backticked path per row. `templates/check_structure.py` reads only the first backticked token of each
+row, so prose in that section can no longer fail the gate. War story: `references/case-files-structure.md`
+§The move that came a phase late.
+
 ## [1.44.1] - 2026-09-13
 
 ### Fixed — `/tickets`: an owner-confirmed regroup may edit published issues; the board's built-in Status field
