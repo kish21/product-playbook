@@ -2,6 +2,8 @@
 
 > Moved here from the README so the front page can stay a getting-started guide. Nothing below is required reading before your first `/vision`; it is where to come when you want to know *why* a phase behaves the way it does.
 
+<a id="how-it-works"></a>
+
 ## ⚙️ How it Works: The Files and Principles
 
 This system relies on three core files to create a structured, sequential, yet standalone development workflow.
@@ -89,6 +91,8 @@ How they fit together: the spine says *what* to build, the ticket form turns tha
 
 <a id="not-templates"></a>
 
+<a id="not-templates"></a>
+
 ## 🔩 Why this is not a set of templates
 
 A spine document, six phases, milestones and exit criteria are the vocabulary of project management, and it is a fair first guess that this is a folder of AI-written PM templates. Four things a template cannot do:
@@ -117,6 +121,8 @@ project caught a fault in *this repo*: `/eval` carried a gate's heading and no g
 
 <a id="journey"></a>
 
+<a id="journey"></a>
+
 ## 🗺️ The Playbook Journey
 
 The three-tier map is [above](../README.md#see-it-in-action). This is the same journey at full resolution — every skill, what it writes, and when to reach for it. The tiers are a way to hold it in your head; the **six phases** are what the skills themselves are numbered by.
@@ -128,6 +134,8 @@ The three-tier map is [above](../README.md#see-it-in-action). This is the same j
 | ③ Shipping & learning | 3 · Testing · 4 · Evaluation · 5 · Ship · 6 · Learn | Proving it, releasing it safely, finding out if it worked |
 
 **Security, verification and scope integrity span all three.** They are not stages you pass — they are in `/scope`'s non-goals, `/build`'s definition-of-done, `/dev-check`, `/test` and `/ship`'s security review. A phase that "passed security" once would be the opposite of the position this playbook takes.
+
+<a id="skill-reference"></a>
 
 ### Skill Reference
 
