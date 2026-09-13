@@ -5,6 +5,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Changed — the README is a getting-started guide, not an argument
+
+A first-time tester did not know where, or whether, to start. The front page now opens with *is this for you*,
+the two install lines, and the one command to type with an idea; then one invented product (a restaurant
+walk-in waitlist) walked through every skill with what you type, what it asks, what it writes and the failure it
+prevents; a *which skills apply to your product* table (UI / backend-only / LLM / no LLM / needs a URL / has code
+already / more than one builder); a *ways to run it* table (guided, one phase per session, batch, chain, ad-hoc
+ticket, adopt, drift-check, re-measure) and the Claude Code skills it calls. The plugin-prefixed names are shown
+where a plugin user types them. No test project is named. The deep material moved intact to
+`docs/how-it-works.md` and the install routes to `docs/install.md`, which now warns that the plugin and a copy
+install together make every skill appear twice. References to the retired `product-toolkit` and to Lanekeeper
+were removed from the README; `/drift-check → /doc-audit` (a retired skill) is no longer listed as a composed call.
+
 ## [1.44.0] - 2026-09-13
 
 ### Changed — `/architect`'s benchmark is bounded and recorded; a session's cost is one command (#203)
