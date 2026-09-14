@@ -659,3 +659,51 @@ Owner and Seat fields and the `owner:` label were the only map of who owned whic
 that had read the ticket but not its label started on a senior-lane file, and the first sign was a
 merge conflict on someone else's branch. The `/jr-ticket` command's Step 0 now reads the label before the
 branch is cut and refuses a ticket that is not its own — lane ownership is a gate, not a formality.
+
+## The review that ended the run again
+
+**Potluck, M2-SLICE-01 (2026-09-14, playbook 1.45.0).** The fix for *The report that became the close* had
+put one sentence where `/build` closes its gate — *the close is the run's last message* — and a check held
+it there. The next build looked fixed: `/build #7` ended with a proper close. It was not fixed. That session
+had hit the plan's usage limit in the middle of the review, and the owner typed *continue*; the interruption,
+not the rule, carried the run to its close. `/build #8` had no interruption. It wrote the feature, ran four
+mutation tests, drove the change and remove flow in headless Chrome, fixed two real bugs the code review
+found — and then ran `/security-review`, printed its report (*"No vulnerabilities found at confidence 8/10 or
+higher"*) and ended the turn. The branch was uncommitted; no feature doc, no PR, no close; the ticket open.
+
+The log showed why the two reviews behaved differently. `/code-review` runs forked: its report came back as a
+tool result and the build carried on. `/security-review` runs inline: invoking it injects *"You are a senior
+security engineer…"* into the main turn, and its instructions end with the report as the final answer. The
+sentence about the close sat in Step 3b, several steps after the invocation, so the instruction in front of
+the model at that moment won. **A rule has to act where the failure starts:** the review now runs inside a
+subagent, where its report can only come back as a result, and the invocation point names what comes next.
+
+## The flake nobody wrote down
+
+**Potluck, M1-SLICE-03 and M2-SLICE-01 (2026-09-14).** `/build #7`'s first pre-push test run failed and an
+immediate re-run passed. Its close said *"possible flaky test — I didn't capture which test failed"*, and
+nothing went anywhere a later session could find. `/build #8` hit a failure with no record of the earlier
+one, so it could not tell whether its own change was the cause and investigated from scratch: the claim-form
+tests three times, then five more times with its changes stashed to test the old code, the frontend suite
+four times, the full CI gate three times. It fixed one timing issue in a test; a board-polling failure was
+re-run until it passed and may still be there. A flaky test costs its investigation on **every** build until
+someone records it — so the first build that sees one records it and files it, and never re-runs until green.
+
+## Two builds, the same forty minutes
+
+**Potluck, M1-SLICE-03 and M2-SLICE-01 (2026-09-14), measured from the session logs.** `/build #7` (a guest
+claims a dish) worked 42 minutes and spent 5.8 of them writing code. `/build #8` (change or remove your own
+claim) needed half the code, 2.9 minutes, and still worked 35 minutes before its commit. Ticket size was not
+the driver; the fixed overhead was. Both runs pasted whole modules into the conversation in their first two
+minutes — four concatenated dumps of about 60,000 characters each on #7 — so context stood at 166,000 and
+137,000 tokens by minute two and every later call re-read it, ending at 385,000 and 315,000. The live-path
+companion listed 17 checks with no triggers, most of them from another product (vendor fixtures, a database
+overriding source config, cache keys, ffmpeg), and the skill said to walk them all. Full suites ran on every
+iteration: 20 test-run replies on #7, 33 on #8. Step 3b asked for evidence of each principle that Step 2 had
+just produced. And #7's board card still read *Todo* after its PR merged, because nothing after `/tickets`
+ever moved it. None of these lowered the quality bar when removed; each was repeat work or reading that was
+never used.
+
+*Deliberately unchanged:* the transition guard still re-runs a phase's `evidence:` lines. It is a cross-skill
+mechanism, the commands are cheap, and re-running them is what proves the record is current at the close.
+

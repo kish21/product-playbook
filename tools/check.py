@@ -221,6 +221,8 @@ def main() -> int:
     check_adopt_routes_in_chain_order(files)
     # 29. /architect's benchmark is one search per open decision row, recorded
     check_architect_search_bound(files)
+    # 30. /build's loop carries its overhead rules: read limit, triggered checks, flaky capture, board status
+    check_build_loop_overhead(files)
 
     return done(len(cmds))
 
@@ -977,7 +979,11 @@ def check_lanes_and_board(files: dict[str, Path]) -> None:
 
 # Skills whose gate-closing region composes another skill that prints its own report. The report is the
 # thing most likely to be mistaken for the close, so these are the skills that must say the close comes last.
-COMPOSING_REVIEWERS = {"build", "ship", "test", "eval"}
+COMPOSING_REVIEWERS = {"build", "ship", "test", "eval", "dev-check"}
+# Skills that run /security-review. Its instructions end the turn on its own report, so it must run where
+# its report comes back as a result - a subagent - and the skill must say so where it invokes it (#212).
+SECURITY_REVIEW_INVOKERS = {"build", "ship", "dev-check"}
+SUBAGENT = "inside a subagent"
 CLOSE_LAST = "The close is the run's last message"
 
 
@@ -1008,6 +1014,19 @@ def check_close_is_last(files: dict[str, Path]) -> None:
             fail(f"{name} composes a reviewer but its gate-closing region never says {CLOSE_LAST!r} - "
                  f"on a live run the reviewer's report became the final message and the user never got "
                  f"the plain close, the verdicts or their next steps")
+    # Potluck /build #8 (2026-09-14): the sentence above was present and the run still ended on the
+    # /security-review report - it sits at the close, the review is invoked steps earlier, and the
+    # review's own instructions end the turn. The fix acts where it is invoked.
+    if SUBAGENT not in " ".join(mech.split()):
+        fail(f"references/mechanisms.md §Plain-language close no longer says a reviewer that ends on its own "
+             f"report runs {SUBAGENT!r}")
+    for name in sorted(SECURITY_REVIEW_INVOKERS):
+        body = " ".join(files[name].read_text(encoding="utf-8").split())
+        spots = [m.start() for m in re.finditer(r"/security-review", body)]
+        if not any(SUBAGENT in body[max(0, p - 300): p + 400] for p in spots):
+            fail(f"{name} runs /security-review but never says, where it invokes it, to run it {SUBAGENT!r} - "
+                 f"invoked inline its report takes over the turn and ends the run before the commit, the "
+                 f"record and the close")
 
 
 # The obligations that make a module folder a complete lane (#215). Each token names a rule the shape
@@ -1157,6 +1176,44 @@ def done(n: int = 0) -> int:
         return 1
     print(f"OK - {n} skills consistent across commands/ + manifest + evals + VISION; structure + line budget pass.")
     return 0
+
+
+
+
+# The rules that keep /build's fixed overhead down (#236, #237, #238). Each token names one rule the skill
+# must carry; the live-path companion must give every check a trigger so the walk skips what cannot apply.
+BUILD_OVERHEAD_TOKENS = (
+    ("Read the ticket's slice", "a read limit in Step 0 - both Potluck builds pasted whole modules into the "
+     "conversation in the first two minutes, and every later call re-read them"),
+    ("whose trigger matches", "a triggered live-path walk - 17 untagged checks were weighed on every ticket"),
+    ("the full suite once at the gate", "targeted test runs while iterating"),
+    ("FLAKY", "the flaky-test rule - build #8 re-investigated the flake build #7 never wrote down"),
+    ("Never re-run until green", "the ban on re-running a flaky test until it passes"),
+    ("In Progress", "moving the board card when work starts - #7's card read Todo after it merged"),
+    ("**Done**", "moving the board card when the PR merges"),
+    ("citing the evidence Step 2 already captured", "Step 3b citing Step 2's evidence instead of re-running it"),
+)
+
+
+def check_build_loop_overhead(files: dict[str, Path]) -> None:
+    """30. /build carries the rules that cut its fixed overhead, and every live-path check has a trigger.
+
+    Potluck /build #7 and #8 (2026-09-14): #8 needed half the code of #7 and took nearly the same working
+    time (35 vs 42 min). The logs showed the overhead, not the ticket: whole modules pasted into the
+    conversation up front, a flaky test re-investigated because the previous build never recorded it,
+    full suites on every iteration, 17 live-path checks with no triggers, Step 3b asking for evidence
+    Step 2 had already produced - and a board card still at Todo after the ticket merged.
+    """
+    text = " ".join(files["build"].read_text(encoding="utf-8").split())
+    for token, what in BUILD_OVERHEAD_TOKENS:
+        if token not in text:
+            fail(f"build lost {what} (expected {token!r})")
+    lp = (ROOT / "commands" / "build" / "references" / "live-path-checks.md").read_text(encoding="utf-8")
+    untagged = [ln[:60] for ln in lp.splitlines() if ln.startswith("- **")]
+    if untagged:
+        fail(f"live-path-checks.md has {len(untagged)} check(s) with no *[always]* / *[when ...]* trigger - "
+             f"/build walks the checks whose trigger matches, so an untagged one is weighed on every ticket "
+             f"or silently skipped: {untagged[0]!r}")
 
 
 if __name__ == "__main__":

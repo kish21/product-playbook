@@ -99,9 +99,9 @@ the confidence score (the user reads top-down and should meet their own language
   `/<next phase>` when you're ready"**, which is also a complete answer.
 
 The agent's own next step is *not* this list. Anything the skill will do itself belongs in the handoff.
-**The close is the run's LAST message.** A composed skill (`/code-review`, `/security-review`, `/run`)
-returns a report; that report is evidence *for* the close, never the close — keep going until the two
-blocks above have been printed.
+**The close is the run's LAST message.** A composed skill's report is evidence *for* the close, never the
+close; one that ends on its own report (`/security-review`) runs **inside a subagent** so it cannot end
+the turn. Keep going until both blocks above are printed.
 
 ## §Re-run semantics — a second run must not erase the first
 
