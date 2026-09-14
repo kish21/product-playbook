@@ -181,7 +181,7 @@
       "id": "tickets-strategy-proposed-and-confirmed",
       "skill": "tickets",
       "prompt": "Break down the milestones in PRODUCT.md into GitHub issue tickets",
-      "expected_output": "Groups the tickets into module lanes read from STRUCTURE.md (one lane per module, an Owner on every ticket, ordered inside a lane, parallel across lanes) and recommends a slice strategy (vertical or horizontal) per milestone with a one-line reason; PRINTS the full proposal (every ticket: ID, title, lane, owner) and STOPS for confirmation before writing; naming the strategy in the invocation skips the strategy question, not the list; emits 2-4 milestone-scoped tickets (M<n>-SLICE-<nn> / M<n>-TICK-<nn>), each mergeable as an isolated PR with exact target file paths, typed inputs/outputs and a security definition of done; verifies the remote and dedups against `gh issue list` before any `gh issue create`; files every issue as a card on a Delivery Board with Status, Owner, Lane and Seat set and read back",
+      "expected_output": "Groups the tickets into module lanes read from STRUCTURE.md (one lane per module, an Owner on every ticket, ordered inside a lane, parallel across lanes) and recommends a slice strategy (vertical or horizontal) per milestone with a one-line reason; PRINTS the full proposal (every ticket: ID, title, lane, owner) and STOPS for confirmation before writing; naming the strategy in the invocation skips the strategy question, not the list; emits as many milestone-scoped tickets as each milestone has visible behaviours, with no count cap and any title containing \"and\" flagged in the proposal (M<n>-SLICE-<nn> / M<n>-TICK-<nn>), each mergeable as an isolated PR with exact target file paths, typed inputs/outputs and a security definition of done; verifies the remote and dedups against `gh issue list` before any `gh issue create`; files every issue as a card on a Delivery Board with Status, Owner, Lane and Seat set and read back",
       "expected_artifacts": [
         "docs/issues/*.md",
         ".github/ISSUE_TEMPLATE/feature_ticket.md"
@@ -192,7 +192,7 @@
         "Naming the strategy in the invocation (/tickets \"vertical\") skips the strategy question but never the printed list",
         "Every published issue is a card on the Delivery Board with Status, Owner, Lane and Seat set and read back; a missing project scope is reported, never half-stamped",
         "The chosen strategy is recorded on every ticket of that milestone",
-        "Each milestone yields 2-4 tickets, each mergeable as an isolated PR",
+        "Each milestone yields as many tickets as it has visible behaviours - no fixed count - each mergeable as an isolated PR, and every proposed title containing \"and\" is flagged",
         "Every ticket names exact target file paths, never a bare directory, and states typed inputs and outputs",
         "Ticket IDs are milestone-scoped (M<n>-SLICE-<nn> / M<n>-TICK-<nn>) so they stay unique across milestones",
         "Pre-flight remote check and gh issue list dedup run before any gh issue create",
@@ -203,12 +203,12 @@
       "id": "tickets-vertical-slicing",
       "skill": "tickets",
       "prompt": "/tickets \"vertical\"",
-      "expected_output": "Splits each milestone into 2-4 thin end-to-end slices that cross layers on purpose, slice 1 being a walking skeleton that runs on its own; every slice states an observable Demo, and a slice with no observable outcome is rejected as a layer wearing a slice id and re-sliced or moved to horizontal; emits no separate test slice - each slice's DoD carries the tests for the layers it touched",
+      "expected_output": "Splits each milestone into one thin end-to-end slice per visible behaviour (no count cap, never a backend-only or UI-only half, never smaller than one behaviour) that cross layers on purpose, slice 1 being a walking skeleton that runs on its own; every slice states an observable Demo, and a slice with no observable outcome is rejected as a layer wearing a slice id and re-sliced or moved to horizontal; emits no separate test slice - each slice's DoD carries the tests for the layers it touched",
       "expected_artifacts": [
         "docs/issues/*.md"
       ],
       "expectations": [
-        "Each milestone is split into 2-4 thin end-to-end slices, each crossing layers on purpose",
+        "Each milestone is split into one thin end-to-end slice per visible behaviour - as many as it has, none a layer half, none smaller than one behaviour - each crossing layers on purpose",
         "Every slice states an observable Demo - what a reviewer can see working after it merges",
         "Slice 1 is a walking skeleton that runs end to end on its own",
         "A slice with no observable outcome is rejected as a layer wearing a slice id, and re-sliced or moved to horizontal",
