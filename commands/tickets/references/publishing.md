@@ -32,6 +32,9 @@
    **The one exception is an owner-confirmed regroup** (new lanes on a backlog already published): change only
    the `lane:`/`owner:` labels and the Lane/Owner lines of the body, and only after a pre-flight shows every
    GitHub body still equals its committed file — a body edited on GitHub stops the run. (case file: Regrouping a backlog already on GitHub)
+   **A dependency link is not an edit.** A skipped (already published) ticket still gets its missing
+   *blocked by* links in §Mirror the plan structure — the link is a relationship on the issue, not its body,
+   so the rule above is untouched and a re-run completes a backlog that was published without them.
 4. **Numbering.** Derive the next free number from `docs/issues/` **and** the fetched issue list together,
    so a re-run after a partial publish cannot reuse an ID.
 5. **Draw `docs/issues/` in the structure map before the first ticket file exists.** A two-way map check
@@ -52,6 +55,20 @@ link back to the feature they belong to. On publish:
 - **Lane + owner labels** — the ticket's `Lane` (a module) becomes a label in the **`lane: <name>`** form
   required by `MECHANISMS.md` §Lane mode rule 4, and its `Owner` becomes **`owner: <role>`** (`owner: senior`).
   Do not invent a second spelling; the gate depends on that one.
+- **Dependencies — LINK them, do not only write them.** `Depends On` in a body is prose GitHub cannot
+  read; the native relationship is *blocked by*. After **every** issue of the backlog exists (new or
+  skipped), for each ticket and each ID in its `Depends On`: resolve the ID to its issue number from the
+  dedup index, then
+  `gh api -X POST repos/<o>/<r>/issues/<n>/dependencies/blocked_by -F issue_id=<blocker database id>`
+  where the id is `gh api repos/<o>/<r>/issues/<blocker n> -q .id` — the numeric database id, **not** the
+  issue number and not the node id. Link a **closed** blocker too (GitHub shows it as cleared; skipping it
+  makes the link set differ from the body). Every coordination point in `docs/issues/README.md` must also be a
+  `Depends On` on the dependant ticket, and so a link — a point with no matching link is a gap in the
+  ticket, fixed there. Read back first (`GET …/dependencies/blocked_by`) and add only what is
+  missing: a duplicate is `422 Target issue has already been taken`, and a pull-request number is
+  `422 … may only be an issue`. The issue then shows *Blocked by #8* in its sidebar and #8 shows *Blocking
+  #9* — a second builder opening a card sees whether it is startable without reading the README.
+  (case file: Written down, never linked)
 - **Feature doc — reference the PATH, not a link.** `/build` writes `docs/features/<feature>.md` *after* the
   ticket exists, so a markdown link would 404 on day one. `/build` may add a live link when it creates the file.
 - **Idempotent like the issues already are.** `gh milestone`/`gh label create` error on an existing name, so a

@@ -37,13 +37,14 @@ description: >
   - [ ] **Mode A:** every milestone in `#Plan` is decomposed into 2–4 tickets under a **stated slice strategy** (vertical or horizontal), recommended with a reason and **confirmed against the proposal SHOWN in full** (every ticket: ID · title · lane · owner); a set that changes after the yes is shown and confirmed again.
   - [ ] **Lanes are modules** (`references/slicing.md`): every ticket carries `Lane` = a `STRUCTURE.md` module and an `Owner`; ordered inside a lane, parallel across; `docs/issues/README.md` carries the parallel table, coordination points and hub files.
   - [ ] **Filed on the Delivery Board** (`references/publishing.md`): every issue is a card with **Status, Owner, Lane, Seat** set and **read back**; labels `lane: <name>` + `owner: <role>`; no `project` scope → said in the close with the command that grants it, never half-stamped.
+  - [ ] **Every `Depends On` is a GitHub *blocked by* link, read back** (`references/publishing.md` §Mirror the plan structure, *Dependencies*): prose in a body is not a dependency; a re-run adds the links an earlier publish left out.
   - [ ] Every ticket names **exact target file paths** (`src/services/quoteEngine.ts`), never a bare folder.
   - [ ] Every ticket states its **typed inputs and outputs** — the seam it owns — and **every type, route,
     field and event name it uses RESOLVES to a real symbol** in the files `#Contracts` names, checked by
     grep: a name that does not resolve is a typo or an invention, and both stop the run.
   - [ ] **Every milestone produces tickets or a recorded reason why not** — a milestone whose deliverable is
     *evidence* (a measurement, a session, a decision) gets the ticket that captures it, or one line in
-    `docs/issues/README.md` saying why it was skipped. Zero tickets and zero trace looks like an oversight.
+    `docs/issues/README.md` saying why it was skipped.
   - [ ] Every ticket is **self-contained**: assignable to one developer and mergeable as an isolated PR.
   - [ ] **Vertical only:** every slice states what a reviewer **can see working** after it merges.
   - [ ] **Horizontal only:** no ticket lists files from two layers, and layers absent from `STRUCTURE.md` produce no ticket.
@@ -76,7 +77,7 @@ description: >
 - **The strategy is a per-milestone decision, not a house style.** An infrastructure milestone with no
   user-visible surface slices badly vertically; a user-facing milestone slices badly horizontally.
 - **Every ticket declares the contract it exposes**, so dependent work can start against a stub rather than
-  waiting for a merge — what makes either strategy parallelisable.
+  waiting for a merge.
 - **Security is not a ticket** — a DoD line on *every* ticket; never emit an "add security" ticket.
 
 ## Step 2 — Provision templates + pre-flight remote guard (both modes)
@@ -93,26 +94,25 @@ description: >
 strategy **per milestone** (§Choose the strategy), then **print the whole proposal** — every ticket as
 `ID · title · lane · owner · depends on`, grouped by lane, with the parallel table — and **wait for the
 user's yes**. A yes is a yes to the list shown: a ticket added, dropped or merged afterwards is shown and
-confirmed again — never "as proposed (N)" with no list above it. (case file: Confirmed as proposed, never shown)
+confirmed again. (case file: Confirmed as proposed, never shown)
 If the invocation named a strategy, skip the strategy question, not the list.
 
 State it like this, then stop:
 > *Lanes: events (2) · claims (4) · board (3). M2 touches providers + services + UI — recommending **vertical** (3 slices, each inside one lane). The list above is what gets written. Proceed, or switch to horizontal?*
 
-Record the strategy on every ticket of that milestone, so a later reader knows why the backlog has this shape.
+Record the strategy on every ticket of that milestone.
 
 ### 3A.2 — Slice the milestone, then fill every ticket
 **`references/slicing.md`** — **§Vertical slicing** or **§Horizontal slicing** for the strategy just confirmed, then **§Per-ticket content**. Write each ticket to `docs/issues/<id>_<slug>.md`. **Then verify — and only then publish.**
 
-**Local files are the reversible draft; `gh issue create` is the irreversible step.** Run Step 3b's
-checks over the written files *before* anything leaves the machine — a **complete, confident and wrong**
-backlog is worse than a half-published one. (case file: Eleven issues against an invented API)
+**Local files are the reversible draft; `gh issue create` is the irreversible step** — run Step 3b over
+the written files before anything leaves the machine. (case file: Eleven issues against an invented API)
 
 Then publish the non-duplicates. **Publishing mirrors the plan's own structure** — milestone (with its
-`#Plan` date on `due_on`) → `lane:` + `owner:` labels → ticket → **a card on the Delivery Board with
-Status, Owner, Lane and Seat set and read back** — each created idempotently, so a second run adds no
-duplicate milestone, label, board field or issue. Procedure: `references/publishing.md` §Mirror the plan
-structure onto GitHub and §The Delivery Board.
+`#Plan` date on `due_on`) → `lane:` + `owner:` labels → ticket → **its `Depends On` as *blocked by*
+links** → **a card on the Delivery Board with Status, Owner, Lane and Seat set and read back** — each
+created idempotently, so a second run adds no duplicate milestone, label, board field, link or issue.
+Procedure: `references/publishing.md` §Mirror the plan structure onto GitHub and §The Delivery Board.
 
 ## Step 3B — Mode B: ad-hoc issue capture
 Triggered mid-build by `/tickets "Bug: Gemini API timeout is unhandled on slow 3G"`. **Fast path —
@@ -124,11 +124,10 @@ milestone ticket.
 
 ## Step 3b — Principle-gate: verify the tickets hold (evidence)
 **Load `references/verification.md` and run every check in it — over the LOCAL files, before you publish.**
-First: **every type, route, field and event name a ticket uses must resolve to a real symbol** in the
-files `#Contracts` points at. Then slicing, lanes, paths, IDs, dedup, the security DoD, mergeability, the
-board read-back. Nothing reaches `gh issue create` until it is green.
+First the symbol check (**every type, route, field and event name resolves** in the files `#Contracts`
+names), then the rest; nothing reaches `gh issue create` until it is green.
 
-**Keep the context lean (`MECHANISMS-ON-DEMAND.md` §Context hygiene):** output longer than a screen goes to a scratch file; read the tail or grep the verdict, cite the file in the evidence line.
+**Keep the context lean** (`MECHANISMS-ON-DEMAND.md` §Context hygiene): long output to a scratch file; grep the verdict, cite the file.
 
 **Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done".
 
@@ -139,6 +138,7 @@ Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decis
 "Backlog grouped into lanes and on the board — each ticket mergeable on its own, each lane workable by
 one person or agent. Inside a lane the tickets go in order (slice 1 is the walking skeleton; horizontal
 tickets contract-first); lanes run side by side. Alone? Every seat is yours — run **`/build`** on the
-first ticket, one ticket per session. With help, set the board's Seat per lane and hand it over; in lane
+first ticket, one ticket per session. With help, set the board's Seat per lane and hand it over — a card
+that reads *Blocked by #n* is not startable until #n closes; in lane
 mode, Lanekeeper takes the tickets (`lanekeeper start` / `spawn --ticket <n>`) — each ticket's file list
 is its lane."

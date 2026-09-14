@@ -94,3 +94,20 @@ missing, so the literal reading leaves the board without `In Queue`. `gh project
 option to an existing field. The run set the four options through GraphQL `updateProjectV2Field`, keeping every
 existing option, while the board had no cards yet. It did not test what re-setting options does to cards
 already holding a value, so the rule says *before the first card*.
+
+## Written down, never linked
+
+**Potluck live run, 2026-09-14 (playbook 1.44.2).** The day after the regroup put thirteen open issues into
+eight module lanes on the Delivery Board, the owner asked two questions in a row: *can two developers work
+now?* and *is that dependency linked?* The first answer was yes — claims and board could start side by side.
+The second was no. Every ticket's `Depends On` existed as prose in its body and as a table plus eight
+coordination points in `docs/issues/README.md`, and nowhere GitHub could read it: no parent, no sub-issue,
+and `GET /issues/9/dependencies/blocked_by` returned `[]`. So the board showed thirteen cards in Todo with
+nothing marking which were startable, and a second person picking up #9 before #8 merged would have had no
+warning from the tool they were looking at — only from a README. The native relationship is *blocked by*,
+and it was proven on the playbook's own repo before the rule was written: add (`POST …/blocked_by` with the
+blocker's numeric database `id`), read back, add again (`422 Target issue has already been taken`), remove
+(`DELETE …/blocked_by/<id>`). Two gotchas from that test are now in the rule: a pull-request number is
+rejected (`may only be an issue`), and `issue_id` is neither the issue number nor the node id. The dedup rule
+(*never edit an existing issue*) would have made a re-run a no-op, so the rule now says a link is a
+relationship, not a body edit, and a skipped ticket still gets its links.

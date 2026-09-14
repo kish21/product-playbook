@@ -49,6 +49,12 @@ Walk the principles and prove each against the files just written — do not ass
 - **The board reads back set.** Every published issue is a card on the Delivery Board and
   `gh project item-list --format json` shows Status, Owner, Lane and Seat set on each (lowercase keys); the
   close states the count. No board (scope missing) → the close says so and names the command that grants it.
+- **Dependencies are links, read back.** For every published issue, `GET …/dependencies/blocked_by`
+  returns exactly the issue numbers its `Depends On` names — closed ones included, none extra — and the
+  close states the count (`13 issues · 15 links`). Before trusting the read-back, remove one link, watch
+  the check go red, and put it back (`DELETE …/blocked_by/<id>`): a read-back never seen failing proves
+  nothing. A body that says *Depends On* with an empty `blocked_by` is the failure this check exists for.
+  (case file: Written down, never linked)
 - **Security DoD present** on every ticket, including the ad-hoc ones.
 - **Independently mergeable.** For each ticket ask: could one developer open a PR containing only these
   files and have it reviewed on its own? **If not, the split is wrong — STOP and re-split before publishing.**
