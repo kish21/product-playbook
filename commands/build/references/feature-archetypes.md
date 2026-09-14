@@ -1,8 +1,8 @@
 # Feature archetypes — the rules that apply only to SOME features
 
 > Loaded by `/build` **Step 2 · 3 (Code)**, on demand. Each cluster below applies only when the
-> feature you are building IS that kind of thing — a gate, an async job, a latency fix, or code that
-> touches a trust boundary. `SKILL.md` carries the trigger; this file carries the rules.
+> feature you are building IS that kind of thing — a gate, an async job, a latency fix, code that
+> touches a trust boundary, or third-party content shipped to your users. `SKILL.md` carries the trigger; this file carries the rules.
 >
 > Every rule here came from a real bug on a shipped project. The war story behind each
 > `(case file: …)` pointer lives in `references/case-files-build.md` in the repo.
@@ -53,3 +53,9 @@ Trigger: the feature reads or writes anything **shared across tenants, cached, o
 - **State that records a HUMAN decision gets ONE writer — the human path. An automation/pipeline path must never (re)write it, even to a "sensible default"; resolve absence at READ time instead.** A machine write that looks harmless on the first run silently destroys the user's choice on every re-run. (case file: The reset selection)
 - **A client-supplied selector may only ever CHOOSE AMONG server-approved sets — never contribute content.** Validate against the server-side registry; enforce the closed set server-side. (case file: Intent as a set-selector)
 - **Caching a computed verdict/result? Build the cache key by EXCLUSION, never by inclusion.** Hash the whole input minus volatile fields + thresholds + checker version + **the SHAPE of what it stores** (a cached verdict that gains a new field must MISS — an `extra="ignore"` model deserializes the old one cleanly and hash-matches forever) (pin: threshold/check/shape → MISS, rotated URL → HIT); **an explicit "Re-run / Refresh" affordance must BYPASS the cache — skip the READ, keep the WRITE**, force strictly coerced. (case file: The cached Re-run)
+
+## §Third-party content
+
+Trigger: **the feature ships THIRD-PARTY CONTENT to your users** — data, media, text or models someone else owns.
+
+- **Verify the LICENCE permits YOUR distribution model BEFORE you design around it — it is a feasibility gate, not paperwork.** Redistribution to a commercial customer is sublicensing, rarely granted by "free" terms — check the primary licence page (sublicensing? attribution? indemnity? aggregator disclaimers?); if nothing clears, **say so plainly** and ship the mechanism **OFF with an empty table**, test-pinned. (case file: Licence gates, twice)

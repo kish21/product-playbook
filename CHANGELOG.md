@@ -5,6 +5,36 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — `/build` no longer ends on the security review; flaky tests are filed once; the loop's fixed overhead is cut (#212 #236 #237 #238)
+
+**The security review ran inline and ended the run (#212, reopened).** On Potluck `/build #8` the run
+printed `/security-review`'s report and stopped — uncommitted, no PR, no close — with the "close is the last
+message" sentence present. `/build #7` had only looked fixed because a usage-limit interruption made the owner
+type *continue*. `/code-review` runs forked and returns a result; `/security-review` runs inline and its own
+instructions end the turn. `/build`, `/ship` and `/dev-check` now run it **inside a subagent**, and `/build`
+names the steps that follow at the invocation point. `MECHANISMS.md` §Plain-language close says the same;
+`/dev-check` gains the close sentence. Check 25 now checks the invocation point, not only the close.
+
+**A flaky test is recorded and filed the first time (#236).** `/build #8` re-investigated a flake `/build #7`
+saw and never wrote down (suites run 4×, CI 3×). A test that fails and then passes with no change is recorded
+(name · error · N of M runs) and filed with `/tickets "<bug>"`; outside the change the build carries on,
+inside it and small it is fixed with a proof. Never re-run until green.
+
+**The build loop's fixed overhead (#237).** `/build #8` needed half the code of `#7` and worked nearly as long
+(35 vs 42 min). Step 0 now reads the ticket's slice — its Target Files and a grep for each contract name —
+never whole modules; every live-path check carries an *[always]* / *[when …]* trigger and `/build` walks the
+matching ones; tests run on the affected files while iterating and the full suite once at the gate; Step 3b
+cites the evidence Step 2 captured and re-runs only what changed. The licence gate moves to
+`feature-archetypes.md` §Third-party content. The transition guard is deliberately unchanged.
+
+**The board card moves (#238).** `/build` sets the ticket's card to In Progress before the first write and to
+Done after an in-session merge, reading both back; `#7`'s card read Todo after it merged.
+
+**Check 30** holds the build-loop rules and the live-path triggers. Every new check was seen failing: nine
+deliberate breaks, each red, each restored green. War stories: `references/case-files-build.md` §The review
+that ended the run again · §The flake nobody wrote down · §Two builds, the same forty minutes.
+
+
 ### Fixed — a `/structure` path rewrite reaches the published issues too
 
 **A path moved in the repo is still at its old address on GitHub.** On the Potluck run a `/structure` re-run
