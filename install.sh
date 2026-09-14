@@ -194,8 +194,8 @@ if [[ "${SCOPE}" == "project" ]]; then
 fi
 echo ""
 if [[ -n "${ONLY}" ]]; then
-  echo "Subset installed. Some skills call others: /build → /code-review · /ship → /security-review"
-  echo "· /drift-check → /doc-audit. Those must be available too, or the step is skipped."
+  echo "Subset installed. Some skills call others: /build → /code-review · /ship → /security-review."
+  echo "Those must be available too, or the step is skipped."
   echo "Add more later:  ./install.sh --only <names>    See them all:  ./install.sh --list"
 else
   echo "New here?  Run  /playbook  to be guided one phase at a time."

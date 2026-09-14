@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Removed — references to the retired product-toolkit and its skills
+
+`manifest.json`, `VISION.md`, `install.sh`, `evals/evals.json`, `commands/test.md`, `commands/vision.md` and
+`tools/check.py` no longer name product-toolkit or skills that shipped with it and no playbook skill calls
+(`/verify`, `/doc-create`, `/doc-audit`, `github-pr-flow`); the playbook no longer calls itself a "toolkit".
+The composed-skill list now names only what the skills actually invoke: `/code-review`, `/security-review`,
+`/run`, `/loop`, `/schedule`. Earlier CHANGELOG entries are left as the historical record.
+
+
 ### Fixed — `/tickets` checks that every Target File can be written under the project's import rules
 
 On Potluck `/build #9`, two paths in a ticket that passed every `/tickets` check could not be written: one

@@ -125,7 +125,7 @@
       "id": 12,
       "skill": "ship",
       "prompt": "ship this feature and open a PR",
-      "expected_output": "Deep /code-review (traces callers) + /security-review + /doc-audit reconcile + CHANGELOG + security checklist (dep-vuln, CORS, cookie-auth, data-deletion) + confidence score + github-pr-flow PR + handoff; STOPS if a doc claim doesn't match code; writes PRODUCT.md#Ship log",
+      "expected_output": "Deep /code-review (traces callers) + /security-review + docs reconcile + CHANGELOG + security checklist (dep-vuln, CORS, cookie-auth, data-deletion) + confidence score + PR + handoff; STOPS if a doc claim doesn't match code; writes PRODUCT.md#Ship log",
       "files": []
     },
     {
@@ -139,7 +139,7 @@
       "id": 14,
       "skill": "drift-check",
       "prompt": "are we still on track or did we drift",
-      "expected_output": "Cross-checks built features vs Deferred/Non-goals (creep) + the inverse (unrecorded pivot), direction vs vision+metric, milestones + the concern-area checklist, and code↔docs via /doc-audit; honest verdict; records confirmed drift in PRODUCT.md#Drift log (not #Learnings); does not advance the chain",
+      "expected_output": "Cross-checks built features vs Deferred/Non-goals (creep) + the inverse (unrecorded pivot), direction vs vision+metric, milestones + the concern-area checklist, and code↔docs; honest verdict; records confirmed drift in PRODUCT.md#Drift log (not #Learnings); does not advance the chain",
       "files": []
     },
     {

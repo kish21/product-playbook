@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Consistency check for product-playbook — run locally or in CI.
 
-Eats our own dog food: the toolkit preaches "CI that verifies its own rules", so this verifies the
-toolkit's rules. Exits non-zero (fails the build) on any violation.
+Eats our own dog food: the playbook preaches "CI that verifies its own rules", so this verifies the
+playbook's rules. Exits non-zero (fails the build) on any violation.
 
 Checks:
   1. The skill set is identical across commands/, manifest.json, evals/evals.json, and VISION.md
@@ -18,7 +18,7 @@ Checks:
   5. One version everywhere: the newest CHANGELOG release is the source of truth, and
      manifest.json, .claude-plugin/plugin.json and the README badge must all match it.
   6. Every `#Section` a skill references is a real heading in templates/PRODUCT.md (a skill pointing at
-     a section the template never defines is doc<->code drift inside the toolkit itself).
+     a section the template never defines is doc<->code drift inside the playbook itself).
   7. A plugin install ships every skill: each directory-form skill's folder is listed under
      `skills` in .claude-plugin/plugin.json (Claude Code only scans skills/ by default).
   8. Every eval case is STRUCTURALLY sound: the required fields exist and are non-empty, ids are
@@ -104,7 +104,7 @@ CONTRACTED = {"design-system", "new-component"}
 # /vision opens the chain: there is no earlier section for it to gate on, so check 9 skips it.
 NO_PRIOR_PHASE = {"vision"}
 # The affordance that makes a prior-gate a gate and not a wall: the user can proceed anyway.
-# Standalone use is first-class in this toolkit, so every gate must offer a way through.
+# Standalone use is first-class in this playbook, so every gate must offer a way through.
 # Each phrase is the one a real skill uses today: 12 say "allow override", /ship records "an override"
 # on the release, /learn says "continue if the user wants". Widen it only alongside a skill that needs it.
 OVERRIDE_PHRASES = ("allow override", "an override", "continue if the user wants")
