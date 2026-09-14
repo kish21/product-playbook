@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.47.0] - 2026-09-14
+
 ### Removed — content that only made sense to the maintainer
 
 A sweep for text a user of the installed playbook cannot use (owner decision 2026-09-14):
