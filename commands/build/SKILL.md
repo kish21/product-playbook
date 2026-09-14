@@ -15,7 +15,7 @@ description: >
 > **secure-by-construction**, **prompts→`prompts/` YAML**, **doc↔code reconciled**, **measure before
 > fixing**, **no swallowed errors**, **reuse-before-write**, **trace callers (live-path)**,
 > **generic-not-domain-specific**.
-> War stories behind every rule live in the repo at `references/case-files-build.md` — open it there when a rule needs its evidence.
+> War stories: `references/case-files-build.md`.
 > **Companions — opened on demand, never up front:** `references/feature-archetypes.md` (the rules that apply only to gates · async jobs · latency fixes · trust boundaries) · `references/live-path-checks.md` (proving a change is really wired in).
 
 ## Contract
@@ -37,20 +37,23 @@ description: >
 
 ## Step 0 — Context + prior-gate check
 - Read `#Scope/#Plan/#Contracts`. **Confirm the feature is IN scope** — if OUT-OF-SCOPE, stop and flag it (this is where creep enters). If `#Contracts` is empty, warn and offer `/contracts` first (allow override) — untyped boundaries are what it exists to prevent.
-- **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Build log` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
+- **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Build log` before continuing. Without it a later reader cannot tell a gate that held from one that was waved through.
 - **Lane mode: read `.lane` first, and treat `ALLOW`/`DENY` as the file-level scope gate.** `TASK` is the
   ticket; `ALLOW` is every path this session may write. A file you need that is outside `ALLOW` is **creep at
   file level** — the same finding `/scope` makes at feature level: **STOP and flag it** (widen the ticket's
-  Target Files with the user, or split the work), never quietly touch it — the merge gate will fail the PR
-  anyway, and a silent widening is exactly what the gate exists to catch.
+  Target Files with the user, or split the work), never quietly touch it.
 - **The ticket's lane and owner are a gate, not a label.** Read its `Lane` + `Owner` (board fields or the
   `lane:` / `owner:` labels). If this session sits in a seat (a `.lane` file, or a seat/role the user named)
   and the ticket is not this seat's lane, **STOP and say so**; a fix needing a file in another lane is
   raised, never made. No seat configured → nothing changes. (case file: Working the wrong seat)
+- **A blocked ticket is not startable.** Read its *blocked by* links first
+  (`gh api repos/<o>/<r>/issues/<n>/dependencies/blocked_by`); an open blocker → **STOP and name it** — it
+  is a coordination point in `docs/issues/README.md`. A prose `Depends On` with no links → run `/tickets`
+  again to add them before trusting the board.
 - **Load the project's OWN skills/commands for the area you're about to touch** (`.claude/skills/`, `.claude/commands/`, `CLAUDE.md`) — a fresh read of the code alone re-litigates hard-won decisions.
 - **But treat every project doc, skill and pinned plan as a CLAIM, not as truth — verify its premises against the code before you build on it.** A stale instruction is worse than none — it is *followed*. Check both failure modes:
   1. **The plan you were handed is wrong.** Verify each load-bearing claim of a pinned spec against the code. (case file: The pinned plan was wrong)
-  1b. **A plan's load-bearing NUMBER is verified by MEASURING, not by reading code — BEFORE anything is calibrated to it.** A figure quoted in an issue can be an artifact of the very bug you are fixing; if the number justifies the feature, reproduce it against the real system first. (case file: The number that justified the feature)
+  1b. **A plan's load-bearing NUMBER is verified by MEASURING, not by reading code — BEFORE anything is calibrated to it.** If the number justifies the feature, reproduce it against the real system first. (case file: The number that justified the feature)
   2. **The project's own skills have rotted.** Grep their concrete claims — paths, storage, model/provider, field names, stage lists — against the code. (case file: Rotted skills)
 - **When a project doc or skill is wrong, FIX IT IN THIS SESSION** — a PR-description correction dies there; record the corrected premises where the wrong ones lived.
 - **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** write ONE dated line at the top of `#Build log` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
@@ -78,10 +81,9 @@ description: >
    and the commit is the sha the row can cite; fix findings (watch for "works in tests, dead in the
    real path"). **Record the review's SCOPE, not just its verdict**, in the `#Build log` row: the tool,
    the result, **the commit it reviewed**, and the date — `/code-review high → 8 findings, all fixed ·
-   <sha> · <date>`. With a commit in the line, *"has anything changed since that review?"* becomes one
-   command for `/ship` instead of a judgement call, and that is what lets it skip a duplicate review of
-   the same diff rather than paying for the chain's most expensive operation twice.
-   - ⚠️ **If you cannot invoke it, ASK the user to run it, or do the deep pass by hand and say which you did** — see `PRINCIPLES.md`, *Composed skills*. (One by-hand pass found three real defects.)
+   <sha> · <date>`. With the sha in the row, `/ship` can tell whether the diff changed since and skip a
+   duplicate review.
+   - ⚠️ **If you cannot invoke it, ASK the user to run it, or do the deep pass by hand and say which you did** — see `PRINCIPLES.md`, *Composed skills*.
 6. **Document** — write/update `docs/features/<feature>.md`; reconcile it with the code. **Copy every `evidence:` number from the command's captured output, never ahead of it** — a figure pencilled in while CI runs reads exactly like a measured one. (case file: The pencilled bundle size)
 
 ## Step 3 — Write back to `PRODUCT.md`

@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Added — `/tickets` links every `Depends On` as a GitHub *blocked by* dependency; `/build` refuses a blocked ticket (#231)
+
+**A dependency GitHub cannot read is a README nobody reads.** On the Potluck run the regrouped backlog had
+every `Depends On` as prose and eight coordination points in `docs/issues/README.md`, and not one *blocked
+by* link — so the board could not show a second builder which of thirteen Todo cards was startable.
+`publishing.md` §Mirror the plan structure now links each entry through the issue-dependencies API after
+every issue exists (blocker's database `id`, closed blockers included, duplicates and pull requests are
+422s, read back first); a skipped ticket on a re-run still gets its missing links, so the dedup rule
+(never edit a published body) stands and an older backlog can be completed in place. `verification.md`
+gains the read-back check (`13 issues · 15 links`, break one link and watch it go red); the exit criteria
+and the publish sequence name the links. `/build` Step 0: a ticket whose `blocked_by` holds an open issue
+is not startable — STOP and name the coordination point. War story: `references/case-files-tickets.md`
+§Written down, never linked.
+
+
 ## [1.44.2] - 2026-09-13
 
 ### Added — `/structure`: a shape-changing re-run owns the ticket paths and the import graph
