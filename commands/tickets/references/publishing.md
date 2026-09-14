@@ -32,6 +32,9 @@
    **The one exception is an owner-confirmed regroup** (new lanes on a backlog already published): change only
    the `lane:`/`owner:` labels and the Lane/Owner lines of the body, and only after a pre-flight shows every
    GitHub body still equals its committed file — a body edited on GitHub stops the run. (case file: Regrouping a backlog already on GitHub)
+   **A committed path rewrite (a `/structure` re-run) is the same exception:** a re-run diffs each open body
+   against its file, and where only the moved paths differ — the body equal to the file *before* that
+   commit — syncs the body to the file with the owner's yes; closed issues keep the paths they were built against. (case file: The paths that moved in the repo, not on GitHub)
    **A dependency link is not an edit.** A skipped (already published) ticket still gets its missing
    *blocked by* links in §Mirror the plan structure — the link is a relationship on the issue, not its body,
    so the rule above is untouched and a re-run completes a backlog that was published without them.

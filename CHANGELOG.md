@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — a `/structure` path rewrite reaches the published issues too
+
+**A path moved in the repo is still at its old address on GitHub.** On the Potluck run a `/structure` re-run
+rewrote every ticket's paths in `docs/issues/`, but the dedup rule (never edit a published body) left eleven
+issues naming folders that no longer existed. `publishing.md` §Dedup index now treats a committed path rewrite
+like a regroup: sync an open body to its file with the owner's yes, only when the body equals the file as it was
+before the rewrite; closed issues keep their paths. `/structure` points at it. War story:
+`references/case-files-tickets.md` §The paths that moved in the repo, not on GitHub.
+
 ## [1.45.0] - 2026-09-14
 
 ### Added — `/tickets` links every `Depends On` as a GitHub *blocked by* dependency; `/build` refuses a blocked ticket (#231)
