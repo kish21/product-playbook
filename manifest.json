@@ -21,7 +21,7 @@
   },
   "spine": "PRODUCT.md (the shared living file each skill reads + appends to)",
   "principles": "PRINCIPLES.md (single source, referenced by every skill)",
-  "vision": "VISION.md (the toolkit's own completeness contract)",
+  "vision": "VISION.md (the playbook's own completeness contract)",
   "commands": [
     {
       "id": "playbook",
@@ -166,10 +166,10 @@
   },
   "notes": [
     "Sequential but standalone: run the phases in order, or enter at any skill — each bootstraps context from PRODUCT.md or the existing codebase.",
-    "Compose, don't reimplement: skills invoke existing Claude Code skills (/code-review, /security-review, /verify, /run, /doc-create, /doc-audit, /loop, github-pr-flow) rather than duplicating them.",
+    "Compose, don't reimplement: skills invoke existing Claude Code skills (/code-review, /security-review, /run, /loop, /schedule) rather than duplicating them.",
     "Each skill self-identifies via YAML frontmatter and references PRINCIPLES.md (single source) — no duplicated rule text.",
     "Spine resolution is PRODUCT.md-first but flexible: existing/brownfield projects fall back to CLAUDE.md/README/docs/AGENTS.md, and code-only projects get a clearly-labelled INFERRED read — never a fabricated baseline (PRINCIPLES.md, §Spine resolution).",
     "The 17-skill journey badge counts the phase chain; /new-component is a bundled UI-suite SUPPORT skill (category ui-suite), not a journey phase — it is shipped here so product-playbook installs fully standalone.",
-    "Single-master rule for the UI suite (/design-system, /new-component, /frontend-audit): mastered in product-playbook; any copy elsewhere (e.g. product-toolkit) is a one-way synced, read-only copy (playbook → toolkit)."
+    "Single-master rule for the UI suite (/design-system, /new-component, /frontend-audit): mastered in product-playbook; any copy elsewhere is a one-way synced, read-only copy."
   ]
 }

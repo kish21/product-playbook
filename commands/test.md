@@ -73,7 +73,7 @@ description: >
    **scoped and justified** — applied to the specific element known to receive third-party attributes, with a
    comment naming why. **Never a blanket default across a component library:** mismatches also come from real
    bugs (clock/random values, locale drift, server-client branch divergence), and suppressing them wholesale
-   silences a correctness signal in a toolkit whose principles are *fail-loud* and *no swallowed errors*. The
+   silences a correctness signal in a playbook whose principles are *fail-loud* and *no swallowed errors*. The
    capability wanted is **"third-party DOM injection must not break first paint"**; how a given framework
    absorbs that is the framework's business.
 6. **Regression:** lock in any fixed bug with a test.

@@ -57,7 +57,7 @@ there.**
 It is **sequential but standalone**: a first-timer runs the phases in order; an experienced
 builder enters at any skill. Continuity comes from one shared file, `PRODUCT.md` (the spine).
 Quality comes from `PRINCIPLES.md` (single-source rules) baked into every phase. Skills
-**compose existing Claude Code skills** (`/code-review`, `/verify`, `/doc-create`, …) rather
+**compose existing Claude Code skills** (`/code-review`, `/security-review`, `/run`, …) rather
 than reinventing them.
 
 Everything it needs ships in this one repo — no companion install.
