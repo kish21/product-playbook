@@ -111,3 +111,16 @@ blocker's numeric database `id`), read back, add again (`422 Target issue has al
 rejected (`may only be an issue`), and `issue_id` is neither the issue number nor the node id. The dedup rule
 (*never edit an existing issue*) would have made a re-run a no-op, so the rule now says a link is a
 relationship, not a body edit, and a skipped ticket still gets its links.
+
+## The paths that moved in the repo, not on GitHub
+
+**Potluck live run, 2026-09-14 (playbook 1.45.0).** A `/structure` re-run (ADR-0006) moved 55 files into
+complete lanes and, as its rule says, rewrote every ticket's path list in `docs/issues/`. It did not touch
+GitHub, and `/tickets` forbade it to: *never edit an existing issue*, one exception, a regroup. The next
+`/tickets` re-run compared each issue body with its file and found all fifteen different; eleven still named
+`frontend/src/pages/` and `backend/src/http/host-handlers.ts`, folders that no longer existed. A builder or a
+Lanekeeper agent reading the issue, not the repo, would have been sent to recreate the folders just emptied.
+The pre-flight that made the sync safe was one comparison: every body equalled its file at the commit before
+the move, so the only difference was the move itself and nothing written on GitHub could be lost. Nine open
+bodies were synced with the owner's yes and read back equal; closed #5 and #6 kept the paths they were built
+against.
