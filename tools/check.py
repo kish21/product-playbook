@@ -981,7 +981,7 @@ def check_lanes_and_board(files: dict[str, Path]) -> None:
 # A fixed ticket count per milestone ("2-4 tickets", "3–5 slices"), in any dash. Matched wherever the
 # tickets skill is described, because the cap came back through the evals and the docs as easily as
 # through the skill itself.
-TICKET_CAP_RE = re.compile(r"\b\d+\s*(?:[-–—]|to)\s*\d+\s+(?:\w+[\s-]+){0,3}?(?:tickets|slices)\b")
+TICKET_CAP_RE = re.compile(r"\b\d+\s*(?:[-–—]|to)\s*\d+\s+[^\d.;|]{0,40}?\b(?:tickets|slices)\b")
 # The sizing rules (#247), as (token, where it must appear, what losing it means).
 SIZING_TOKENS = (
     ("§Size by behaviour", "tickets Step 1", "the pointer from the rule to its mechanism"),
@@ -1015,10 +1015,10 @@ def check_ticket_sizing(files: dict[str, Path]) -> None:
     tickets_cases = json.dumps([c for c in evals.get("evals", []) if c.get("skill") == "tickets"],
                                ensure_ascii=False)
     how = (ROOT / "docs" / "how-it-works.md").read_text(encoding="utf-8")
-    how_row = next((ln for ln in how.splitlines() if "`/tickets`" in ln and ln.startswith("|")), "")
+    how_lines = "\n".join(ln for ln in how.splitlines() if "/tickets" in ln)
     for where, text in (("commands/tickets/SKILL.md", skill), ("tickets/references/slicing.md", slicing),
                         ("evals/evals.json (tickets cases)", tickets_cases),
-                        ("docs/how-it-works.md (/tickets row)", how_row)):
+                        ("docs/how-it-works.md (/tickets lines)", how_lines)):
         m = TICKET_CAP_RE.search(" ".join(text.split()))
         if m:
             fail(f"{where} caps the ticket count ({m.group(0)!r}) - a fixed number per milestone forces "
