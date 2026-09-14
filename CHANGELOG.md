@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.46.0] - 2026-09-14
+
 ### Fixed — `/build` no longer ends on the security review; flaky tests are filed once; the loop's fixed overhead is cut (#212 #236 #237 #238)
 
 **The security review ran inline and ended the run (#212, reopened).** On Potluck `/build #8` the run
