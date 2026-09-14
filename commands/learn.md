@@ -31,7 +31,6 @@ description: >
   - [ ] At least one **real user/usage signal** incorporated (support, interview, usage data). → `User/usage signal incorporated`
   - [ ] **Kill/deprecate** is an allowed outcome — if the evidence says a feature isn't working, record the decision + trigger. → `Decided next`
   - [ ] Ongoing **observability** (dashboards/alerting) + **cost** monitored — the post-launch watch, not a one-off. → `Observability + cost watch in place`
-  - [ ] **Reusable learning harvested:** any *generic* pattern, gotcha, or process fix surfaced this cycle is pushed back into the **phase skill that should have caught it** — or explicitly "nothing reusable this cycle". Generic learnings compound across future projects; project-specific ones stay in the project. → `Retro (what worked / what to change)`
   - [ ] `#Learnings` is a **RECORD** — every field is a decision, evidence line or pointer; the reasoning is
     in `docs/learnings.md`. Size is reported, never trimmed to. → `Detail:`
   - [ ] **Every companion opened is receipted** — one line per file, quoting a fragment that
@@ -51,10 +50,9 @@ description: >
 ## Step 2 — Learn
 1. **Metric (instrumented, not guessed):** confirm the north-star metric is actually measured (events/analytics/dashboard); report what it did. For ongoing tracking, compose **`/loop`** or **`/schedule`** to re-measure on a cadence.
 2. **User signal:** incorporate at least one real user/usage signal (support, interview, usage data) — not just internal opinion.
-3. **Retro:** what worked, what to change (process + product). Keep it short and honest.
+3. **Retro:** what worked, what to change (process + product). Keep it short and honest. A lesson worth keeping goes into this project's `docs/learnings.md`, where the next cycle reads it.
 4. **Doc drift:** confirm the docs still reflect reality — trace each capability claim to the code, not to the last release note.
-5. **Harvest reusable learnings back into the playbook:** ask "did this ticket teach something a *future project* would want?" — a recurring gotcha, a better default, a process gap (e.g. a missed `Closes #N`), a gate that should have existed. If yes, **name the phase that should have caught it** and patch that skill, then push. One repo, one question — there is no second home to check. Keep project-specific facts in the project; only *generalisable* lessons graduate. This is automatic — don't wait to be asked.
-6. **Decide next from evidence:** the highest-value next move — **build / iterate / KILL** (deprecating a feature the evidence says isn't working is a valid, healthy outcome). Re-check against the vision + Non-goals; record the trigger for anything deferred.
+5. **Decide next from evidence:** the highest-value next move — **build / iterate / KILL** (deprecating a feature the evidence says isn't working is a valid, healthy outcome). Re-check against the vision + Non-goals; record the trigger for anything deferred.
 
 ## Step 3 — Write back to `PRODUCT.md`
 Fill `#Learnings`: metric + result (instrumented) · user signal · retro · decided-next (build/iterate/kill, with evidence + triggers) · observability+cost watch.

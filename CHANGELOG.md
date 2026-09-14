@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Removed — `/learn` no longer patches and pushes the playbook
+
+`/learn` Step 2 told the agent to patch the playbook's own skills and push — "automatic, don't wait to be
+asked" — with a matching exit criterion. A user runs the playbook as an installed plugin they do not own, and
+a project's lessons belong to that project. The harvest step and its criterion are gone; the retro now puts a
+lesson worth keeping in the project's `docs/learnings.md`, where the next cycle reads it. Everything else in
+`/learn` — measured metric, a real user signal, the retro, build / iterate / kill from evidence — is unchanged.
+
+
 ### Removed — references to the retired product-toolkit and its skills
 
 `manifest.json`, `VISION.md`, `install.sh`, `evals/evals.json`, `commands/test.md`, `commands/vision.md` and
