@@ -171,7 +171,7 @@ This is the journey at full resolution — every skill, what it writes, and when
 | **Learn** | `/learn` | Tracks success metric and decides: iterate or **KILL** | `PRODUCT.md` -> **Learnings** | Post-launch retro |
 | **Cross-Cut** | `/drift-check` | Compares current code and docs vs. original scope | Drift Report | Anytime you suspect creep |
 
-> **Everything installs from this one repo.** Every phase skill and the UI suite (`/design-system`, `/frontend-audit`, `/new-component`, coupled through `DESIGN.md`) are mastered and bundled here; there is no synced copy anywhere else, because a mirror with no sync tooling drifts. When a project runs in **lane mode** (a `.lane` file is present), `/tickets`, `/build`, `/dev-check` and `/ship` follow the four rules in `MECHANISMS.md` §Lane mode — ticket = boundary, lanes are modules not layers, the spine has one writer, the PR carries its lane; the design note is [`docs/lane-mode.md`](lane-mode.md).
+> **Everything installs from this one repo.** Every phase skill and the UI suite (`/design-system`, `/frontend-audit`, `/new-component`, coupled through `DESIGN.md`) are mastered and bundled here; there is no synced copy anywhere else, because a mirror with no sync tooling drifts.
 
 ### How `DESIGN.md` is derived (the UI suite)
 

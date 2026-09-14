@@ -10,7 +10,7 @@ What it checks, in both directions:
   * every folder ON DISK (minus the ignore list) appears in the map
   * every path listed under a `## Hub files` heading exists - one per table row or list item, the first
     backticked token (the files every lane may touch by one line; a hub file that has moved leaves
-    /tickets and Lanekeeper pointing at nothing)
+    /tickets pointing at nothing)
 
 A drawn-but-uncreated folder is silent doc<->code drift; an undrawn folder on disk is a layout decision
 nobody recorded. Reading 25 folders by eye is slower and less reliable than this, and it turns a

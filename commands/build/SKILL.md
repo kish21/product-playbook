@@ -33,17 +33,12 @@ description: >
   - [ ] **No secret in any code file** (secrets→`.env`; tests use fake placeholder keys).
   - [ ] **Single-responsibility kept** — a file growing large/multi-concern is split into modules (no god-files); long/blocking work stays off the async event loop.
   - [ ] **(UI products) The feature's screen(s) are built to `DESIGN.md`** — §5 layout, token look, `/new-component` parts — and **`/frontend-audit` is clean** (0 errors).
-  - [ ] **(Lane mode — a `.lane` file is present; MECHANISMS.md §Lane mode)** every written file is inside `ALLOW` and outside `DENY`; **no spine file was touched** — the Build-log row lives in the feature doc and `/dev-check` reconciles it.
 
 ## Step 0 — Context + prior-gate check
 - Read `#Scope/#Plan/#Contracts`. **Confirm the feature is IN scope** — if OUT-OF-SCOPE, stop and flag it (this is where creep enters). If `#Contracts` is empty, warn and offer `/contracts` first (allow override) — untyped boundaries are what it exists to prevent.
 - **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Build log` before continuing. Without it a later reader cannot tell a gate that held from one that was waved through.
-- **Lane mode: read `.lane` first, and treat `ALLOW`/`DENY` as the file-level scope gate.** `TASK` is the
-  ticket; `ALLOW` is every path this session may write. A file you need that is outside `ALLOW` is **creep at
-  file level** — the same finding `/scope` makes at feature level: **STOP and flag it** (widen the ticket's
-  Target Files with the user, or split the work), never quietly touch it.
 - **The ticket's lane and owner are a gate, not a label.** Read its `Lane` + `Owner` (board fields or the
-  `lane:` / `owner:` labels). If this session sits in a seat (a `.lane` file, or a seat/role the user named)
+  `lane:` / `owner:` labels). If this session sits in a seat (a seat or role the user named)
   and the ticket is not this seat's lane, **STOP and say so**; a fix needing a file in another lane is
   raised, never made. No seat configured → nothing changes. (case file: Working the wrong seat)
 - **A blocked ticket is not startable.** Read its *blocked by* links first
@@ -91,11 +86,6 @@ description: >
 ## Step 3 — Write back to `PRODUCT.md`
 Append a `#Build log` row: feature · DoD-incl-security met? · **how verified** · link to the feature doc.
 
-**Lane mode: do NOT touch `PRODUCT.md`** — it is outside every lane (§Lane mode rule 3). Write the same
-row as a `## Build log row` section at the top of `docs/features/<feature>.md` (feature · DoD met ·
-how verified · date · ticket), which *is* inside the lane. `/dev-check`, run once on the base branch,
-lifts every un-reconciled row into `#Build log`. One writer for the spine; no lane PR ever conflicts on it.
-
 ## Step 3b — Principle-gate: verify each principle is ACTUALLY implemented (not just claimed)
 Walk **this phase's load-bearing principles (Step 1)** and confirm each is real, **citing the evidence Step 2 already captured** (command · result · commit) — re-run a check only when its files changed since:
 - security-in-DoD → **`/security-review`** (or the equivalent pass) passed — name which.
@@ -103,8 +93,6 @@ Walk **this phase's load-bearing principles (Step 1)** and confirm each is real,
 - live-path-works → **`/run`** exercised the real path **and the observable result was checked** — name the command **and what you saw**. An exit code is not the observable result.
 - reuse · no-swallowed-errors · single-responsibility → confirmed in the diff's **`/code-review`**.
 - (UI features) built-to-the-design → **`/frontend-audit`** 0 errors against `DESIGN.md`.
-- (lane mode) inside-the-lane → `git diff --name-only <base>` shows only `ALLOW` paths and no spine file;
-  `lanekeeper check --lane <name> --base <base>` passes.
 
 **If any named principle is only claimed, not evidenced, STOP — the feature is not done.** Record the *how-verified* per principle in `#Build log` (evidence, not "done"). (Deterministic checks also run via the commit hooks + CI from `/foundation`; this gate is the judgment layer.)
 

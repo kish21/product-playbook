@@ -21,7 +21,7 @@ description: >
 - **Purpose:** choose the stack/tools/decisions before any folders exist, aligned to the product.
 - **Reads:** `PRODUCT.md#Vision`, `#Scope`, `#Plan`.
 - **Writes:** `PRODUCT.md#Architecture` — stack+tools+why · **dev tooling** · ADRs · externals behind adapters · resilience · perf/cost budget · (AI) prompt-versioning/eval.
-- **Gate type:** `input` — since #129 the choice is made against the project's constraints - team size, operational appetite, budget, tolerable lock-in - and those live in the human. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
+- **Gate type:** `input` — the choice is made against the project's constraints - team size, operational appetite, budget, tolerable lock-in - and those live in the human. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Architecture` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria (the gate — small: is the section complete?):**
   - [ ] `#Architecture` is complete and **traces to scope/plan** (no gold-plating): stack+tools+why **with

@@ -247,38 +247,6 @@
       ]
     },
     {
-      "id": "tickets-lane-mode",
-      "skill": "tickets",
-      "prompt": "/tickets  (project has .lanekeeper/config.yaml and a Lanekeeper task.yml issue form)",
-      "expected_output": "Detects Lanekeeper and recommends VERTICAL slicing, recording the reason on every ticket of a milestone if the user insists on horizontal; fills each ticket's Lane heading with a feature name (never a layer) and lists docs/features/<feature>.md plus its tests under Target Files, never PRODUCT.md, CHANGELOG.md or STRUCTURE.md; leaves .github/PULL_REQUEST_TEMPLATE.md to Lanekeeper, which owns the PR template and the gate; links two tickets naming the same file through Depends On or flags the collision before publishing",
-      "expected_artifacts": [
-        "docs/issues/*.md",
-        ".github/ISSUE_TEMPLATE/feature_ticket.md"
-      ],
-      "expectations": [
-        "Recommends VERTICAL slicing and, if the user insists on horizontal, records the reason on every ticket of that milestone",
-        "Every ticket fills the Lane heading with a feature name (never a layer) and lists docs/features/<feature>.md plus its tests under Target Files",
-        "No ticket lists PRODUCT.md, CHANGELOG.md or STRUCTURE.md under Target Files",
-        "Does NOT write .github/PULL_REQUEST_TEMPLATE.md - Lanekeeper owns the PR template and the gate",
-        "Two tickets naming the same file are either linked through Depends On or flagged as a collision before publishing"
-      ]
-    },
-    {
-      "id": "build-lane-mode",
-      "skill": "build",
-      "prompt": "/build \"#12 checkout: cart to confirmed order\"  (worktree contains a .lane file with ALLOW='src/checkout/** tests/checkout/** docs/features/checkout.md')",
-      "expected_output": "Reads .lane before touching code and treats ALLOW/DENY as the file-level scope gate, stopping and flagging a needed file outside ALLOW as file-level creep instead of silently editing it; writes the build row as a '## Build log row' section in docs/features/checkout.md rather than appending to PRODUCT.md#Build log; Step 3b evidence includes `git diff --name-only` against the base showing only ALLOW paths, plus a passing lanekeeper check",
-      "expected_artifacts": [
-        "docs/features/checkout.md"
-      ],
-      "expectations": [
-        "Reads .lane before touching code and treats ALLOW/DENY as the file-level scope gate",
-        "Stops and flags a needed file outside ALLOW as file-level creep instead of silently editing it",
-        "Does not append to PRODUCT.md#Build log; writes the row as a '## Build log row' section in docs/features/checkout.md",
-        "Step 3b evidence includes git diff --name-only against the base showing only ALLOW paths, and a passing lanekeeper check"
-      ]
-    },
-    {
       "id": "structure-honours-recorded-hook-runner",
       "skill": "structure",
       "prompt": "set up the project structure — PRODUCT.md#Architecture records Next.js + pnpm and a Dev tooling line naming lefthook as the hook runner",
@@ -415,7 +383,7 @@
       "id": "tickets-mirrors-plan-onto-github",
       "skill": "tickets",
       "prompt": "publish the backlog to GitHub",
-      "expected_output": "Checks issue, milestone AND label permissions BEFORE publishing anything and degrades or aborts cleanly rather than leaving a half-published backlog; creates missing GitHub milestones with titles derived from #Plan and assigns them on create, reusing existing ones; labels each issue 'lane: <name>' with the space, matching PRINCIPLES Lane mode rule 4 rather than inventing a second spelling; Mode B resolves the parent's real issue number from the dedup index and writes #N, degrading to the plain ID with a stated reason rather than guessing; references the feature doc by path since /build writes it later; a second run creates no duplicate milestone, label or issue",
+      "expected_output": "Checks issue, milestone AND label permissions BEFORE publishing anything and degrades or aborts cleanly rather than leaving a half-published backlog; creates missing GitHub milestones with titles derived from #Plan and assigns them on create, reusing existing ones; labels each issue 'lane: <name>' with the space rather than inventing a second spelling; Mode B resolves the parent's real issue number from the dedup index and writes #N, degrading to the plain ID with a stated reason rather than guessing; references the feature doc by path since /build writes it later; a second run creates no duplicate milestone, label or issue",
       "files": []
     },
     {
@@ -578,6 +546,18 @@
       "prompt": "just deploy it wherever is easiest",
       "expected_output": "Does not pick a host: if #Architecture records a runtime target it executes that one and says so; if it records none it warns, offers /architect first and allows a RECORDED override (Override <date>: <reason> - bypassed <gate>) rather than deploying to a host nobody chose, because that is how a project acquires infrastructure it cannot justify later",
       "files": []
+    },
+    {
+      "id": "build-security-review-does-not-end-the-run",
+      "skill": "build",
+      "prompt": "/build \"#9 host edits the event\"  (an auth/data surface: the host link is the capability)",
+      "expected_output": "Runs /security-review inside a subagent so its report comes back as a result; records the verdict, then writes the feature doc and the Build log row, commits, and ends the run with the plain-language close (what just happened, what YOU do next) as the last message — never the security report.",
+      "expectations": [
+        "The security review runs inside a subagent, not inline in the main turn",
+        "Its verdict is recorded in the Build log row and the feature doc",
+        "The run continues after the report to the doc, the commit and the close",
+        "The final message is the plain-language close, not the review report"
+      ]
     }
   ]
 }

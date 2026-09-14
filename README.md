@@ -129,8 +129,4 @@ Try it with a real idea. Build something. Break it. Then open an issue and tell 
 
 ## 🛠️ Contributing
 
-1. Add or modify a command in `commands/<name>.md` — or directory-form `commands/<name>/SKILL.md` (+ `references/`) for skills that carry references. Keep them concise and single-purpose.
-2. Register it in **all three**: `VISION.md`, `manifest.json`, and `evals/evals.json` (the CI gate checks they stay in sync). Each skill needs **at least two** eval cases, each with a unique `id` plus a non-empty `skill`, `prompt` and `expected_output`. CI checks that shape — it does **not** run the cases.
-3. If a rule earned its place from a real incident, keep the skill file to the **bold one-line rule** and put the war story in `references/case-files-<skill>.md`, pointed to as `(case file: <heading>)`. **Rules go in `PRINCIPLES.md`; mechanisms go in `references/mechanisms.md`; harvested lessons go in `references/lessons.md`** — CI fails any of the three over ~15KB, and fails a `§` pointer that names a heading none of them has.
-4. Run `python tools/check.py` (the CI consistency gate), commit, and open a PR (master requires the `check` to pass).
-5. Run `/drift-check` on this repo to verify nothing drifted.
+See [CONTRIBUTING.md](CONTRIBUTING.md) — how skills are added, registered, tested and kept small.

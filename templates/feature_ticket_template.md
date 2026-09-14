@@ -24,8 +24,7 @@ labels: ["enhancement", "product-playbook"]
 
 <!-- Lane (next heading): the MODULE this ticket lives in - a folder STRUCTURE.md draws ("claims", "board"), never a
      technology layer ("backend", "ui"). One lane = one owner; the lane's tickets go in order, lanes run side by side.
-     Lanekeeper reads the text under the heading as the lane name and groups tickets that share it. This comment sits
-     ABOVE the heading so an empty field stays empty. -->
+     This comment sits ABOVE the heading so an empty field stays empty. -->
 ### 🛣️ Lane
 
 
@@ -43,10 +42,9 @@ labels: ["enhancement", "product-playbook"]
 
 ### 📁 Target Files
 <!-- EXACT paths from STRUCTURE.md, one backticked path per line: a file such as src/services/quoteEngine.ts,
-     never a bare folder such as src/services/. This list is the BOUNDARY: in lane mode it is what the merge
-     gate enforces, so it must name everything the build will write, the feature doc and the test files included.
-     Never list PRODUCT.md, CHANGELOG.md or STRUCTURE.md here: the spine is shared and reconciled by /dev-check + /ship.
-     (No backticks inside this comment on purpose: Lanekeeper reads every backticked span under this heading as a path.) -->
+     never a bare folder such as src/services/. This list is the BOUNDARY: it must name everything the
+     build will write, the feature doc and the test files included.
+     Never list PRODUCT.md, CHANGELOG.md or STRUCTURE.md here: the spine is shared and each phase writes its own rows. -->
 - [ ] `path/to/file.ext`
 - [ ] `docs/features/<feature>.md`
 
@@ -73,7 +71,7 @@ labels: ["enhancement", "product-playbook"]
 - [ ] Structured logging, no stray prints on production paths.
 - [ ] Tests written and passing for everything this ticket touches (for a bug fix: a **regression test that fails without the fix**).
 - [ ] Feature doc written/updated at `docs/features/<feature>.md` (listed in Target Files above).
-- [ ] **Mergeable alone** — a PR containing only these files is reviewable on its own; in lane mode, `lanekeeper check` passes and the PR carries its `lane: <name>` label.
+- [ ] **Mergeable alone** — a PR containing only these files is reviewable on its own, and the PR carries its `lane: <name>` label.
 
 ### 🧪 Verification Command
 <!-- The exact command a reviewer runs to see this work. -->

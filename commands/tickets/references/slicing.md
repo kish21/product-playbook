@@ -23,7 +23,7 @@ is always there, and the user decides per lane who sits in it. (case file: The f
    only inside the ticket.
 4. **Hub files.** A file named by tickets in two or more lanes (the route registry, the config loader, the
    dependency manifest) is a **hub file**: list them in `docs/issues/README.md` so `/build` treats a change
-   there as a one-line merge and Lanekeeper can declare them `shared:`. Three or more hub files, or a
+   there as a one-line merge. Three or more hub files, or a
    handler/store folder shared by every module, is a structure finding — say so, and point at `/structure`.
 5. **The parallel table** goes into `docs/issues/README.md` and into the close: lane · owner · tickets in
    order · which lanes can run at once · hub files. That table is the answer to "can two people work on
@@ -41,11 +41,6 @@ Decide **per milestone**, not once for the repo — and always *inside* the lane
 |---|---|
 | **Vertical** (default lean) | The milestone has a user-visible surface · one full-stack codebase · early product where "show it working" matters. Each slice stays inside one lane where it can. |
 | **Horizontal** | A milestone that is mostly infrastructure with no user-visible surface · contracts already frozen in `#Contracts`, so layers can safely run in parallel. |
-
-**Lane mode overrides the table:** the default is **vertical**, because a vertical slice sits inside one
-lane and a horizontal ticket turns one feature into N lanes that collide on every change (§Lane mode rule 2).
-If the user still wants horizontal, say so plainly, **record the reason on every ticket of that
-milestone**, and expect Lanekeeper to report the collisions.
 
 ## §Vertical slicing (thin end-to-end increments)
 Split the milestone into **2–4 slices, each one user-observable behaviour**, going through whatever layers
@@ -88,12 +83,12 @@ Fill the provisioned `feature_ticket.md` template for each ticket:
 - **ID + title:** `[M<milestone>-SLICE-<nn>]` or `[M<milestone>-TICK-<nn>]`, then the concern in plain words.
   The `M<milestone>` prefix is what keeps IDs unique across milestones; without it, dedup misfires on re-run.
 - **Lane:** the module this ticket lives in (`claims`, `board`) — §Lanes are modules — never a layer.
-  Horizontal: all of a milestone's layer tickets share one lane. Lanekeeper reads it.
+  Horizontal: all of a milestone's layer tickets share one lane.
 - **Owner:** the role that owns the lane — `Senior` unless the board says otherwise.
 - **Target files:** exact paths, derived from `STRUCTURE.md` — `src/services/quoteEngine.ts`, not `src/services/`.
   **The list is the boundary**, so it must name **everything `/build` will write**: the code, its tests, *and*
   `docs/features/<feature>.md`. **Never list `PRODUCT.md`, `CHANGELOG.md` or `STRUCTURE.md`** — the spine is
-  shared and is reconciled by `/dev-check` + `/ship`, not written from inside a ticket (§Lane mode rule 3).
+  shared — each phase writes its own rows, and a ticket never lists it.
 - **Inputs → outputs:** the typed contract this ticket consumes and the one it exposes, named from `#Contracts`.
 - **Depends on:** the ticket IDs whose *contracts* it needs. Contracts land first, so dependants can start
   against a stub rather than waiting for a merge.

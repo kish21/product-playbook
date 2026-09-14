@@ -61,7 +61,7 @@ that depends on everything is a module nobody has decided yet.
 
 A module folder that holds only the rules, while *every* module's handlers sit in one `http/` folder and
 *every* module's stores in one `platform/` folder, is by-role in name and by-tool in practice: the thing
-two people change at once is the shared folder. On the Potluck run seven of fifteen tickets named
+two people change at once is the shared folder. On one real run seven of fifteen tickets named
 `backend/src/index.ts`, and the backlog could not be split between two people however it was grouped.
 (case file: The drawers everyone reached into)
 
@@ -78,7 +78,7 @@ two people change at once is the shared folder. On the Potluck run seven of fift
    `DESIGN.md` parts with no product logic; `app.tsx` is the route registry.
 5. **Name the hub files in `STRUCTURE.md`** under a `## Hub files` heading — the registry files, the
    config loader, the dependency manifest: the files every lane may touch by one line. `/tickets` lists
-   them as shared, Lanekeeper can declare them `shared:`, and `check_structure.py` verifies each exists.
+   them as shared, and `check_structure.py` verifies each exists.
    Three or more hub files that are not registries is the tell that a folder is still shared by tool.
 
 **Cost, as a side effect:** `STRUCTURE.md` writes one rationale per folder, so four modules is a shorter

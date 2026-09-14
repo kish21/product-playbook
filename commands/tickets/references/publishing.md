@@ -7,12 +7,8 @@
 ## §Provision and pre-flight
 
 1. **Templates — one master per file.** If `.github/ISSUE_TEMPLATE/feature_ticket.md` is missing, copy it
-   from the bundled `templates/feature_ticket_template.md` — the playbook owns the **issue** template
-   (Lanekeeper's own `task.yml`/`bug.yml` forms may sit beside it; both carry the file-paths heading
-   Lanekeeper reads). If `.github/PULL_REQUEST_TEMPLATE.md` is missing **and the project is not in lane
-   mode**, copy `templates/pull_request_template.md`; **in lane mode, do not write a PR template** —
-   Lanekeeper owns the PR template and the gate workflow (§Lane mode rule 4). Never overwrite a template
-   the project already has.
+   from the bundled `templates/feature_ticket_template.md`. If `.github/PULL_REQUEST_TEMPLATE.md` is missing,
+   copy `templates/pull_request_template.md`. Never overwrite a template the project already has.
 2. **Remote guard — NEVER blindly create a remote repository.** Run `git remote -v`.
    - **No remote:** write tickets to `docs/issues/` only and say:
      *"Tickets written to `docs/issues/`. No remote is linked — run `git remote add origin <url>`, then `/tickets` again to publish."*
@@ -56,8 +52,8 @@ link back to the feature they belong to. On publish:
   with **no** date in `#Plan` is created without one, and that is worth saying out loud rather than
   inventing a date to fill the field.
 - **Lane + owner labels** — the ticket's `Lane` (a module) becomes a label in the **`lane: <name>`** form
-  required by `MECHANISMS.md` §Lane mode rule 4, and its `Owner` becomes **`owner: <role>`** (`owner: senior`).
-  Do not invent a second spelling; the gate depends on that one.
+  (with the space), and its `Owner` becomes **`owner: <role>`** (`owner: senior`). Do not invent a second
+  spelling: a board or label filter on one spelling silently misses the other.
 - **Dependencies — LINK them, do not only write them.** `Depends On` in a body is prose GitHub cannot
   read; the native relationship is *blocked by*. After **every** issue of the backlog exists (new or
   skipped), for each ticket and each ID in its `Depends On`: resolve the ID to its issue number from the
@@ -81,7 +77,7 @@ link back to the feature they belong to. On publish:
 
 Labels and milestones are a list; the board is the **map** — who owns which lane, who is sitting in it
 today, and what is moving. It is the surface a solo builder and a team of four read the same way, and
-the base a project keeps for its whole life. (case file: The base MarkVid runs on)
+the base a project keeps for its whole life. (case file: The base a real product runs on)
 
 1. **Create it once.** Find a project titled `<Product> — Delivery Board` for the repo owner
    (`gh project list --owner <owner>`); create it only if absent (`gh project create --owner <owner>

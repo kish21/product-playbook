@@ -5,6 +5,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Removed — content that only made sense to the maintainer
+
+A sweep for text a user of the installed playbook cannot use (owner decision 2026-09-14):
+- **Lanekeeper "lane mode".** The integration with the maintainer's separate parallel-agents tool — `.lane`
+  files with ALLOW/DENY, `lanekeeper check`, Lanekeeper owning the PR template, the spine reconciled on the base
+  branch — is gone from `/build`, `/dev-check`, `/ship`, `/tickets` and its references, `/structure`'s shape
+  reference, `MECHANISMS.md`, `MECHANISMS-ON-DEMAND.md`, the templates, `VISION.md`, `docs/how-it-works.md` and
+  the evals; `docs/lane-mode.md` is deleted. **Module lanes are untouched:** the `lane:` / `owner:` labels, the
+  Delivery Board's Lane · Owner · Seat · Status, blocked-by links, coordination points, hub files and `/build`'s
+  seat gate all stay. The build eval that covered lane mode is replaced by one for the security review not ending
+  the run.
+- **Tracker and check numbers in text the model reads** (`#129`, `#200`, "check 9", "enforced by
+  `tools/check.py`") — the rules stay, worded without them; `MECHANISMS.md` and `LESSONS.md` lose their
+  split-history headers.
+- **Project names inside rules** — an example path and a structure example now read neutrally; a case-file
+  heading is renamed to match.
+- **Maintainer notes.** The manifest's single-master note is removed; §Lesson format and the README's
+  contributing steps move to `CONTRIBUTING.md`, which the README points to.
+
+Historical CHANGELOG entries and case-file war stories are unchanged.
+
+
 ### Removed — `/learn` no longer patches and pushes the playbook
 
 `/learn` Step 2 told the agent to patch the playbook's own skills and push — "automatic, don't wait to be
