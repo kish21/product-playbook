@@ -44,14 +44,6 @@ lesson worth keeping in the project's `docs/learnings.md`, where the next cycle 
 The composed-skill list now names only what the skills actually invoke: `/code-review`, `/security-review`,
 `/run`, `/loop`, `/schedule`. Earlier CHANGELOG entries are left as the historical record.
 
-
-### Fixed — `/tickets` checks that every Target File can be written under the project's import rules
-
-On Potluck `/build #9`, two paths in a ticket that passed every `/tickets` check could not be written: one
-imported another lane's constants, one had a page call another lane's `api.ts`, both refused by the repo's lane
-checker. The verification gate now names each ticket's implied cross-folder imports and checks them against
-`STRUCTURE.md` §Dependency rules before publishing. Case file: *The ticket the lane checker refused*.
-
 ## [1.46.0] - 2026-09-14
 
 ### Fixed — `/build` no longer ends on the security review; flaky tests are filed once; the loop's fixed overhead is cut (#212 #236 #237 #238)
