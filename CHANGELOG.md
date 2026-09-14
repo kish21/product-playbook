@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.45.0] - 2026-09-14
+
 ### Added — `/tickets` links every `Depends On` as a GitHub *blocked by* dependency; `/build` refuses a blocked ticket (#231)
 
 **A dependency GitHub cannot read is a README nobody reads.** On the Potluck run the regrouped backlog had
