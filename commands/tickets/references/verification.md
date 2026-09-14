@@ -31,6 +31,10 @@ Walk the principles and prove each against the files just written — do not ass
   whose hub-file list has three or more entries, is reported as such — never published silently.
 - **Every path resolves.** Check each target path against the real tree (or against `STRUCTURE.md` for a
   not-yet-created file). A ticket pointing at a directory, or at a path this project will never have, fails.
+- **Every path is writable under the project's import rules.** For each ticket, name the cross-folder imports
+  its Target Files imply (a page calling another lane's `api`, an adapter reusing another lane's constants) and
+  check them against `STRUCTURE.md` §Dependency rules — or run its lane checker on a stub; a ticket that can only
+  be built by breaking a rule is re-pathed before publishing. (case file: The ticket the lane checker refused)
 - **Vertical:** every slice names an observable outcome. **A slice whose Demo field says "n/a" is a layer
   wearing a slice's ID — STOP and re-slice, or switch that milestone to horizontal.**
 - **Vertical:** slice 1 runs end to end on its own. If it needs slice 2 to do anything, the order is wrong.

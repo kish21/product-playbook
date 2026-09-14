@@ -124,3 +124,17 @@ The pre-flight that made the sync safe was one comparison: every body equalled i
 the move, so the only difference was the move itself and nothing written on GitHub could be lost. Nine open
 bodies were synced with the owner's yes and read back equal; closed #5 and #6 kept the paths they were built
 against.
+
+## The ticket the lane checker refused
+
+**Potluck live run, 2026-09-14 (playbook 1.46.0, `/build #9`).** `[M2-SLICE-02]` passed every `/tickets` check:
+each path resolved against `STRUCTURE.md`, each symbol against the contracts. Two of its Target Files still
+could not be written. The events adapter was told to map `CAPACITY_REFUSALS.slotsBelowClaims`, a constant in
+`claims/schema.ts`, and `scripts/check-lanes.mjs` refuses an events store importing the claims lane. The edit
+screen was `frontend/src/events/EditEventPage.tsx` calling `board/api.ts`, and a frontend lane may mount another
+lane's component, never its page or its `api.ts`. "The path exists" and "the file can be written there" are
+different checks; the ticket only ran the first. The build caught both at its lane gate and re-pathed: the two
+event-category codes moved to `events/schema.ts`, and Edit became a state of the host view mounting the events
+lane's form. That cost a design pass mid-build and five doc corrections (ticket, feature doc, `STRUCTURE.md`,
+`docs/contracts.md`, `docs/issues/README.md`), all findable at ticket time by reading each ticket's imports
+against the rule the repo already enforces.
