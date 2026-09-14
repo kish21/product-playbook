@@ -42,9 +42,34 @@ Decide **per milestone**, not once for the repo — and always *inside* the lane
 | **Vertical** (default lean) | The milestone has a user-visible surface · one full-stack codebase · early product where "show it working" matters. Each slice stays inside one lane where it can. |
 | **Horizontal** | A milestone that is mostly infrastructure with no user-visible surface · contracts already frozen in `#Contracts`, so layers can safely run in parallel. |
 
+## §Size by behaviour — the count follows, it is never a cap
+
+A fixed number of tickets per milestone forces bundling: a real milestone with seven behaviours squeezed
+into four tickets produces "admin edits a project and archives it and removes a member" — three reviews in
+one PR, and a longer dependency chain for everyone waiting on it. So size each ticket, and let the count
+fall out:
+
+1. **No count limit.** A milestone gets as many tickets as it has behaviours — two or twelve.
+2. **One ticket = one behaviour a user can see · one build session · one PR readable in about fifteen
+   minutes.** Fail any one and the ticket is too big.
+3. **The "and" test.** A title with "and" in it is usually two tickets — "create a quote and email it" is
+   *create a quote* · *email a quote*. Split it, or keep it and say in one line why the two cannot ship
+   apart (a delete that is meaningless without its confirm dialog). The proposal flags every such title.
+4. **No layer halves.** Split by behaviour, never by layer: "quote API" + "quote screen" is one behaviour
+   cut in two, neither half demoable. (Horizontal milestones keep their own one-layer rule, §Horizontal.)
+5. **The floor.** Never smaller than one visible behaviour — every `/build` session pays a fixed overhead
+   (reading the ticket, branch, gate, review, PR) of roughly twenty minutes, so a helper, a config key or a copy
+   tweak as its own ticket pays that cost for nothing a user can see. Fold it into the behaviour that needs it.
+
+How to find the behaviours: walk the feature from the user's side, one verb per ticket, inside its lane —
+a **quotes** lane might be *create a quote* · *edit a draft* · *send a quote* · *refuse an expired quote*;
+an **auth** lane *sign up* · *log in* · *log out* · *reset password* · *admin invites a member*. Refusals and
+empty states that a user meets are behaviours too; security is still a DoD line on every ticket, never its
+own ticket.
+
 ## §Vertical slicing (thin end-to-end increments)
-Split the milestone into **2–4 slices, each one user-observable behaviour**, going through whatever layers
-it needs. ID: `[M<milestone>-SLICE-<nn>]`.
+Split the milestone into **one slice per user-observable behaviour** (§Size by behaviour), each going through
+whatever layers it needs. ID: `[M<milestone>-SLICE-<nn>]`.
 
 Split along one of these seams — pick the one that yields the thinnest first slice:
 - **By user action** — "create a quote" · "export it" · "email it".

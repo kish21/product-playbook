@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Changed — `/tickets` sizes tickets by behaviour, not by count (#247)
+
+- **The 2–4 tickets per milestone cap is gone** from the skill's exit criterion, `references/slicing.md`
+  §Vertical slicing, both tickets evals and the `docs/how-it-works.md` row. A fixed count forced several
+  behaviours into one ticket on any real milestone — a PR nobody reviews in one sitting, and a longer chain
+  for everything that waits on it.
+- **New `slicing.md` §Size by behaviour** carries the five rules: no count limit · one ticket = one behaviour
+  a user can see, one build session, one PR readable in about fifteen minutes · a title with "and" is
+  usually two tickets · no layer halves (horizontal milestones keep their one-layer rule) · a floor of one
+  visible behaviour, because every build pays a fixed overhead. The rule itself sits in the skill's Step 1.
+- **Step 3A.1's proposal** shows one behaviour per ticket and flags any title containing "and" — a warning
+  to split or justify, not a block.
+- **`tools/check.py` `check_ticket_sizing`** fails on a count cap (any `N–M tickets/slices`) in the skill,
+  its slicing reference, its evals or the how-it-works row, and on any of the five rules going missing.
+
 ## [1.47.0] - 2026-09-14
 
 ### Removed — content that only made sense to the maintainer

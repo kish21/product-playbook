@@ -34,7 +34,7 @@ description: >
 - **Gate type:** `derivation` — computable from `#Plan` + `#Contracts`. Batchable - a `derivation` run may chain with its neighbours and end in ONE review. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes no spine section · `declined` ✓ · `override` ✓ · `superseded` n/a — writes `docs/issues/*`, not a spine section; a re-run skips tickets that already exist, so there is nothing in the spine to erase
 - **Exit criteria:**
-  - [ ] **Mode A:** every milestone in `#Plan` is decomposed into 2–4 tickets under a **stated slice strategy** (vertical or horizontal), recommended with a reason and **confirmed against the proposal SHOWN in full** (every ticket: ID · title · lane · owner); a set that changes after the yes is shown and confirmed again.
+  - [ ] **Mode A:** every milestone in `#Plan` is decomposed into **as many tickets as it has visible behaviours — no count cap** — under a **stated slice strategy** (vertical or horizontal), recommended with a reason and **confirmed against the proposal SHOWN in full** (every ticket: ID · title · lane · owner; a title with "and" flagged); a set that changes after the yes is shown and confirmed again.
   - [ ] **Lanes are modules** (`references/slicing.md`): every ticket carries `Lane` = a `STRUCTURE.md` module and an `Owner`; ordered inside a lane, parallel across; `docs/issues/README.md` carries the parallel table, coordination points and hub files.
   - [ ] **Filed on the Delivery Board** (`references/publishing.md`): every issue is a card with **Status, Owner, Lane, Seat** set and **read back**; labels `lane: <name>` + `owner: <role>`; no `project` scope → said in the close with the command that grants it, never half-stamped.
   - [ ] **Every `Depends On` is a GitHub *blocked by* link, read back** (`references/publishing.md` §Mirror the plan structure, *Dependencies*): prose in a body is not a dependency; a re-run adds the links an earlier publish left out.
@@ -68,9 +68,10 @@ description: >
 - **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** this phase owns no spine section, so its trace is ONE dated line at the top of `docs/issues/README.md` (create it if absent) — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and no ticket files are written; the next attempt **replaces** that line rather than appending to it.
 
 ## Step 1 — Apply principles (this phase)
-- **One ticket = one concern.** Concern is *not* a synonym for layer: vertically one thin user-observable
-  behaviour, horizontally one layer of one milestone. If a reviewer needs a second concern to approve the
-  PR, the split is wrong.
+- **One ticket = one concern; size by behaviour, never by count** (`references/slicing.md` §Size by behaviour).
+  Vertically: one behaviour a user can see · one build session · one PR readable in about fifteen minutes —
+  a milestone gets as many as it has. A title with "and" is usually two tickets; a layer half is never a
+  ticket; never smaller than one visible behaviour. Horizontally: one layer of one milestone.
 - **Never assume one builder.** Group by module first (§Lanes are modules), slice second: solo means every
   seat is the user's, and a lane can be handed to a friend or a second agent without re-planning.
 - **The strategy is a per-milestone decision, not a house style.** An infrastructure milestone with no
@@ -91,7 +92,8 @@ description: >
 ### 3A.1 — Group into lanes, choose the strategy, SHOW the proposal, then STOP
 **Load `references/slicing.md`.** Derive the lanes from `STRUCTURE.md` (§Lanes are modules), decide the
 strategy **per milestone** (§Choose the strategy), then **print the whole proposal** — every ticket as
-`ID · title · lane · owner · depends on`, grouped by lane, with the parallel table — and **wait for the
+`ID · title · lane · owner · depends on`, grouped by lane, one behaviour per ticket, **any title containing
+"and" flagged** (a warning to split or justify, not a block), with the parallel table — and **wait for the
 user's yes**. A yes is a yes to the list shown: a ticket added, dropped or merged afterwards is shown and
 confirmed again. (case file: Confirmed as proposed, never shown)
 If the invocation named a strategy, skip the strategy question, not the list.

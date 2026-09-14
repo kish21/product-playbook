@@ -211,6 +211,7 @@ def main() -> int:
     check_context_hygiene(files)
     # 24. /tickets groups by module lane, stamps the board, shows the list it confirms
     check_lanes_and_board(files)
+    check_ticket_sizing(files)
     # 25. a skill that composes a reviewer says the plain close is the run's last message
     check_close_is_last(files)
     # 26. a module folder is a complete lane; hub files are named; /build gates on the seat
@@ -975,6 +976,62 @@ def check_lanes_and_board(files: dict[str, Path]) -> None:
         if token not in pub:
             fail(f"tickets/references/publishing.md never mentions {token!r} - the board procedure, its "
                  f"permission scope and the lowercase read-back keys are what make the stamping real")
+
+
+# A fixed ticket count per milestone ("2-4 tickets", "3–5 slices"), in any dash. Matched wherever the
+# tickets skill is described, because the cap came back through the evals and the docs as easily as
+# through the skill itself.
+TICKET_CAP_RE = re.compile(r"\b\d+\s*(?:[-–—]|to)\s*\d+\s+[^\d.;|]{0,40}?\b(?:tickets|slices)\b")
+# The sizing rules (#247), as (token, where it must appear, what losing it means).
+SIZING_TOKENS = (
+    ("§Size by behaviour", "tickets Step 1", "the pointer from the rule to its mechanism"),
+    ("visible behaviour", "tickets Step 1", "the size unit - one behaviour a user can see"),
+    ('"and"', "tickets Step 1", 'the "and"-title rule'),
+    ("never smaller than one visible behaviour", "tickets Step 1", "the floor"),
+    ('"and"', "tickets Step 3A.1", 'flagging a title with "and" in the proposal the user confirms'),
+    ("## §Size by behaviour", "slicing.md", "the sizing mechanism"),
+    ("No count limit", "slicing.md", "rule 1 - no count cap"),
+    ("fifteen minutes", "slicing.md", "rule 2 - one behaviour, one session, one PR readable in ~15 min"),
+    ('The "and" test', "slicing.md", 'rule 3 - the "and" test'),
+    ("No layer halves", "slicing.md", "rule 4 - no backend-only or UI-only half"),
+    ("The floor", "slicing.md", "rule 5 - never smaller than one visible behaviour"),
+)
+
+
+def check_ticket_sizing(files: dict[str, Path]) -> None:
+    """24b. /tickets sizes tickets by behaviour; no fixed count per milestone survives anywhere it is described.
+
+    The exit criterion said every milestone becomes 2-4 tickets. On a real backlog that cap forced bundling:
+    one ticket carried three behaviours (edit, delete, remove another user's entry), another carried deploy,
+    a link preview and an accessibility audit - each a PR nobody could review in one sitting, each lengthening
+    the chain behind it (#247). The replacement is a size, not a number: one visible behaviour, one session,
+    one readable PR, an "and"-title flagged, no layer halves, and a floor so the fixed per-build overhead is
+    not paid for nothing. The check fails on any count cap in the skill, its slicing reference, its evals
+    and the how-it-works row, and on any of the five rules going missing.
+    """
+    skill = files["tickets"].read_text(encoding="utf-8")
+    slicing = (ROOT / "commands" / "tickets" / "references" / "slicing.md").read_text(encoding="utf-8")
+    evals = json.loads((ROOT / "evals" / "evals.json").read_text(encoding="utf-8"))
+    tickets_cases = json.dumps([c for c in evals.get("evals", []) if c.get("skill") == "tickets"],
+                               ensure_ascii=False)
+    how = (ROOT / "docs" / "how-it-works.md").read_text(encoding="utf-8")
+    how_lines = "\n".join(ln for ln in how.splitlines() if "/tickets" in ln)
+    for where, text in (("commands/tickets/SKILL.md", skill), ("tickets/references/slicing.md", slicing),
+                        ("evals/evals.json (tickets cases)", tickets_cases),
+                        ("docs/how-it-works.md (/tickets lines)", how_lines)):
+        m = TICKET_CAP_RE.search(" ".join(text.split()))
+        if m:
+            fail(f"{where} caps the ticket count ({m.group(0)!r}) - a fixed number per milestone forces "
+                 f"several behaviours into one ticket; size by behaviour and let the count follow")
+    step1 = re.search(r"^## Step 1\b(.*?)^## Step 2\b", skill, re.MULTILINE | re.DOTALL)
+    step3a1 = re.search(r"^### 3A\.1\b(.*?)^### 3A\.2", skill, re.MULTILINE | re.DOTALL)
+    regions = {"tickets Step 1": " ".join((step1.group(1) if step1 else "").split()),
+               "tickets Step 3A.1": " ".join((step3a1.group(1) if step3a1 else "").split()),
+               "slicing.md": " ".join(slicing.split())}
+    for token, where, what in SIZING_TOKENS:
+        if token not in regions[where]:
+            fail(f"{where} lost {what} (expected {token!r}) - without it the backlog drifts back to "
+                 f"bundled tickets that no one can review in one sitting")
 
 
 # Skills whose gate-closing region composes another skill that prints its own report. The report is the
