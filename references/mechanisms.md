@@ -1,13 +1,8 @@
 # MECHANISMS.md — the how, referenced by name from every skill
 
-> Split out of `PRINCIPLES.md` at v1.29.0, which had grown to 25.8KB against the ~15KB prune rule it
-> defines itself while **88% of it was mechanism, not principle**. `PRINCIPLES.md` is loaded by *every*
-> skill, so its size is the largest per-session attention cost in the system. **Nothing was deleted** —
-> these sections were already separable units the skills referenced by name (`§Declined runs`, `§Step 3c`,
-> …), so this was a relocation. `tools/check.py` fails a dangling `§` pointer and fails either file over
-> the size threshold. **This file is held to the prune rule it states:** the rule inline, at most a
-> sentence of mechanism with it, and situational mechanism in `MECHANISMS-ON-DEMAND.md`, which installs
-> beside it.
+> The mechanisms every skill references by name (`§Declined runs`, `§Step 3c`, …). The rule sits inline
+> with at most a sentence of mechanism; situational mechanism lives in `MECHANISMS-ON-DEMAND.md`, which
+> installs beside it.
 
 ## §Step 3b — closing the loop (every phase that writes)
 
@@ -73,7 +68,7 @@ when there is no repository to commit to. Every phase that writes ends with thes
    **Never create a remote**, and never push to one the user has not named.
 2. **Name the branch AND the repository root you are on.** A phase writing straight to `main`/`master`
    says so and offers a branch; the user may decline, and that is their call to make knowingly.
-   "committed on `main`" and "committed on `main` in `~/Downloads/Potluck`" cost the same line and only
+   "committed on `main`" and "committed on `main` in `~/projects/my-app`" cost the same line and only
    one of them lets a human see a commit landing in the wrong repository.
 3. **Offer the commit, message included** — one line, in the repo's existing convention, built from the
    run's own summary (`docs: lock Scope in PRODUCT.md (core feature, deferred + triggers, non-goals)`).
@@ -196,19 +191,3 @@ you resolved) or code-only (infer a **low-confidence, explicitly INFERRED** pict
 against a self-guessed baseline**). Both cases, and how a *writing* phase degrades gracefully, are in
 `MECHANISMS-ON-DEMAND.md` §Spine resolution (full) — **open it before resolving a spine from anything but
 `PRODUCT.md`.**
-
----
-
-## §Lane mode — when several agents build one repo (Lanekeeper)
-
-
-**Trigger:** the project has `.lanekeeper/config.yaml` or a root `lanes.yaml` (the policy), or the current
-worktree has a `.lane` file (this session IS one agent's seat). Either → **lane mode**, and the four rules
-in `MECHANISMS-ON-DEMAND.md` §Lane mode (full) apply to every phase — **open it before writing anything in
-a lane.** They fix, in one place: the ticket's file list *is* the lane, a lane is a module and never
-a technology layer, the spine gets exactly one writer, and the label form is `lane: <name>` with a space,
-on both the issue and the PR.
-
-**Outside lane mode nothing above applies** and every skill behaves as before.
-
----

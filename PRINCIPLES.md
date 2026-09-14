@@ -6,11 +6,10 @@
 >
 > **The mechanisms live next door, in `MECHANISMS.md`** (`references/mechanisms.md` in this repo;
 > installed beside `PRINCIPLES.md` as a companion) — §Step 3b · §Step 3c · §Re-run semantics ·
-> §Declined runs · §Seam · §Spine resolution · §Lane mode. **The harvested lessons live in
-> `LESSONS.md`** (`references/lessons.md`) — §Lessons baked in · §Lesson format.
+> §Declined runs · §Seam · §Spine resolution. **The harvested lessons live in
+> `LESSONS.md`** (`references/lessons.md`) — §Lessons baked in.
 > This file is loaded by every skill, so its size is the per-session attention cost of the whole
-> system; a rule that is followed has to be short enough to read. `tools/check.py` fails either file
-> over the size threshold, and fails a `§` pointer that resolves to nothing.
+> system; a rule that is followed has to be short enough to read.
 
 ---
 
@@ -70,7 +69,7 @@
   field: *decision, or the reasoning behind it?* Reasoning moves into a companion (`STRUCTURE.md`,
   `DESIGN.md`, `docs/adr/*`, `docs/runbook.md`, `docs/features/*`, `docs/<phase>.md`) and the pointer
   stays; a required field answered tightly stays whatever it weighs. Size is *reported*, never
-  *enforced*: a cap trims answers instead of relocating reasoning (#200). A spine full of reasoning gets
+  *enforced*: a cap trims answers instead of relocating reasoning. A spine full of reasoning gets
   grepped instead of read, and a phase that greps is how a standing open decision gets dropped.
 - **Then the pointer is binding** (`MECHANISMS.md` §Follow the pointer): every companion added is a new
   place a phase can find a signpost where it needed a definition. Splitting without that rule is worse
@@ -143,7 +142,7 @@ Exit criteria:
   (`docs/state-model.md` §2d). **input** — the answer exists only in the human, so it can **never** be
   batched or auto-answered; **derivation** — computable from prior sections, so a run may batch and end
   in one review; **verification** — pass/fail on repo evidence, batchable and **stops on red**. Declared
-  per skill and enforced by `tools/check.py`; a global auto-mode is rejected, with reasons, in
+  per skill; a global auto-mode is rejected, with reasons, in
   `docs/state-model.md` §3. **An input gate is a question, not an approval** — do not call it a
   confirmation.
 - **A `PRODUCT.md` section is in one of five declared states** — empty · declined · filled · overridden ·
@@ -156,5 +155,4 @@ Exit criteria:
   `Override <date>: <reason> — bypassed <gate>` line in this phase's own section. A *warning* is
   informational and needs no ceremony; an *override* advances the project on unmet criteria — the more
   consequential of the two — so it is the one that must leave a trace. **One rule, one home:** the form and
-  the reading of it are defined in §Declined runs; this is the pointer, not a second copy. Enforced by
-  `tools/check.py` check 9, which reads the Step 0 body, not its heading.
+  the reading of it are defined in §Declined runs; this is the pointer, not a second copy.

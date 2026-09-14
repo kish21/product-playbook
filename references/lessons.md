@@ -1,9 +1,6 @@
 # LESSONS.md — what went wrong before, stated as rules
 
-> Split out of `PRINCIPLES.md` at v1.29.0 alongside `MECHANISMS.md`. These are harvested from real
-> projects rather than derived from a principle, they grow every time something breaks, and they are
-> read on demand — which is exactly why they must not sit in the file every session loads verbatim.
-> §Lesson format is the rule that governs how the list above it is written, so the two travel together.
+> Rules learned from real projects rather than derived from a principle, read on demand.
 ## §Lessons baked in (generalised from real project struggles)
 
 
@@ -35,7 +32,7 @@ Phrased generically so they apply to any project:
   against its own stated rules first — that list is free, specific, and nobody else will run it.
 - **Proving a new check fails first is also a test of the FAILURE path** — the run that turns it red is
   usually the only time the error branch ever executes, so a crash there hides until the day something
-  actually breaks (case: check 14's proof run died printing a `→` on a cp1252 console, inside the
+  actually breaks (case: a check's proof run died printing a `→` on a cp1252 console, inside the
   reporter, on the one code path that reports problems — invisible in Linux CI).
 - **A heading is not a behaviour** — a section titled for a check (`prior-gate check`, `validation`,
   `retry`) is read by everyone as proof the check exists, so nobody looks inside; assert on the BODY
@@ -45,20 +42,3 @@ Phrased generically so they apply to any project:
 - **Every "done" records HOW it was verified** — evidence, not just "done".
 - **Multi-tenant isolation at DB *and* app (defense-in-depth)** — one missing scope filter is a silent cross-tenant leak.
 - **Policy-as-code: "parses" ≠ "governs"** — a syntactically-valid but ruleless policy (comments-only / zero statements) silently degrades to the engine's default (deny-all, or worse allow-all); load-validate that it defines ≥1 rule and fail-loud. Build the authz query from **escaped identifiers + structured request/entity objects**, never string-interpolated into policy text — a crafted name (tool/resource/role) is an injection point like SQL. Default-deny; any eval error / no-decision → **deny**.
-
-## §Lesson format — rule up front, story in the case file
-
-
-Skills are loaded verbatim into every session that runs them, so their size is a per-session cost
-and an attention cost: a checklist of sharp one-liners gets followed; a wall of war stories gets
-skimmed. Therefore every harvested lesson is written in two parts:
-
-- **In the skill file:** the **bold one-line rule** plus at most one sentence of mechanism — enough
-  to act on, nothing more.
-- **In `references/case-files-<skill>.md`:** the full war story, verbatim, under its own heading,
-  pointed to from the rule as `(case file: <heading>)`. Opened on demand, never auto-loaded.
-- **A rule that applies only SOMETIMES moves into the skill's OWN `commands/<skill>/references/`, never into a case file.** A case file is repo-only evidence — `install.sh` does not ship it — so a rule parked there is gone for every installed user, while a directory-form skill's `references/` installs beside `SKILL.md` and is size-exempt precisely because it is opened on demand. (case file: The prune that would have deleted the rules)
-
-Gardening cadence: roughly every 10 merged lessons (or when a skill file passes ~15KB), run a prune
-pass — condense, merge overlapping rules, retire ones that stopped earning their place. A lesson
-that can't be stated as one bold line isn't distilled enough to be a rule yet.

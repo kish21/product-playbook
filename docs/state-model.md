@@ -1,6 +1,6 @@
 # `PRODUCT.md` as a declared state machine — and gates classified by where the answer lives
 
-> Design note, v1.31.0. Follows the `docs/lane-mode.md` precedent: the problem, the contract, what it
+> Design note, v1.31.0. The shape of a design note: the problem, the contract, what it
 > touches, what is verified. Closes #126 and #121, which are one piece of work — both declare something
 > the repo already does implicitly, and both enforce the declaration in `tools/check.py` in the style of
 > check 9. They share one syntax on purpose; two declaration formats in one skill file would be worse

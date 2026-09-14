@@ -52,7 +52,6 @@ description: >
   - [ ] Ticket IDs are **globally unique** across milestones (`[M2-SLICE-01]`, `[M2-TICK-01]`), so dedup is reliable on re-run.
   - [ ] **Mode B:** an ad-hoc issue is filed against the owning file with a reproduction, and **no backlog ticket is created, renumbered or modified**.
   - [ ] **Pre-flight remote verification executed** — no remote repository is ever created.
-  - [ ] **Lane mode** (MECHANISMS.md §Lane mode — Lanekeeper present): every ticket's Target Files include **everything the build writes** (feature doc + tests) and **never a spine file**; a horizontal strategy carries a **recorded reason**; the playbook's PR template is **not** written (Lanekeeper owns it).
 
 ## Step 0 — Context + prior-gate check
 - Read `#Plan`, `#Contracts`, `#Architecture` and `STRUCTURE.md`. **Then open the schema files
@@ -82,7 +81,7 @@ description: >
 
 ## Step 2 — Provision templates + pre-flight remote guard (both modes)
 **The four guards, one line each — procedure in `references/publishing.md` §Provision and pre-flight:**
-1. **Templates — one master per file, never overwritten.** Copy the bundled issue template if the project has none; **in lane mode do not write a PR template** — Lanekeeper owns it (§Lane mode rule 4).
+1. **Templates — one master per file, never overwritten.** Copy the bundled issue and PR templates if the project has none.
 2. **Remote guard — NEVER blindly create a remote repository.** No remote, or `gh` not authenticated → write `docs/issues/` only and say so. **Do not run `gh repo create`.**
 3. **Capability pre-flight — a half-published backlog is worse than none.** Issues, milestones, labels and the board (`project` scope) are separate permissions: check all four **before publishing anything**, then let the user choose degrade-with-a-warning or publish nothing.
 4. **Dedup index + numbering.** Fetch the existing issues once; match by **ID tag** first, exact title second; skip a match, never edit or close it. Next number = `docs/issues/` **and** that list together, so a partial publish cannot reuse an ID.
@@ -139,6 +138,4 @@ Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decis
 one person or agent. Inside a lane the tickets go in order (slice 1 is the walking skeleton; horizontal
 tickets contract-first); lanes run side by side. Alone? Every seat is yours — run **`/build`** on the
 first ticket, one ticket per session. With help, set the board's Seat per lane and hand it over — a card
-that reads *Blocked by #n* is not startable until #n closes; in lane
-mode, Lanekeeper takes the tickets (`lanekeeper start` / `spawn --ticket <n>`) — each ticket's file list
-is its lane."
+that reads *Blocked by #n* is not startable until #n closes."

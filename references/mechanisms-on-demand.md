@@ -28,37 +28,6 @@ it); `/vision`+`/scope` suits a project that is really starting over.
 to the user (and offering to create/append a spine) over forcing a `PRODUCT.md` the project never opted
 into. A skill that *creates* `PRODUCT.md` by design (e.g. `/vision`) keeps doing so.
 
-## §Lane mode (full) — the four rules
-
-
-**Trigger:** the project has `.lanekeeper/config.yaml` or a root `lanes.yaml` (the policy), or the current
-worktree has a `.lane` file (this session IS one agent's seat). Outside lane mode **nothing here applies**
-and every skill behaves as before. The companion tool is
-[Lanekeeper](https://github.com/kish21/parallel-agents): *product-playbook writes the work down;
-Lanekeeper divides it up and gates every PR to its lane.*
-
-1. **The ticket's file list IS the lane.** Lanekeeper reads the `Target Files` / `Allowed File Paths`
-   section of the issue as the boundary, and a `Lane` heading as the module name. A ticket with no files
-   has no safety guarantee; a ticket that lists a *folder* has a boundary too wide to protect anyone.
-   Exact paths, always — and the paths a ticket names must include **everything the build will write**,
-   feature doc included.
-2. **A lane is a module (a feature area), never a technology layer.** Vertical tickets sit inside one lane by construction. A
-   horizontal (per-layer) ticket turns one feature into N lanes and makes every change a collision — in
-   lane mode the default is vertical, and horizontal needs a recorded reason.
-3. **The spine is a shared file — it gets ONE writer.** `PRODUCT.md`, `CHANGELOG.md`, `STRUCTURE.md` and
-   the policy files sit outside every lane; a lane PR that touches them fails the gate (or merge-conflicts
-   with every other lane). Inside a lane, a skill writes only lane-owned files
-   (`docs/features/<feature>.md`); the spine rows are **reconciled by the integrating session** on the
-   base branch (`/dev-check` for the Build log, `/ship` for the Ship log + CHANGELOG). The alternative — a
-   declared `shared:` zone for the spine with `merge=union` — is the user's explicit choice, never a
-   default.
-4. **The PR carries its lane — and so does the issue.** The label form is **`lane: <name>`, with a
-   space**, on **both** the issue (`/tickets` applies it at publish) and the PR. One spelling, stated
-   here, because Lanekeeper's gate fails closed without exactly one label: a second spelling (`lane:auth`)
-   would split filtering in half. Every lane PR is labelled `lane: <name>` and passes `lanekeeper check`
-   before it is opened. Lanekeeper owns the **PR template** and the gate workflow; product-playbook owns
-   the **issue template**. Neither overwrites the other's file.
-
 ## §Re-run semantics (full) — a second run must not erase the first
 
 
@@ -155,7 +124,7 @@ Read: docs/scope.md (2026-09-12) — "no accounts for the organiser either"
 **There is no byte cap on `PRODUCT.md` or on any section.** A cap produces trimming, not relocation: on a
 live run `#Vision` was "trimmed twice to squeeze under" a number, landed at 14 required fields of ~360
 bytes each with nothing left to move, and the spine shrank by 30 bytes. The template's own 95 required
-fields make its old 25KB total unreachable by construction (#200). The instrument is the **record test**.
+fields make its old 25KB total unreachable by construction. The instrument is the **record test**.
 
 **After writing, before closing the gate:**
 

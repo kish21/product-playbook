@@ -62,7 +62,6 @@ Walk the principles and prove each against the files just written — do not ass
 - **Security DoD present** on every ticket, including the ad-hoc ones.
 - **Independently mergeable.** For each ticket ask: could one developer open a PR containing only these
   files and have it reviewed on its own? **If not, the split is wrong — STOP and re-split before publishing.**
-- **Lane mode:** no ticket lists a spine file; every ticket lists its feature doc and tests; two tickets that
-  name the same file are either **dependants through a contract** (fine — `Depends On` says so) or a
-  **collision** (STOP: re-split, or name the shared file so Lanekeeper can declare it a `shared:` zone).
-  A horizontal milestone has its reason recorded. No `PULL_REQUEST_TEMPLATE.md` was written.
+- **No ticket lists a spine file; every ticket lists its feature doc and tests.** Two tickets that name the
+  same file are either **dependants through a contract** (fine — `Depends On` says so) or a **collision**
+  (STOP: re-split, or list the file as a hub file).

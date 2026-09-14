@@ -371,7 +371,7 @@ COUNT_PATTERNS = (
 POINTER_FILES = {"PRINCIPLES.md": "PRINCIPLES.md", "MECHANISMS.md": "references/mechanisms.md",
                  "MECHANISMS-ON-DEMAND.md": "references/mechanisms-on-demand.md",
                  "LESSONS.md": "references/lessons.md"}
-# ~15KB is the prune threshold MECHANISMS.md §Lesson format sets for everyone; it is enforced on the
+# ~15KB is the prune threshold CONTRIBUTING.md §Lesson format sets for everyone; it is enforced on the
 # governing files every session loads AND on every skill file. The exemption set is EMPTY (#138): build,
 # tickets and design-system were the three holdouts, and each was pruned by moving on-demand mechanism
 # into its own `references/` companion rather than by widening the rule. A directory-form skill's
@@ -1043,7 +1043,7 @@ def check_module_is_a_lane(files: dict[str, Path]) -> None:
     the frontend was by tool throughout. /tickets then named index.ts in seven of fifteen tickets, and
     the backlog could not be split between two people however it was grouped - the folders each person
     would change were the shared ones. The rule is one registry line per module and everything else
-    inside the module; the hub files are named in STRUCTURE.md so /tickets and Lanekeeper can treat
+    inside the module; the hub files are named in STRUCTURE.md so /tickets can treat
     them as shared, and check_structure.py verifies each exists. On the /build side, MarkVid's
     /jr-ticket refuses a ticket whose owner label is not its own - lane ownership is a gate.
     """
@@ -1063,7 +1063,7 @@ def check_module_is_a_lane(files: dict[str, Path]) -> None:
     tmpl = (ROOT / "templates" / "check_structure.py").read_text(encoding="utf-8")
     if "Hub files" not in tmpl:
         fail("templates/check_structure.py does not verify the Hub files section - a hub file that moved "
-             "leaves /tickets and Lanekeeper pointing at nothing")
+             "leaves /tickets pointing at nothing")
     build = files["build"].read_text(encoding="utf-8")
     m = re.search(r"^## Step 0\b(.*?)^## Step 1\b", build, re.MULTILINE | re.DOTALL)
     step0 = m.group(1) if m else ""

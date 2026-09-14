@@ -46,7 +46,7 @@ seven of the fifteen. The skill had optimised for "show it working after every m
 considered that the same work, grouped by the modules `STRUCTURE.md` already drew, would have let a
 solo builder hand any module to a friend on the day they wanted to — at no cost to the solo case.
 
-## The base MarkVid runs on
+## The base a real product runs on
 
 **MarkVid, 2026-09 (60+ cards).** Every ticket is a card on one board with four single-select fields:
 **Lane** (the code area — `Images`, `Auth`, `Assembly`), **Owner** (`Senior` or `Junior`, "follows the
