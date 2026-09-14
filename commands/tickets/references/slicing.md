@@ -58,8 +58,8 @@ fall out:
 4. **No layer halves.** Split by behaviour, never by layer: "quote API" + "quote screen" is one behaviour
    cut in two, neither half demoable. (Horizontal milestones keep their own one-layer rule, §Horizontal.)
 5. **The floor.** Never smaller than one visible behaviour — every `/build` session pays a fixed overhead
-   (reading the ticket, branch, gate, review, PR) of roughly twenty minutes, so "add the button" and "wire
-   the button" as two tickets doubles that cost for nothing a user can see.
+   (reading the ticket, branch, gate, review, PR) of roughly twenty minutes, so a helper, a config key or a copy
+   tweak as its own ticket pays that cost for nothing a user can see. Fold it into the behaviour that needs it.
 
 How to find the behaviours: walk the feature from the user's side, one verb per ticket, inside its lane —
 a **quotes** lane might be *create a quote* · *edit a draft* · *send a quote* · *refuse an expired quote*;
