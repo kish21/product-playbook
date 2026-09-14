@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.48.0] - 2026-09-14
+
 ### Changed — `/tickets` sizes tickets by behaviour, not by count (#247)
 
 - **The 2–4 tickets per milestone cap is gone** from the skill's exit criterion, `references/slicing.md`
