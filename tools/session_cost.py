@@ -11,9 +11,11 @@ Usage:  python tools/session_cost.py [<session>.jsonl]            # default: new
 
 Reads `message.usage` on assistant rows, de-duplicated by message id (a streamed reply is logged in
 several rows). Wall clock is first->last timestamp, so it includes the time the user spent answering.
-Agent working time is wall clock minus every wait that ended in the user's input - a typed reply or an
-answered question card; a background job's notification is the agent's own wait and stays in. It is the
-figure `/playbook` §Sitting lengths quotes, so a run measured here compares with that table.
+Agent working time is wall clock minus every wait that ended in the user's input - a typed reply, an
+answered question card or an approved plan; a background job's notification is the agent's own wait and stays
+in. It is the figure `/playbook` §Sitting lengths quotes, so a run measured here compares with that table. A
+tool permission prompt leaves no row of its own, so time spent approving a tool counts as working time here;
+the table's runs had no such waits.
 Rates default to Opus 5 list prices; pass --rates for another model. Stdlib only.
 """
 import argparse
@@ -44,11 +46,12 @@ def newest_log(project: Path) -> Path:
 
 
 FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
+USER_ANSWERED = ("AskUserQuestion", "ExitPlanMode")  # tools whose result is the user's answer, not the agent's work
 
 
 def is_user_input(row: dict, question_ids: set) -> bool:
     """Of the conversation rows measure() passes in, one the user produced: a typed message (not a background
-    job's notification) or the answer to a question card. Tool results are the agent's own work."""
+    job's notification) or the answer to a question card or plan. Other tool results are the agent's own work."""
     if row.get("type") != "user":
         return False
     content = (row.get("message") or {}).get("content")
@@ -76,7 +79,7 @@ def measure(log: Path) -> dict:
         ts = row.get("timestamp")
         if ts:
             first = first or ts
-            last = ts
+            last = max(last, ts) if last else ts  # rows are not always logged in time order
         # Only the conversation moves the clock: an attachment, queue or meta row logged beside a reply must not
         # shorten the wait that reply ends, nor count as the user's input.
         if ts and row.get("type") in ("assistant", "user") and not row.get("isMeta"):
@@ -100,6 +103,7 @@ def measure(log: Path) -> dict:
                 tools[block["name"]] = tools.get(block["name"], 0) + 1
                 if block["name"] == "AskUserQuestion":
                     questions += 1
+                if block["name"] in USER_ANSWERED:
                     question_ids.add(block.get("id"))
     minutes = 0.0
     if first and last:

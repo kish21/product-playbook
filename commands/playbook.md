@@ -81,9 +81,9 @@ questions and ends with a check before moving on — you stay in control.
 ## Step 2 — Run the next phase (one at a time)
 1. Tell the user the next phase in plain language: *what it does and why it matters now.*
    - **Say how long a sitting it is, and when to start it** — on every offer, one phase or a batch. Quote the
-     phase's row in §Sitting lengths below with the version it was measured on: *"`/foundation` is a long
-     sitting: about <its row> of the agent working, plus the time you take to answer — measured on playbook
-     <version>."* A row that reads `not measured yet` is said as exactly that, never estimated. Then: *"Start
+     phase's row in §Sitting lengths below with the version it was measured on: *"`/<phase>` takes <its row,
+     as written>: the agent's working time on playbook <version>, plus your own time answering and
+     reviewing."* A row that reads `not measured yet` is said as exactly that, never estimated. Then: *"Start
      it with room left on your plan: a run a usage limit cuts off mid-review loses review steps."* No prices —
      what a run costs depends on the user's plan.
    - **Offer a batch when it is legal — and only then** (`MECHANISMS-ON-DEMAND.md` §Batch mode): the next
@@ -109,14 +109,14 @@ also run any single phase skill directly (e.g. `/test`) without `/playbook`.
 ## Sitting lengths — the figures every offer quotes, kept only here
 
 **Agent working time from a phase's start to its close**, read from the session logs of logged test runs on
-small web apps. Waits for the user's replies and answers are left out, so a user adds their own answering
-time, and a bigger product runs longer. Rounded to 5 minutes; a range spans the runs and names the playbook
+small web apps. Waits for the user's replies, answers and tool approvals are left out, so a user adds their
+own, and a bigger product runs longer. Rounded to 5 minutes; a range spans the runs and names the playbook
 versions they ran on. Only a run that reached its phase's close counts: a declined, gate-failed or interrupted
 run is a different sitting. A release that changes how long a phase runs re-measures it and updates its row —
 no other file carries these figures. **No prices:** what a run costs depends on the user's plan, and a
 subscription meets a usage limit, not a bill. To measure a run of your own:
 `python "${CLAUDE_PLUGIN_ROOT}/tools/session_cost.py" --project .` (from a clone: `tools/session_cost.py`) —
-its *agent working* line is this figure.
+its *agent working* line is this figure, except that it counts time spent approving a tool.
 
 | Phase | Sitting — agent working time | Measured on | Runs |
 |---|---|---|---|
@@ -127,7 +127,7 @@ its *agent working* line is this figure.
 | `/plan` | about 10 min | 1.40.1 | 1 |
 | `/architect` | about 15 min | 1.40.1 | 1 |
 | `/structure` | about 20 min | 1.40.1 | 1 |
-| `/design-system` | about 20 min, plus your look at the sample page | 1.40.1 | 1 |
+| `/design-system` | about 20 min | 1.40.1 | 1 |
 | `/foundation` | about 50 min | 1.40.1 | 1 |
 | `/contracts` | about 50 min | 1.40.1 | 1 |
 | `/tickets` | about 20 min | 1.40.1 | 1 |

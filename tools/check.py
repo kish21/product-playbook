@@ -1787,16 +1787,24 @@ def check_session_cost_working_time() -> None:
         {"type": "attachment", "timestamp": at("10:55")},
         # the user types 19 minutes after the agent's last message; neither row above shortens that wait
         {"type": "user", "timestamp": at("11:00"), "message": {"content": "ok"}},
-        {"type": "assistant", "timestamp": at("11:02"), "message": {"id": "m4", "content": [{"type": "text", "text": "y"}]}},
+        {"type": "assistant", "timestamp": at("11:02"), "message": {"id": "m4", "content": [
+            {"type": "tool_use", "id": "p1", "name": "ExitPlanMode", "input": {}}]}},
+        # the user approves the plan 8 minutes later: a wait for the user
+        {"type": "user", "timestamp": at("11:10"), "message": {"content": [
+            {"type": "tool_result", "tool_use_id": "p1", "content": "approved"}]}},
+        {"type": "assistant", "timestamp": at("11:12"), "message": {"id": "m5", "content": [{"type": "text", "text": "y"}]}},
+        # the file's last row was logged out of time order: the wall clock still ends at 11:12
+        {"type": "assistant", "timestamp": at("11:11"), "message": {"id": "m5", "content": [{"type": "text", "text": "y"}]}},
     ]
     with tempfile.TemporaryDirectory() as tmp:
         log = Path(tmp) / "session.jsonl"
         log.write_text("\n".join(json.dumps(r) for r in rows) + "\n", encoding="utf-8")
         got = module.measure(log)
-    if (got.get("minutes"), got.get("working"), got.get("questions")) != (62.0, 23.0, 1):
+    if (got.get("minutes"), got.get("working"), got.get("questions")) != (72.0, 25.0, 1):
         fail(f"tools/session_cost.py measured wall {got.get('minutes')} / agent working {got.get('working')} / "
-             f"questions {got.get('questions')} on the fixture, not 62.0 / 23.0 / 1 - the working time must leave "
-             f"out waits for the user's reply or answer and keep the agent's own waits")
+             f"questions {got.get('questions')} on the fixture, not 72.0 / 25.0 / 1 - the wall clock ends at the "
+             f"newest row, and the working time leaves out waits for the user's reply, card answer or plan "
+             f"approval while keeping the agent's own waits")
 
 
 if __name__ == "__main__":
