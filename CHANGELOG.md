@@ -5,9 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.52.0] - 2026-09-15
+
 ### Fixed — `/vision` records every search its market read ran, and Step 3b checks the named comparables against that list (#252)
 
-- **Every search goes in `docs/vision.md`, one line each: query · what it settled** (the comparables it
+- **`/vision` records every search in `docs/vision.md`, one line each: query · what it settled** (the comparables it
   verified, the insight it gave, or "nothing"). A comparable named without a search gets its own line saying
   where the name came from. Before this, Step 3b's check that the read *"cites real named products (not from
   memory)"* was an assertion. A logged test run wrote three queries on one line above eight comparables and
