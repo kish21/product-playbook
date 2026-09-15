@@ -5,9 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.51.0] - 2026-09-15
+
 ### Fixed — `/foundation` shows the skeleton booting after Step 2 item 1, and Step 3b cites a boot only under `/build`'s condition (#251)
 
-- **Step 2 item 1 ends by proving the app boots.** Item 1 already produced an app with a health path, but nothing told
+- **`/foundation` proves the app boots right after Step 2 item 1.** Item 1 already produced an app with a health path, but nothing told
   the run to show it. On a logged run the first boot came at call 133 of 229, 22 minutes in, with most of the
   skeleton built on top of it. Now the run hits the health path at the end of item 1 and prints one plain line
   saying the app runs and how to see it. It stops whatever it started, and a failed boot is fixed before item 2.
