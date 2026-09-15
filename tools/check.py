@@ -1367,7 +1367,9 @@ def check_audit_engine_behaviour() -> None:
         return tuple(int(n) for n in re.findall(r"\d+", v))
 
     older = "1.9.0" if as_tuple(current) > (1, 9, 0) else "0.0.1"
-    with tempfile.TemporaryDirectory() as tmp:
+    # A non-ASCII folder on purpose: git prints UTF-8, and a Windows console decoding it as cp1252 garbles
+    # the path, so a copy stops recognising itself.
+    with tempfile.TemporaryDirectory(prefix="audit-José-") as tmp:
         t = Path(tmp)
 
         def run(script: Path, *targets: str) -> subprocess.CompletedProcess:
@@ -1418,6 +1420,17 @@ def check_audit_engine_behaviour() -> None:
         if r.returncode == 0 or "engine copy:" in r.stdout:
             fail("audit engine: the project copy (as a hook/CI runs it) must fail on the planted ERROR "
                  "and must not report on itself")
+
+        # A team copy install (`install.sh --project`) COMMITS the installed engine under .claude/commands/.
+        # It matches the copy's path ending too, and must still judge the project's copy, not go quiet.
+        skill_engine = t / ".claude" / "commands" / "frontend-audit" / "audit.py"
+        skill_engine.parent.mkdir(parents=True, exist_ok=True)
+        skill_engine.write_text(engine, encoding="utf-8")
+        put_copy(older, "\n# an older engine\n")
+        r = run(skill_engine, "ui")
+        if f"is {older}, OLDER" not in r.stdout:
+            fail("audit engine: an engine committed by a project-level copy install (.claude/commands/) took "
+                 "itself for the project copy and never reported the older copy hooks and CI run")
 
 
 if __name__ == "__main__":

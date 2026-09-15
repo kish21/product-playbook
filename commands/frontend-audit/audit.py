@@ -394,17 +394,19 @@ def engine_copy_notes():
     gates check different laws, so say so. Informational: never changes the pass/warn/error counts.
     """
     here = os.path.realpath(__file__)
+    git = dict(capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10)
     try:
-        top = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True,
-                             timeout=10)
+        top = subprocess.run(["git", "rev-parse", "--show-toplevel"], **git)
         if top.returncode != 0:
             return ["engine copy: not checked - not inside a git project"]
         root = top.stdout.strip()
-        listed = subprocess.run(["git", "-C", root, "ls-files", "-z", "--", COPY_PATHSPEC],
-                                capture_output=True, text=True, timeout=10)
+        listed = subprocess.run(["git", "-C", root, "ls-files", "-z", "--", COPY_PATHSPEC], **git)
     except (OSError, subprocess.SubprocessError) as exc:
         return [f"engine copy: not checked - git unavailable ({exc.__class__.__name__})"]
-    copies = [os.path.realpath(os.path.join(root, p)) for p in listed.stdout.split("\0") if p]
+    # A project-level copy install commits the INSTALLED engine under .claude/commands/ - that is a skill,
+    # not the copy the hooks and CI run, so it is never the thing being judged.
+    copies = [os.path.realpath(os.path.join(root, p)) for p in listed.stdout.split("\0")
+              if p and "/.claude/" not in "/" + p]
     if os.path.normcase(here) in {os.path.normcase(c) for c in copies}:
         return []  # this IS the project's copy, running in a hook or CI
     if not copies:
