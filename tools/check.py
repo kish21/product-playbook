@@ -1280,7 +1280,7 @@ def check_vision_search_record(files: dict[str, Path]) -> None:
     """33. /vision records every search its market read ran, with no count, and Step 3b checks the named comparables
     against that list.
 
-    Potluck's /vision (2026-09-12) wrote its three queries on one line above a table of eight comparables and ten
+    A logged /vision test run wrote its three queries on one line above a table of eight comparables and ten
     source links, and nothing said which search verified which product. Step 3b's "real named products (not from
     memory)" was an assertion. #252 first proposed /architect's bound (one search per comparable). The owner's
     re-review of seven logged runs found 1-4 searches each, so a bound saves nothing, and two of the 4-search runs

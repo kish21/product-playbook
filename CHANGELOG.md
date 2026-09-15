@@ -10,8 +10,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 - **Every search goes in `docs/vision.md`, one line each: query · what it settled** (the comparables it
   verified, the insight it gave, or "nothing"). A comparable named without a search gets its own line saying
   where the name came from. Before this, Step 3b's check that the read *"cites real named products (not from
-  memory)"* was an assertion. Potluck's run wrote three queries on one line above eight comparables and ten
-  links, and nothing said which search verified which product.
+  memory)"* was an assertion. A logged test run wrote three queries on one line above eight comparables and
+  ten links, and nothing said which search verified which product.
 - **Step 3b checks the read's comparables name by name against that list.** A name that no search settled and
   that has no line of its own is sent back: search it, or record where it came from. A new exit criterion
   holds the record, cited to `Current-year market`. The template's field now points at the list.
