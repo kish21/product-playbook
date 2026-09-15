@@ -11,11 +11,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
   since*, and "its files" was a judgement call. A real build ran `/frontend-audit`, then a review fix rewrote
   the form it had checked. The build re-ran CI and the journey, cited the old audit, and reviewed nothing. The
   condition is now: **re-run a check when any code, config or test file changed after its evidence was
-  captured; a review fix counts, a doc-only change does not.** It is read from git (`git diff --name-only
-  <commit>`, working tree included), so a scripted edit counts, and the reviews re-run over the fixes as
-  `/ship` Step 2 already does. `/foundation` Step 3b takes the same sentence in #251.
-- **`tools/check.py` check 30** holds the sentence word for word, the git read and the review re-run in
-  `/build`, and fails on the old *only when its files changed* wording in any skill. Case file: *The audit the
+  captured; a review fix counts, a doc-only change does not.** The answer comes from git, not memory:
+  evidence counts for the commit it ran on, taken with no uncommitted code; evidence taken on uncommitted
+  work has no fixed point and is re-run. What changed since is `git diff --name-only <commit>` plus the
+  untracked files, so a scripted edit or a new test file counts. The reviews re-run over the fixes, as `/ship`
+  Step 2 already does. `/foundation` Step 3b takes the same sentence in #251.
+- **`tools/check.py` check 30** holds the sentence word for word in `/build`, along with the git read, the
+  fixed point, the untracked files and the review re-run. It also fails on the old *only when its files
+  changed* wording in any skill. Case file: *The audit the
   review fix outran*. Eval: `build-review-fix-reruns-the-checks`.
 
 ## [1.49.0] - 2026-09-15
