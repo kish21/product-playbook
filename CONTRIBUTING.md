@@ -6,6 +6,15 @@
 4. Run `python tools/check.py` (the CI consistency gate), commit, and open a PR (master requires the `check` to pass).
 5. Run `/drift-check` on this repo to verify nothing drifted.
 
+## No project is named
+
+The playbook ships to people building every kind of product, so no real project — a test project, the
+maintainer's own tools, a user's repo — is named anywhere in this repo: skills, references, case files, evals,
+templates, docs, `tools/`, the CHANGELOG. Write evidence as *"a logged test run"* and keep its dates, counts and
+failures; make every example in a rule an invented one. Check 34 in `tools/check.py` enforces it. It reads the
+names from `PLAYBOOK_PRIVATE_NAMES` (comma-separated, one entry per spelling) so the list never enters the repo:
+CI takes it from the repository secret of that name, and a local run skips the check unless you set it.
+
 ## §Lesson format — rule up front, story in the case file
 
 Skills are loaded verbatim into every session that runs them, so their size is a per-session cost

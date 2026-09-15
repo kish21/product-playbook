@@ -79,6 +79,7 @@ Checks:
 """
 from __future__ import annotations
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -232,6 +233,8 @@ def main() -> int:
     check_foundation_boot_evidence(files)
     # 33. /vision records every search its market read ran, with no count, and 3b checks the comparables against it
     check_vision_search_record(files)
+    # 34. no private project is named anywhere in the repo; the names come from the environment, never the repo
+    check_no_private_names()
 
     return done(len(cmds))
 
@@ -1601,6 +1604,58 @@ def check_foundation_boot_evidence(files: dict[str, Path]) -> None:
     for token, what in FOUNDATION_GUARD_PROOFS:
         if token not in flat3b:
             fail(f"foundation Step 3b lost {what} (expected {token!r}) - a guard is proven by making it fire")
+
+
+# Check 34 (#270). The names live outside the repo, or the check would break the rule it holds.
+PRIVATE_NAMES_ENV = "PLAYBOOK_PRIVATE_NAMES"             # comma-separated; CI reads the repository secret of this name
+PRIVATE_NAMES_REQUIRED_ENV = "PLAYBOOK_PRIVATE_NAMES_REQUIRED"  # "true"/"false"; unset means true in CI, false locally
+
+
+def repo_files() -> list[str]:
+    """Every file git would commit: tracked, plus untracked files not ignored, so a new file is checked before `git add`."""
+    import subprocess
+    out = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+                         cwd=ROOT, capture_output=True, check=True).stdout.decode("utf-8")
+    return sorted({p for p in out.split("\0") if p})
+
+
+def check_no_private_names() -> None:
+    """34. No private project is named anywhere in the playbook - not in a file, not in a file's path (#270).
+
+    The playbook ships to people building every kind of product. Case files, check docstrings, rule examples,
+    evals, a case study and CHANGELOG history had named the maintainer's own test projects and tools on about
+    seventy lines: context no user can act on, and a general rule that reads as tuned to one project. Evidence
+    is written as "a logged test run" and examples are invented.
+
+    The names are not stored here. They come from PRIVATE_NAMES_ENV and match case-insensitively at the start
+    of a word, so a plural or a possessive is caught; list each spelling (a hyphenated and a spaced one are two).
+    With no names the check can pass nothing, so it FAILS wherever names are required - in CI by default - and a
+    local run says it skipped. CI marks names not required only for a fork's pull request, which GitHub gives no
+    secrets; the push to master after the merge runs it with them. A hit is reported by path, line and the name's
+    position in the list, never by the name, so a CI log does not publish it.
+    """
+    names = [n.strip() for n in os.environ.get(PRIVATE_NAMES_ENV, "").split(",") if n.strip()]
+    if not names:
+        default = "true" if os.environ.get("CI") else "false"
+        if os.environ.get(PRIVATE_NAMES_REQUIRED_ENV, default).strip().lower() != "false":
+            fail(f"check 34: {PRIVATE_NAMES_ENV} is empty where it is required - set the repository secret of that "
+                 f"name; a private-name check with no names passes every file")
+        else:
+            print(f"note: check 34 skipped - set {PRIVATE_NAMES_ENV} (comma-separated) to check that no private "
+                  f"project is named")
+        return
+    patterns = [(i, re.compile(rf"(?<![A-Za-z0-9]){re.escape(n)}", re.IGNORECASE)) for i, n in enumerate(names, 1)]
+    for rel in repo_files():
+        where = [(f"{rel} (path)", i) for i, p in patterns if p.search(rel)]
+        try:
+            lines = (ROOT / rel).read_text(encoding="utf-8").splitlines()
+        except (OSError, UnicodeDecodeError):  # deleted since the listing, or binary: no text to name anything in
+            lines = []
+        for n, line in enumerate(lines, 1):
+            where += [(f"{rel}:{n}", i) for i, p in patterns if p.search(line)]
+        for loc, i in where:
+            fail(f"{loc} names private project #{i} of {PRIVATE_NAMES_ENV} - write \"a logged test run\" for "
+                 f"evidence and an invented example for a rule")
 
 
 if __name__ == "__main__":
