@@ -10,8 +10,9 @@
    from the bundled `templates/feature_ticket_template.md`. If `.github/PULL_REQUEST_TEMPLATE.md` is missing,
    copy `templates/pull_request_template.md`. Never overwrite a template the project already has.
 2. **Remote guard — NEVER blindly create a remote repository.** Run `git remote -v`.
-   - **No remote:** write the tickets to `docs/issues/` and the plan to `TICKETS.md`, publish nothing, and say:
-     *"Tickets written to `docs/issues/` and the plan to `TICKETS.md`. No remote is linked — run `git remote add origin <url>`, then `/tickets` again to publish."*
+   - **No remote:** write the local files only — the tickets to `docs/issues/` and, in Mode A only, the plan to
+     `TICKETS.md` (Mode B never writes it) — publish nothing, and say *"Tickets written to `docs/issues/`."*, in
+     Mode A *"The plan is in `TICKETS.md`."*, then *"No remote is linked — run `git remote add origin <url>`, then `/tickets` again to publish."*
    - **Remote present:** check `gh auth status` and `gh repo view`. If either fails, keep the local files and
      tell the user to run `gh auth login`. **Do not run `gh repo create`.**
 3. **Capability pre-flight — a half-published backlog is worse than none.** Creating issues, milestones,
