@@ -5,6 +5,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Changed — no real project is named anywhere in the playbook, and check 34 keeps it that way (#270)
+
+- **Every mention is rewritten generically.** Case files, check docstrings, released CHANGELOG entries, two
+  design-system references, the case study and its two links, `docs/companion-docs.md` and
+  `tools/session_cost.py` named the maintainer's own test projects and tools in 79 places across 17 files. Evidence now reads *"a logged test run"*, and its dates,
+  counts, failures and rules are kept. Details that identified a project without naming it went too: module
+  folders, file names, routes and ticket titles.
+- **Examples in rules are invented.** `/structure`'s shape example, `/tickets`' lane examples, the ticket
+  template, `/vision`'s vision sentence and north-star target, the `PRODUCT.md` template and five eval prompts
+  now use the walk-in waitlist that `docs/how-it-works.md` already uses. No rule changed.
+- **The case study is now `docs/case-study.md`.** Its drift-log excerpts replace the product's own names with
+  placeholders such as `<resource>`, and the page says so. Every finding, count and verdict is unchanged. The
+  README and `docs/how-it-works.md` link to the new path.
+- **`tools/check.py` check 34** fails when a private project name appears in any file, or any file path, that
+  git would commit. The names are never stored in the repo: they come from `PLAYBOOK_PRIVATE_NAMES`, which CI
+  reads from a repository secret. CI fails when the names are missing, except on a fork's pull request, which
+  GitHub gives no secrets; a local run without them says it skipped. Matching is case-insensitive from the
+  start of a word, so a plural is caught and a name glued after other letters is not. `CONTRIBUTING.md` §No
+  project is named states the rule.
+
 ## [1.52.0] - 2026-09-15
 
 ### Fixed — `/vision` records every search its market read ran, and Step 3b checks the named comparables against that list (#252)

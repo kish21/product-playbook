@@ -1628,11 +1628,11 @@ def check_no_private_names() -> None:
     is written as "a logged test run" and examples are invented.
 
     The names are not stored here. They come from PRIVATE_NAMES_ENV and match case-insensitively at the start
-    of a word, so a plural or a possessive is caught; list each spelling (a hyphenated and a spaced one are two).
-    With no names the check can pass nothing, so it FAILS wherever names are required - in CI by default - and a
-    local run says it skipped. CI marks names not required only for a fork's pull request, which GitHub gives no
-    secrets; the push to master after the merge runs it with them. A hit is reported by path, line and the name's
-    position in the list, never by the name, so a CI log does not publish it.
+    of a word, so a plural or a possessive is caught and a name glued after other letters is not; list each
+    spelling (a hyphenated and a spaced one are two). With no names it would pass every file, so it FAILS wherever
+    names are required - in CI by default - and a local run says it skipped. CI marks names not required only for a
+    fork's pull request, which GitHub gives no secrets; the push to master after the merge runs it with them. A hit
+    is reported by path, line and the name's position in the list, so the check never prints the list itself.
     """
     names = [n.strip() for n in os.environ.get(PRIVATE_NAMES_ENV, "").split(",") if n.strip()]
     if not names:
