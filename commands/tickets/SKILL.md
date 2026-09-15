@@ -99,7 +99,7 @@ confirmed again. (case file: Confirmed as proposed, never shown)
 If the invocation named a strategy, skip the strategy question, not the list.
 
 State it like this, then stop:
-> *Lanes: events (2) · claims (4) · board (3). M2 touches providers + services + UI — recommending **vertical** (3 slices, each inside one lane). The list above is what gets written. Proceed, or switch to horizontal?*
+> *Lanes: queue (2) · parties (4) · notify (3). M2 touches providers + services + UI — recommending **vertical** (3 slices, each inside one lane). The list above is what gets written. Proceed, or switch to horizontal?*
 
 Record the strategy on every ticket of that milestone.
 

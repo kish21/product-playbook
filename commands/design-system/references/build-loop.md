@@ -187,6 +187,6 @@ tools omit. It does **not** out-design the ecosystem on palettes/components — 
 ## §Scope of this version
 
 **Scope of this version: greenfield core loop.** Lightweight brand-input (re-skin to given colours/reference)
-is in; **deep** image/code token-extraction (the user's `UI_to_Prompt`), full retrofit (rewrite existing pages),
+is in; **deep** image/code token-extraction, full retrofit (rewrite existing pages),
 and the component-gallery page are documented follow-ups (`/frontend-audit` is the separate enforcement skill).
 If an existing UI is detected, say so and proceed greenfield for new screens.

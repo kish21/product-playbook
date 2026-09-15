@@ -55,7 +55,7 @@ wins; otherwise the proposal stands.
 > the family + ceiling; `craft.md` says how to make it feel hand-crafted.
 
 ### 1. Data-Dense Pro  — *enterprise dashboards, admin, analytics, B2B tools*
-- **Use when:** scan-heavy, expert users, many hours/day. (This RFP platform is here.)
+- **Use when:** scan-heavy, expert users, many hours/day.
 - **Base body:** 14px (UI), **16px** primary readable; **13px** tabular numerals only. **Scale 1.2.**
 - **Density:** compact. **Grid:** 4px base (8px rhythm for sections). Tight, information-rich.
 - **Type pairing:** UI/display — **Geist** or **IBM Plex Sans**; data — **IBM Plex Mono** / **JetBrains Mono**.

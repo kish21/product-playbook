@@ -113,7 +113,7 @@ deferred feature that shipped silently and doubled the surface of 11 open contra
 assumption still untested three slices after the override that skipped it. Two days earlier the same
 project caught a fault in *this repo*: `/eval` carried a gate's heading and no gate, which became #104,
 `tools/check.py` check 9, and the rule *a heading is not a behaviour*.
-**[The full case study, with the findings unsoftened →](case-study-subscription-tracker.md)**
+**[The full case study, with the findings unsoftened →](case-study.md)**
 
 **5. The claims are checked in CI.** `python tools/check.py` asserts that the skill set is identical across `commands/`, `manifest.json`, `evals/evals.json` and `VISION.md`; that one version is stated everywhere; that every `#Section` a skill reads is one the `PRODUCT.md` template actually defines; and that every phase skill really gates. Docs that drift from reality are the failure this project exists to catch — including its own.
 

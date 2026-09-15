@@ -4,7 +4,7 @@ War stories behind the rules in `commands/foundation/SKILL.md`. Each heading is 
 
 ## The runbook in the spine
 
-**splitr live test, after 11 of 16 phases (#167).** `PRODUCT.md` had reached 73 KB and 435 lines, with five
+**A logged test run, after 11 of 16 phases (#167).** `PRODUCT.md` had reached 73 KB and 435 lines, with five
 sections still essentially empty. The playbook held its own files to 15 KB and set no size rule for the
 spine. `#Foundation` alone was **14.0 KB**, nearly the whole ceiling the playbook sets for one skill file.
 It held the boot sequence, every `.env` variable, what each guard refuses and how to prove it: a runbook
@@ -14,7 +14,7 @@ is a record, not a container).
 
 ## The skeleton nobody saw boot
 
-**Potluck, `/foundation` (2026-09-13), read from the session log: 229 tool calls, 07:49 → 08:45 UTC.**
+**A logged test run, `/foundation` (2026-09-13), read from the session log: 229 tool calls, 07:49 → 08:45 UTC.**
 Step 2 item 1 already ends with *a runnable entrypoint with a health path*, so the app could run after
 item 1 of 8. Nothing told the run to show it.
 

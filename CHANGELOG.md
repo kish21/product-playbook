@@ -126,8 +126,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 ### Removed — content that only made sense to the maintainer
 
 A sweep for text a user of the installed playbook cannot use (owner decision 2026-09-14):
-- **Lanekeeper "lane mode".** The integration with the maintainer's separate parallel-agents tool — `.lane`
-  files with ALLOW/DENY, `lanekeeper check`, Lanekeeper owning the PR template, the spine reconciled on the base
+- **"Lane mode".** The integration with the maintainer's separate multi-agent tool — `.lane`
+  files with ALLOW/DENY, the tool's check command, the tool owning the PR template, the spine reconciled on the base
   branch — is gone from `/build`, `/dev-check`, `/ship`, `/tickets` and its references, `/structure`'s shape
   reference, `MECHANISMS.md`, `MECHANISMS-ON-DEMAND.md`, the templates, `VISION.md`, `docs/how-it-works.md` and
   the evals; `docs/lane-mode.md` is deleted. **Module lanes are untouched:** the `lane:` / `owner:` labels, the
@@ -166,7 +166,7 @@ The composed-skill list now names only what the skills actually invoke: `/code-r
 
 ### Fixed — `/build` no longer ends on the security review; flaky tests are filed once; the loop's fixed overhead is cut (#212 #236 #237 #238)
 
-**The security review ran inline and ended the run (#212, reopened).** On Potluck `/build #8` the run
+**The security review ran inline and ended the run (#212, reopened).** On a logged `/build #8` the run
 printed `/security-review`'s report and stopped — uncommitted, no PR, no close — with the "close is the last
 message" sentence present. `/build #7` had only looked fixed because a usage-limit interruption made the owner
 type *continue*. `/code-review` runs forked and returns a result; `/security-review` runs inline and its own
@@ -196,7 +196,7 @@ that ended the run again · §The flake nobody wrote down · §Two builds, the s
 
 ### Fixed — a `/structure` path rewrite reaches the published issues too
 
-**A path moved in the repo is still at its old address on GitHub.** On the Potluck run a `/structure` re-run
+**A path moved in the repo is still at its old address on GitHub.** On a logged test run a `/structure` re-run
 rewrote every ticket's paths in `docs/issues/`, but the dedup rule (never edit a published body) left eleven
 issues naming folders that no longer existed. `publishing.md` §Dedup index now treats a committed path rewrite
 like a regroup: sync an open body to its file with the owner's yes, only when the body equals the file as it was
@@ -207,7 +207,7 @@ before the rewrite; closed issues keep their paths. `/structure` points at it. W
 
 ### Added — `/tickets` links every `Depends On` as a GitHub *blocked by* dependency; `/build` refuses a blocked ticket (#231)
 
-**A dependency GitHub cannot read is a README nobody reads.** On the Potluck run the regrouped backlog had
+**A dependency GitHub cannot read is a README nobody reads.** On a logged test run the regrouped backlog had
 every `Depends On` as prose and eight coordination points in `docs/issues/README.md`, and not one *blocked
 by* link — so the board could not show a second builder which of thirteen Todo cards was startable.
 `publishing.md` §Mirror the plan structure now links each entry through the issue-dependencies API after
@@ -224,8 +224,8 @@ is not startable — STOP and name the coordination point. War story: `reference
 
 ### Added — `/structure`: a shape-changing re-run owns the ticket paths and the import graph
 
-Three lessons from re-running `/structure` on Potluck the day `/tickets` recorded its structure finding
-(the project is the case file for §A module is a complete lane). Step 0 now says that a re-run which
+Three lessons from re-running `/structure` on a logged test run the day `/tickets` recorded its structure finding
+(that run is the case file for §A module is a complete lane). Step 0 now says that a re-run which
 changes the shape rewrites every ticket's path list — the files tickets name and the files they plan to
 create — and closes the finding, with lanes, order and owners unchanged; and that moving a shared-folder
 file into a lane turns its imports into lane-to-lane arrows, to be handed across in the composition root
@@ -238,7 +238,7 @@ row, so prose in that section can no longer fail the gate. War story: `reference
 
 ### Fixed — `/tickets`: an owner-confirmed regroup may edit published issues; the board's built-in Status field
 
-Two gaps found regrouping the Potluck backlog into module lanes under 1.44.0. `references/publishing.md` §Dedup
+Two gaps found regrouping a logged test run's backlog into module lanes under 1.44.0. `references/publishing.md` §Dedup
 index now allows the one edit a published issue gets: an owner-confirmed regroup that changes only lane/owner
 labels and lines, after a pre-flight shows no body was edited on GitHub. §The Delivery Board says a new project
 already carries `Status` without `In Queue`, and how to set it before the first card. Case files: *Regrouping a
@@ -254,14 +254,14 @@ already / more than one builder); a *ways to run it* table (guided, one phase pe
 ticket, adopt, drift-check, re-measure) and the Claude Code skills it calls. The plugin-prefixed names are shown
 where a plugin user types them. No test project is named. The deep material moved intact to
 `docs/how-it-works.md` and the install routes to `docs/install.md`, which now warns that the plugin and a copy
-install together make every skill appear twice. References to the retired `product-toolkit` and to Lanekeeper
+install together make every skill appear twice. References to the retired `product-toolkit` and to the maintainer's multi-agent tool
 were removed from the README; `/drift-check → /doc-audit` (a retired skill) is no longer listed as a composed call.
 
 ## [1.44.0] - 2026-09-13
 
 ### Changed — `/architect`'s benchmark is bounded and recorded; a session's cost is one command (#203)
 
-**One search per open decision row, written down.** On the Potluck run `/architect` ran 17 web searches and
+**One search per open decision row, written down.** On a logged test run `/architect` ran 17 web searches and
 they were the phase's largest cost after its own output. The benchmark stays load-bearing; Step 1 now bounds
 it (one search per open row, a comparison page over vendor pages, the list recorded in
 `docs/architecture.md`) and **check 29** holds the rule. `tools/session_cost.py` reads a session log and
@@ -276,7 +276,7 @@ quality is never traded for speed or cost (owner decision 2026-09-13).
 
 **Chaining is following, not collapsing.** The neighbour of batch mode (#204): an `input` phase followed by
 the derivation phase that depends on it, in one session. `/architect` → `/structure` is the only pair (the
-shape question is where Potluck reversed ADR-0001, and seeing the architecture with its folder consequences
+shape question is where a logged test run reversed ADR-0001, and seeing the architecture with its folder consequences
 may surface such reversals sooner). Offered at `/architect` Step 0, **never the default**; every input
 question still asked; no close between; two records, two commits, one close; a red `/architect` gate never
 reaches `/structure`; read receipts still from the file. Defined in `MECHANISMS-ON-DEMAND.md` §Batch mode
@@ -286,12 +286,12 @@ beside batch, recorded in `docs/state-model.md` §2d, held by **check 27** (red 
 
 ### Added — `/tickets`: module lanes, a Delivery Board, and a proposal that is shown before it is confirmed (#213, #210)
 
-**The backlog never assumes one builder.** On the Potluck live run (2026-09-13) `/tickets` wrote 15 vertical
+**The backlog never assumes one builder.** On a logged test run (2026-09-13) `/tickets` wrote 15 vertical
 slices as one dependency chain with 15 one-ticket lanes, no Owner and no board — its README said *"one person
 builds this"* — and when the owner asked whether two people could take it, they could not. The same work,
 grouped by the modules `STRUCTURE.md` already drew, lets a solo builder hand any lane to a friend or a second
-agent on the day they want to, at no cost to the solo case. This is the base MarkVid's Delivery Board
-(60+ cards) already runs on.
+agent on the day they want to, at no cost to the solo case. This is the base a real two-developer project's Delivery
+Board (60+ cards) already runs on.
 
 - `references/slicing.md` **§Lanes are modules** — one lane per `STRUCTURE.md` module (a feature only under a
   layered shape); every ticket carries `Lane` + `Owner` (Senior by default); ordered inside a lane, parallel
@@ -301,7 +301,7 @@ agent on the day they want to, at no cost to the solo case. This is the base Mar
 - `references/publishing.md` **§The Delivery Board** — created once (`Status · Owner · Lane · Seat`), every
   issue a card with all four fields set **and read back** (lowercase keys); labels `lane: <module>` +
   `owner: <role>`; idempotent; the `project` scope joins the capability pre-flight and a missing scope is
-  said in the close with the command that grants it, never half-stamped. Lanekeeper stays the optional gate;
+  said in the close with the command that grants it, never half-stamped. An external lane gate stays optional;
   the board is the map.
 - **Step 3A.1 prints the whole proposal** (every ticket: ID · title · lane · owner, grouped by lane) before
   asking for a yes, and a set that changes after the yes is shown and confirmed again — closes **#210**,
@@ -313,7 +313,7 @@ agent on the day they want to, at no cost to the solo case. This is the base Mar
   version repeated check 17's backspace-byte defect (`\b` written through a non-raw string) and was caught
   by the same red-first test.
 - `MECHANISMS.md` / `MECHANISMS-ON-DEMAND.md` §Lane mode: a lane is a module, never a technology layer.
-  Case files: *The fifteen-step recipe*, *The base MarkVid runs on*, *Confirmed as proposed, never shown*,
+  Case files: *The fifteen-step recipe*, *The base a real product runs on*, *Confirmed as proposed, never shown*,
   *Eleven issues against an invented API* in `references/case-files-tickets.md`.
 
 ### Fixed — `/adopt` sent a project with an empty `#Vision` to `/scope`, whose gate sent it back (#216)
@@ -345,8 +345,8 @@ was the only thing they were shown.
 
 ### Changed — `/structure`: a module folder is a complete lane; `/build` gates on the ticket's seat (#215)
 
-**A module keeps its routes, store and tests; the app reaches it through one registry line.** On the Potluck
-run `/structure` chose domain modules and then put every module's handlers in `http/`, every store in
+**A module keeps its routes, store and tests; the app reaches it through one registry line.** On a logged
+test run `/structure` chose domain modules and then put every module's handlers in `http/`, every store in
 `platform/` and all the wiring in `index.ts`, with a by-tool frontend — and `/tickets` named `index.ts` in
 seven of fifteen tickets. Whichever way that backlog was grouped, two people would have collided in the
 shared folders.
@@ -357,7 +357,7 @@ shared folders.
   shows it. New exit criterion in `/structure`; Step 3 writes the Hub files section.
 - `templates/check_structure.py` verifies every path under `## Hub files` exists (red on a moved hub file).
 - `/build` Step 0: **the ticket's lane and owner are a gate** — a session sitting in a seat stops on a ticket
-  that is not its lane (MarkVid's `/jr-ticket` rule). Reviews (`/code-review`, `/security-review`) run
+  that is not its lane (a real two-developer project's junior-ticket rule). Reviews (`/code-review`, `/security-review`) run
   **before the commit and the close**, so their verdicts reach the `#Build log` row and the row can cite the sha.
 - **check 26** — the shape reference carries the complete-lane rules, `/structure`'s criteria bind to them,
   the template checks hub files, and `/build` Step 0 names the seat gate. Proven red on the pre-fix files.
@@ -366,7 +366,7 @@ shared folders.
 
 ### Fixed — the plain close is the run's LAST message; a composed report is never the close (#212)
 
-`/build` on Potluck M1-SLICE-01 committed, then ran `/security-review`, and the review's report was the
+`/build` on a logged M1-SLICE-01 run committed, then ran `/security-review`, and the review's report was the
 session's final message — no plain close, no verdicts, no cost line, no commit offer. `MECHANISMS.md`
 §Plain-language close now says the close is the run's LAST message and a composed skill's report is input to
 it; `/build`, `/ship`, `/test` and `/eval` repeat the sentence where they close their gate. **check 25**
@@ -379,7 +379,7 @@ and red locally after every `git pull`. The ~15KB rule is about content; the che
 
 ### Changed — `/build`: a poll needs a deadline; evidence numbers are copied, never pencilled
 
-**Two lessons from the Potluck M1-SLICE-02 run (2026-09-13).** `references/feature-archetypes.md` §Async jobs
+**Two lessons from a logged M1-SLICE-02 run (2026-09-13).** `references/feature-archetypes.md` §Async jobs
 rule 7: a single-flight poller must abort a request that never answers when the next poll is due, or the screen
 freezes on a stale answer with no failure shown. `SKILL.md` Step 2.6: every `evidence:` number is copied from the
 command's captured output, never written while the command is still running. Case files: *The board that stopped
@@ -388,7 +388,7 @@ refreshing*, *The pencilled bundle size* in `references/case-files-build.md`.
 ### Changed — `/tickets`: draw `docs/issues/` in the map, resolve created names, give every #Plan item a home
 
 **A backlog that is correct by every existing gate can still break CI, drown the symbol check in false reds, and
-drop a planned item.** Three rules from the Potluck live run (2026-09-13), in the skill's own references:
+drop a planned item.** Three rules from a logged test run (2026-09-13), in the skill's own references:
 `publishing.md` §Provision item 5 (draw `docs/issues/` before writing it; the first `/build` owes `docs/features/`),
 `verification.md` §Resolve every symbol first (resolve against contracts OR the backlog's Target Files, and plant
 an invented name to prove the check fails), and §The rest of the gate (every `#Plan` item maps to a ticket or a
@@ -400,7 +400,7 @@ named later phase). Case files: `references/case-files-tickets.md`.
 
 **Every handoff names the next phase in the chain, checked against the one order `/playbook` walks.**
 `commands/playbook.md` says contracts → **tickets** → build; `/contracts` said
-"run `/build`" in its description and its Step 4. On the Potluck live run the owner did what the skill said,
+"run `/build`" in its description and its Step 4. On a logged test run the owner did what the skill said,
 `/tickets` never ran, and M1 reached `/build` as one undivided milestone. Sixteen skills each named their own
 "next" and nothing compared them — a hole only a user following the chain could find.
 
@@ -997,7 +997,7 @@ block by design, and a prose declaration there would reintroduce what that exemp
 ## [1.30.0] - 2026-09-10
 
 ### Added — **a worked example: the playbook auditing a project it built** (#134)
-Every claim in the README was self-asserted. `docs/case-study-subscription-tracker.md` records the one
+Every claim in the README was self-asserted. `docs/case-study.md` records the one
 piece of evidence a reader can inspect: a `/drift-check` run on a project this playbook had guided
 end-to-end, which returned **9 findings** — an API spec describing three routes that were never built,
 a deferred feature (dark mode) that shipped silently and doubled the surface of 11 open contrast
@@ -1014,7 +1014,7 @@ personal repository and is not published, so the findings are quoted verbatim fr
 `PRODUCT.md#Drift log` and the two cheapest to falsify are traced to file paths; the case study says
 plainly that the repo cannot be cloned, rather than implying it can. Two findings were independently
 re-verified against the real project before publishing — `openapi.json` does list
-`/api/v1/subscriptions/{id}` with no `[id]/` route directory, and the auth handler really is mounted at
+`/api/v1/<resource>/{id}` with no `[id]/` route directory, and the auth handler really is mounted at
 `src/app/api/auth/[...all]` while the spec claims `/api/v1/auth/*`.
 
 **The loop is closed.** The same project's 2026-09-08 run is what exposed `/eval` carrying a gate's
@@ -1335,7 +1335,7 @@ Reported from a real `/design-system` run. The cause was not an ordering nit - *
 ### Added - **the playbook already knew the answer; now it uses it**
 Both changes take structure the playbook had already written down and stopped making the user retype it.
 - **`/new-component` discovers what is pending.** Bare, it expected the user to supply the component name, props and target path by hand - so the guided, core-first promise broke exactly where the playbook should be carrying the user. But `/tickets` requires each ticket's Target files to be **exact paths derived from `STRUCTURE.md`**, so every UI file a milestone needs is already recorded machine-readably before this skill runs. It now resolves the active milestone, takes those paths (**reusing the reading `/build` already does for its ALLOW list** - not a second parser), diffs against disk, and offers a built-vs-pending menu. Three constraints keep it honest: **discovery is a fallback, never a dependency** (with no `docs/issues/` it says so and continues from a description - the playbook is *sequential but standalone*); **one component per invocation**, because a batch generator in a leaf skill routes around `/build`'s definition-of-done gate and emits files nothing reviewed; and **directories come from `STRUCTURE.md`**, never a hardcoded `src/components/ui/`. A malformed ticket **fails loudly** - a silently empty menu reads as "nothing pending", the worst possible answer (a parsed document is a boundary).
-- **`/tickets` mirrors the plan onto GitHub.** It published a flat, disconnected list: the Milestone column empty, no way to filter by feature, and ad-hoc bugs never linking back to the feature they belong to - while `#Plan` -> milestones -> lanes -> tickets has a native GitHub equivalent at every level. Now milestones are created from `#Plan` (titles derived, never invented) and assigned on create, the `Lane` field becomes a label, and Mode B resolves the parent's **real issue number** from the dedup index already in hand so GitHub renders the timeline link - degrading to the plain ID with a stated reason rather than **guessing a number that would link the bug to an unrelated issue**. **The label form is `lane: <name>`, with the space** - the spelling PRINCIPLES §Lane mode rule 4 already requires on PRs, because Lanekeeper's gate fails closed without exactly one label and therefore cannot move; a second spelling would split filtering in half. Milestones and labels get the **idempotency the issues already had**, and permissions for all three are checked **before** the first create: **a half-published backlog is worse than none**.
+- **`/tickets` mirrors the plan onto GitHub.** It published a flat, disconnected list: the Milestone column empty, no way to filter by feature, and ad-hoc bugs never linking back to the feature they belong to - while `#Plan` -> milestones -> lanes -> tickets has a native GitHub equivalent at every level. Now milestones are created from `#Plan` (titles derived, never invented) and assigned on create, the `Lane` field becomes a label, and Mode B resolves the parent's **real issue number** from the dedup index already in hand so GitHub renders the timeline link - degrading to the plain ID with a stated reason rather than **guessing a number that would link the bug to an unrelated issue**. **The label form is `lane: <name>`, with the space** - the spelling PRINCIPLES §Lane mode rule 4 already requires on PRs, because the external lane gate fails closed without exactly one label and therefore cannot move; a second spelling would split filtering in half. Milestones and labels get the **idempotency the issues already had**, and permissions for all three are checked **before** the first create: **a half-published backlog is worse than none**.
 - **Resolved an inconsistency this exposed:** `/ship` required a project-board card "moved to Done" - auditing a board structure **nothing in the playbook creates**. Its criterion now applies only *if the project keeps a board*. Boards, assignees and estimates stay out of scope.
 
 ## [1.16.0] - 2026-09-08
@@ -1358,7 +1358,7 @@ Three findings from the 2026-09-08 Phase 2/3 run, each one a thing that was *dec
 
 ### Added - **Phase 1 gates that produce a steerable product, not a slogan**
 Five findings from the 2026-09-07 Phase 1 test run, shipped together because they are one theme: **Phase 1 was collecting answers without checking they were usable by the phases downstream.**
-- **`/vision` - a north star needs five parts, not a direction.** The gate asked only for "a measurable number", which produced *"more people tracking subscriptions"*: no target, no date, no leading indicator, no guardrail against gaming it. It now requires a **target + date**, **2-3 input metrics** (a north star moves too slowly to steer by), **1 guardrail** (what must not get worse), and an **instrumentation line** - and *"nothing records this yet"* is a finding, not a detail for later. **`/eval` now takes its measurement baseline from that target and reports the guardrail alongside**: a north star that improved while the guardrail got worse is not a pass.
+- **`/vision` - a north star needs five parts, not a direction.** The gate asked only for "a measurable number", which produced a bare direction: no target, no date, no leading indicator, no guardrail against gaming it. It now requires a **target + date**, **2-3 input metrics** (a north star moves too slowly to steer by), **1 guardrail** (what must not get worse), and an **instrumentation line** - and *"nothing records this yet"* is a finding, not a detail for later. **`/eval` now takes its measurement baseline from that target and reports the guardrail alongside**: a north star that improved while the guardrail got worse is not a pass.
 - **`/validate` - the skip override is pressure-tested against `#Vision`, and no longer deletes the scaffold.** On the test run a user skipped validation with *"personal/project use"* against a Vision recording a public customer, a north star and a business model - a reason that does not defer validation, it contradicts the Vision. It was accepted silently, and writing it **blanked the experiment fields** so the section no longer showed what had been skipped. Now the reason is compared against the recorded customer, business model and north star first; a contradiction is named and routed back to `/vision` (still overridable, but informed), a merely deferring reason records in one step, and either way the fields stay, marked `- not run (override <date>)`.
 - **`/scope` - a table-stakes gate.** The Deferred and Non-goals lists only ever covered features somebody *thought of*. The systematic gap is the boring items nobody proposes and everybody expects - password reset, email verification, account deletion + data export, empty/loading/error states, privacy + terms, accessibility, a way to report a problem. They do not get deferred, they get forgotten, and they resurface at ship time as "we can't launch without this": the exact scope shock the skill exists to prevent. Every item must now be sorted **in-scope now / Deferred + trigger / N-A + reason**; the list adapts to the product kind, but **an unsorted item fails the gate**. `/drift-check` reports a table-stakes item marked in-scope and never built.
 - **`/plan` - a four-risks row per milestone.** The plan sequenced core-first with a testable exit criterion each, which addresses **feasibility only**; the four product risks are value, usability, feasibility and viability, so the plan had three blind spots. Every milestone now names which risks it retires and how you will know, an already-retired risk **cites its evidence** rather than repeating the work, and a **usability checkpoint before anything goes public** is a milestone exit criterion - usability being the risk discovered after launch, when it is most expensive to fix.
@@ -1445,13 +1445,13 @@ VISION.md promises "sequential but standalone": any skill runs on its own. That 
 
 ## [1.7.0] - 2026-09-06
 
-### Added - lane mode (the Lanekeeper seam)
-[Lanekeeper](https://github.com/kish21/parallel-agents) runs several coding agents on one repo and gates every PR to the lane its ticket declares. It reads product-playbook's tickets, so the two already talked; what was missing was the playbook knowing it was being read. **Lane mode** is detected from a `.lanekeeper/` policy, a root `lanes.yaml`, or a `.lane` file in the worktree. Outside lane mode nothing changes.
+### Added - lane mode (the seam for an external lane gate)
+A separate multi-agent tool runs several coding agents on one repo and gates every PR to the lane its ticket declares. It reads product-playbook's tickets, so the two already talked; what was missing was the playbook knowing it was being read. **Lane mode** is detected from the tool's policy folder, a root `lanes.yaml`, or a `.lane` file in the worktree. Outside lane mode nothing changes.
 - **`PRINCIPLES.md` §Lane mode** - the four rules, defined once and referenced by the skills: the ticket's file list IS the lane; a lane is a feature slice, never a technology layer; the spine (`PRODUCT.md`, `CHANGELOG.md`, `STRUCTURE.md`) is a shared file with ONE writer; the PR carries its `lane:` label.
-- **`/tickets`** - a **Lane** field on the ticket template (Lanekeeper reads the heading); Target Files must name *everything the build writes* (feature doc + tests) and never a spine file; in lane mode the default strategy is vertical and a horizontal choice carries a recorded reason; two tickets naming one file are a contract dependency or a flagged collision. **Template ownership settled:** the playbook owns the issue template, Lanekeeper owns the PR template + gate workflow - `/tickets` no longer writes `PULL_REQUEST_TEMPLATE.md` when Lanekeeper is present, and neither tool overwrites the other's file.
+- **`/tickets`** - a **Lane** field on the ticket template (the tool reads the heading); Target Files must name *everything the build writes* (feature doc + tests) and never a spine file; in lane mode the default strategy is vertical and a horizontal choice carries a recorded reason; two tickets naming one file are a contract dependency or a flagged collision. **Template ownership settled:** the playbook owns the issue template, the tool owns the PR template + gate workflow - `/tickets` no longer writes `PULL_REQUEST_TEMPLATE.md` when the tool is present, and neither tool overwrites the other's file.
 - **`/build`** - reads `.lane` first; `ALLOW`/`DENY` is the file-level scope gate (a needed file outside it is creep, flagged not touched); **does not write `PRODUCT.md`** from inside a lane - the Build-log row goes in a `## Build log row` section of the feature doc, which is inside the lane.
 - **`/dev-check`** - the spine's one writer: lifts every feature-doc Build-log row into `#Build log` on the base branch, checks `lanes.yaml` against `#Scope` (a lane with no in-scope item is creep with a worktree attached), and runs the cross-lane seams - a green lane is not a green product.
-- **`/ship`** - runs `lanekeeper check` before opening the PR, labels it `lane: <name>`, and writes the Ship log + CHANGELOG on the base branch after merge, never from the worktree.
+- **`/ship`** - runs the tool's check before opening the PR, labels it `lane: <name>`, and writes the Ship log + CHANGELOG on the base branch after merge, never from the worktree.
 
 ### Fixed
 - **PR template was npm-hardcoded** (`npm test`, `npm run build`) in a repo whose first principle is no hardcoding. It now asks for the project's own gate command from the Makefile / STRUCTURE.md, adds the no-hardcoding and feature-doc lines, and says why it is not used in lane mode.

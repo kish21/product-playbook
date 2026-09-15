@@ -1,6 +1,6 @@
 # Case study — the playbook auditing a project it built
 
-**Project:** Subscription Tracker — a private, manual subscription tracker that runs in a browser (Next.js).
+**Project:** a private, personal web app that runs in a browser (Next.js).
 **Built with:** `product-playbook`, phases `/vision` → `/validate` → `/scope` → `/plan` → `/architect` → `/structure` → `/design-system` → `/foundation` → `/contracts` → `/tickets` → `/build` → `/dev-check`.
 **The run reported here:** `/drift-check`, 2026-09-10, after three vertical slices had shipped.
 **Result: 9 drifts.** Every one of them in a project the playbook itself had guided.
@@ -18,8 +18,8 @@ A case study where everything went well proves nothing. Nothing below has been s
 ### On checkability
 
 The project is a personal repository and is not published, so the honest position is stated
-plainly: **the artefacts below are excerpted verbatim from that project's own
-`PRODUCT.md#Drift log` and the two findings that are cheapest to falsify are traced to file
+plainly: **the artefacts below are excerpted from that project's own `PRODUCT.md#Drift log`, with
+the product's own resource and feature names replaced by placeholders, and the two findings that are cheapest to falsify are traced to file
 paths anyone can reason about.** Where a claim rests on the repository rather than on the
 excerpt, it is labelled. What you cannot do is `git clone` it — if that matters more than the
 findings do, treat this page as unverified and disregard it.
@@ -28,18 +28,19 @@ findings do, treat this page as unverified and disregard it.
 
 ## The findings, as recorded
 
-Verbatim from `PRODUCT.md#Drift log`, entry `2026-09-10`. Grouped as the run grouped them.
+From `PRODUCT.md#Drift log`, entry `2026-09-10`, word for word except the product's own names, which are
+replaced by placeholders such as `<resource>`. Grouped as the run grouped them.
 
 ### Docs drift — the spec described routes that do not exist
 
-> **(1)** `docs/api/openapi.json` specifies `GET/PATCH/DELETE /api/v1/subscriptions/{id}` — no `[id]` route file exists.
+> **(1)** `docs/api/openapi.json` specifies `GET/PATCH/DELETE /api/v1/<resource>/{id}` — no `[id]` route file exists.
 
 The API specification described three endpoints that were never built. Anyone integrating from
 the spec — a person, or an agent reading it as ground truth — would have written client code
 against three routes that return 404.
 
 Checkable without the repo, from the two facts the finding names: `openapi.json` lists
-`/api/v1/subscriptions/{id}`; the route tree contains `src/app/api/v1/subscriptions/route.ts`
+`/api/v1/<resource>/{id}`; the route tree contains `src/app/api/v1/<resource>/route.ts`
 and **no `[id]/` directory beneath it**. In Next.js's App Router a dynamic segment *is* a
 directory. No directory, no route.
 
@@ -51,7 +52,7 @@ the whole argument for `/build`'s "verify the LIVE path" rule, arriving as evide
 as advice — and it is the second-order reason `PRINCIPLES.md` insists a doc that drifts is worse
 than no doc: this one was confidently, specifically wrong.
 
-> **(3)** README status banner still says active work is M1-SLICE-02 (02 and 03 shipped) and advertises category filter/breakdown as a current capability.
+> **(3)** README status banner still says active work is M1-SLICE-02 (02 and 03 shipped) and advertises `<feature>` filter/breakdown as a current capability.
 
 A shipped-features claim for features that had no live path. See (7).
 
@@ -65,7 +66,7 @@ invisibly, because a CSS media query is three lines. And it did not arrive alone
 contrast failures now applied to a second palette nobody had audited.** A deferred item that
 ships silently does not merely add scope; it doubles the surface of an open defect.
 
-> **(5)** `status: active|cancelled` in DB + 4 schemas + domain exclusion serves Deferred mark-as-cancelled (dormant — nothing can set it).
+> **(5)** `status: active|<ended>` in DB + 4 schemas + domain exclusion serves Deferred mark-as-`<ended>` (dormant — nothing can set it).
 
 Half a deferred feature, built into the schema. Not wrong to have — but until it was named, the
 column read to any later reader as evidence that the feature existed.
@@ -76,7 +77,7 @@ A feature with its own security hardening, absent from the scope document entire
 
 ### Table stakes — the two that hurt
 
-> **(7)** edit/delete and category filter/breakdown are in-scope-NOW with no live path (gated by `/dev-check` same day).
+> **(7)** edit/delete and `<feature>` filter/breakdown are in-scope-NOW with no live path (gated by `/dev-check` same day).
 
 In-scope, advertised in the README (3), not actually reachable.
 
@@ -84,7 +85,7 @@ In-scope, advertised in the README (3), not actually reachable.
 
 > **(8)** `#Validation` is an override — riskiest assumption still untested across 3 shipped slices.
 
-The riskiest assumption — *"people will keep entering subscriptions manually"* — was never
+The riskiest assumption — that people will keep entering `<resource>` by hand — was never
 tested. `/validate` was skipped by an explicit, recorded override on 2026-09-07 (*"building
 directly for personal use"*). Three slices later, the override was still standing, and
 `/drift-check` still surfaced it, because a recorded override is surfaced every time a later
