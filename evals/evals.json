@@ -576,13 +576,22 @@
     {
       "id": "build-review-fix-reruns-the-checks",
       "skill": "build",
-      "prompt": "/build \"#9 host edits the event\"  (a UI ticket: /frontend-audit and /run ran clean; /code-review found a bug and an uncommitted script rewrote src/events/EventForm.tsx to fix it; after that one token in DESIGN.md changed)",
-      "expected_output": "At Step 3b the uncommitted, scripted review fix counts as a code change, so it re-runs /frontend-audit and /run instead of citing them, and runs /code-review again over the fix until a round changes no code, config or test file. Its 3b record names both reasons the audit re-ran: the form fix and the DESIGN.md token, which the audit reads, so it is not a doc-only change.",
+      "prompt": "/build \"#9 host edits the event\"  (a UI ticket: /frontend-audit and /run ran clean; /code-review found a bug and an uncommitted script rewrote src/events/EventForm.tsx to fix it)",
+      "expected_output": "At Step 3b the uncommitted, scripted review fix counts as a code change, so it re-runs /frontend-audit and /run instead of citing them, and runs /code-review again over the fix until a round changes no code, config or test file.",
       "expectations": [
         "/frontend-audit and /run run again after the fix, before the close",
         "/code-review runs again over the fix, and again after any round that changes a code, config or test file",
-        "The 3b record names the DESIGN.md change as a reason the audit re-ran, not as a doc-only change",
         "Nothing about the fix is ruled unchanged because it is uncommitted or was made by a script"
+      ]
+    },
+    {
+      "id": "build-check-input-is-never-doc-only",
+      "skill": "build",
+      "prompt": "/build \"#9 host edits the event\"  (a UI ticket: /frontend-audit ran clean and every review is done; the only change since is one colour token edited in DESIGN.md)",
+      "expected_output": "At Step 3b it does not treat the DESIGN.md edit as doc-only: /frontend-audit reads that file, so it re-runs the audit against the edited token instead of citing the earlier clean run.",
+      "expectations": [
+        "/frontend-audit runs again after the DESIGN.md edit, before the close",
+        "The earlier clean audit is not cited as the UI evidence"
       ]
     }
   ]

@@ -19,7 +19,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
   in #251.
 - **`tools/check.py` check 30** holds the sentence word for word in `/build`, with each clause and the review
   re-run's stopping point. It also fails on the old *only when its files changed* wording in any skill. Case file: *The audit the
-  review fix outran*. Eval: `build-review-fix-reruns-the-checks`.
+  review fix outran*. Evals: `build-review-fix-reruns-the-checks`, `build-check-input-is-never-doc-only`.
 
 ## [1.49.0] - 2026-09-15
 
