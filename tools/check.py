@@ -1274,8 +1274,9 @@ RERUN_TOKENS = (
     ("when unsure whether anything changed or whether a change is doc-only, re-run", "failing toward the re-run - "
      "the same build edited STRUCTURE.md, which a CI check reads, after that CI ran"),
     ("The reviews are checks too", "re-reviewing a review fix - nothing reviewed that build's fix either"),
-    ("until a round changes no code", "the review re-run's stopping point - without one each round's fixes "
-     "trigger another, and a limit of one leaves the fix to a fix unreviewed"),
+    ("`/security-review` too when they touch an auth/data surface, until a round changes no code, config or test "
+     "file", "one stopping point for both reviews, in the condition's own file kinds - a limit of one leaves the "
+     "fix to a fix unreviewed, and 'no code' alone ends the loop on a fix that only touched a test"),
 )
 LOOSE_RERUN = "only when its files changed"
 

@@ -576,12 +576,12 @@
     {
       "id": "build-review-fix-reruns-the-checks",
       "skill": "build",
-      "prompt": "/build \"#9 host edits the event\"  (a UI ticket: /frontend-audit and /run ran clean; /code-review found a bug and an uncommitted script rewrote src/events/EventForm.tsx to fix it; after that only docs/features/host-manage.md and one token in DESIGN.md changed)",
-      "expected_output": "At Step 3b the uncommitted, scripted review fix counts as a code change, so it re-runs /frontend-audit and /run instead of citing them, and runs /code-review again over the fix until a round changes no code. The feature-doc edit alone triggers nothing; the DESIGN.md token change would re-run the audit on its own, because the audit reads that file.",
+      "prompt": "/build \"#9 host edits the event\"  (a UI ticket: /frontend-audit and /run ran clean; /code-review found a bug and an uncommitted script rewrote src/events/EventForm.tsx to fix it; after that one token in DESIGN.md changed)",
+      "expected_output": "At Step 3b the uncommitted, scripted review fix counts as a code change, so it re-runs /frontend-audit and /run instead of citing them, and runs /code-review again over the fix until a round changes no code, config or test file. Its 3b record names both reasons the audit re-ran: the form fix and the DESIGN.md token, which the audit reads, so it is not a doc-only change.",
       "expectations": [
         "/frontend-audit and /run run again after the fix, before the close",
-        "/code-review runs again over the fix, and stops when a round changes no code",
-        "The docs/features edit is treated as doc-only; the DESIGN.md edit is not",
+        "/code-review runs again over the fix, and again after any round that changes a code, config or test file",
+        "The 3b record names the DESIGN.md change as a reason the audit re-ran, not as a doc-only change",
         "Nothing about the fix is ruled unchanged because it is uncommitted or was made by a script"
       ]
     }

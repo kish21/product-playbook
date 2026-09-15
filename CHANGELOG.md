@@ -14,8 +14,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
   captured; a review fix counts, a doc-only change does not.** Uncommitted and scripted edits count. A file a
   check reads is never doc-only for that check (`DESIGN.md` for `/frontend-audit`). When unsure whether
   anything changed or whether a change is doc-only, the run re-runs. The reviews count as checks:
-  `/code-review` runs again over the fixes until a round changes no code, and `/security-review` runs again
-  when the fixes touch an auth/data surface. `/foundation` Step 3b takes the same sentence in #251.
+  `/code-review` runs again over the fixes, and so does `/security-review` when they touch an auth/data
+  surface, until a round changes no code, config or test file. `/foundation` Step 3b takes the same sentence
+  in #251.
 - **`tools/check.py` check 30** holds the sentence word for word in `/build`, with each clause and the review
   re-run's stopping point. It also fails on the old *only when its files changed* wording in any skill. Case file: *The audit the
   review fix outran*. Eval: `build-review-fix-reruns-the-checks`.
