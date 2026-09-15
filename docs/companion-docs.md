@@ -28,7 +28,7 @@ file to point *at*:
 `#Learnings`. The rule applies to them and there is no file to apply it to, so the detail has exactly
 one place to go and it goes there.
 
-**Measured on a live run (2026-09-12, `potluck_latest`):** `/vision` — the *first* of seventeen sections
+**Measured on a logged test run (2026-09-12):** `/vision` — the *first* of seventeen sections
 — wrote **5,131 bytes into `#Vision` against the ~5,120-byte per-section cap**. It breached the cap on
 phase one and nothing said a word. The empty scaffold is already 10,359 bytes of the ~25,000 budget,
 leaving ~14,600 bytes for seventeen sections; `/vision` alone spent 4,297 of it. At that rate the file

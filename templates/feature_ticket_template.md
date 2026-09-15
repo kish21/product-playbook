@@ -22,7 +22,7 @@ labels: ["enhancement", "product-playbook"]
 - [ ] ↔️ Horizontal — single architectural layer
 - [ ] 🐛 Ad-hoc — bug · edge-case · tech-debt · security
 
-<!-- Lane (next heading): the MODULE this ticket lives in - a folder STRUCTURE.md draws ("claims", "board"), never a
+<!-- Lane (next heading): the MODULE this ticket lives in - a folder STRUCTURE.md draws ("parties", "notify"), never a
      technology layer ("backend", "ui"). One lane = one owner; the lane's tickets go in order, lanes run side by side.
      This comment sits ABOVE the heading so an empty field stays empty. -->
 ### 🛣️ Lane

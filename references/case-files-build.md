@@ -611,15 +611,15 @@ reports a number it did not measure is worse than a close that says "not measure
 
 ## The board that stopped refreshing
 
-Potluck, M1-SLICE-02 (2026-09-13). The board page polled every 20 s with the textbook guards: one timer
+A logged test run, M1-SLICE-02 (2026-09-13). A live page polled every 20 s with the textbook guards: one timer
 re-armed after each answer, never `setInterval`, and at most one request in flight so a slow answer could not
-stack requests. Every polling test passed: interval, paused while hidden, failed refresh shown, deleted event
+stack requests. Every polling test passed: interval, paused while hidden, failed refresh shown, deleted record
 turns into not-found.
 
 `/code-review high` found the hole the guards themselves made. "At most one in flight" meant a request that
 never answered (a phone switching from Wi-Fi to mobile data mid-poll leaves exactly that) blocked every later
 poll, the visibility refresh, and the "Refresh now" button. Nothing failed, so the failed-refresh message never
-appeared; the page kept showing a board that was going stale with no sign of it. The fix was a deadline equal to
+appeared; the page kept showing data that was going stale with no sign of it. The fix was a deadline equal to
 the interval: abort, record a network failure, re-arm; and user-triggered refreshes replace the stuck request.
 A test with a fetch that never resolves and ignores its abort signal pins it.
 
@@ -640,7 +640,7 @@ copy the result, even when the number "can't have moved much".
 
 ## The report that became the close
 
-Potluck, M1-SLICE-01 (2026-09-13). The build was good: live curl on the built server, a headless-Chrome
+A logged test run, M1-SLICE-01 (2026-09-13). The build was good: live curl on the built server, a headless-Chrome
 journey, three mutation tests, a real leak found and fixed. Then the run committed without offering, and
 ran `/security-review` *after* the commit. The review's report — clean, well written — was the last thing
 printed, and the session ended there. No plain "what just happened / what YOU do next", no verdict per exit
@@ -654,15 +654,15 @@ the commit so their verdicts land in the record, and the plain close is the run'
 
 ## Working the wrong seat
 
-MarkVid, 2026-08. Two developers pushed from one GitHub account, so assignees carried nothing; the board's
+A real two-developer project, 2026-08. Two developers pushed from one GitHub account, so assignees carried nothing; the board's
 Owner and Seat fields and the `owner:` label were the only map of who owned which lane. A junior session
 that had read the ticket but not its label started on a senior-lane file, and the first sign was a
-merge conflict on someone else's branch. The `/jr-ticket` command's Step 0 now reads the label before the
+merge conflict on someone else's branch. The project's junior-ticket command now reads the label before the
 branch is cut and refuses a ticket that is not its own — lane ownership is a gate, not a formality.
 
 ## The review that ended the run again
 
-**Potluck, M2-SLICE-01 (2026-09-14, playbook 1.45.0).** The fix for *The report that became the close* had
+**A logged test run, M2-SLICE-01 (2026-09-14, playbook 1.45.0).** The fix for *The report that became the close* had
 put one sentence where `/build` closes its gate — *the close is the run's last message* — and a check held
 it there. The next build looked fixed: `/build #7` ended with a proper close. It was not fixed. That session
 had hit the plan's usage limit in the middle of the review, and the owner typed *continue*; the interruption,
@@ -680,20 +680,20 @@ subagent, where its report can only come back as a result, and the invocation po
 
 ## The flake nobody wrote down
 
-**Potluck, M1-SLICE-03 and M2-SLICE-01 (2026-09-14).** `/build #7`'s first pre-push test run failed and an
+**A logged test run, M1-SLICE-03 and M2-SLICE-01 (2026-09-14).** `/build #7`'s first pre-push test run failed and an
 immediate re-run passed. Its close said *"possible flaky test — I didn't capture which test failed"*, and
 nothing went anywhere a later session could find. `/build #8` hit a failure with no record of the earlier
-one, so it could not tell whether its own change was the cause and investigated from scratch: the claim-form
+one, so it could not tell whether its own change was the cause and investigated from scratch: one form's
 tests three times, then five more times with its changes stashed to test the old code, the frontend suite
-four times, the full CI gate three times. It fixed one timing issue in a test; a board-polling failure was
+four times, the full CI gate three times. It fixed one timing issue in a test; a polling failure was
 re-run until it passed and may still be there. A flaky test costs its investigation on **every** build until
 someone records it — so the first build that sees one records it and files it, and never re-runs until green.
 
 ## Two builds, the same forty minutes
 
-**Potluck, M1-SLICE-03 and M2-SLICE-01 (2026-09-14), measured from the session logs.** `/build #7` (a guest
-claims a dish) worked 42 minutes and spent 5.8 of them writing code. `/build #8` (change or remove your own
-claim) needed half the code, 2.9 minutes, and still worked 35 minutes before its commit. Ticket size was not
+**A logged test run, M1-SLICE-03 and M2-SLICE-01 (2026-09-14), measured from the session logs.** `/build #7` (a
+user adds an entry) worked 42 minutes and spent 5.8 of them writing code. `/build #8` (change or remove your
+own entry) needed half the code, 2.9 minutes, and still worked 35 minutes before its commit. Ticket size was not
 the driver; the fixed overhead was. Both runs pasted whole modules into the conversation in their first two
 minutes — four concatenated dumps of about 60,000 characters each on #7 — so context stood at 166,000 and
 137,000 tokens by minute two and every later call re-read it, ending at 385,000 and 315,000. The live-path
@@ -709,9 +709,9 @@ mechanism, the commands are cheap, and re-running them is what proves the record
 
 ## The audit the review fix outran
 
-**Potluck, M2-SLICE-02 (2026-09-14, playbook 1.46.0), read from the session log.** Step 3b had just learned to
+**A logged test run, M2-SLICE-02 (2026-09-14, playbook 1.46.0), read from the session log.** Step 3b had just learned to
 cite Step 2's evidence and *re-run a check only when its files changed since*. The build ran `/frontend-audit`
-at 13:25 and committed. `/code-review` found a bug, and at 13:31 the fix rewrote `src/events/EventForm.tsx`,
+at 13:25 and committed. `/code-review` found a bug, and at 13:31 the fix rewrote a form component,
 through a Python script rather than the edit tool. The run then re-ran CI and the browser journey, and cited
 the 13:25 audit as the UI evidence. Nothing had checked the form against the design laws since it changed. CI
 and the journey have obvious inputs, so the run re-ran them. For the audit, *its files* meant a judgement

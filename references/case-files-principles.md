@@ -49,7 +49,7 @@ missing/empty, warn and offer `/scope` first (allow override)"*. `/eval` carried
 under it, a read: *"Read `#Vision/#Scope/#Plan` for the goal and `#Tests` for what's covered."*
 Reading a section is not gating on it.
 
-It surfaced on a real run (`~/Downloads/subscription-tracker`, 2026-09-08). The project was mid-Build:
+It surfaced on a logged test run (2026-09-08). The project was mid-Build:
 two features in `#Build log`, `#Dev-complete` entirely unchecked, `#Tests` entirely empty. The user ran
 `/eval` — three phases early. The run stopped, correctly. But it stopped on the agent's own judgement,
 not because the skill asked; a run that scored the half-built product instead would have violated no

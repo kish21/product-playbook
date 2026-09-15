@@ -79,6 +79,7 @@ Checks:
 """
 from __future__ import annotations
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -232,6 +233,8 @@ def main() -> int:
     check_foundation_boot_evidence(files)
     # 33. /vision records every search its market read ran, with no count, and 3b checks the comparables against it
     check_vision_search_record(files)
+    # 34. no private project is named anywhere in the repo; the names come from the environment, never the repo
+    check_no_private_names()
 
     return done(len(cmds))
 
@@ -888,8 +891,8 @@ def handoff_region(text: str) -> str:
 def check_handoff_chain(files: dict[str, Path]) -> None:
     """22. Every phase skill hands off to the phase that follows it in the canonical chain.
 
-    /contracts closed with "run /build" while /playbook's order is contracts -> tickets -> build. On the
-    Potluck live run (2026-09-13) the owner did what the skill said, /tickets never ran, and M1 reached
+    /contracts closed with "run /build" while /playbook's order is contracts -> tickets -> build. On a
+    logged test run (2026-09-13) the owner did what the skill said, /tickets never ran, and M1 reached
     /build undivided. Sixteen skills each name their own "next" and nothing compared those sixteen words
     to the one order /playbook walks - a hole in the chain that only a user following it could find.
     """
@@ -929,7 +932,7 @@ def check_handoff_chain(files: dict[str, Path]) -> None:
 def check_context_hygiene(files: dict[str, Path]) -> None:
     """23. The long derivation phases point at the context-hygiene rule where they close their gate.
 
-    /build has said "bulky output to files, broad searches to subagents" since #31, and on the Potluck
+    /build has said "bulky output to files, broad searches to subagents" since #31, and on a logged test
     run /foundation (385 calls) and /contracts (326 calls) each cost ~$70-75 with ~60% of it cache
     re-reads of tool output - full test logs, whole files read back, long shell output. A sentence in one
     skill's Step 1 bound nobody; the rule now lives once in MECHANISMS-ON-DEMAND.md and each phase that
@@ -955,7 +958,7 @@ TEMPLATE_HEADINGS = ("### 🛣️ Lane", "### 👤 Owner")
 def check_lanes_and_board(files: dict[str, Path]) -> None:
     """24. /tickets groups by module lane, files every ticket on the board, and shows the list it confirms.
 
-    On the Potluck live run (2026-09-13) /tickets wrote 15 vertical slices as one dependency chain with
+    On a logged test run (2026-09-13) /tickets wrote 15 vertical slices as one dependency chain with
     15 one-ticket lanes and no board - its README said "one person builds this". The owner then asked
     whether two people could take it, and they could not. The grouping the modules already offered was
     never used because the skill's only two strategies were "thin slice per milestone" and "one ticket
@@ -1060,7 +1063,7 @@ CLOSE_LAST = "The close is the run's last message"
 def check_close_is_last(files: dict[str, Path]) -> None:
     """25. A skill that composes a reviewer says the plain close is the run's LAST message.
 
-    Potluck M1-SLICE-01 (2026-09-13): /build committed, then ran /security-review, and the review's
+    A logged test run, M1-SLICE-01 (2026-09-13): /build committed, then ran /security-review, and the review's
     report was the final message of the session - no plain close, no verdict per criterion, no cost
     line, no commit offer, and the security verdict reached no record because the Build-log row had
     been written before it ran. One session later the same skill ran the review mid-session and closed
@@ -1084,7 +1087,7 @@ def check_close_is_last(files: dict[str, Path]) -> None:
             fail(f"{name} composes a reviewer but its gate-closing region never says {CLOSE_LAST!r} - "
                  f"on a live run the reviewer's report became the final message and the user never got "
                  f"the plain close, the verdicts or their next steps")
-    # Potluck /build #8 (2026-09-14): the sentence above was present and the run still ended on the
+    # A logged /build #8 (2026-09-14): the sentence above was present and the run still ended on the
     # /security-review report - it sits at the close, the review is invoked steps earlier, and the
     # review's own instructions end the turn. The fix acts where it is invoked.
     if SUBAGENT not in " ".join(mech.split()):
@@ -1108,14 +1111,14 @@ BUILD_SEAT_TOKENS = ("Owner", "seat", "STOP")
 def check_module_is_a_lane(files: dict[str, Path]) -> None:
     """26. /structure makes a module a complete lane and names the hub files; /build gates on the seat.
 
-    Potluck (2026-09-12/13): /structure chose domain modules and drew them, then put every module's
+    A logged test run (2026-09-12/13): /structure chose domain modules and drew them, then put every module's
     handlers in one http/ folder, every store in one platform/ folder and all the wiring in index.ts;
     the frontend was by tool throughout. /tickets then named index.ts in seven of fifteen tickets, and
     the backlog could not be split between two people however it was grouped - the folders each person
     would change were the shared ones. The rule is one registry line per module and everything else
     inside the module; the hub files are named in STRUCTURE.md so /tickets can treat
-    them as shared, and check_structure.py verifies each exists. On the /build side, MarkVid's
-    /jr-ticket refuses a ticket whose owner label is not its own - lane ownership is a gate.
+    them as shared, and check_structure.py verifies each exists. On the /build side, a real two-developer
+    project's junior-ticket command refuses a ticket whose owner label is not its own - lane ownership is a gate.
     """
     shape = (ROOT / "commands" / "structure" / "references" / "choosing-the-shape.md").read_text(encoding="utf-8")
     for token in LANE_SHAPE_TOKENS:
@@ -1217,7 +1220,7 @@ SEARCH_BOUND_TOKENS = ("one search per open decision", "docs/architecture.md")
 def check_architect_search_bound(files: dict[str, Path]) -> None:
     """29. /architect's benchmark is bounded and its searches are recorded.
 
-    On the Potluck run (2026-09-12) /architect ran 17 web searches; each result page entered the context
+    On a logged test run (2026-09-12) /architect ran 17 web searches; each result page entered the context
     once at the cache-write rate and the searches were the phase's largest cost after its own output
     (#203). The benchmark is load-bearing and stays; what changes is that it is one search per open
     decision row, and the list is written down, so a later reader can see what each search settled.
@@ -1328,7 +1331,7 @@ def done(n: int = 0) -> int:
 # The rules that keep /build's fixed overhead down (#236, #237, #238). Each token names one rule the skill
 # must carry; the live-path companion must give every check a trigger so the walk skips what cannot apply.
 BUILD_OVERHEAD_TOKENS = (
-    ("Read the ticket's slice", "a read limit in Step 0 - both Potluck builds pasted whole modules into the "
+    ("Read the ticket's slice", "a read limit in Step 0 - both logged builds pasted whole modules into the "
      "conversation in the first two minutes, and every later call re-read them"),
     ("whose trigger matches", "a triggered live-path walk - 17 untagged checks were weighed on every ticket"),
     ("the full suite once at the gate", "targeted test runs while iterating"),
@@ -1340,7 +1343,7 @@ BUILD_OVERHEAD_TOKENS = (
 )
 
 # When cited evidence stops counting (#255). One sentence, word for word, in /build Step 3b and in /foundation's
-# `runs end-to-end` line (check 32, #251). Potluck M2-SLICE-02 cited a 13:25 audit after a 13:31 review fix
+# `runs end-to-end` line (check 32, #251). A logged M2-SLICE-02 build cited a 13:25 audit after a 13:31 review fix
 # rewrote the form it had checked - "re-run only when its files changed" left "its files" to judgement, and
 # judgement skipped the audit.
 RERUN_CONDITION = ("re-run a check when any code, config or test file changed after its evidence was captured; "
@@ -1367,7 +1370,7 @@ LOOSE_RERUN = "only when its files changed"
 def check_build_loop_overhead(files: dict[str, Path]) -> None:
     """30. /build carries the rules that cut its fixed overhead, and every live-path check has a trigger.
 
-    Potluck /build #7 and #8 (2026-09-14): #8 needed half the code of #7 and took nearly the same working
+    Logged /build #7 and #8 (2026-09-14): #8 needed half the code of #7 and took nearly the same working
     time (35 vs 42 min). The logs showed the overhead, not the ticket: whole modules pasted into the
     conversation up front, a flaky test re-investigated because the previous build never recorded it,
     full suites on every iteration, 17 live-path checks with no triggers, Step 3b asking for evidence
@@ -1410,7 +1413,7 @@ SKELETON_AUDIT_TOKENS = (
 def check_audit_engine_resolution(files: dict[str, Path]) -> None:
     """31a. The audit runs the INSTALLED engine, and /foundation wires a project copy into hooks + CI (#256).
 
-    Potluck build M2-SLICE-02 (2026-09-14, plugin 1.46.0 installed) looked for the script with
+    A logged build, M2-SLICE-02 (2026-09-14, plugin 1.46.0 installed) looked for the script with
     `ls -d ~/.claude/plugins/cache/*/product-playbook/*/commands/frontend-audit/audit.py | tail -1`. The cache
     keeps every version, and as text 1.9.0 sorts after 1.48.0 - so the "frontend-audit clean" criterion was met
     by an engine with eight law checks where the installed one has thirteen. The skills had said
@@ -1569,7 +1572,7 @@ FOUNDATION_GUARD_PROOFS = (
 def check_foundation_boot_evidence(files: dict[str, Path]) -> None:
     """32. /foundation proves the boot at the end of Step 2 item 1, and Step 3b cites a boot only under /build's condition.
 
-    Potluck /foundation (2026-09-13, 229 tool calls): item 1 already produced an app with a health path, and the
+    A logged /foundation run (2026-09-13, 229 tool calls): item 1 already produced an app with a health path, and the
     first boot came at call 133, 22 minutes in, with most of the skeleton on top of it. And an earlier boot does
     not vouch for a later one: at 08:17 the container boot failed where the 08:12 local boot had passed, and the
     run edited the boot entry before it came up. #251 moved the proof to item 1 and let 3b's `runs end-to-end`
@@ -1601,6 +1604,61 @@ def check_foundation_boot_evidence(files: dict[str, Path]) -> None:
     for token, what in FOUNDATION_GUARD_PROOFS:
         if token not in flat3b:
             fail(f"foundation Step 3b lost {what} (expected {token!r}) - a guard is proven by making it fire")
+
+
+# Check 34 (#270). The names live outside the repo, or the check would break the rule it holds.
+PRIVATE_NAMES_ENV = "PLAYBOOK_PRIVATE_NAMES"             # comma-separated; CI reads the repository secret of this name
+PRIVATE_NAMES_REQUIRED_ENV = "PLAYBOOK_PRIVATE_NAMES_REQUIRED"  # "true"/"false"; unset means true in CI, false locally
+
+
+def repo_files() -> list[str]:
+    """Every file git would commit: tracked, plus untracked files not ignored, so a new file is checked before `git add`."""
+    import subprocess
+    out = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+                         cwd=ROOT, capture_output=True, check=True).stdout.decode("utf-8")
+    return sorted({p for p in out.split("\0") if p})
+
+
+def check_no_private_names() -> None:
+    """34. No private project is named anywhere in the playbook - not in a file, not in a file's path (#270).
+
+    The playbook ships to people building every kind of product. Case files, check docstrings, rule examples,
+    evals, a case study and CHANGELOG history had named the maintainer's own test projects and tools in 79
+    places: context no user can act on, and a general rule that reads as tuned to one project. Evidence is
+    written as "a logged test run" and examples are invented.
+
+    The names are not stored here. They come from PRIVATE_NAMES_ENV and match case-insensitively at the start
+    of a word, so a plural or a possessive is caught and a name glued after other letters is not. A space in a
+    name matches any whitespace, so a two-word name the prose wraps across a line break is caught; a hyphenated
+    and a spaced spelling are still two entries. With no names it would pass every file, so it FAILS wherever
+    names are required - in CI by default - and a local run says it skipped. CI marks names not required only for a
+    fork's pull request, which GitHub gives no secrets; the push to master after the merge runs it with them. A hit
+    is reported by path, line and the name's position in the list, so the check never prints the list itself.
+    """
+    names = [n.strip() for n in os.environ.get(PRIVATE_NAMES_ENV, "").split(",") if n.strip()]
+    if not names:
+        default = "true" if os.environ.get("CI") else "false"
+        if os.environ.get(PRIVATE_NAMES_REQUIRED_ENV, default).strip().lower() != "false":
+            fail(f"check 34: {PRIVATE_NAMES_ENV} is empty where it is required - set the repository secret of that "
+                 f"name; a private-name check with no names passes every file")
+        else:
+            print(f"note: check 34 skipped - set {PRIVATE_NAMES_ENV} (comma-separated) to check that no private "
+                  f"project is named")
+        return
+    patterns = [(i, re.compile(r"(?<![A-Za-z0-9])" + r"\s+".join(map(re.escape, n.split())), re.IGNORECASE))
+                for i, n in enumerate(names, 1)]
+    for rel in repo_files():
+        where = [(f"{rel} (path)", i) for i, p in patterns if p.search(rel)]
+        try:
+            text = (ROOT / rel).read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):  # deleted since the listing, or binary: no text to name anything in
+            text = ""
+        # the whole file, not line by line, so a wrapped name still matches; each hit reports the line it starts on
+        hits = {(text.count("\n", 0, m.start()) + 1, i) for i, p in patterns for m in p.finditer(text)}
+        where += [(f"{rel}:{n}", i) for n, i in sorted(hits)]
+        for loc, i in where:
+            fail(f"{loc} names private project #{i} of {PRIVATE_NAMES_ENV} - write \"a logged test run\" for "
+                 f"evidence and an invented example for a rule")
 
 
 if __name__ == "__main__":

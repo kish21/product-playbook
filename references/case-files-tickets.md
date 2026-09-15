@@ -4,7 +4,7 @@ War stories behind the rules in `commands/tickets/references/*.md`. Each heading
 
 ## The folder the map did not draw
 
-**Potluck live run, 2026-09-13.** `/tickets` was about to write `docs/issues/` in a repo whose
+**A logged test run, 2026-09-13.** `/tickets` was about to write `docs/issues/` in a repo whose
 `scripts/check_structure.py` compares `STRUCTURE.md`'s drawn tree with the real folders **in both
 directions** and runs in the commit hook and CI. The skill says nothing about the map, and its own rule
 ("never list `STRUCTURE.md` in a ticket") reads as "never touch it". Writing the backlog as instructed
@@ -15,19 +15,19 @@ also fails. So the backlog README names that one map line as an expected excepti
 
 ## The checker that cried wolf
 
-**Potluck live run, 2026-09-13.** The symbol check was run as a script over 15 tickets, grepping every
+**A logged test run, 2026-09-13.** The symbol check was run as a script over 15 tickets, grepping every
 backticked span against `backend/src/**`, config, migrations and the generated frontend types. The first
 pass raised about 70 failures. None was a frozen contract name. They were React components the tickets
-themselves create (`ClaimForm`, `Notice`, `EventForm`), in-concern short paths (`claims/store.ts`), and
+themselves create (two form components and a notice), in-concern short paths (`<module>/store.ts`), and
 commands in backticks. A reviewer facing 70 reds either stops trusting the check or starts hand-waving,
 and the one real invention would hide in the pile. After the resolver learned "or a basename from any
-ticket's Target Files", the run passed. Then `ClaimsStore.claimDish`, `costUsd` and
-`POST /api/v1/claims` were planted in one ticket: three reds, reverted, green. Only after that did
+ticket's Target Files", the run passed. Then an invented store method, an invented field and an
+invented route were planted in one ticket: three reds, reverted, green. Only after that did
 anything reach `gh issue create`.
 
 ## The tests that fell between phases
 
-**Potluck live run, 2026-09-13.** `#Plan`'s testing row put the real-environment checks (phone width, slow
+**A logged test run, 2026-09-13.** `#Plan`'s testing row put the real-environment checks (phone width, slow
 network, reduced motion, forced colours, Playwright from M3) inside milestones M3/M4. Vertical slicing
 produced tickets for every user-visible behaviour in those milestones, and the checks matched none of them:
 they are not a feature, and `/test` owns them in the chain. The backlog was complete by every existing gate
@@ -37,7 +37,7 @@ M3-SLICE-04.
 
 ## The fifteen-step recipe
 
-**Potluck live run, 2026-09-13.** `/tickets` cut the plan into 15 vertical slices and published them with
+**A logged test run, 2026-09-13.** `/tickets` cut the plan into 15 vertical slices and published them with
 15 lanes — one per ticket. Every slice depended on the one before it: 01 → 02 → 03 → M2-01 → M2-02 → M2-04
 → M3-03 → M5-02. The run's README said why: *"one person builds this."* The owner then asked whether two
 or three people could take the backlog and work on it at the same time. They could not: only three pairs
@@ -48,12 +48,12 @@ solo builder hand any module to a friend on the day they wanted to — at no cos
 
 ## The base a real product runs on
 
-**MarkVid, 2026-09 (60+ cards).** Every ticket is a card on one board with four single-select fields:
-**Lane** (the code area — `Images`, `Auth`, `Assembly`), **Owner** (`Senior` or `Junior`, "follows the
+**A real two-developer project, 2026-09 (60+ cards).** Every ticket is a card on one board with four
+single-select fields: **Lane** (the code area), **Owner** (`Senior` or `Junior`, "follows the
 files, not the difficulty", mirrored as an `owner:` label on the issue), **Seat** (`SR1 SR2 JR1 JR2` —
 the chair actually working, a person or an agent instance) and **Status**. One lane = one owner; never
 two branches open in the same lane; cross-lane dependencies written as coordination points ("junior's
-#559 starts after senior's #211 merges"); the `/jr-ticket` command refuses a ticket whose `owner:` label
+#559 starts after senior's #211 merges"); its junior-ticket command refuses a ticket whose `owner:` label
 is not its own. Two developers push from one account, so assignees carry nothing — the board does. The
 same board also carries the gotcha recorded in `case-files-build.md` §The read-back that always said
 unset: a card added with `gh project item-add` and no fields set is invisible on every lane view, and
@@ -61,7 +61,7 @@ unset: a card added with `gh project item-add` and no fields set is invisible on
 
 ## Confirmed as proposed, never shown
 
-**Potluck live run, 2026-09-13 (#210).** Step 3A.1 asked one question — *"proceed as proposed (17
+**A logged test run, 2026-09-13 (#210).** Step 3A.1 asked one question — *"proceed as proposed (17
 tickets)?"* — and no proposal had been printed before it. The owner said yes to a list they had not seen.
 The run then published 15: two had been merged into neighbours after the yes, and nobody was asked again.
 Nothing was wrong with the 15; what was wrong was that "confirmed" described a number, not a list. A
@@ -77,7 +77,7 @@ irreversible step.
 
 ## Regrouping a backlog already on GitHub
 
-**Potluck live run, 2026-09-13 (playbook 1.44.0).** Thirteen open issues had been published under 1.40.1 with
+**A logged test run, 2026-09-13 (playbook 1.44.0).** Thirteen open issues had been published under 1.40.1 with
 one lane per slice and no Owner. The owner asked for them to be regrouped into module lanes and put on a
 board. The dedup rule — *skip a match, never edit an existing issue* — would have made the run a no-op: every
 ID already existed, so nothing would change. Editing freely instead risked the failure *Eleven issues against
@@ -88,7 +88,7 @@ matched) before any write. It changed only the `lane:`/`owner:` labels and the L
 
 ## The Status field that was already there
 
-**Potluck live run, 2026-09-13.** `gh project create` gives every new board a built-in single-select
+**A logged test run, 2026-09-13.** `gh project create` gives every new board a built-in single-select
 `Status` with `Todo · In Progress · Done`. The procedure said *add fields only when missing*, and Status was not
 missing, so the literal reading leaves the board without `In Queue`. `gh project field-create` cannot add an
 option to an existing field. The run set the four options through GraphQL `updateProjectV2Field`, keeping every
@@ -97,9 +97,9 @@ already holding a value, so the rule says *before the first card*.
 
 ## Written down, never linked
 
-**Potluck live run, 2026-09-14 (playbook 1.44.2).** The day after the regroup put thirteen open issues into
+**A logged test run, 2026-09-14 (playbook 1.44.2).** The day after the regroup put thirteen open issues into
 eight module lanes on the Delivery Board, the owner asked two questions in a row: *can two developers work
-now?* and *is that dependency linked?* The first answer was yes — claims and board could start side by side.
+now?* and *is that dependency linked?* The first answer was yes — two lanes could start side by side.
 The second was no. Every ticket's `Depends On` existed as prose in its body and as a table plus eight
 coordination points in `docs/issues/README.md`, and nowhere GitHub could read it: no parent, no sub-issue,
 and `GET /issues/9/dependencies/blocked_by` returned `[]`. So the board showed thirteen cards in Todo with
@@ -114,12 +114,12 @@ relationship, not a body edit, and a skipped ticket still gets its links.
 
 ## The paths that moved in the repo, not on GitHub
 
-**Potluck live run, 2026-09-14 (playbook 1.45.0).** A `/structure` re-run (ADR-0006) moved 55 files into
+**A logged test run, 2026-09-14 (playbook 1.45.0).** A `/structure` re-run (ADR-0006) moved 55 files into
 complete lanes and, as its rule says, rewrote every ticket's path list in `docs/issues/`. It did not touch
 GitHub, and `/tickets` forbade it to: *never edit an existing issue*, one exception, a regroup. The next
 `/tickets` re-run compared each issue body with its file and found all fifteen different; eleven still named
-`frontend/src/pages/` and `backend/src/http/host-handlers.ts`, folders that no longer existed. A builder or a
-Lanekeeper agent reading the issue, not the repo, would have been sent to recreate the folders just emptied.
+`frontend/src/pages/` and `backend/src/http/`, folders that no longer existed. A builder or an
+agent reading the issue, not the repo, would have been sent to recreate the folders just emptied.
 The pre-flight that made the sync safe was one comparison: every body equalled its file at the commit before
 the move, so the only difference was the move itself and nothing written on GitHub could be lost. Nine open
 bodies were synced with the owner's yes and read back equal; closed #5 and #6 kept the paths they were built

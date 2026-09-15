@@ -38,7 +38,7 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Problem (why now):**
 - **Value proposition:**
 - **Current-year market / competitor read (verified, not from memory — every search listed in docs/vision.md):**
-- **North star — target + date (e.g. "400 accounts with 3+ subscriptions by 2027-03-31"):**
+- **North star — target + date (e.g. "40 restaurants seating 100+ walk-ins a week by 2027-03-31"):**
 - **North star — 2–3 input metrics (the numbers that move between events/releases and drive it):**
 - **North star — 1 guardrail (what must NOT get worse while chasing it):**
 - **North star — instrumentation (how it gets measured; "nothing records this yet" is a finding):**

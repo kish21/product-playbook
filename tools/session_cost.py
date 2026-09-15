@@ -6,7 +6,7 @@ log or says "not measured" - never an estimate (live closes guessed "$1.50-2.50"
 the one command that produces those numbers, so a run has no reason to guess.
 
 Usage:  python tools/session_cost.py [<session>.jsonl]            # default: newest log for the cwd's project
-        python tools/session_cost.py --project ~/Downloads/pto     # newest log of another project
+        python tools/session_cost.py --project ~/projects/my-app  # newest log of another project
         python tools/session_cost.py --rates 5,25,0.5,6.25         # $/M for input, output, cache read, cache write
 
 Reads `message.usage` on assistant rows, de-duplicated by message id (a streamed reply is logged in

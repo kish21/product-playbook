@@ -29,7 +29,7 @@ description: >
   - [ ] A value proposition stating how this is better/different. → `Value proposition`
   - [ ] A current-year market/competitor read with at least one sharpening insight. → `Current-year market`
   - [ ] **Every search the market read ran is recorded in `docs/vision.md`** — one line each, query · what it settled — and every comparable named without a search has its own line saying so. → `Current-year market`
-  - [ ] A **north-star metric with all five parts** — a **target number + date**, **2–3 input metrics**, **1 guardrail**, and an **instrumentation line**. A direction ("more people tracking subscriptions") is a slogan, not a metric, and **fails this gate**: `/eval` would have nothing to measure against. → `North star`
+  - [ ] A **north-star metric with all five parts** — a **target number + date**, **2–3 input metrics**, **1 guardrail**, and an **instrumentation line**. A direction ("more restaurants using the waitlist") is a slogan, not a metric, and **fails this gate**: `/eval` would have nothing to measure against. → `North star`
   - [ ] The **job-to-be-done**, the **riskiest assumption**, and the **business model** (free/paid/internal) captured. → `Job-to-be-done` · `Riskiest assumption` · `Business model`
   - [ ] Recorded whether this is an **AI product** (uses LLMs) — flags the AI-security layer downstream. → `AI product?`
   - [ ] `#Vision` is a **RECORD** — every field is a decision, evidence line or pointer; the reasoning is
@@ -51,13 +51,13 @@ description: >
 Ask these one block at a time; wait for answers. Keep it short — a newcomer should not feel interrogated.
 1. **In one line, what is this product and who is it for?** Then sharpen the answer into the
    **one-sentence vision — the world this creates once it works**, not a description of the product
-   ("nobody has to ask what to bring", not "an app for claiming dishes"). Every later phase checks
+   ("nobody stands at the door guessing the wait", not "an app for a waitlist"). Every later phase checks
    alignment against this sentence, so it is written down, not implied.
 2. **What painful problem does it solve, and why is now the right time?** (regulation, tech shift, cost, new behaviour)
 3. **How do people solve this today, and why is that not good enough?**
 4. **How will you know it's working?** — the **north star, in five parts**. Ask for them together; a bare
    direction is the usual answer and is not yet a metric:
-   - **Target + date** — "400 accounts with 3+ subscriptions by 2027-03-31", not "growth".
+   - **Target + date** — "40 restaurants seating 100+ walk-ins a week by 2027-03-31", not "growth".
    - **2–3 input metrics** — the numbers that move between events/releases and *drive* it. A north star
      moves too slowly to steer by. Cadence follows the product: weekly for a SaaS, per-event for a tool
      used a few times a month — a metric that cannot move weekly is not thereby a bad metric.

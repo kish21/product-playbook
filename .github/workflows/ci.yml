@@ -15,5 +15,10 @@ jobs:
           python-version: "3.12"
       - name: Consistency check (skills == manifest == evals == VISION; structure; line budget)
         run: python tools/check.py
+        env:
+          # check 34: the private project names live in a repository secret, never in the repo
+          PLAYBOOK_PRIVATE_NAMES: ${{ secrets.PLAYBOOK_PRIVATE_NAMES }}
+          # a fork's pull request gets no secrets; the push to master after the merge still runs check 34 with them
+          PLAYBOOK_PRIVATE_NAMES_REQUIRED: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
       - name: install.sh syntax
         run: bash -n install.sh

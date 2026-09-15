@@ -11,7 +11,7 @@ gives a second person, or a second agent, nothing to start until the first finis
 by module costs a solo builder nothing, because solo simply means every seat is theirs. So the grouping
 is always there, and the user decides per lane who sits in it. (case file: The fifteen-step recipe)
 
-1. **A lane is a module.** Read the module folders `STRUCTURE.md` draws (`events/`, `claims/`, `board/`)
+1. **A lane is a module.** Read the module folders `STRUCTURE.md` draws (`queue/`, `parties/`, `notify/`)
    and make one lane per module, named after the folder. Layered shape (no module folders) → one lane per
    feature, and say so. **A lane is never a technology layer** (`backend`, `ui`).
 2. **Every ticket carries `Lane` (its module) and `Owner`** — the role that owns the lane, `Senior` by
@@ -19,7 +19,7 @@ is always there, and the user decides per lane who sits in it. (case file: The f
    files, not the difficulty.
 3. **Order inside a lane, parallel across lanes.** The tickets of one lane are ordered by `Depends On`;
    two lanes may run side by side. Where a ticket in lane X needs a ticket in lane Y first, write it as a
-   **coordination point** in `docs/issues/README.md` — *"claims #8 starts after board #6 merges"* — not
+   **coordination point** in `docs/issues/README.md` — *"notify #8 starts after parties #6 merges"* — not
    only inside the ticket.
 4. **Hub files.** A file named by tickets in two or more lanes (the route registry, the config loader, the
    dependency manifest) is a **hub file**: list them in `docs/issues/README.md` so `/build` treats a change
@@ -107,7 +107,7 @@ ID: `[M<milestone>-TICK-<nn>]`.
 Fill the provisioned `feature_ticket.md` template for each ticket:
 - **ID + title:** `[M<milestone>-SLICE-<nn>]` or `[M<milestone>-TICK-<nn>]`, then the concern in plain words.
   The `M<milestone>` prefix is what keeps IDs unique across milestones; without it, dedup misfires on re-run.
-- **Lane:** the module this ticket lives in (`claims`, `board`) — §Lanes are modules — never a layer.
+- **Lane:** the module this ticket lives in (`parties`, `notify`) — §Lanes are modules — never a layer.
   Horizontal: all of a milestone's layer tickets share one lane.
 - **Owner:** the role that owns the lane — `Senior` unless the board says otherwise.
 - **Target files:** exact paths, derived from `STRUCTURE.md` — `src/services/quoteEngine.ts`, not `src/services/`.

@@ -305,7 +305,7 @@
     {
       "id": "vision-north-star-five-parts",
       "skill": "vision",
-      "prompt": "our north star is more people tracking their subscriptions",
+      "prompt": "our north star is more restaurants using the waitlist",
       "expected_output": "Rejects that as a direction, not a metric, and asks for all five parts: a target number WITH a date, 2-3 input metrics that move weekly and drive it, 1 guardrail that must not get worse, and an instrumentation line saying how it gets measured; treats 'nothing records this yet' as a finding rather than a detail for later; refuses to close the gate on a bare direction because /eval would have nothing to measure against",
       "files": []
     },
@@ -333,7 +333,7 @@
     {
       "id": "scope-table-stakes-sorted",
       "skill": "scope",
-      "prompt": "lock the scope — core feature is tracking subscriptions",
+      "prompt": "lock the scope — core feature is guests joining the waitlist",
       "expected_output": "Walks the table-stakes checklist (password reset, email verification, account deletion + data export, empty/loading/error states, privacy + terms, accessibility, a way to report a problem) and sorts EVERY item into in-scope now / Deferred + trigger / N-A + reason; adapts the list to the product kind with a recorded reason for each N-A (an account-less CLI has no password reset but still has error states); refuses to close the gate while any item is unsorted",
       "files": []
     },
@@ -601,7 +601,7 @@
     {
       "id": "build-security-review-does-not-end-the-run",
       "skill": "build",
-      "prompt": "/build \"#9 host edits the event\"  (an auth/data surface: the host link is the capability)",
+      "prompt": "/build \"#9 host edits a party\"  (an auth/data surface: the host's staff link is the capability)",
       "expected_output": "Runs /security-review inside a subagent so its report comes back as a result; records the verdict, then writes the feature doc and the Build log row, commits, and ends the run with the plain-language close (what just happened, what YOU do next) as the last message — never the security report.",
       "expectations": [
         "The security review runs inside a subagent, not inline in the main turn",
@@ -613,7 +613,7 @@
     {
       "id": "build-review-fix-reruns-the-checks",
       "skill": "build",
-      "prompt": "/build \"#9 host edits the event\"  (a UI ticket: /frontend-audit and /run ran clean; /code-review found a bug and an uncommitted script rewrote src/events/EventForm.tsx to fix it)",
+      "prompt": "/build \"#9 host edits a party\"  (a UI ticket: /frontend-audit and /run ran clean; /code-review found a bug and an uncommitted script rewrote src/parties/PartyForm.tsx to fix it)",
       "expected_output": "At Step 3b the uncommitted, scripted review fix counts as a code change, so it re-runs /frontend-audit and /run instead of citing them, and runs /code-review again over the fix until a round changes no code, config or test file.",
       "expectations": [
         "/frontend-audit and /run run again after the fix, before the close",
@@ -624,7 +624,7 @@
     {
       "id": "build-check-input-is-never-doc-only",
       "skill": "build",
-      "prompt": "/build \"#9 host edits the event\"  (a UI ticket: /frontend-audit ran clean and every review is done; the only change since is one colour token edited in DESIGN.md)",
+      "prompt": "/build \"#9 host edits a party\"  (a UI ticket: /frontend-audit ran clean and every review is done; the only change since is one colour token edited in DESIGN.md)",
       "expected_output": "At Step 3b it does not treat the DESIGN.md edit as doc-only: /frontend-audit reads that file, so it re-runs the audit against the edited token instead of citing the earlier clean run.",
       "expectations": [
         "/frontend-audit runs again after the DESIGN.md edit, before the close",

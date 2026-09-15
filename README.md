@@ -115,7 +115,7 @@ Yes — the playbook adapts to the kind of product. A few examples:
 | [The playbook journey](docs/how-it-works.md#journey) | three tiers over six phases, with the gate after each |
 | [Why this is not a set of templates](docs/how-it-works.md#not-templates) | the executable proof |
 | [Skill reference](docs/how-it-works.md#skill-reference) | every skill and what it writes |
-| [Case study](docs/case-study-subscription-tracker.md) | the playbook auditing its own work: 9 findings, unsoftened |
+| [Case study](docs/case-study.md) | the playbook auditing its own work: 9 findings, unsoftened |
 | [Installation and setup](docs/install.md) | plugin, copy install, subset, updating, uninstalling |
 | [VISION.md](VISION.md) · [PRINCIPLES.md](PRINCIPLES.md) · [CHANGELOG.md](CHANGELOG.md) | the contract, the rulebook, the history |
 
