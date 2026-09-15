@@ -441,7 +441,7 @@
       "id": "tickets-epics-and-plan-file",
       "skill": "tickets",
       "prompt": "Break the plan into tickets - two of us will build it",
-      "expected_output": "Groups each milestone into epics (one feature of one milestone inside one module lane) and writes a root TICKETS.md holding the plan only: each milestone's epics with their tickets in build order, the parallel table, every cross-lane coordination point in its kind (waits for a merge, or builds against a contract), the hub files, a Mermaid flowchart with one box per lane where a solid arrow means wait for the merge and a dotted arrow means build against the contract, and a day-1 table giving each seat a ticket it can start without waiting on anyone; the file carries no status column, checkbox, done mark or progress count, because status stays on GitHub; a waits-for dependency is the ticket's Depends On and a blocked-by link, a builds-against dependency is its Builds against and never a link; no docs/issues/README.md is written",
+      "expected_output": "Groups each milestone into epics (one feature of one milestone inside one module lane) and writes a root TICKETS.md holding the plan only: each milestone's epics with their tickets in build order, the parallel table, every cross-lane coordination point in its kind (waits for a merge, or builds against a contract), the hub files, a Mermaid flowchart with one box per lane where a solid arrow means wait for the merge and a dotted arrow means build against the contract, and a day-1 table giving each seat a ticket it can start without waiting on anyone; the file carries no status column, checkbox, done mark or progress count, because status stays on GitHub; a waits-for dependency is the ticket's Depends On and a blocked-by link, a builds-against dependency is its Builds against and never a link; no docs/issues/README.md remains",
       "expected_artifacts": [
         "TICKETS.md",
         "docs/issues/*.md"
@@ -453,13 +453,13 @@
         "The day-1 table names, for each seat, a ticket with no Depends On, and says what a lane with nothing startable waits for",
         "TICKETS.md holds no status: no status column, checkbox, done mark or progress count - status stays on the GitHub issues and the Delivery Board",
         "A dependency that needs the other ticket merged is a Depends On and a blocked-by link; one that needs only its frozen contract is a Builds against and is never linked",
-        "No docs/issues/README.md is written"
+        "No docs/issues/README.md remains beside TICKETS.md"
       ]
     },
     {
       "id": "tickets-rerun-earlier-backlog",
       "skill": "tickets",
-      "prompt": "/tickets again - this backlog was published before epics and still has docs/issues/README.md",
+      "prompt": "/tickets again - this backlog was published before epics, and its plan has not been migrated out of docs/issues/README.md",
       "expected_output": "Dedups against a complete issue list and keeps every published ID as it is (M1-SLICE-02 is never renamed); proposes epics over the existing tickets, shown in full and confirmed, and gives only new tickets epic-scoped IDs; creates each missing epic once and attaches published tickets as sub-issues - a relationship, not a body edit - reading the sub-issues back first so a second run adds no duplicate epic or link, and reporting rather than moving a ticket already under another parent; migrates docs/issues/README.md into TICKETS.md, dropping anything that is status, and deletes the README in the same commit, saying so in the close",
       "expected_artifacts": [
         "TICKETS.md"

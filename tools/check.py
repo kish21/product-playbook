@@ -237,6 +237,10 @@ def main() -> int:
     check_no_private_names()
     # 35. /playbook's offers state a measured, version-labelled sitting from one table and warn to start with room left
     check_sitting_lengths(files)
+    # 36. /tickets groups milestone -> epic -> ticket and writes the plan, never the status, to a root TICKETS.md
+    check_epic_plan(files)
+    # 37. /tickets' verification runs over the local files before publishing and reads GitHub back after
+    check_verification_publish_split(files)
 
     return done(len(cmds))
 
@@ -1805,6 +1809,314 @@ def check_session_cost_working_time() -> None:
              f"questions {got.get('questions')} on the fixture, not 72.0 / 25.0 / 1 - the wall clock ends at the "
              f"newest row, and the working time leaves out waits for the user's reply, card answer or plan "
              f"approval while keeping the agent's own waits")
+
+
+# Check 36 (#249). The epic layer, the plan file and the lane flow graph.
+TICKETS_REFS = ROOT / "commands" / "tickets" / "references"
+# Split so that this line is not itself a mention of the file the check looks for.
+OLD_PLAN_FILE = "docs/issues/" + "README.md"
+PLAN_FILE_NAME = "TICKETS.md"
+# History keeps the name a past run used; a line of the migration rule names the file only to say it is gone.
+OLD_PLAN_HISTORY = re.compile(r"^(?:CHANGELOG\.md|references/case-files-[a-z-]+\.md)$")
+OLD_PLAN_MIGRATION = ("remains", "migrat", "replaces", "an earlier backlog")
+EPIC_TICKET_ID = re.compile(r"\bM\d+-(?!SLICE-|TICK-|ADHOC-)[A-Z]{2,}-\d{2}\b")
+LEGACY_ID = re.compile(r"\bM(?:\d+|<[a-z]+>)-(?:SLICE|TICK)-")
+# The one eval case that is about a backlog published under the old IDs.
+LEGACY_ID_EVAL = "tickets-rerun-earlier-backlog"
+EPIC_TOKENS = (
+    ("milestone → epic → ticket", "tickets exit criteria", "the hierarchy the proposal is confirmed against"),
+    ("`TICKETS.md`", "tickets exit criteria", "the root plan file"),
+    ("never a status", "tickets exit criteria", "status staying on GitHub, never in the plan"),
+    ("one box per lane", "tickets exit criteria", "the flow graph's one box per lane"),
+    ("solid arrow = wait for the merge", "tickets exit criteria", "what a solid arrow means"),
+    ("dotted = build against the contract", "tickets exit criteria", "what a dotted arrow means"),
+    ("day-1 table", "tickets exit criteria", "the day-1 who-starts-what table"),
+    ("parent issue", "tickets exit criteria", "each epic published as a parent issue"),
+    ("sub-issues", "tickets exit criteria", "the epic's tickets as its sub-issues"),
+    ("no duplicate epic or link", "tickets exit criteria", "a re-run creating no second epic or link"),
+    ("milestone → epic → ticket", "tickets Step 3A.1", "printing the proposal as the hierarchy"),
+    ("`references/tickets-md.md`", "tickets Step 3A.2", "the pointer to the plan file's shape where the plan is written"),
+    ("top of `TICKETS.md`", "tickets Step 0", "a stopped run's trace line living in the plan file"),
+    ("## §Epics", "slicing.md", "the epic mechanism"),
+    ("one feature of one milestone, inside one lane", "slicing.md", "what an epic is"),
+    ("## §Waiting or building against", "slicing.md", "the two kinds of dependency"),
+    ("**not** a *blocked by* link", "slicing.md", "a Builds against never becoming a link /build would stop on"),
+    ("When unsure, it is `Depends On`", "slicing.md", "failing toward the wait"),
+    ("never in `TICKETS.md`", "tickets-md.md", "the status ban"),
+    ("**one box per lane**", "tickets-md.md", "one box per lane"),
+    ("**Solid arrow** `-->` = **wait for the merge**", "tickets-md.md", "the solid arrow's meaning"),
+    ("**Dotted arrow** `-.->` = **build against the contract**", "tickets-md.md", "the dotted arrow's meaning"),
+    ("A day-1 ticket has no `Depends On`", "tickets-md.md", "the day-1 rule"),
+    ("`/build` never writes", "tickets-md.md", "/build never writing the plan"),
+    ("## §Epics are parent issues", "publishing.md", "the sub-issue procedure"),
+    ("/sub_issues", "publishing.md", "the sub-issue endpoint"),
+    ("sub_issue_id", "publishing.md", "the sub-issue's database id"),
+    ("never pass `replace_parent`", "publishing.md", "never silently moving a ticket from another epic"),
+    ("for each epic returns exactly the tickets", "publishing.md", "the sub-issue read-back"),
+    ("creates no second epic and no second link", "publishing.md", "the idempotent re-run"),
+    ("raise the limit and fetch again", "publishing.md", "a dedup index that cannot silently truncate"),
+    ("A published ID is never renamed", "publishing.md", "old IDs kept, so dedup still matches them"),
+    ("is migrated, never kept beside `TICKETS.md`", "publishing.md", "migrating an earlier plan file"),
+    ("**Epics are parents, read back.**", "verification.md", "the sub-issue read-back check"),
+    ("**`TICKETS.md` is the plan, never the status**", "verification.md", "the plan file check"),
+    ("edit `TICKETS.md`", "adhoc-capture.md", "Mode B never editing the plan"),
+    ("coordination point in `TICKETS.md`", "build Step 0", "/build reading coordination points from the plan"),
+    ("A `Builds against` is not a blocker", "build Step 0", "/build starting a ticket that only builds against a contract"),
+    ('title: "[M<milestone>-<EPIC>-<nn>] "', "feature_ticket_template.md", "the epic-scoped title"),
+    ("### 🗂️ Epic", "feature_ticket_template.md", "the Epic field"),
+    ("### 🧩 Builds Against", "feature_ticket_template.md", "the Builds Against field"),
+    ("TICKETS.md here", "feature_ticket_template.md", "TICKETS.md on the never-list of Target Files"),
+)
+# How the flow graph may be written: GitHub renders Mermaid with a pinned version, so only these shapes are allowed.
+GRAPH_NODE = re.compile(r'^lane_(\w+)\["([^"]+)"\]$')
+GRAPH_EDGE = re.compile(r'^lane_(\w+) (-->|-\.->)\|"([^"]+)"\| lane_(\w+)$')
+STATUS_HEADER = re.compile(r"^(?:status|state|progress|done|todo|in progress|%)$", re.IGNORECASE)
+STATUS_MARKS = ("✅", "☑", "✔", "✓", "🟢", "🟡", "🔴")
+
+
+def md_section(text: str, heading: str) -> str:
+    """The body under a `## heading` line, up to the next `## ` heading."""
+    m = re.search(rf"^## {re.escape(heading)}[^\n]*\n(.*?)(?=^## |\Z)", text, re.MULTILINE | re.DOTALL)
+    return m.group(1) if m else ""
+
+
+def table_rows(block: str) -> list[list[str]]:
+    """Markdown table rows as cells, header first, the |---| separator dropped."""
+    rows = []
+    for line in block.splitlines():
+        s = line.strip()
+        if s.startswith("|") and not re.fullmatch(r"\|[\s|:-]+\|", s):
+            rows.append([c.strip() for c in s.strip("|").split("|")])
+    return rows
+
+
+def plan_example_faults(example: str) -> list[str]:
+    """What is wrong with a TICKETS.md: status in it, a graph that is not one box per lane, an arrow whose kind
+    disagrees with its coordination point, or a day-1 ticket that waits for a merge. Empty means it holds."""
+    faults: list[str] = []
+    for n, line in enumerate(example.splitlines(), 1):
+        if re.match(r"^\s*[-*]\s*\[[ xX]\]", line):
+            faults.append(f"line {n} is a checkbox - a status the file would have to keep up to date")
+        if any(mark in line for mark in STATUS_MARKS):
+            faults.append(f"line {n} carries a done mark")
+        if line.strip().startswith("|"):
+            for cell in (c.strip() for c in line.strip().strip("|").split("|")):
+                if STATUS_HEADER.match(cell.strip("*` ")):
+                    faults.append(f"line {n} has a {cell!r} column - status lives on GitHub")
+    lanes = {r[0] for r in table_rows(md_section(example, "Lanes"))[1:] if r}
+    if not lanes:
+        faults.append("no Lanes table to draw the graph from")
+    graph = re.search(r"```mermaid\n(.*?)```", example, re.DOTALL)
+    if not graph:
+        return faults + ["no mermaid block"]
+    lines = [ln.strip() for ln in graph.group(1).splitlines() if ln.strip()]
+    if not lines or lines[0] != "flowchart LR":
+        faults.append("the graph does not open with `flowchart LR`")
+    nodes: set[str] = set()
+    edges: set[tuple[str, str, str]] = set()   # (dependant ticket, blocker ticket, kind)
+    for ln in lines[1:]:
+        node, edge = GRAPH_NODE.match(ln), GRAPH_EDGE.match(ln)
+        if node:
+            if not node.group(2).startswith(node.group(1)):
+                faults.append(f"box lane_{node.group(1)} is labelled {node.group(2)!r}, not after its lane")
+            nodes.add(node.group(1))
+        elif edge:
+            src, arrow, label, dst = edge.groups()
+            kind = "waits for" if arrow == "-->" else "builds against"
+            ids = EPIC_TICKET_ID.findall(label)
+            if f" {kind} " not in label or len(ids) != 2:
+                faults.append(f"arrow {src} {arrow} {dst} is labelled {label!r} - a {'solid' if arrow == '-->' else 'dotted'} "
+                              f"arrow reads '<ticket> {kind} <ticket>'")
+            else:
+                edges.add((ids[0], ids[1], kind))
+            for end in (src, dst):
+                if end not in lanes:
+                    faults.append(f"arrow {src} {arrow} {dst} ends at lane_{end}, which is not a lane")
+        else:
+            faults.append(f"graph line {ln!r} is not a box or an arrow in the allowed shapes")
+    if nodes != lanes:
+        faults.append(f"the graph has boxes {sorted(nodes)} for lanes {sorted(lanes)} - one box per lane, no other box")
+    points: set[tuple[str, str, str]] = set()
+    for line in md_section(example, "Coordination points").splitlines():
+        ids = EPIC_TICKET_ID.findall(line)
+        kind = "waits for" if "waits for" in line else "builds against" if "builds against" in line else None
+        if line.strip().startswith("-") and (len(ids) != 2 or not kind):
+            faults.append(f"coordination point {line.strip()!r} names no kind and two tickets")
+        elif kind:
+            points.add((ids[0], ids[1], kind))
+    if points != edges:
+        faults.append(f"the arrows {sorted(edges)} differ from the coordination points {sorted(points)} - one arrow "
+                      f"per point, solid for waits for, dotted for builds against")
+    waiting = {dep for dep, _, kind in edges if kind == "waits for"}
+    day1 = table_rows(md_section(example, "Day 1"))
+    if not day1 or "Seat" not in day1[0]:
+        faults.append("no Day 1 table with a Seat column")
+    else:
+        seen = set()
+        for row in day1[1:]:
+            if len(row) > 1:
+                seen.add(row[1])
+            for tid in EPIC_TICKET_ID.findall(row[2] if len(row) > 2 else ""):
+                if tid in waiting:
+                    faults.append(f"day 1 starts {tid}, which waits for a merge - it cannot start on day one")
+        if seen != lanes:
+            faults.append(f"the Day 1 table covers lanes {sorted(seen)}, not every lane {sorted(lanes)}")
+    for milestone in re.findall(r"^## M\d+\b.*?(?=^## |\Z)", example, re.MULTILINE | re.DOTALL):
+        for row in table_rows(milestone)[1:]:
+            epic = re.search(r"`(M\d+-[A-Z]{2,})`", row[0]) if row else None
+            if not epic or len(row) < 4:
+                faults.append(f"epic row {row!r} names no epic ID, lane, owner and tickets")
+                continue
+            if row[1] not in lanes:
+                faults.append(f"epic {epic.group(1)} sits in {row[1]!r}, which is not a lane")
+            for tid in EPIC_TICKET_ID.findall(row[3]):
+                if not tid.startswith(epic.group(1) + "-"):
+                    faults.append(f"ticket {tid} is listed under epic {epic.group(1)} - a ticket sits in its own epic")
+    return faults
+
+
+def check_epic_plan(files: dict[str, Path]) -> None:
+    """36. /tickets groups milestone -> epic -> ticket, publishes epics as parent issues read back, and writes the
+    plan to a root TICKETS.md with a lane flow graph and a day-1 table - and never a status.
+
+    A backlog sized by behaviour (#247) is too long to read as one list, and the plan it came with sat in a README
+    inside docs/issues/ that nothing on GitHub could see (#249). The model: an epic is one feature of one milestone
+    in one lane, published as a parent issue with its tickets as sub-issues; TICKETS.md holds the plan and never the
+    status, which stays on the issues and the board so the file cannot go stale. A solid arrow is a wait for a merge
+    and so a blocked-by link; a dotted arrow builds against a frozen contract and is never a link, because /build
+    stops on an open blocker and the day-1 table promises the ticket can start. The rules are read where they must
+    appear, and the invented example is read as a TICKETS.md would be: status, boxes per lane, arrows against their
+    coordination points, the day-1 rows. Known limit: a line naming the old plan file passes when it also uses a
+    migration word (remains, migrate, replaces), because the migration rule has to name the file it removes.
+    """
+    skill = files["tickets"].read_text(encoding="utf-8")
+    step0 = re.search(r"^## Step 0\b(.*?)^## Step 1\b", skill, re.MULTILINE | re.DOTALL)
+    step3a1 = re.search(r"^### 3A\.1\b(.*?)^### 3A\.2", skill, re.MULTILINE | re.DOTALL)
+    step3a2 = re.search(r"^### 3A\.2\b(.*?)^## Step 3B\b", skill, re.MULTILINE | re.DOTALL)
+    build = files["build"].read_text(encoding="utf-8")
+    build0 = re.search(r"^## Step 0\b(.*?)^## Step 1\b", build, re.MULTILINE | re.DOTALL)
+    template = (ROOT / "templates" / "feature_ticket_template.md").read_text(encoding="utf-8")
+    refs = {name: (TICKETS_REFS / f"{name}").read_text(encoding="utf-8") if (TICKETS_REFS / name).exists() else ""
+            for name in ("slicing.md", "tickets-md.md", "publishing.md", "verification.md", "adhoc-capture.md")}
+    flat = lambda s: " ".join(s.split())  # noqa: E731
+    regions = {"tickets exit criteria": flat(" ".join(criteria_of(skill))),
+               "tickets Step 0": flat(step0.group(1) if step0 else ""),
+               "tickets Step 3A.1": flat(step3a1.group(1) if step3a1 else ""),
+               "tickets Step 3A.2": flat(step3a2.group(1) if step3a2 else ""),
+               "build Step 0": flat(build0.group(1) if build0 else ""),
+               "feature_ticket_template.md": flat(template),
+               **{name: flat(text) for name, text in refs.items()}}
+    if not refs["tickets-md.md"]:
+        fail("commands/tickets/references/tickets-md.md is missing - /tickets has no shape to write TICKETS.md in")
+    for token, where, what in EPIC_TOKENS:
+        if token not in regions[where]:
+            fail(f"{where} lost {what} (expected {token!r})")
+    if not EPIC_TICKET_ID.search(regions["tickets exit criteria"]):
+        fail("tickets exit criteria give no epic-scoped ID (M<n>-<EPIC>-<nn>) - dedup matches IDs, so their shape is a rule")
+
+    # Everything after the heading: the example is a TICKETS.md, so it carries `## ` headings of its own.
+    example = refs["tickets-md.md"].split("\n## §Example", 1)[-1] if "\n## §Example" in refs["tickets-md.md"] else ""
+    block = re.search(r"^````markdown\n(.*?)^````", example, re.MULTILINE | re.DOTALL)
+    if not block:
+        fail("tickets-md.md §Example has no ````markdown TICKETS.md to read - the rules have nothing shown to hold them")
+    else:
+        for fault in plan_example_faults(block.group(1)):
+            fail(f"tickets-md.md §Example TICKETS.md: {fault}")
+
+    # Old IDs only where a backlog published under them is the subject.
+    publishing_now = re.sub(r"^## §An earlier backlog\b.*?(?=^## )", "", refs["publishing.md"], flags=re.MULTILINE | re.DOTALL)
+    evals = json.loads((ROOT / "evals" / "evals.json").read_text(encoding="utf-8"))
+    current_cases = json.dumps([c for c in evals.get("evals", []) if c.get("skill") == "tickets"
+                                and c.get("id") != LEGACY_ID_EVAL], ensure_ascii=False)
+    for where, text in (("commands/tickets/SKILL.md", skill), ("tickets/references/slicing.md", refs["slicing.md"]),
+                        ("tickets/references/tickets-md.md", refs["tickets-md.md"]),
+                        ("tickets/references/publishing.md outside §An earlier backlog", publishing_now),
+                        ("templates/feature_ticket_template.md", template),
+                        ("evals/evals.json (tickets cases)", current_cases),
+                        ("README.md", (ROOT / "README.md").read_text(encoding="utf-8")),
+                        ("docs/how-it-works.md", (ROOT / "docs" / "how-it-works.md").read_text(encoding="utf-8")),
+                        ("commands/new-component.md", files["new-component"].read_text(encoding="utf-8"))):
+        m = LEGACY_ID.search(text)
+        if m:
+            fail(f"{where} still gives a ticket ID as {m.group(0)!r}... - IDs are epic-scoped now (M1-PARTY-02); an old "
+                 f"ID belongs only where a backlog published under it is the subject")
+
+    for rel in repo_files():
+        if OLD_PLAN_HISTORY.match(rel):
+            continue
+        try:
+            text = (ROOT / rel).read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        for n, line in enumerate(text.splitlines(), 1):
+            if OLD_PLAN_FILE in line and not any(word in line.lower() for word in OLD_PLAN_MIGRATION):
+                fail(f"{rel}:{n} still points at {OLD_PLAN_FILE} - the plan lives in {PLAN_FILE_NAME}; a reader of the "
+                     f"old file reads a plan no run writes any more")
+
+
+
+# Check 37 (#260). The verification companion's two halves.
+VERIFY_READ_BACKS = ("Structure mirrored + idempotent.", "Epics are parents, read back.",
+                     "The board reads back set.", "Dependencies are links, read back.")
+# Every check verification.md held when #260 split it (16), plus the two #249 added. A check may be reworded only
+# by editing this list in the same change, so a dropped check is a visible diff, never a silent one.
+VERIFY_CHECKS = ("§Resolve every symbol first", "Strategy was confirmed", "Lanes are modules.",
+                 "Every ticket sits in one epic, in its epic's lane, under an epic-scoped ID.",
+                 "`TICKETS.md` is the plan, never the status", "Every path resolves.", "Vertical:", "Vertical:",
+                 "Horizontal:", "Every `#Plan` item has a home: a ticket, or a named later phase with its sequence point.",
+                 "IDs unique.", "Dedup ran.", "Security DoD present", "Independently mergeable.",
+                 "No ticket lists a spine file or `TICKETS.md`; every ticket lists its feature doc and tests.",
+                 *VERIFY_READ_BACKS)
+VERIFY_SPLIT_TOKENS = (
+    ("§Before publishing", "tickets Step 3b", "naming the half that runs over the local files"),
+    ("§After publishing", "tickets Step 3b", "naming the half that runs once the issues exist"),
+    ("a local-only run skips them", "tickets Step 3b", "a run with nothing published skipping the read-backs"),
+    ("§Before publishing half", "tickets Step 3A.2", "running only the before-publishing half before anything is sent"),
+    ("never read them as a reason to stop before publishing", "verification.md header", "the read-backs never blocking a publish"),
+    ("A local-only run", "verification.md header", "the local-only run saying the read-backs did not run"),
+)
+
+
+def check_verification_publish_split(files: dict[str, Path]) -> None:
+    """37. verification.md runs its checks over the local files before publishing, and its read-backs after.
+
+    The companion's header and /tickets Step 3b both said every check runs before publishing, while three of them
+    read GitHub back and can only run once the issues exist (#260). A logged re-run did them after publishing, as
+    publishing.md says; a batch run taking the header literally would stop on three checks it cannot run yet. So the
+    file has two halves, the read-backs sit only in the second, and no check left in the move.
+    """
+    text = (TICKETS_REFS / "verification.md").read_text(encoding="utf-8")
+    before, after = text.find("\n## §Before publishing"), text.find("\n## §After publishing")
+    if before < 0 or after < 0 or after < before:
+        fail("tickets/references/verification.md is not split into `## §Before publishing` then `## §After publishing` - "
+             "the read-backs need published issues, and a list read as all-before stops a run that cannot do them yet")
+        return
+    header, first, second = text[:before], text[before:after], text[after:]
+    bullets = lambda s: re.findall(r"^- \*\*(.+?)\*\*", s, re.MULTILINE)  # noqa: E731
+    for name in VERIFY_READ_BACKS:
+        if name not in bullets(second):
+            fail(f"verification.md §After publishing lacks the read-back {name!r}")
+        if name in bullets(first):
+            fail(f"verification.md lists the read-back {name!r} before publishing - it needs the published issues")
+    for name in bullets(second):
+        if name not in VERIFY_READ_BACKS:
+            fail(f"verification.md §After publishing holds {name!r}, which is not a read-back - a check over the local "
+                 f"files that runs after publishing runs too late to stop anything")
+    held = bullets(text) + re.findall(r"^### (§Resolve every symbol first)\b", text, re.MULTILINE)
+    for name in sorted(set(VERIFY_CHECKS)):
+        want, got = VERIFY_CHECKS.count(name), held.count(name)
+        if got < want:
+            fail(f"verification.md holds {got} check(s) named {name!r}, not {want} - no check is dropped; reword one by "
+                 f"editing VERIFY_CHECKS in the same change")
+    skill = files["tickets"].read_text(encoding="utf-8")
+    step3b = re.search(r"^## Step 3b\b(.*?)^## Step 3c\b", skill, re.MULTILINE | re.DOTALL)
+    step3a2 = re.search(r"^### 3A\.2\b(.*?)^## Step 3B\b", skill, re.MULTILINE | re.DOTALL)
+    regions = {"tickets Step 3b": " ".join((step3b.group(1) if step3b else "").split()),
+               "tickets Step 3A.2": " ".join((step3a2.group(1) if step3a2 else "").split()),
+               "verification.md header": " ".join(header.split())}
+    for token, where, what in VERIFY_SPLIT_TOKENS:
+        if token not in regions[where]:
+            fail(f"{where} lost {what} (expected {token!r})")
 
 
 if __name__ == "__main__":
