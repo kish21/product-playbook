@@ -1623,13 +1623,14 @@ def check_no_private_names() -> None:
     """34. No private project is named anywhere in the playbook - not in a file, not in a file's path (#270).
 
     The playbook ships to people building every kind of product. Case files, check docstrings, rule examples,
-    evals, a case study and CHANGELOG history had named the maintainer's own test projects and tools on about
-    seventy lines: context no user can act on, and a general rule that reads as tuned to one project. Evidence
-    is written as "a logged test run" and examples are invented.
+    evals, a case study and CHANGELOG history had named the maintainer's own test projects and tools in 79
+    places: context no user can act on, and a general rule that reads as tuned to one project. Evidence is
+    written as "a logged test run" and examples are invented.
 
     The names are not stored here. They come from PRIVATE_NAMES_ENV and match case-insensitively at the start
-    of a word, so a plural or a possessive is caught and a name glued after other letters is not; list each
-    spelling (a hyphenated and a spaced one are two). With no names it would pass every file, so it FAILS wherever
+    of a word, so a plural or a possessive is caught and a name glued after other letters is not. A space in a
+    name matches any whitespace, so a two-word name the prose wraps across a line break is caught; a hyphenated
+    and a spaced spelling are still two entries. With no names it would pass every file, so it FAILS wherever
     names are required - in CI by default - and a local run says it skipped. CI marks names not required only for a
     fork's pull request, which GitHub gives no secrets; the push to master after the merge runs it with them. A hit
     is reported by path, line and the name's position in the list, so the check never prints the list itself.
@@ -1644,15 +1645,17 @@ def check_no_private_names() -> None:
             print(f"note: check 34 skipped - set {PRIVATE_NAMES_ENV} (comma-separated) to check that no private "
                   f"project is named")
         return
-    patterns = [(i, re.compile(rf"(?<![A-Za-z0-9]){re.escape(n)}", re.IGNORECASE)) for i, n in enumerate(names, 1)]
+    patterns = [(i, re.compile(r"(?<![A-Za-z0-9])" + r"\s+".join(map(re.escape, n.split())), re.IGNORECASE))
+                for i, n in enumerate(names, 1)]
     for rel in repo_files():
         where = [(f"{rel} (path)", i) for i, p in patterns if p.search(rel)]
         try:
-            lines = (ROOT / rel).read_text(encoding="utf-8").splitlines()
+            text = (ROOT / rel).read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError):  # deleted since the listing, or binary: no text to name anything in
-            lines = []
-        for n, line in enumerate(lines, 1):
-            where += [(f"{rel}:{n}", i) for i, p in patterns if p.search(line)]
+            text = ""
+        # the whole file, not line by line, so a wrapped name still matches; each hit reports the line it starts on
+        hits = {(text.count("\n", 0, m.start()) + 1, i) for i, p in patterns for m in p.finditer(text)}
+        where += [(f"{rel}:{n}", i) for n, i in sorted(hits)]
         for loc, i in where:
             fail(f"{loc} names private project #{i} of {PRIVATE_NAMES_ENV} - write \"a logged test run\" for "
                  f"evidence and an invented example for a rule")

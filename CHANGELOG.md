@@ -1030,8 +1030,8 @@ study where everything went well proves nothing. Each finding carries the verdic
 *fix* or *deliberate re-scope* — because a reversal is fine and an unrecorded reversal is the bug.
 
 **Feasibility decided (the ticket's open question): option 2, excerpt the artefacts.** The project is a
-personal repository and is not published, so the findings are quoted verbatim from its own
-`PRODUCT.md#Drift log` and the two cheapest to falsify are traced to file paths; the case study says
+personal repository and is not published, so the findings are quoted from its own
+`PRODUCT.md#Drift log` (verbatim then; since #270 the product's own names are placeholders) and the two cheapest to falsify are traced to file paths; the case study says
 plainly that the repo cannot be cloned, rather than implying it can. Two findings were independently
 re-verified against the real project before publishing — `openapi.json` does list
 `/api/v1/<resource>/{id}` with no `[id]/` route directory, and the auth handler really is mounted at
