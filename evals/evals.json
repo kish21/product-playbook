@@ -289,6 +289,13 @@
       "files": []
     },
     {
+      "id": "frontend-audit-installed-engine-and-project-copy",
+      "skill": "frontend-audit",
+      "prompt": "audit the UI — the plugin cache has 1.9.0 through 1.48.0 in it, and CI runs scripts/frontend-audit/audit.py",
+      "expected_output": "Runs the engine at the path the skill names for the loaded plugin (the installed version) and never lists or sorts the plugin cache to find audit.py; quotes the engine version from the scorecard's first line in its evidence; repeats the engine copy: line, and when the project's copy is older says hooks and CI run fewer checks than this run and names the file to copy over it",
+      "files": []
+    },
+    {
       "id": "frontend-audit-status-colour-two-bars",
       "skill": "frontend-audit",
       "prompt": "audit the design system — our warning dot looks fine but is it accessible",
@@ -356,6 +363,13 @@
       "skill": "foundation",
       "prompt": "the skeleton boots and the health check passes — is foundation done",
       "expected_output": "For a product with auth, says no: the bar is USABLE end-to-end, not merely running — a health path proves the process booted, not that a human can get in. Requires a seed producing a working dev account, verified by ACTUALLY LOGGING IN; the seed must be idempotent (shown running twice without duplicating), must refuse to run against a production target, and prints obviously-fake dev credentials once; records where those credentials are in #Foundation and names them at handoff",
+      "files": []
+    },
+    {
+      "id": "foundation-ui-audit-in-hooks-and-ci",
+      "skill": "foundation",
+      "prompt": "set up the hooks and CI — this product has a UI and DESIGN.md is already written",
+      "expected_output": "Copies the installed frontend-audit engine into the project's tooling folder as <tooling>/frontend-audit/audit.py and commits it; adds a pre-commit command in the recorded hook runner and a CI step that run it over DESIGN.md plus the whole UI tree (not only staged files); proves the gate by planting a raw hex colour — the hook refuses the commit and the CI steps on a clean clone with no plugin exit non-zero — then removes it and shows both pass, with a WARN alone not blocking; records the copy path and engine version in #Foundation and the Python 3 requirement in docs/runbook.md",
       "files": []
     },
     {
