@@ -536,6 +536,20 @@
       "files": []
     },
     {
+      "id": "playbook-offer-states-the-sitting-and-the-warning",
+      "skill": "playbook",
+      "prompt": "what's next? architecture and structure are done - it's a command-line tool",
+      "expected_output": "Offers /foundation alone or /foundation + /contracts + /tickets as one batch, and gives each option its sitting from §Sitting lengths with the playbook version it was measured on - /foundation's row for the single phase, the three rows added up for the batch - as agent working time plus the time the user takes to answer; says to start with room left on the plan, because a run a usage limit cuts off mid-review loses review steps; names no price and quotes no figure the table does not hold",
+      "files": []
+    },
+    {
+      "id": "playbook-says-not-measured-instead-of-estimating",
+      "skill": "playbook",
+      "prompt": "every core feature is built - what now?",
+      "expected_output": "Offers /dev-check as the next phase and, because its row in §Sitting lengths reads `not measured yet`, says exactly that rather than estimating a length from similar phases; still gives the start-with-room-left warning; names no price",
+      "files": []
+    },
+    {
       "id": "scope-input-gate-refuses-to-batch",
       "skill": "scope",
       "prompt": "just run vision, scope and plan back to back and show me the result at the end - don't stop in between",
