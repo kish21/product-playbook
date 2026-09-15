@@ -5,6 +5,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — `/vision` records every search its market read ran, and Step 3b checks the named comparables against that list (#252)
+
+- **Every search goes in `docs/vision.md`, one line each: query · what it settled** (the comparables it
+  verified, the insight it gave, or "nothing"). A comparable named without a search gets its own line saying
+  where the name came from. Before this, Step 3b's check that the read *"cites real named products (not from
+  memory)"* was an assertion. Potluck's run wrote three queries on one line above eight comparables and ten
+  links, and nothing said which search verified which product.
+- **Step 3b checks the read's comparables name by name against that list.** A name that no search settled and
+  that has no line of its own is sent back: search it, or record where it came from. A new exit criterion
+  holds the record, cited to `Current-year market`. The template's field now points at the list.
+- **No count on searches.** The first proposal copied `/architect`'s one-search-per-row bound. The owner's
+  review of seven logged runs found 1–4 searches per run, so a bound saves nothing. Two of the 4-search runs
+  spent a query on user complaints, which is where a sharpening insight comes from and exactly what a bound
+  would cut. The five-part north star is unchanged; splitting it around `/validate` (#252 item 2) was declined.
+- **`tools/check.py` check 33** holds the Step 2 rule, the line shape, the no-search line, the exit criterion
+  and the Step 3b check. It fails any bound on the searches in the skill or its evals. `commands/vision.md`
+  is 10,208 → 11,107 bytes (LF) of 15,360; nothing was pruned. Case file: *The search list nobody could
+  check*. Evals: `vision-records-every-search`, `vision-3b-checks-comparables-against-search-list`.
+
 ## [1.51.0] - 2026-09-15
 
 ### Fixed — `/foundation` shows the skeleton booting after Step 2 item 1, and Step 3b cites a boot only under `/build`'s condition (#251)
