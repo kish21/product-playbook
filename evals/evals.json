@@ -373,6 +373,29 @@
       "files": []
     },
     {
+      "id": "foundation-step-one-shows-it-boots",
+      "skill": "foundation",
+      "prompt": "/foundation  (a web app; Step 2 item 1 has just pinned and installed the dependencies and added a /health route)",
+      "expected_output": "Before starting Step 2 item 2 it starts the app, hits the health path, prints one plain-language line saying the app runs and how to see it (the command and the address), and stops the process it started. It does not stop to ask the user anything. If the boot fails, it fixes that before item 2.",
+      "expectations": [
+        "The health path is requested and answers before any work on Step 2 item 2 begins",
+        "One plain-language line says the app runs and gives the command and address to see it",
+        "The process started for the proof is no longer running when item 2 begins",
+        "No question or pause is put to the user at that point"
+      ]
+    },
+    {
+      "id": "foundation-step-one-boot-is-not-3b-evidence",
+      "skill": "foundation",
+      "prompt": "/foundation  (all eight Step 2 items are built; the app booted at the end of item 1, and the startup guard, logging, adapters and container were added after that; no CI run has booted the final tree)",
+      "expected_output": "At Step 3b it does not cite the item-1 boot for 'runs end-to-end', because code and config changed after it. It starts the app and hits the health path again, recording that as the evidence. The guard proofs (missing secret, dev-datastore refusal, unedited .env.example, and the login for an auth product) run at Step 3b as before, not cited from earlier.",
+      "expectations": [
+        "The item-1 boot is not cited as Step 3b's runs-end-to-end evidence",
+        "The app is started and its health path hit again at Step 3b",
+        "Each guard proof is triggered at Step 3b rather than cited from earlier work"
+      ]
+    },
+    {
       "id": "test-real-user-environment",
       "skill": "test",
       "prompt": "the suite is green but users report the login page crashing",

@@ -228,6 +228,8 @@ def main() -> int:
     # 31. the audit runs the INSTALLED engine, and /foundation wires a project copy into hooks + CI
     check_audit_engine_resolution(files)
     check_audit_engine_behaviour()
+    # 32. /foundation proves the boot at the end of Step 2 item 1, and 3b cites a boot only under /build's condition
+    check_foundation_boot_evidence(files)
 
     return done(len(cmds))
 
@@ -1260,9 +1262,10 @@ BUILD_OVERHEAD_TOKENS = (
     ("citing the evidence Step 2 already captured", "Step 3b citing Step 2's evidence instead of re-running it"),
 )
 
-# When cited evidence stops counting (#255). One sentence, word for word: /foundation Step 3b carries the same
-# condition (#251). Potluck M2-SLICE-02 cited a 13:25 audit after a 13:31 review fix rewrote the form it had
-# checked - "re-run only when its files changed" left "its files" to judgement, and judgement skipped the audit.
+# When cited evidence stops counting (#255). One sentence, word for word, in /build Step 3b and in /foundation's
+# `runs end-to-end` line (check 32, #251). Potluck M2-SLICE-02 cited a 13:25 audit after a 13:31 review fix
+# rewrote the form it had checked - "re-run only when its files changed" left "its files" to judgement, and
+# judgement skipped the audit.
 RERUN_CONDITION = ("re-run a check when any code, config or test file changed after its evidence was captured; "
                    "a review fix counts, a doc-only change does not")
 RERUN_TOKENS = (
@@ -1273,6 +1276,9 @@ RERUN_TOKENS = (
      "uncommitted script run, and a commit-to-commit comparison sees nothing"),
     ("when unsure whether anything changed or whether a change is doc-only, re-run", "failing toward the re-run - "
      "the same build edited STRUCTURE.md, which a CI check reads, after that CI ran"),
+)
+# /build's reviews are checks its fixes can outrun; /foundation composes no review, so these stay /build's.
+REVIEW_RERUN_TOKENS = (
     ("The reviews are checks too", "re-reviewing a review fix - nothing reviewed that build's fix either"),
     ("`/security-review` too when they touch an auth/data surface, until a round changes no code, config or test "
      "file", "one stopping point for both reviews, in the condition's own file kinds - a limit of one leaves the "
@@ -1291,7 +1297,7 @@ def check_build_loop_overhead(files: dict[str, Path]) -> None:
     Step 2 had already produced - and a board card still at Todo after the ticket merged.
     """
     text = " ".join(files["build"].read_text(encoding="utf-8").split())
-    for token, what in BUILD_OVERHEAD_TOKENS + RERUN_TOKENS:
+    for token, what in BUILD_OVERHEAD_TOKENS + RERUN_TOKENS + REVIEW_RERUN_TOKENS:
         if token not in text:
             fail(f"build lost {what} (expected {token!r})")
     for p in sorted((ROOT / "commands").rglob("*.md")):
@@ -1456,6 +1462,68 @@ def check_audit_engine_behaviour() -> None:
         if f"is {older}, OLDER" not in r.stdout:
             fail("audit engine: an engine committed by a project-level copy install (.claude/commands/) took "
                  "itself for the project copy and never reported the older copy hooks and CI run")
+
+
+# Step 2 of /foundation, before its list reaches item 2: the proof that item 1's skeleton boots.
+FOUNDATION_BOOT_PROOF = (
+    ("Item 1 ends by proving it boots", "the boot proof at the end of item 1"),
+    ("hit the health path", "hitting the health path, not only starting the process"),
+    ("plain-language line", "telling the user in plain words that the app runs"),
+    ("how to see it", "telling the user how to see it for themselves"),
+    ("stop whatever you started", "stopping the process the proof started"),
+    ("A line, not a pause", "keeping a batched run moving - the proof prints, it never asks"),
+    ("fix it before item 2", "a failed boot being fixed before seven items land on it"),
+)
+# Step 3b's `runs end-to-end` line, beside RERUN_TOKENS.
+FOUNDATION_BOOT_CITE = (
+    ("(this line only)", "keeping the citation to this one line - the guard proofs are new work, not repeats"),
+    ("The item-1 boot never qualifies", "ruling out the item-1 boot - Step 2's items 3-8 change the boot path"),
+    ("a CI health check on the final tree", "a CI run counting only when it hit the health path, on the final tree"),
+)
+# Step 3b's guard proofs: #251 applied cite-don't-re-run to the boot line alone, and these always run.
+FOUNDATION_GUARD_PROOFS = (
+    ("actually log in with the seeded account", "the login proof - a health path is not a usable app"),
+    ("trigger it with a missing secret", "the fail-closed proof"),
+    ("point it at the dev datastore on purpose", "the test-isolation proof"),
+    ("copy `.env.example` to `.env` **unedited**", "the placeholder replay"),
+)
+
+
+def check_foundation_boot_evidence(files: dict[str, Path]) -> None:
+    """32. /foundation proves the boot at the end of Step 2 item 1, and Step 3b cites a boot only under /build's condition.
+
+    Potluck /foundation (2026-09-13, 229 tool calls): item 1 already produced an app with a health path, and the
+    first boot came at call 133, 22 minutes in, with most of the skeleton on top of it. And an earlier boot does
+    not vouch for a later one: at 08:17 the container boot failed where the 08:12 local boot had passed, and the
+    run edited the boot entry before it came up. #251 moved the proof to item 1 and let 3b's `runs end-to-end`
+    line cite a boot only under /build's RERUN_CONDITION, word for word - never the item-1 boot, and never for a
+    guard proof.
+    """
+    text = files["foundation"].read_text(encoding="utf-8")
+    step2 = re.search(r"^## Step 2\b(.*?)^2\. ", text, re.MULTILINE | re.DOTALL)
+    region = " ".join(step2.group(1).split()) if step2 else ""
+    for token, what in FOUNDATION_BOOT_PROOF:
+        if token not in region:
+            fail(f"foundation Step 2 lost {what} (expected {token!r} before item 2) - the app runs after item 1, "
+                 f"and a boot first shown at the end of the phase hides a broken one under seven steps")
+    step3b = re.search(r"^## Step 3b\b(.*?)^## Step 3c\b", text, re.MULTILINE | re.DOTALL)
+    body = step3b.group(1) if step3b else ""
+    line = re.search(r"^- runs end-to-end\b.*(?:\n[ \t]+\S.*)*", body, re.MULTILINE)
+    if not line:
+        fail("foundation Step 3b lost its `- runs end-to-end` line")
+        return
+    boot = " ".join(line.group(0).split())
+    for token, what in [(t, f"/build's clause on {w}") for t, w in RERUN_TOKENS] + list(FOUNDATION_BOOT_CITE):
+        if token not in boot:
+            fail(f"foundation Step 3b's runs end-to-end line lost {what} (expected {token!r})")
+    flat = " ".join(text.split())
+    if flat.count(RERUN_CONDITION) != 1:
+        fail(f"foundation carries the re-run condition {flat.count(RERUN_CONDITION)} times - once, on the runs "
+             f"end-to-end line; anywhere else it lets a guard proof cite old evidence")
+    flat3b = " ".join(body.split())
+    for token, what in FOUNDATION_GUARD_PROOFS:
+        if token not in flat3b:
+            fail(f"foundation Step 3b lost {what} (expected {token!r}) - a guard is proven by making it fire")
 
 
 if __name__ == "__main__":
