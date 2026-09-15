@@ -29,6 +29,57 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
   proves the working-time measure. 28 breaks were each shown to turn it red.
 - Two eval cases: a batch offer that states the sitting and the warning, and an unmeasured phase that says so.
 
+### Added — `/tickets` plans a backlog as milestone → epic → ticket, in a root `TICKETS.md` with a lane flow graph (#249)
+
+- **Epics between milestones and tickets.** A backlog sized by behaviour is too long to read as one list, so each
+  milestone's tickets are grouped into epics: one feature of one milestone, inside one module lane. The proposal
+  is shown and confirmed as that hierarchy. On GitHub each epic is a parent issue and its tickets are its
+  sub-issues, attached through the REST API (`gh` has no sub-issue command) and read back. A re-run finds each
+  epic by its tag and adds no second epic or link; a ticket already under another epic is reported, never moved.
+- **Epic-scoped IDs.** `M1-DISC-03` is milestone · epic · number, and the epic itself is `M1-DISC`; they replace
+  `M1-SLICE-03` / `M1-TICK-03`. A backlog published under the old IDs keeps them, so dedup still matches, and only
+  new tickets take the new form.
+- **A root `TICKETS.md` replaces `docs/issues/README.md`.** It holds the plan: each milestone's epics with their
+  tickets in build order, the parallel table, the coordination points, the hub files, a Mermaid flow graph with
+  one box per lane, and a day-1 table giving each seat a ticket it can start without waiting on anyone. It never
+  holds status (no status column, checkbox or done mark), because the issues and the Delivery Board carry that and
+  a plan that tracks status goes stale. A re-run migrates an old `docs/issues/README.md` into it and deletes the
+  README. `/build` now reads coordination points from `TICKETS.md`.
+- **Two kinds of dependency.** A solid arrow means wait for the merge: the ticket's `Depends On`, a *blocked by*
+  link `/build` stops on, as before. A dotted arrow means build against the contract, where a stub is enough to
+  start: a new `Builds against` field that is never a link, because a link would make `/build` stop a ticket the
+  day-1 table says can start. When unsure, it is `Depends On`. The issue template gains Epic and Builds Against.
+- **Epics are not board cards.** Their progress is GitHub's own count of closed sub-issues, so nothing writes a
+  status onto them. Every ticket is still a card with Status, Owner, Lane and Seat set and read back.
+- **The dedup index no longer truncates silently.** It fetched 100 issues, a limit a backlog with epics passes
+  quickly, and every issue past it would have been published a second time on a re-run. It now fetches up to
+  1,000 and raises the limit whenever the list comes back full.
+- **`/tickets` stays under the 15KB skill limit by moving text, not dropping it.** Mode B's procedure, the publish
+  order and two Step 1 reasons now live in `references/adhoc-capture.md`, `references/publishing.md` and
+  `references/slicing.md`, with a pointer at the step that needs each. The new `references/tickets-md.md` holds
+  the plan file's shape and an invented example.
+- **`tools/check.py` check 36** fails when one of these rules goes missing from the skill, its references,
+  `/build` or the template; when any file still reads or writes `docs/issues/README.md`; or when an old-style ID
+  appears as the current form. It also reads the example `TICKETS.md` the way a plan file is read, and fails on
+  status in it, a lane without a box or a box without a lane, an arrow whose kind disagrees with its coordination
+  point or that does not run from the blocker's lane to the dependant's, a day-1 ticket that waits for a merge, or
+  a ticket listed under the wrong epic. The example graph renders
+  with the Mermaid CLI.
+- Three eval cases: the plan file and epics for a team of two, a re-run on a backlog published before epics, and
+  a local-only run.
+
+### Fixed — `/tickets` says which verification checks run after publishing (#260)
+
+- `references/verification.md` and `/tickets` Step 3b said every check runs before publishing, but three of them
+  read GitHub back and can only run once the issues exist: *Structure mirrored + idempotent*, *The board reads
+  back set* and *Dependencies are links, read back*. A batch run taking that literally would stop on checks it
+  cannot run yet. The file now has two halves: *Before publishing*, over the local files, and *After publishing*,
+  for the read-backs. A local-only run skips the second half and says so in the close. #249's sub-issue read-back
+  joins that half. No check was removed: 16 before the split, 16 after it, 18 with #249's two.
+- **`tools/check.py` check 37** fails when the halves merge, a read-back moves before publishing, a local check
+  moves after it, or a check present today goes missing. Across checks 36 and 37, 39 breaks were each shown to
+  turn the check red.
+
 ## [1.53.0] - 2026-09-15
 
 ### Changed — no real project is named anywhere in the playbook, and check 34 keeps it that way (#270)

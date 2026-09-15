@@ -181,20 +181,20 @@
       "id": "tickets-strategy-proposed-and-confirmed",
       "skill": "tickets",
       "prompt": "Break down the milestones in PRODUCT.md into GitHub issue tickets",
-      "expected_output": "Groups the tickets into module lanes read from STRUCTURE.md (one lane per module, an Owner on every ticket, ordered inside a lane, parallel across lanes) and recommends a slice strategy (vertical or horizontal) per milestone with a one-line reason; PRINTS the full proposal (every ticket: ID, title, lane, owner) and STOPS for confirmation before writing; naming the strategy in the invocation skips the strategy question, not the list; emits as many milestone-scoped tickets as each milestone has visible behaviours, with no count cap and any title containing \"and\" flagged in the proposal (M<n>-SLICE-<nn> / M<n>-TICK-<nn>), each mergeable as an isolated PR with exact target file paths, typed inputs/outputs and a security definition of done; verifies the remote and dedups against `gh issue list` before any `gh issue create`; files every issue as a card on a Delivery Board with Status, Owner, Lane and Seat set and read back",
+      "expected_output": "Groups the tickets into module lanes read from STRUCTURE.md (one lane per module, an Owner on every ticket, ordered inside a lane, parallel across lanes) and recommends a slice strategy (vertical or horizontal) per milestone with a one-line reason; PRINTS the full proposal (every ticket: ID, title, lane, owner) and STOPS for confirmation before writing; naming the strategy in the invocation skips the strategy question, not the list; shows the proposal as milestone -> epic -> ticket, emitting as many epic-scoped tickets as each milestone has visible behaviours, with no count cap and any title containing \"and\" flagged in the proposal (M<n>-<EPIC>-<nn>, the epic itself M<n>-<EPIC>), each mergeable as an isolated PR with exact target file paths, typed inputs/outputs and a security definition of done; verifies the remote and dedups against `gh issue list` before any `gh issue create`; writes the plan to a root TICKETS.md; publishes each epic as a parent issue with its tickets as sub-issues, read back; files every ticket issue as a card on a Delivery Board with Status, Owner, Lane and Seat set and read back",
       "expected_artifacts": [
         "docs/issues/*.md",
         ".github/ISSUE_TEMPLATE/feature_ticket.md"
       ],
       "expectations": [
         "Tickets are grouped into module lanes read from STRUCTURE.md, every ticket carries a Lane and an Owner, and the backlog never assumes a single builder",
-        "A slice strategy (vertical or horizontal) is RECOMMENDED per milestone with a one-line reason, the FULL proposal (ID, title, lane, owner per ticket) is printed, and the run STOPS for confirmation before writing tickets",
+        "A slice strategy (vertical or horizontal) is RECOMMENDED per milestone with a one-line reason, the FULL proposal is printed as milestone -> epic -> ticket (ID, title, lane, owner per epic and ticket), and the run STOPS for confirmation before writing tickets",
         "Naming the strategy in the invocation (/tickets \"vertical\") skips the strategy question but never the printed list",
-        "Every published issue is a card on the Delivery Board with Status, Owner, Lane and Seat set and read back; a missing project scope is reported, never half-stamped",
+        "Every published ticket issue is a card on the Delivery Board with Status, Owner, Lane and Seat set and read back; a missing project scope is reported, never half-stamped",
         "The chosen strategy is recorded on every ticket of that milestone",
         "Each milestone yields as many tickets as it has visible behaviours - no fixed count - each mergeable as an isolated PR, and every proposed title containing \"and\" is flagged",
         "Every ticket names exact target file paths, never a bare directory, and states typed inputs and outputs",
-        "Ticket IDs are milestone-scoped (M<n>-SLICE-<nn> / M<n>-TICK-<nn>) so they stay unique across milestones",
+        "Ticket IDs are epic-scoped (M<n>-<EPIC>-<nn>, e.g. M1-PARTY-02, under the epic M1-PARTY) so they stay unique across milestones and epics",
         "Pre-flight remote check and gh issue list dedup run before any gh issue create",
         "Definition of done includes security checks on every ticket"
       ]
@@ -234,12 +234,12 @@
       "id": "tickets-adhoc-issue-capture",
       "skill": "tickets",
       "prompt": "/tickets \"Bug: Gemini API timeout is unhandled on slow 3G networks\"",
-      "expected_output": "Creates exactly ONE issue without reading, regenerating or renumbering the milestone backlog; resolves the owning file from STRUCTURE.md rather than guessing it; classifies and labels the issue (bug / edge-case / tech-debt / security); requires a regression test that fails without the fix; applies the same remote-verification and dedup guards before publishing",
+      "expected_output": "Creates exactly ONE issue without reading, regenerating or renumbering the milestone backlog, and without editing TICKETS.md (a bug is not part of the plan); resolves the owning file from STRUCTURE.md rather than guessing it; classifies and labels the issue (bug / edge-case / tech-debt / security); requires a regression test that fails without the fix; applies the same remote-verification and dedup guards before publishing",
       "expected_artifacts": [
         "docs/issues/*.md"
       ],
       "expectations": [
-        "Exactly ONE issue is created - the milestone backlog is not read, regenerated or renumbered",
+        "Exactly ONE issue is created - the milestone backlog is not read, regenerated or renumbered, and TICKETS.md is not edited",
         "The owning file is resolved from STRUCTURE.md (e.g. src/providers/llm/geminiProvider.ts) rather than guessed",
         "The issue is classified (bug / edge-case / tech-debt / security) and labelled accordingly",
         "The DoD requires a regression test that fails without the fix",
@@ -434,8 +434,60 @@
       "id": "tickets-mirrors-plan-onto-github",
       "skill": "tickets",
       "prompt": "publish the backlog to GitHub",
-      "expected_output": "Checks issue, milestone AND label permissions BEFORE publishing anything and degrades or aborts cleanly rather than leaving a half-published backlog; creates missing GitHub milestones with titles derived from #Plan and assigns them on create, reusing existing ones; labels each issue 'lane: <name>' with the space rather than inventing a second spelling; Mode B resolves the parent's real issue number from the dedup index and writes #N, degrading to the plain ID with a stated reason rather than guessing; references the feature doc by path since /build writes it later; a second run creates no duplicate milestone, label or issue",
+      "expected_output": "Checks issue, milestone AND label permissions BEFORE publishing anything and degrades or aborts cleanly rather than leaving a half-published backlog; creates missing GitHub milestones with titles derived from #Plan and assigns them on create, reusing existing ones; labels each issue 'lane: <name>' with the space rather than inventing a second spelling; Mode B resolves the parent's real issue number from the dedup index and writes #N, degrading to the plain ID with a stated reason rather than guessing; references the feature doc by path since /build writes it later; publishes each epic as a GitHub parent issue and attaches its tickets as sub-issues through the REST API with the numeric database id, reading back GET .../sub_issues first and after, never passing replace_parent for a ticket already under another epic; fetches a dedup index that is not truncated; a second run creates no duplicate milestone, label, epic, issue, parent link or blocked-by link",
       "files": []
+    },
+    {
+      "id": "tickets-epics-and-plan-file",
+      "skill": "tickets",
+      "prompt": "Break the plan into tickets - two of us will build it",
+      "expected_output": "Groups each milestone into epics (one feature of one milestone inside one module lane) and writes a root TICKETS.md holding the plan only: each milestone's epics with their tickets in build order, the parallel table, every cross-lane coordination point in its kind (waits for a merge, or builds against a contract), the hub files, a Mermaid flowchart with one box per lane where a solid arrow means wait for the merge and a dotted arrow means build against the contract, and a day-1 table giving each seat a ticket it can start without waiting on anyone; the file carries no status column, checkbox, done mark or progress count, because status stays on GitHub; a waits-for dependency is the ticket's Depends On and a blocked-by link, a builds-against dependency is its Builds against and never a link; no docs/issues/README.md remains",
+      "expected_artifacts": [
+        "TICKETS.md",
+        "docs/issues/*.md"
+      ],
+      "expectations": [
+        "Each milestone is grouped into epics, each epic one feature of that milestone inside one module lane, and every ticket ID is epic-scoped (M<n>-<EPIC>-<nn>)",
+        "A root TICKETS.md is written with the epics, the parallel table, the coordination points, the hub files, a flow graph and a day-1 table",
+        "The flow graph is a Mermaid flowchart with exactly one box per lane; a solid arrow means wait for the merge and a dotted arrow means build against the contract",
+        "The day-1 table names, for each seat, a ticket with no Depends On, and says what a lane with nothing startable waits for",
+        "TICKETS.md holds no status: no status column, checkbox, done mark or progress count - status stays on the GitHub issues and the Delivery Board",
+        "A dependency that needs the other ticket merged is a Depends On and a blocked-by link; one that needs only its frozen contract is a Builds against and is never linked",
+        "No docs/issues/README.md remains beside TICKETS.md"
+      ]
+    },
+    {
+      "id": "tickets-rerun-earlier-backlog",
+      "skill": "tickets",
+      "prompt": "/tickets again - this backlog was published before epics, and its plan has not been migrated out of docs/issues/README.md",
+      "expected_output": "Dedups against a complete issue list and keeps every published ID as it is (M1-SLICE-02 is never renamed); proposes epics over the existing tickets, shown in full and confirmed, and gives only new tickets epic-scoped IDs; creates each missing epic once and attaches published tickets as sub-issues - a relationship, not a body edit - reading the sub-issues back first so a second run adds no duplicate epic or link, and reporting rather than moving a ticket already under another parent; migrates docs/issues/README.md into TICKETS.md, dropping anything that is status, and deletes the README in the same commit, saying so in the close",
+      "expected_artifacts": [
+        "TICKETS.md"
+      ],
+      "expectations": [
+        "Published old-style IDs (M<n>-SLICE-<nn>, M<n>-TICK-<nn>) are kept and matched by dedup, never renamed; only new tickets take epic-scoped IDs",
+        "The epics are proposed over the existing tickets and shown in full before anything is created",
+        "Existing tickets are attached to their epic as sub-issues without editing their bodies, and the sub-issues are read back",
+        "A second run creates no duplicate epic issue and no duplicate parent link",
+        "A ticket already under a different parent is reported and left alone - replace_parent is never passed",
+        "docs/issues/README.md is migrated into TICKETS.md without its status and deleted in the same commit, and the close says so"
+      ]
+    },
+    {
+      "id": "tickets-local-only-read-backs",
+      "skill": "tickets",
+      "prompt": "break down the plan into tickets (this repo has no git remote yet)",
+      "expected_output": "Writes docs/issues/*.md and TICKETS.md and runs every before-publishing check in verification.md over the local files; publishes nothing and creates no remote; does not stop on the after-publishing read-backs (structure mirrored, epics as parents, the board, dependency links), which need published issues - it skips them and says in the close that they did not run because nothing was published, with the command to add a remote and run /tickets again",
+      "expected_artifacts": [
+        "TICKETS.md",
+        "docs/issues/*.md"
+      ],
+      "expectations": [
+        "Every before-publishing check (symbols resolve, lanes, epics, TICKETS.md holds no status, paths, IDs unique, security DoD, mergeable alone) runs over the local files",
+        "No remote repository is created and nothing is published",
+        "The after-publishing read-backs are not treated as a reason to stop: the close says they did not run because nothing was published",
+        "The close gives the command to link a remote and says to run /tickets again to publish"
+      ]
     },
     {
       "id": "adopt-infers-and-confirms",
