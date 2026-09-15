@@ -18,13 +18,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
   start to its close, rounded to 5 minutes, with the versions and the number of runs behind each figure. Sixteen
   logged runs fill it; only runs that reached their phase's close count. Five phases have no measured run and
   say so. A release that changes how long a phase runs updates one row.
-- **`tools/session_cost.py` prints agent working time:** wall clock minus every wait for the user's reply or
-  question-card answer, keeping the agent's waits on its own background jobs. It is the table's figure, so a
-  user can measure a run of their own against it.
+- **`tools/session_cost.py` prints agent working time:** wall clock minus every wait for the user's reply,
+  question-card answer or plan approval, keeping the agent's waits on its own background jobs. It is the
+  table's figure, so a user can measure a run of their own against it. A tool permission prompt leaves no row in
+  the log, so time spent approving a tool still counts; the table's runs had none. The wall clock now ends at
+  the newest row rather than the last one written.
 - **`tools/check.py` check 35** fails when a phase `/playbook` can offer has no row, a row carries no version
   label or one newer than the release, a range rests on one run, or a price or a sitting figure appears anywhere
   else in `/playbook`. It also fails when an offer loses the warning or the pointer to the table, and a fixture
-  proves the working-time measure. 26 breaks were each shown to turn it red.
+  proves the working-time measure. 28 breaks were each shown to turn it red.
 - Two eval cases: a batch offer that states the sitting and the warning, and an unmeasured phase that says so.
 
 ## [1.53.0] - 2026-09-15
