@@ -151,7 +151,8 @@ Load `references/design-md-template.md` and write **`DESIGN.md`**, filling all *
 *concrete approved values* — replace every placeholder, ship nothing un-filled. The section list and the
 per-section rules (OKLCH shadcn-compatible tokens, light **and** dark, the page inventory, the AA
 re-check before writing) are in `references/build-loop.md` §Emit `DESIGN.md`.
-- **Audit timing — RUN the engine, never just cite it:** `python commands/frontend-audit/audit.py` over
+- **Audit timing — RUN the engine, never just cite it:** `python "${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py"`
+  — the installed engine; never search the plugin cache (a `$` left in the path: `/frontend-audit` §Which engine runs) — over
   the approved sample at confirm-time and over `DESIGN.md` once emitted, never before approval (Law 16);
   fix every `[FAIL]`, triage every `[WARN]`, and **claim no "passes the laws" you did not run the engine
   to back** (`references/build-loop.md` §Audit timing).

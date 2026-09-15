@@ -163,8 +163,11 @@ filled with the concrete approved values — a placeholder that ships is a secti
   asserted. Run the engine on the **approved sample** at confirm-time (Step 4) and on **`DESIGN.md` after**
   it's emitted here (never `DESIGN.md` before approval — Law 16):
   ```
-  python commands/frontend-audit/audit.py <approved-sample> DESIGN.md
+  python "<engine>" <approved-sample> DESIGN.md
   ```
+  `<engine>` is the path SKILL.md Step 5's audit line names — the installed plugin's engine, written in
+  when the skill loaded. **Never search the plugin cache for `audit.py`**: it keeps every old version, and
+  a text sort picks the wrong one.
   **Read the output and act on it:** fix every `[FAIL]` (the floor is non-negotiable) and triage `[WARN]`
   before handing off — a `Law7-unverified` warn means contrast was NOT checked (rename tokens so it can be),
   not that it passed. Do not emit a "passes the laws" claim you didn't run the engine to back.

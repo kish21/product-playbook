@@ -224,6 +224,9 @@ def main() -> int:
     check_architect_search_bound(files)
     # 30. /build's loop carries its overhead rules: read limit, triggered checks, flaky capture, board status
     check_build_loop_overhead(files)
+    # 31. the audit runs the INSTALLED engine, and /foundation wires a project copy into hooks + CI
+    check_audit_engine_resolution(files)
+    check_audit_engine_behaviour()
 
     return done(len(cmds))
 
@@ -251,6 +254,11 @@ def check_versions(manifest: dict) -> None:
     badge = re.search(r"badge/version-(\d+\.\d+\.\d+)-",
                       (ROOT / "README.md").read_text(encoding="utf-8"))
     surfaces.append(("README.md badge", badge.group(1) if badge else None))
+
+    # A project's hooks and CI run a committed copy of the audit engine; its ENGINE_VERSION is how the
+    # installed engine tells an old copy from a current one, so it moves with every release.
+    engine = re.search(r'^ENGINE_VERSION = "([^"]*)"', AUDIT_ENGINE.read_text(encoding="utf-8"), re.MULTILINE)
+    surfaces.append(("commands/frontend-audit/audit.py ENGINE_VERSION", engine.group(1) if engine else None))
 
     for name, got in surfaces:
         if got != want:
@@ -1271,6 +1279,145 @@ def check_build_loop_overhead(files: dict[str, Path]) -> None:
         fail(f"live-path-checks.md has {len(untagged)} check(s) with no *[always]* / *[when ...]* trigger - "
              f"/build walks the checks whose trigger matches, so an untagged one is weighed on every ticket "
              f"or silently skipped: {untagged[0]!r}")
+
+
+AUDIT_ENGINE = ROOT / "commands" / "frontend-audit" / "audit.py"
+AUDIT_ENGINE_PATH = '"${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py"'
+# Every skill that RUNS the audit names the installed engine and forbids the cache search.
+AUDIT_RUNNERS = ("frontend-audit", "design-system", "build", "new-component", "foundation")
+# A runnable audit line that names neither the installed engine, a placeholder for it, nor the project copy.
+AUDIT_BARE_RUN = re.compile(r'python3?\s+"?(?!\$\{CLAUDE_PLUGIN_ROOT\}|<engine>|<tooling>)[^\s"`]*audit\.py')
+FOUNDATION_AUDIT_TOKENS = (
+    ("the frontend audit runs in the commit hooks AND CI", "the exit criterion wiring the audit into hooks + CI"),
+    ("plant a raw hex colour", "Step 3b's proof that the audit gate goes red"),
+)
+SKELETON_AUDIT_TOKENS = (
+    ("<tooling>/frontend-audit/audit.py", "where the project copy lives - the installed engine finds it by that ending"),
+    ("**Commit it**", "committing the copy - a clean clone has no plugin"),
+    ("never only the staged files", "auditing the whole UI - Law 14b resolves tokens across files"),
+    ("a WARN prints and passes", "the ERROR-blocks / WARN-reports tiering"),
+)
+
+
+def check_audit_engine_resolution(files: dict[str, Path]) -> None:
+    """31a. The audit runs the INSTALLED engine, and /foundation wires a project copy into hooks + CI (#256).
+
+    Potluck build M2-SLICE-02 (2026-09-14, plugin 1.46.0 installed) looked for the script with
+    `ls -d ~/.claude/plugins/cache/*/product-playbook/*/commands/frontend-audit/audit.py | tail -1`. The cache
+    keeps every version, and as text 1.9.0 sorts after 1.48.0 - so the "frontend-audit clean" criterion was met
+    by an engine with eight law checks where the installed one has thirteen. The skills had said
+    `python commands/frontend-audit/audit.py`, a path that exists only inside this repo, so every run in a real
+    project had to go searching. And the audit ran only when /build remembered it: /foundation's auto-layer
+    wired lint, secret-scan and CVE scans into the hooks and CI, and never the audit.
+    """
+    for p in sorted((ROOT / "commands").rglob("*.md")):
+        text = p.read_text(encoding="utf-8")
+        rel = p.relative_to(ROOT).as_posix()
+        m = AUDIT_BARE_RUN.search(text)
+        if m:
+            fail(f"{rel} runs the audit as {m.group(0)!r} - name the installed engine {AUDIT_ENGINE_PATH} "
+                 f"(or the project copy); a path only this repo has sends a real run searching the plugin cache")
+        if "plugins/cache" in text:
+            fail(f"{rel} names the plugin cache path - it keeps every old version, and a text sort picks 1.9.0 "
+                 f"over 1.48.0; the installed engine is {AUDIT_ENGINE_PATH}")
+    for name in AUDIT_RUNNERS:
+        flat = " ".join(files[name].read_text(encoding="utf-8").split())
+        if AUDIT_ENGINE_PATH not in flat:
+            fail(f"{name} runs the audit without naming the installed engine {AUDIT_ENGINE_PATH}")
+        if "never search the plugin cache" not in flat.lower():
+            fail(f"{name} never says 'never search the plugin cache' - that search is how a build ran 1.9.0")
+    fa = " ".join(files["frontend-audit"].read_text(encoding="utf-8").split())
+    for token, what in (("## Which engine runs", "the one resolution rule the other skills point at"),
+                        ("engine copy:", "telling the user when the project copy differs from the engine"),
+                        ("OLDER", "saying when the project copy is older than the installed engine")):
+        if token not in fa:
+            fail(f"frontend-audit lost {what} (expected {token!r})")
+    found = " ".join(files["foundation"].read_text(encoding="utf-8").split())
+    for token, what in FOUNDATION_AUDIT_TOKENS:
+        if token not in found:
+            fail(f"foundation lost {what} (expected {token!r}) - a gate you must remember is not a gate")
+    steps = " ".join((ROOT / "commands" / "foundation" / "references" / "skeleton-steps.md")
+                     .read_text(encoding="utf-8").split())
+    for token, what in SKELETON_AUDIT_TOKENS:
+        if token not in steps:
+            fail(f"foundation skeleton-steps.md lost {what} (expected {token!r})")
+
+
+def check_audit_engine_behaviour() -> None:
+    """31b. The engine itself: ERROR blocks, WARN passes, and it names an older project copy by NUMBER.
+
+    Exercised, not read: a scratch git project runs the real engine the way a hook, CI and a skill would.
+    The older copy is 1.9.0 on purpose - the exact version a text sort picked over 1.48.0.
+    """
+    import shutil
+    import subprocess
+    import tempfile
+
+    if shutil.which("git") is None:
+        fail("check 31 needs git on PATH to exercise the audit engine's project-copy check")
+        return
+    engine = AUDIT_ENGINE.read_text(encoding="utf-8")
+    m = re.search(r'^ENGINE_VERSION = "([^"]*)"', engine, re.MULTILINE)
+    if not m:
+        fail("audit.py has no ENGINE_VERSION line - a project copy cannot say which checks it carries")
+        return
+    current = m.group(1)
+
+    def as_tuple(v: str) -> tuple[int, ...]:
+        return tuple(int(n) for n in re.findall(r"\d+", v))
+
+    older = "1.9.0" if as_tuple(current) > (1, 9, 0) else "0.0.1"
+    with tempfile.TemporaryDirectory() as tmp:
+        t = Path(tmp)
+
+        def run(script: Path, *targets: str) -> subprocess.CompletedProcess:
+            return subprocess.run([sys.executable, str(script), *targets], cwd=tmp, capture_output=True,
+                                  text=True, encoding="utf-8", errors="replace", timeout=120)
+
+        def put_copy(version: str, extra: str) -> Path:
+            dest = t / "scripts" / "frontend-audit" / "audit.py"
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_text(engine.replace(f'ENGINE_VERSION = "{current}"', f'ENGINE_VERSION = "{version}"')
+                            + extra, encoding="utf-8")
+            subprocess.run(["git", "-C", tmp, "add", "-A"], check=True, capture_output=True)
+            return dest
+
+        subprocess.run(["git", "init", "-q", tmp], check=True, capture_output=True)
+        (t / "ui").mkdir()
+        (t / "ui" / "Button.tsx").write_text('<button className="btn">Go</button>\n', encoding="utf-8")
+        css = t / "ui" / "button.css"
+        css.write_text(".btn { color: var(--primary); }\n:root { --primary: oklch(0.2 0 0); }\n", encoding="utf-8")
+
+        r = run(AUDIT_ENGINE, "ui")
+        if r.returncode != 0 or " 0 error" not in r.stdout or "0 warn" in r.stdout:
+            fail(f"audit engine: a WARN-only UI must exit 0 with warnings reported - got exit {r.returncode}")
+        if "none committed" not in r.stdout:
+            fail("audit engine: a project with no committed copy is not told its hooks and CI skip the audit")
+        if f"engine {current}" not in r.stdout.splitlines()[0]:
+            fail("audit engine: the scorecard's first line does not name the engine version")
+
+        css.write_text(css.read_text(encoding="utf-8") + ".btn-danger { color: #ff0000; }\n", encoding="utf-8")
+        r = run(AUDIT_ENGINE, "ui")
+        if r.returncode == 0:
+            fail("audit engine: a planted raw hex colour (ERROR) exits 0 - a hook or CI would let it through")
+
+        cases = (
+            (older, "\n# an older engine\n", f"is {older}, OLDER than this engine {current}"),
+            ("999.0.0", "\n# a newer engine\n", "NEWER than this engine"),
+            (current, "\n# edited in place\n", "edited in place"),
+            ("0.0.1", "", "has the same checks as this engine"),
+        )
+        for version, extra, expected in cases:
+            put_copy(version, extra)
+            r = run(AUDIT_ENGINE, "ui")
+            if expected not in r.stdout:
+                fail(f"audit engine: a project copy at {version!r} should report {expected!r} - it did not")
+
+        copy = put_copy(current, "")
+        r = run(copy, "ui")
+        if r.returncode == 0 or "engine copy:" in r.stdout:
+            fail("audit engine: the project copy (as a hook/CI runs it) must fail on the planted ERROR "
+                 "and must not report on itself")
 
 
 if __name__ == "__main__":

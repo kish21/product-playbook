@@ -115,8 +115,10 @@ The names below are **examples, not the contract**. Where `DESIGN.md` records a 
    project's token stylesheet** — the file `DESIGN.md` §2 records, not `DESIGN.md` itself — so the two
    resolve against each other; Law 14b errors on any `var(--token)` nothing defines:
    ```
-   python commands/frontend-audit/audit.py src/app/globals.css <the new component>
+   python "${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py" src/app/globals.css <the new component>
    ```
+   The installed engine — **never search the plugin cache for `audit.py`** (a `$` left in the path:
+   `/frontend-audit` §Which engine runs).
    Auditing the component **alone** cannot check this and will say so (`tokens-defined: warn`,
    "unverified"). Auditing it against `DESIGN.md` passes on a token the running app does not have —
    the spec then does the job the stylesheet should, which is the failure this check exists to catch.

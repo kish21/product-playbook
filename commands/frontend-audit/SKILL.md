@@ -21,10 +21,24 @@ description: >
 Runs `audit.py` (stdlib-only, portable, ASCII output — no `PYTHONUTF8` needed) over UI files and
 `DESIGN.md`, and prints a scorecard. **Exits non-zero if any ERROR-level law fails** (CI-friendly).
 
+## Which engine runs — the installed one, never a search
+
 ```
-python commands/frontend-audit/audit.py <file-or-dir> [more...]
-# e.g.  python .../audit.py frontend/  ·  python .../audit.py DESIGN.md sample.html
+python "${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py" DESIGN.md <ui-dir> [more...]
 ```
+
+Claude Code writes the loaded plugin's folder into that path, so it is **the installed version**.
+**Never search the plugin cache for `audit.py`:** the cache keeps every old version, and a text sort
+picks `1.9.0` over `1.48.0` — a real build ran an engine missing five of today's checks that way. If
+the path above still starts with a `$`, this is a copy install: the engine is
+`.claude/commands/frontend-audit/audit.py` in the project, else under `~/.claude/`; neither there →
+stop and say so. **The scorecard's first line names the engine version — quote it in the evidence line.**
+
+**Hooks and CI run a project copy** (`/foundation` commits it as `<tooling>/frontend-audit/audit.py`,
+because a clean clone has no plugin). Every run of the installed engine ends with an `engine copy:`
+line — the copy matches, is **OLDER** (refresh it: the line names the file to copy), is newer (update
+the plugin), was edited in place, or does not exist (hooks and CI do not run the audit). **Repeat that
+line to the user;** an older copy means CI passes on checks this run fails.
 
 ## What it checks (the mechanical subset of the 20 laws)
 
@@ -67,7 +81,9 @@ what it appears to certify — and a check like that stops anyone from looking.
 1. After `/design-system` emits `DESIGN.md` and you've built screens (via `/new-component`), run the
    audit over the UI dir + `DESIGN.md`.
 2. Fix every **ERROR** (the floor is non-negotiable); triage **WARN**.
-3. Wire it into CI as a gate (`exit 1` blocks the build) once the project's UI is established.
+3. It is a gate only where it runs without being remembered: `/foundation` wires the project copy into
+   the commit hooks and CI (`exit 1` on an ERROR blocks both; a WARN only reports). A project past
+   `/foundation` with no copy (the `engine copy:` line says so) → wire it the same way.
 
 ## Roadmap (v1 → v1.1)
 

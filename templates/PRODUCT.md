@@ -110,7 +110,7 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Fail-loud/fail-closed guards (placeholder rejection · test-datastore refusal) · secret-scan + dependency-vuln scan · CI mirrors prod:**
 - **Isolated test datastore provisioned (variable + teardown) · test runner uses the app's config loader:**
 - **Usable end-to-end (a seeded account can log in) · seed is idempotent + prod-refusing · dev credentials location:**
-- **Commit hooks + CI auto-run (lint/format/secret-scan/tests) · runs in its container · async-safe:**
+- **Commit hooks + CI auto-run (lint/format/secret-scan/tests · UI: frontend audit, project copy + engine version) · runs in its container · async-safe:**
 - **Observability wired (tracing / error-reporter, even a stub):**
 
 ## Contracts         <!-- /contracts --> (the record + the paths; see docs/contracts.md. The types live in code, never here)
