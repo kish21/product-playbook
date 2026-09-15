@@ -21,10 +21,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
   the unedited `.env.example`) still run at Step 3b. `/build`'s review re-run clauses are not carried over,
   because `/foundation` composes no review.
 - **Room for it, with no exit criterion or guard proof removed.** `SKILL.md` was at 15,304 of 15,360 bytes and
-  is now 15,306. Two war stories moved to a new `references/case-files-foundation.md`, *The runbook in the
-  spine*. Two sentences that repeated a loaded companion or `PRINCIPLES.md` were cut: the 48-character
-  placeholder example and the test-datastore "not comparable" line. So were a contract field list that
-  Step 3 repeats and four rationale tails. The eight-step list and the CVE gate are unchanged.
+  is now 15,306. The 14 KB `#Foundation` story moved to a new `references/case-files-foundation.md`, *The
+  runbook in the spine*. Two sentences already carried elsewhere were cut: the 48-character placeholder
+  example, which `PRINCIPLES.md` §Production safeguards has and the criterion points at, and the "not
+  comparable" line, which `references/test-datastore.md` has word for word. So were a contract field list
+  that Step 3 repeats and four rationale tails. The eight-step list and the CVE gate are unchanged.
 - **`tools/check.py` check 32** keeps the boot proof in Step 2, ahead of item 2. It holds the `runs end-to-end`
   line to `RERUN_CONDITION` and the shared clauses, allows the condition only once in the skill, and requires
   every guard proof. Check 30 still holds `/build` to the same constant, with its review clauses split into

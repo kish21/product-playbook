@@ -1512,7 +1512,7 @@ def check_foundation_boot_evidence(files: dict[str, Path]) -> None:
         fail("foundation Step 3b lost its `- runs end-to-end` line")
         return
     boot = " ".join(line.group(0).split())
-    for token, what in RERUN_TOKENS + FOUNDATION_BOOT_CITE:
+    for token, what in [(t, f"/build's clause on {w}") for t, w in RERUN_TOKENS] + list(FOUNDATION_BOOT_CITE):
         if token not in boot:
             fail(f"foundation Step 3b's runs end-to-end line lost {what} (expected {token!r})")
     flat = " ".join(text.split())
