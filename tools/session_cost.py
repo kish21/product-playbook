@@ -15,7 +15,7 @@ Agent working time is wall clock minus every wait that ended in the user's input
 answered question card or an approved plan; a background job's notification is the agent's own wait and stays
 in. It is the figure `/playbook` §Sitting lengths quotes, so a run measured here compares with that table. A
 tool permission prompt leaves no row of its own, so time spent approving a tool counts as working time here;
-the table's runs had no such waits.
+the table's runs show none (no tool waited long on anything but its own work).
 Rates default to Opus 5 list prices; pass --rates for another model. Stdlib only.
 """
 import argparse

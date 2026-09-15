@@ -1758,8 +1758,8 @@ def check_sitting_lengths(files: dict[str, Path]) -> None:
 
 def check_session_cost_working_time() -> None:
     """35, behaviour. tools/session_cost.py's agent working time leaves out every wait that ended in the user's
-    input - a typed reply or an answered question card - and keeps the agent's own waits, so the figure a user
-    measures means what §Sitting lengths means."""
+    input - a typed reply, an answered question card or an approved plan - and keeps the agent's own waits, and
+    its wall clock ends at the newest row, so the figure a user measures means what §Sitting lengths means."""
     import importlib.util
     import tempfile
     spec = importlib.util.spec_from_file_location("session_cost", ROOT / "tools" / "session_cost.py")

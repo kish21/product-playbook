@@ -21,7 +21,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 - **`tools/session_cost.py` prints agent working time:** wall clock minus every wait for the user's reply,
   question-card answer or plan approval, keeping the agent's waits on its own background jobs. It is the
   table's figure, so a user can measure a run of their own against it. A tool permission prompt leaves no row in
-  the log, so time spent approving a tool still counts; the table's runs had none. The wall clock now ends at
+  the log, so time spent approving a tool still counts; the table's runs show none. The wall clock now ends at
   the newest row rather than the last one written.
 - **`tools/check.py` check 35** fails when a phase `/playbook` can offer has no row, a row carries no version
   label or one newer than the release, a range rests on one run, or a price or a sitting figure appears anywhere
