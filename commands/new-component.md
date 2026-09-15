@@ -46,7 +46,7 @@ recorded, machine-readably, before this skill ever runs. Offer that instead of a
 4. Show the scoped menu and ask which one to build:
 
 ```
-Current scope: [M1-SLICE-03] Dashboard experience
+Current scope: [M1-DASH-03] Dashboard experience
 - [x] button.tsx            (built)
 - [ ] input.tsx             (pending)
 - [ ] dashboard-summary.tsx (pending)

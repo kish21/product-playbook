@@ -137,7 +137,7 @@ Declared per skill, so an omission can never again be mistaken for a decision.
 | `/build` | `#Build log` | exempt | append-only: one row per feature |
 | `/ship` | `#Ship log` | exempt | append-only: one entry per release |
 | `/learn` | `#Learnings` | exempt | append-only: one entry per cycle |
-| `/tickets` | writes `docs/issues/*`, not a spine section | exempt | a re-run skips tickets that already exist; nothing in the spine to erase |
+| `/tickets` | writes `TICKETS.md` + `docs/issues/*`, not a spine section | exempt | a re-run skips tickets that already exist; nothing in the spine to erase |
 | `/drift-check` | `#Drift log` | exempt | append-only: one entry per run |
 
 **`/design-system` is resolved as a full participant**, not an exemption. It writes `#Design`, that

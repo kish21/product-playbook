@@ -9,7 +9,8 @@
 **Never assume one builder.** A backlog written as one chain — every ticket needing the one before it —
 gives a second person, or a second agent, nothing to start until the first finishes; and a backlog grouped
 by module costs a solo builder nothing, because solo simply means every seat is theirs. So the grouping
-is always there, and the user decides per lane who sits in it. (case file: The fifteen-step recipe)
+is always there, the user decides per lane who sits in it, and a lane can be handed to a friend or a second
+agent without re-planning. (case file: The fifteen-step recipe)
 
 1. **A lane is a module.** Read the module folders `STRUCTURE.md` draws (`queue/`, `parties/`, `notify/`)
    and make one lane per module, named after the folder. Layered shape (no module folders) → one lane per
@@ -18,29 +19,75 @@ is always there, and the user decides per lane who sits in it. (case file: The f
    default; the user re-assigns lanes to `Junior` on the board, never in the tickets. Owner follows the
    files, not the difficulty.
 3. **Order inside a lane, parallel across lanes.** The tickets of one lane are ordered by `Depends On`;
-   two lanes may run side by side. Where a ticket in lane X needs a ticket in lane Y first, write it as a
-   **coordination point** in `docs/issues/README.md` — *"notify #8 starts after parties #6 merges"* — not
-   only inside the ticket.
+   two lanes may run side by side. Where a ticket in lane X needs a ticket in lane Y, write it as a
+   **coordination point** in `TICKETS.md` — not only inside the ticket — in one of two kinds (§Waiting or
+   building against): *"`M1-TEXT-01` (notify) waits for `M1-HOST-02` (queue) to merge"*, or *"`M1-HOST-01`
+   (queue) builds against `M1-PARTY-01` (parties)"*.
 4. **Hub files.** A file named by tickets in two or more lanes (the route registry, the config loader, the
-   dependency manifest) is a **hub file**: list them in `docs/issues/README.md` so `/build` treats a change
+   dependency manifest) is a **hub file**: list them in `TICKETS.md` so `/build` treats a change
    there as a one-line merge. Three or more hub files, or a
    handler/store folder shared by every module, is a structure finding — say so, and point at `/structure`.
-5. **The parallel table** goes into `docs/issues/README.md` and into the close: lane · owner · tickets in
+5. **The parallel table** goes into `TICKETS.md` and into the close: lane · owner · tickets in
    order · which lanes can run at once · hub files. That table is the answer to "can two people work on
    this?", and it must exist before anyone asks.
 
-The live map is the **Delivery Board** (`publishing.md` §The Delivery Board): Lane and Owner are also
-board fields, `Seat` is the chair actually working (a person or an agent instance, one by default), and
-`Status` moves as work happens.
+The plan lives in `TICKETS.md` (`tickets-md.md`); the live map is the **Delivery Board** (`publishing.md`
+§The Delivery Board): Lane and Owner are also board fields, `Seat` is the chair actually working (a person or
+an agent instance, one by default), and `Status` moves as work happens — on the board, never in `TICKETS.md`.
+
+## §Epics — milestone → epic → ticket
+
+A backlog as big as its behaviours is too long to read as one list, so the tickets of a milestone are grouped
+the way a product team writes them: **group by module, slice by visible behaviour, assign by role.**
+
+1. **An epic is one feature of one milestone, inside one lane.** Its tickets are that module's behaviours for
+   that milestone, so the epic's owner is the lane's owner. A feature that needs behaviour in two modules is
+   two epics, one per lane, joined by a coordination point — never one epic whose tickets sit in two lanes.
+   A milestone may hold several epics in the same lane.
+2. **Epic-scoped IDs.** An epic gets a short uppercase code for its name (`PARTY` for *Parties join the
+   list*), unique inside its milestone. The epic is `[M<milestone>-<EPIC>]`; its tickets are
+   `[M<milestone>-<EPIC>-<nn>]`, numbered from `01` in build order — `[M1-PARTY-01]`, `[M1-PARTY-02]`. The
+   milestone prefix keeps a code reusable across milestones, and the pair keeps every ID unique, which is
+   what dedup matches on. `SLICE`, `TICK` and `ADHOC` are never an epic code: the first two are the IDs a
+   backlog published before epics still carries (`publishing.md` §An earlier backlog), the third is Mode B's.
+3. **A re-run keeps every code.** An epic already in `TICKETS.md` or on GitHub keeps its code and its
+   numbering; a new ticket in it takes the next free `nn` across `docs/issues/` and the fetched issues.
+   Minting a second code for an existing epic is how a re-run publishes a duplicate epic.
+4. **An epic is a GitHub parent issue and its tickets are its sub-issues** (`publishing.md` §Epics are parent
+   issues). GitHub allows 100 sub-issues under one parent; an epic that would need more is a slicing finding
+   — split the epic.
+5. **The proposal is shown as the hierarchy:** milestone, then each epic (ID · name · lane · owner), then its
+   tickets in order. The strategy is still chosen per milestone, and every epic of that milestone uses it.
+
+## §Waiting or building against — the two kinds of dependency
+
+A ticket needs another ticket in one of two ways, and the difference decides who can start on day one:
+- **`Depends On` — wait for the merge.** The ticket needs the other's code merged: it calls a function or
+  route that exists only after that merge, edits a file the other creates, or its Demo shows the other's
+  behaviour running. It becomes a GitHub *blocked by* link, `/build` will not start it while the blocker is
+  open, and `TICKETS.md` draws it as a **solid arrow**.
+- **`Builds against` — the contract only.** Every name it uses from the other ticket already resolves in the
+  files `#Contracts` names, so a stub typed from those contracts is enough to build, test and demo it. It is
+  written on the ticket and in `TICKETS.md`, drawn as a **dotted arrow**, and is **not** a *blocked by* link:
+  a link would make `/build` stop a ticket that is free to start.
+- **When unsure, it is `Depends On`.** A needless wait only delays a start; a wrong "build against" costs a
+  rewrite when the real code lands.
 
 ## §Choose the strategy — the recommendation table
 
-Decide **per milestone**, not once for the repo — and always *inside* the lanes above.
+Decide **per milestone**, not once for the repo — and always *inside* the lanes above. It is not a house
+style: an infrastructure milestone with no user-visible surface slices badly vertically, and a user-facing
+milestone slices badly horizontally.
 
 | Recommend | When |
 |---|---|
 | **Vertical** (default lean) | The milestone has a user-visible surface · one full-stack codebase · early product where "show it working" matters. Each slice stays inside one lane where it can. |
 | **Horizontal** | A milestone that is mostly infrastructure with no user-visible surface · contracts already frozen in `#Contracts`, so layers can safely run in parallel. |
+
+Under the printed proposal, state the recommendation in one line, then stop:
+> *Lanes: parties (1 epic) · queue (1) · notify (1). M1 touches providers + services + UI — recommending
+> **vertical** (8 slices, each inside its epic's lane). The list above is what gets written. Proceed, or
+> switch to horizontal?*
 
 ## §Size by behaviour — the count follows, it is never a cap
 
@@ -69,7 +116,7 @@ own ticket.
 
 ## §Vertical slicing (thin end-to-end increments)
 Split the milestone into **one slice per user-observable behaviour** (§Size by behaviour), each going through
-whatever layers it needs. ID: `[M<milestone>-SLICE-<nn>]`.
+whatever layers it needs. ID: epic-scoped, `[M<milestone>-<EPIC>-<nn>]` (§Epics).
 
 Split along one of these seams — pick the one that yields the thinnest first slice:
 - **By user action** — "create a quote" · "export it" · "email it".
@@ -86,7 +133,7 @@ Rules that keep a slice honest:
 - Each slice's DoD carries the tests for the layers it touched — **there is no separate test slice**.
 
 ## §Horizontal slicing (one ticket per architectural layer)
-ID: `[M<milestone>-TICK-<nn>]`.
+ID: epic-scoped, `[M<milestone>-<EPIC>-<nn>]` (§Epics) — the layer tickets of one milestone form one epic in one lane.
 
 | # | Layer | Home (per `STRUCTURE.md`) | The ticket owns |
 |---|---|---|---|
@@ -105,18 +152,22 @@ ID: `[M<milestone>-TICK-<nn>]`.
 
 ## §Per-ticket content (both strategies)
 Fill the provisioned `feature_ticket.md` template for each ticket:
-- **ID + title:** `[M<milestone>-SLICE-<nn>]` or `[M<milestone>-TICK-<nn>]`, then the concern in plain words.
-  The `M<milestone>` prefix is what keeps IDs unique across milestones; without it, dedup misfires on re-run.
+- **ID + title:** `[M<milestone>-<EPIC>-<nn>]` (§Epics), then the concern in plain words.
+  The `M<milestone>-<EPIC>` prefix is what keeps IDs unique across milestones; without it, dedup misfires on re-run.
+- **Epic:** `[M<milestone>-<EPIC>] <epic name>` — published as this ticket's parent issue.
 - **Lane:** the module this ticket lives in (`parties`, `notify`) — §Lanes are modules — never a layer.
-  Horizontal: all of a milestone's layer tickets share one lane.
+  Every ticket of an epic shares its lane; horizontal: all of a milestone's layer tickets share one lane.
 - **Owner:** the role that owns the lane — `Senior` unless the board says otherwise.
 - **Target files:** exact paths, derived from `STRUCTURE.md` — `src/services/quoteEngine.ts`, not `src/services/`.
   **The list is the boundary**, so it must name **everything `/build` will write**: the code, its tests, *and*
-  `docs/features/<feature>.md`. **Never list `PRODUCT.md`, `CHANGELOG.md` or `STRUCTURE.md`** — the spine is
-  shared — each phase writes its own rows, and a ticket never lists it.
+  `docs/features/<feature>.md`. **Never list `PRODUCT.md`, `CHANGELOG.md`, `STRUCTURE.md` or `TICKETS.md`** —
+  the spine and the plan are shared — each phase writes its own rows, and a ticket never lists them.
 - **Inputs → outputs:** the typed contract this ticket consumes and the one it exposes, named from `#Contracts`.
-- **Depends on:** the ticket IDs whose *contracts* it needs. Contracts land first, so dependants can start
-  against a stub rather than waiting for a merge.
+- **Depends on:** the ticket IDs whose *merge* it waits for (§Waiting or building against) — each becomes a
+  *blocked by* link. `None` is a valid answer.
+- **Builds against:** the ticket IDs whose *contract* it uses before they merge — a stub is enough to start,
+  so this is not a link. `#Contracts` is frozen before `/tickets` runs, so a need on another ticket's types
+  alone belongs here. `None` is a valid answer.
 - **Demo (vertical):** what a reviewer can see working once this merges. Required on every slice.
 - **Implementation tasks:** concrete, ordered, checkable steps — inside this ticket's concern only.
 - **DoD (security included):** inputs validated at the boundary · no secrets in source (`.env` only) · no
@@ -124,5 +175,6 @@ Fill the provisioned `feature_ticket.md` template for each ticket:
   tests written and passing for everything this ticket touches · feature doc updated.
 - **Verification command:** the exact command a reviewer runs to see it work.
 
-Write each to `docs/issues/<id>_<slug>.md`, then publish the non-duplicates with `gh issue create`.
+Write each to `docs/issues/<id>_<slug>.md`, then the plan to `TICKETS.md` (`tickets-md.md`), verify, and only
+then publish the non-duplicates with `gh issue create`.
 

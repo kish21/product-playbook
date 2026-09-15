@@ -78,8 +78,8 @@ Take the waitlist idea. This is what each step gives you. (You type each command
 | 🎨 | **Design system** | `/design-system` | *(Apps with a UI.)* One sample page you approve, then the look every screen reuses. |
 | 🧱 | **Foundation** | `/foundation` | A skeleton that runs: config, logging, database, CI. Placeholder secrets refuse to boot. |
 | 📐 | **Contracts** | `/contracts` | The data models and API agreed before any logic is written. |
-| 🎫 | **Tickets** | `/tickets` | Small tickets on a GitHub board, grouped so two people never collide. |
-| 🛠️ | **Build** | `/build M1-SLICE-01` | One ticket built, reviewed, verified on the real path, documented. |
+| 🎫 | **Tickets** | `/tickets` | Small tickets in epics on a GitHub board, grouped so two people never collide, with a `TICKETS.md` plan that says who starts what. |
+| 🛠️ | **Build** | `/build M1-PARTY-01` | One ticket built, reviewed, verified on the real path, documented. |
 | ✅ | **Dev check** | `/dev-check` | Proof that every planned feature is really done. |
 | 🌐 | **Deploy** | `/deploy` | *(When you need a real URL.)* The product live, and how it got there written down. |
 | 🧪 | **Test** | `/test` | Unit, integration, regression — and the attacks: bad tokens, double bookings, prompt injection. |

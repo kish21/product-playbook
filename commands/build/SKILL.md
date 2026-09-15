@@ -43,8 +43,8 @@ description: >
   raised, never made. No seat configured → nothing changes. (case file: Working the wrong seat)
 - **A blocked ticket is not startable.** Read its *blocked by* links first
   (`gh api repos/<o>/<r>/issues/<n>/dependencies/blocked_by`); an open blocker → **STOP and name it** — it
-  is a coordination point in `docs/issues/README.md`. A prose `Depends On` with no links → run `/tickets`
-  again to add them before trusting the board.
+  is a coordination point in `TICKETS.md`. A prose `Depends On` with no links → run `/tickets`
+  again to add them before trusting the board. A `Builds against` is not a blocker: build against its contract with a stub.
 - **Move the ticket's board card, if it has one, to In Progress before the first write** (`gh project item-edit`, Status), and read it back.
 - **Read the ticket's slice, not the repo.** Up front: its Target Files and a grep for each contract name it
   uses. Anything else when a step needs it, a line range rather than a file — never paste whole modules into
