@@ -5,11 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.53.0] - 2026-09-15
+
 ### Changed — no real project is named anywhere in the playbook, and check 34 keeps it that way (#270)
 
-- **Every mention is rewritten generically.** Case files, check docstrings, released CHANGELOG entries, two
-  design-system references, the case study and its two links, `docs/companion-docs.md` and
-  `tools/session_cost.py` named the maintainer's own test projects and tools in 79 places across 17 files. Evidence now reads *"a logged test run"*, and its dates,
+- **Every mention of a real project is rewritten generically.** Case files, check docstrings, released
+  CHANGELOG entries, two design-system references, the case study and its two links,
+  `docs/companion-docs.md` and `tools/session_cost.py` named the maintainer's own test projects and tools in
+  79 places across 17 files. Evidence now reads *"a logged test run"*, and its dates,
   counts, failures and rules are kept. Details that identified a project without naming it went too: module
   folders, file names, routes and ticket titles.
 - **Examples in rules are invented.** `/structure`'s shape example, `/tickets`' lane examples, the ticket
