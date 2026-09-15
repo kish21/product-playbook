@@ -124,9 +124,10 @@ touch nothing else; read `references/adhoc-capture.md` first.** One invocation, 
 milestone ticket.
 
 ## Step 3b — Principle-gate: verify the tickets hold (evidence)
-**Load `references/verification.md` and run every check in it — over the LOCAL files, before you publish.**
-First the symbol check (**every type, route, field and event name resolves** in the files `#Contracts`
-names), then the rest; nothing reaches `gh issue create` until it is green.
+**Load `references/verification.md` and run every check in it, in its two halves.** §Before publishing runs
+over the LOCAL files: first the symbol check (**every type, route, field and event name resolves** in the
+files `#Contracts` names), then the rest; nothing reaches `gh issue create` until it is green. §After
+publishing holds the three read-backs, run once the issues exist (a local-only run skips them and says so).
 
 **Keep the context lean** (`MECHANISMS-ON-DEMAND.md` §Context hygiene): long output to a scratch file; grep the verdict, cite the file.
 

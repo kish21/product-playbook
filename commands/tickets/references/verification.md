@@ -1,10 +1,17 @@
-# Verifying the backlog — the full list, run BEFORE anything is published
+# Verifying the backlog — before publishing, then the read-backs after
 
-> Opened by /tickets at Step 3b. **Every check here runs over `docs/issues/*.md` while they are still
-> local files.** Local is the reversible draft; `gh issue create` is the irreversible step, and a
-> backlog that is complete, confident and wrong is worse than a half-published one.
+> Opened by /tickets at Step 3b. **Two halves, run in order, every check in both.**
+> **§Before publishing** runs over `docs/issues/*.md` while they are still local files. Local is the
+> reversible draft; `gh issue create` is the irreversible step, and a backlog that is complete, confident and
+> wrong is worse than a half-published one. Nothing is published until every check in this half is green.
+> **§After publishing** holds the three read-backs. They check what GitHub now holds, so they can only run
+> once the issues exist — never read them as a reason to stop before publishing. A local-only run (no remote,
+> or `gh` not authenticated) publishes nothing: it skips this half and says in the close that the read-backs
+> did not run and why.
 
-## §Resolve every symbol first
+## §Before publishing — over the local files
+
+### §Resolve every symbol first
 
 **Grep each backticked type, route, field, enum value and event name in every ticket against the files
 `#Contracts` names** (`src/schemas/*`, the route table, the db schema). A name that does not resolve is a
@@ -17,7 +24,7 @@ event outside the closed `EVENT_TYPES` tuple, and ten response types that existe
 name and watch it fail.** A component the backlog itself creates is not an invention — without that list the
 check drowns real misses in false positives, and a checker never seen failing proves nothing. (case file: The checker that cried wolf)
 
-## §The rest of the gate
+### §The rest of the gate
 
 Walk the principles and prove each against the files just written — do not assert it:
 - **Strategy was confirmed**, not assumed, and is recorded on every ticket of that milestone — and **the set
@@ -42,6 +49,16 @@ Walk the principles and prove each against the files just written — do not ass
 - **IDs unique.** Every ID appears exactly once across `docs/issues/` and the fetched GitHub issues.
 - **Dedup ran.** Confirm `gh issue list` was fetched before any `gh issue create`, and that no remote
   repository was created.
+- **Security DoD present** on every ticket, including the ad-hoc ones.
+- **Independently mergeable.** For each ticket ask: could one developer open a PR containing only these
+  files and have it reviewed on its own? **If not, the split is wrong — STOP and re-split before publishing.**
+- **No ticket lists a spine file; every ticket lists its feature doc and tests.** Two tickets that name the
+  same file are either **dependants through a contract** (fine — `Depends On` says so) or a **collision**
+  (STOP: re-split, or list the file as a hub file).
+
+## §After publishing — the read-backs
+
+Run once `/tickets` has published; each one reads GitHub back rather than trusting what was sent.
 - **Structure mirrored + idempotent.** Every published ticket carries its milestone, its `lane: <name>` and
   its `owner: <role>` label; a second run created no duplicate milestone, label, board field or issue
   (**re-run it and show that**); no link points at a feature doc that does not exist yet; permissions —
@@ -55,9 +72,3 @@ Walk the principles and prove each against the files just written — do not ass
   the check go red, and put it back (`DELETE …/blocked_by/<id>`): a read-back never seen failing proves
   nothing. A body that says *Depends On* with an empty `blocked_by` is the failure this check exists for.
   (case file: Written down, never linked)
-- **Security DoD present** on every ticket, including the ad-hoc ones.
-- **Independently mergeable.** For each ticket ask: could one developer open a PR containing only these
-  files and have it reviewed on its own? **If not, the split is wrong — STOP and re-split before publishing.**
-- **No ticket lists a spine file; every ticket lists its feature doc and tests.** Two tickets that name the
-  same file are either **dependants through a contract** (fine — `Depends On` says so) or a **collision**
-  (STOP: re-split, or list the file as a hub file).
