@@ -1245,14 +1245,17 @@ VISION_SEARCH_TOKENS = (
     ("against the search list in `docs/vision.md`", "vision Step 3b", "Step 3b checking the named comparables "
      "against the list - without it, 'not from memory' is an assertion"),
 )
-# A bound on /vision's searches, in any wording a copy of /architect's rule would use. "No search limit" is
-# the ruling itself, so the negated form is not a bound.
+# A count or limit on /vision's searches. ANY number attached to "searches" counts, not only the phrasings a copy
+# of /architect's rule would use: "three searches", "2-3 searches, no more", "searches at four", "a search budget".
+# A number beside the searches reads as a norm to the run even when it was written as evidence, so the skill and
+# its evals keep none. "No search limit" is the ruling itself, so that negated form is not a bound.
+SEARCH_COUNT = (r"(?:\d+(?:\s*(?:[-–—]|to)\s*\d+)?|one|two|three|four|five|six|seven|eight|nine|ten"
+                r"|a\s+couple\s+of|a\s+few|a\s+handful\s+of)")
 VISION_SEARCH_CAP_RE = re.compile(
-    r"\b(?:one|two|three|four|five|\d+)\s+(?:web\s+)?search(?:es)?\s+(?:per|each|a|for\s+each)\b"
-    r"|\b(?:at\s+most|no\s+more\s+than|up\s+to|a\s+maximum\s+of|max\.?)\s+(?:one|two|three|four|five|\d+)"
-    r"\s+(?:web\s+)?search(?:es)?\b"
-    r"|(?<!no )\bsearch(?:es)?\s+(?:budget|limit|cap|bound)\b"
-    r"|\b(?:benchmark|search(?:es)?)\s+(?:is|are)\s+bounded\b",
+    rf"\b{SEARCH_COUNT}(?:\s+[\w-]+)?\s+search(?:es)?\b"
+    rf"|\bsearch(?:es)?\s+(?:at|to|under|below|max(?:imum)?(?:\s+of)?)\s+(?:most\s+)?{SEARCH_COUNT}\b"
+    r"|(?<!no )\bsearch(?:es)?\s+(?:budget|limit|cap|bound|quota)s?\b"
+    r"|\b(?:benchmark|search(?:es)?)\s+(?:is|are)\s+(?:bounded|capped|limited)\b",
     re.IGNORECASE)
 
 
@@ -1265,7 +1268,7 @@ def check_vision_search_record(files: dict[str, Path]) -> None:
     memory)" was an assertion. #252 first proposed /architect's bound (one search per comparable). The owner's
     re-review of seven logged runs found 1-4 searches each, so a bound saves nothing, and two of the 4-search runs
     spent a query on user complaints - where a sharpening insight comes from, and exactly what a per-comparable
-    bound forbids. So the record is required, and any bound fails the check.
+    bound forbids. So the record is required, and a count or limit on the searches fails the check.
     """
     text = files["vision"].read_text(encoding="utf-8")
     step2 = re.search(r"^## Step 2\b(.*?)^## Step 3\b", text, re.MULTILINE | re.DOTALL)

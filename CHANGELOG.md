@@ -20,7 +20,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
   spent a query on user complaints, which is where a sharpening insight comes from and exactly what a bound
   would cut. The five-part north star is unchanged; splitting it around `/validate` (#252 item 2) was declined.
 - **`tools/check.py` check 33** holds the Step 2 rule, the line shape, the no-search line, the exit criterion
-  and the Step 3b check. It fails any bound on the searches in the skill or its evals. `commands/vision.md`
+  and the Step 3b check. It fails a count or limit on the searches in the skill or its evals: any number
+  attached to "searches" ("three searches", "2-3 searches, no more", "searches at four"), a search budget, limit
+  or cap, or a benchmark "bounded". "No search limit" passes, because that is the ruling. `commands/vision.md`
   is 10,208 → 11,107 bytes (LF) of 15,360; nothing was pruned. Case file: *The search list nobody could
   check*. Evals: `vision-records-every-search`, `vision-3b-checks-comparables-against-search-list`.
 

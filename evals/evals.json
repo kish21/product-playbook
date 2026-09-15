@@ -319,7 +319,7 @@
     {
       "id": "vision-3b-checks-comparables-against-search-list",
       "skill": "vision",
-      "prompt": "close the vision gate. docs/vision.md lists two searches: 'shared grocery list app 2026' settled OurGroceries and AnyList; 'flatmate shopping app complaints' settled that splitting the cost is the pain. The market read in #Vision names OurGroceries, AnyList, Bring! and Splitwise.",
+      "prompt": "close the vision gate. The search list in docs/vision.md reads: 'shared grocery list app 2026' settled OurGroceries and AnyList; 'flatmate shopping app complaints' settled that splitting the cost is the pain. The market read in #Vision names OurGroceries, AnyList, Bring! and Splitwise.",
       "expected_output": "At Step 3b checks every comparable the market read names against the search list in docs/vision.md, name by name: OurGroceries and AnyList pass because a listed search settled them; Bring! and Splitwise appear on no search line and have no no-search line, so 'not from memory' is only an assertion for them; searches them (recording each new search as query · what it settled) or records where each name came from, and does not close the gate while a named comparable is on neither; does not treat the complaint search as wasted for having verified no comparable",
       "files": []
     },
