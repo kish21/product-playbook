@@ -228,7 +228,7 @@ def main() -> int:
     # 31. the audit runs the INSTALLED engine, and /foundation wires a project copy into hooks + CI
     check_audit_engine_resolution(files)
     check_audit_engine_behaviour()
-    # 32. /foundation proves the boot at the end of step 1, and 3b cites a boot only under /build's condition
+    # 32. /foundation proves the boot at the end of Step 2 item 1, and 3b cites a boot only under /build's condition
     check_foundation_boot_evidence(files)
 
     return done(len(cmds))
@@ -1464,20 +1464,20 @@ def check_audit_engine_behaviour() -> None:
                  "itself for the project copy and never reported the older copy hooks and CI run")
 
 
-# Step 2 of /foundation, before its list reaches item 2: the proof that step 1's skeleton boots.
+# Step 2 of /foundation, before its list reaches item 2: the proof that item 1's skeleton boots.
 FOUNDATION_BOOT_PROOF = (
-    ("Step 1 ends by proving it boots", "the boot proof at the end of step 1"),
+    ("Item 1 ends by proving it boots", "the boot proof at the end of item 1"),
     ("hit the health path", "hitting the health path, not only starting the process"),
     ("plain-language line", "telling the user in plain words that the app runs"),
     ("how to see it", "telling the user how to see it for themselves"),
     ("stop whatever you started", "stopping the process the proof started"),
     ("A line, not a pause", "keeping a batched run moving - the proof prints, it never asks"),
-    ("fix it before step 2", "a failed boot being fixed before seven steps land on it"),
+    ("fix it before item 2", "a failed boot being fixed before seven items land on it"),
 )
 # Step 3b's `runs end-to-end` line, beside RERUN_TOKENS.
 FOUNDATION_BOOT_CITE = (
     ("(this line only)", "keeping the citation to this one line - the guard proofs are new work, not repeats"),
-    ("The step-1 boot never qualifies", "ruling out the step-1 boot - steps 3-8 change the boot path"),
+    ("The item-1 boot never qualifies", "ruling out the item-1 boot - Step 2's items 3-8 change the boot path"),
 )
 # Step 3b's guard proofs: #251 applied cite-don't-re-run to the boot line alone, and these always run.
 FOUNDATION_GUARD_PROOFS = (
@@ -1489,13 +1489,13 @@ FOUNDATION_GUARD_PROOFS = (
 
 
 def check_foundation_boot_evidence(files: dict[str, Path]) -> None:
-    """32. /foundation proves the boot at the end of step 1, and Step 3b cites a boot only under /build's condition.
+    """32. /foundation proves the boot at the end of Step 2 item 1, and Step 3b cites a boot only under /build's condition.
 
-    Potluck /foundation (2026-09-13, 229 tool calls): step 1 already produced an app with a health path, and the
+    Potluck /foundation (2026-09-13, 229 tool calls): item 1 already produced an app with a health path, and the
     first boot came at call 133, 22 minutes in, with most of the skeleton on top of it. And an earlier boot does
     not vouch for a later one: at 08:17 the container boot failed where the 08:12 local boot had passed, and the
-    run edited the boot entry before it came up. #251 moved the proof to step 1 and let 3b's `runs end-to-end`
-    line cite a boot only under /build's RERUN_CONDITION, word for word - never the step-1 boot, and never for a
+    run edited the boot entry before it came up. #251 moved the proof to item 1 and let 3b's `runs end-to-end`
+    line cite a boot only under /build's RERUN_CONDITION, word for word - never the item-1 boot, and never for a
     guard proof.
     """
     text = files["foundation"].read_text(encoding="utf-8")
@@ -1503,7 +1503,7 @@ def check_foundation_boot_evidence(files: dict[str, Path]) -> None:
     region = " ".join(step2.group(1).split()) if step2 else ""
     for token, what in FOUNDATION_BOOT_PROOF:
         if token not in region:
-            fail(f"foundation Step 2 lost {what} (expected {token!r} before item 2) - the app runs after step 1, "
+            fail(f"foundation Step 2 lost {what} (expected {token!r} before item 2) - the app runs after item 1, "
                  f"and a boot first shown at the end of the phase hides a broken one under seven steps")
     step3b = re.search(r"^## Step 3b\b(.*?)^## Step 3c\b", text, re.MULTILINE | re.DOTALL)
     body = step3b.group(1) if step3b else ""
