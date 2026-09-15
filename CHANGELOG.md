@@ -21,9 +21,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
   would cut. The five-part north star is unchanged; splitting it around `/validate` (#252 item 2) was declined.
 - **`tools/check.py` check 33** holds the Step 2 rule, the line shape, the no-search line, the exit criterion
   and the Step 3b check. It fails a count or limit on the searches in the skill or its evals: a number
-  on the searches ("three searches", "two Google searches", "cap searches at four", "searches limited to three"),
-  a search budget, limit or cap, or a benchmark "bounded". A step, item or issue number, a year and a unit
-  ("one line each", "under ten seconds") are not counts. It fails closed on negation: "no search limit" passes,
+  on the searches ("three searches", "up to 100 searches", "cap searches at four", "searches limited to three"),
+  a time cap ("keep the searches under ten minutes"), a search budget, limit or cap, or a benchmark "bounded". A
+  step, item or issue number, a year, "one line each", "three search results" and "narrow the search to one
+  segment" are not counts. It fails closed on negation: "no search limit" passes,
   and any other negated limit is flagged, because the ruling is already pinned as "No count on searches". It is
   a pattern over prose, so it catches the usual wordings, not every possible one. `commands/vision.md`
   is 10,208 → 11,107 bytes (LF) of 15,360; nothing was pruned. Case file: *The search list nobody could

@@ -1247,22 +1247,28 @@ VISION_SEARCH_TOKENS = (
 )
 # A count or limit on /vision's searches, in more wordings than a copy of /architect's rule would use. A number
 # beside the searches reads as a norm to the run even when it was written as evidence, so the skill and its evals
-# keep none. Excluded only where it provably is not a count: a step, item or issue number, a `#` reference, a year,
-# and a unit ("one line each", "under ten seconds"). It fails CLOSED on negation: "no search limit" passes, any
-# other negated limit ("never a search budget") is flagged - the ruling is pinned as "No count on searches", so a
-# second wording of it costs a rewrite, while a negation window let "do not exceed the search budget" through.
-SEARCH_COUNT = (r"(?:\d{1,2}(?:\s*(?:[-–—]|to)\s*\d{1,2})?|one|two|three|four|five|six|seven|eight|nine|ten"
-                r"|a\s+couple\s+of|a\s+few|a\s+handful\s+of)")
-NOT_A_REFERENCE = r"(?<!step )(?<!item )(?<!issue )(?<!#)"
-NOT_A_WORD_BETWEEN = r"(?!(?:lines?|per|rows?|entry|entries|sentences?)\b)"
-NOT_A_UNIT = (r"(?!\s+(?:lines?|sentences?|rows?|entry|entries|words?|characters?|bytes?|KB"
-              r"|seconds?|minutes?|hours?|days?)\b)")
+# keep none; a time cap ("searches under ten minutes") is a limit too. Excluded only where it provably is not a
+# count of searches: a step, item or issue number, a `#` reference, a year, the record's own shape ("one line
+# each"), a noun the word modifies ("three search results"), and a bare "search to" ("narrow the search to one
+# segment"). It fails CLOSED on negation: "no search limit" passes, any other negated limit ("never a search
+# budget") is flagged - the ruling is pinned as "No count on searches", so a second wording of it costs a rewrite,
+# while a negation window let "do not exceed the search budget" through.
+SEARCH_COUNT = (r"(?:(?<!step )(?<!item )(?<!issue )(?<!#)(?!(?:19|20)\d\d\b)\d+(?:\s*(?:[-–—]|to)\s*\d+)?"
+                r"|one|two|three|four|five|six|seven|eight|nine|ten|a\s+couple\s+of|a\s+few|a\s+handful\s+of)")
+RECORD_LINE = r"(?:lines?|per|rows?|entry|entries|sentences?)"
+NOT_A_RECORD_LINE = rf"(?!\s+{RECORD_LINE}\b)"
+SEARCH_AS_MODIFIER = r"(?!\s+(?:results?|terms?|engines?|bars?|box(?:es)?|operators?|pages?|history|keywords?)\b)"
+LIMIT_VERB = (r"(?:limit(?:s|ed|ing)?|cap(?:s|ped|ping)?|keep(?:s|ing)?|kept|restrict(?:s|ed|ing)?"
+              r"|hold(?:s|ing)?|held)")
 VISION_SEARCH_CAP_RE = re.compile(
-    # "three searches", "two Google searches", "one search per comparable", "2-3 searches, no more"
-    rf"{NOT_A_REFERENCE}\b{SEARCH_COUNT}(?:\s+{NOT_A_WORD_BETWEEN}[\w-]+)?\s+search(?:es)?\b"
-    # "cap searches at four", "keep searches under four", "searches limited to three", "searches at most 3"
-    r"|\bsearch(?:es)?\s+(?:(?:limited|capped|restricted|held|kept|bounded)\s+)?"
-    rf"(?:at|to|under|below|within|max(?:imum)?(?:\s+of)?)\s+(?:most\s+)?{SEARCH_COUNT}\b{NOT_A_UNIT}"
+    # "three searches", "two Google searches", "one search per comparable", "up to 100 searches"
+    rf"\b{SEARCH_COUNT}(?:\s+(?!{RECORD_LINE}\b)[\w-]+)?\s+search(?:es)?\b{SEARCH_AS_MODIFIER}"
+    # "searches at most 3", "keep the searches under ten minutes", "searches limited to three"
+    r"|\bsearch(?:es)?\s+(?:(?:limited|capped|restricted|held|kept|bounded)\s+(?:to|at)|at\s+most"
+    rf"|max(?:imum)?(?:\s+of)?|under|below|within|up\s+to|no\s+more\s+than)\s+{SEARCH_COUNT}\b{NOT_A_RECORD_LINE}"
+    # "cap searches at four", "limit the web searches to three" - never "keep the searches to one line each"
+    rf"|\b{LIMIT_VERB}\s+(?:the\s+|your\s+|its\s+)?(?:[\w-]+\s+)?search(?:es)?\s+(?:to|at)\s+(?:most\s+)?"
+    rf"{SEARCH_COUNT}\b{NOT_A_RECORD_LINE}"
     # "a search budget", "the benchmark is bounded"
     r"|(?<!no )\bsearch(?:es)?\s+(?:budget|limit|cap|bound|quota)s?\b"
     r"|\b(?:benchmark|search(?:es)?)\s+(?:is|are)\s+(?:bounded|capped|limited)\b",
