@@ -310,6 +310,20 @@
       "files": []
     },
     {
+      "id": "vision-records-every-search",
+      "skill": "vision",
+      "prompt": "benchmark my idea against what's out there now: a shared shopping list for flatmates that also splits what the shop cost",
+      "expected_output": "Runs web searches for the current-year market and writes EVERY search it ran into docs/vision.md, one line each as query · what it settled (the comparables it verified, the insight it gave, or 'nothing'); never counts or rations the searches, and keeps a search for what flatmates complain about even though it verifies no comparable, because that is where a sharpening insight comes from; gives any comparable it names without a search its own line saying where the name came from (e.g. the user uses it today); still asks for the five-part north star in full",
+      "files": []
+    },
+    {
+      "id": "vision-3b-checks-comparables-against-search-list",
+      "skill": "vision",
+      "prompt": "close the vision gate. The search list in docs/vision.md reads: 'shared grocery list app 2026' settled OurGroceries and AnyList; 'flatmate shopping app complaints' settled that splitting the cost is the pain. The market read in #Vision names OurGroceries, AnyList, Bring! and Splitwise.",
+      "expected_output": "At Step 3b checks every comparable the market read names against the search list in docs/vision.md, name by name: OurGroceries and AnyList pass because a listed search settled them; Bring! and Splitwise appear on no search line and have no no-search line, so 'not from memory' is only an assertion for them; searches them (recording each new search as query · what it settled) or records where each name came from, and does not close the gate while a named comparable is on neither; does not treat the complaint search as wasted for having verified no comparable",
+      "files": []
+    },
+    {
       "id": "validate-override-contradicts-vision",
       "skill": "validate",
       "prompt": "skip the validation — it's just for personal use",

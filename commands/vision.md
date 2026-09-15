@@ -21,13 +21,14 @@ description: >
   current-year market/competitor read.
 - **Gate type:** `input` — who it is for, the job, the north star - the answers exist only in the user's head. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Vision` · `declined` ✓ · `override` n/a — `/vision` opens the chain; there is no prior section to bypass · `superseded` ✓
-- **Companion:** `docs/vision.md` — the reasoning, workings and raw notes. `PRODUCT.md#Vision` stays a
+- **Companion:** `docs/vision.md` — the reasoning, workings, raw notes and the search list. `PRODUCT.md#Vision` stays a
   RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay.
 - **Exit criteria:**
   - [ ] A single sentence vision (the world this product creates). → `Vision (ONE sentence`
   - [ ] Named target user + the concrete problem they have, and **why now**. → `Who it's for` · `Problem (why now)`
   - [ ] A value proposition stating how this is better/different. → `Value proposition`
   - [ ] A current-year market/competitor read with at least one sharpening insight. → `Current-year market`
+  - [ ] **Every search the market read ran is recorded in `docs/vision.md`** — one line each, query · what it settled — and every comparable named without a search has its own line saying so. → `Current-year market`
   - [ ] A **north-star metric with all five parts** — a **target number + date**, **2–3 input metrics**, **1 guardrail**, and an **instrumentation line**. A direction ("more people tracking subscriptions") is a slogan, not a metric, and **fails this gate**: `/eval` would have nothing to measure against. → `North star`
   - [ ] The **job-to-be-done**, the **riskiest assumption**, and the **business model** (free/paid/internal) captured. → `Job-to-be-done` · `Riskiest assumption` · `Business model`
   - [ ] Recorded whether this is an **AI product** (uses LLMs) — flags the AI-security layer downstream. → `AI product?`
@@ -68,6 +69,10 @@ Ask these one block at a time; wait for answers. Keep it short — a newcomer sh
 
 Then **benchmark to the current year** — and actually check, don't guess (compose a web search):
 - How do leading products solve this *now*? Name 2–3 **real** comparables and the current best-practice approach.
+- **Record every search in `docs/vision.md`, one line each: query · what it settled** — the comparables it
+  verified, the insight it gave, or "nothing". **No count on searches:** a search for what users complain
+  about verifies no comparable, and it is where a sharpening insight comes from. A comparable named without
+  a search gets its own line: `<name> · no search — <where the name came from>`. (case file: The search list nobody could check)
 - Frame the problem as a **job-to-be-done** ("when <situation>, I want to <motivation>, so I can <outcome>").
 - Surface **one sharpening insight**: a sharper angle, segment, or differentiator the user hadn't stated.
 - Give **one clear recommendation** on the crispest framing; get a yes/no. Keep it plain — no jargon.
@@ -80,7 +85,9 @@ business model. Set the header `AI product? <yes/no>`.
 
 ## Step 3b — Principle-gate: verify it's sharp, not fuzzy
 Walk the exit criteria and confirm each is **concrete with evidence** — the competitor read cites *real*
-named products (not from memory), the metric is a measurable number, the JTBD/risk are specific. **If any
+named products (not from memory), **checked name by name against the search list in `docs/vision.md`**: a
+search settled it, or it has its own no-search line; a name on neither is an assertion, so search it or
+record where it came from. The metric is a measurable number, the JTBD/risk are specific. **If any
 field is empty or vague, STOP and fill it with the user** — **a north star missing its target, date, input
 metrics, guardrail or instrumentation line is vague by definition**, and so is **a vision sentence that
 describes the product instead of the world it creates** — a fuzzy vision is the root of later drift.

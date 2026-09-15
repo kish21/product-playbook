@@ -230,6 +230,8 @@ def main() -> int:
     check_audit_engine_behaviour()
     # 32. /foundation proves the boot at the end of Step 2 item 1, and 3b cites a boot only under /build's condition
     check_foundation_boot_evidence(files)
+    # 33. /vision records every search its market read ran, with no count, and 3b checks the comparables against it
+    check_vision_search_record(files)
 
     return done(len(cmds))
 
@@ -1227,6 +1229,81 @@ def check_architect_search_bound(files: dict[str, Path]) -> None:
         if token not in step1:
             fail(f"architect Step 1 never says {token!r} - an unbounded benchmark is the phase's largest "
                  f"cost after its own output, and an unrecorded one settles nothing a reader can check")
+
+
+# /vision's search record (#252), as (token, region, what losing it means).
+VISION_SEARCH_TOKENS = (
+    ("Record every search in `docs/vision.md`", "vision Step 2", "the rule that every search is written down"),
+    ("query · what it settled", "vision Step 2", "the line shape - a list of queries does not say which "
+     "comparable each one verified"),
+    ("No count on searches", "vision Step 2", "the ruling that searches are not counted - a bound cuts the "
+     "complaint search a sharpening insight comes from"),
+    ("· no search —", "vision Step 2", "the line for a comparable named without a search"),
+    ("Every search the market read ran is recorded in `docs/vision.md`", "vision exit criteria",
+     "the exit criterion the record is held to"),
+    ("named without a search", "vision exit criteria", "the exit criterion marking a comparable nobody searched"),
+    ("against the search list in `docs/vision.md`", "vision Step 3b", "Step 3b checking the named comparables "
+     "against the list - without it, 'not from memory' is an assertion"),
+)
+# A count or limit on /vision's searches, in more wordings than a copy of /architect's rule would use. A number
+# beside the searches reads as a norm to the run even when it was written as evidence, so the skill and its evals
+# keep none; a time cap ("searches under ten minutes") is a limit too. Excluded only where it provably is not a
+# count of searches: a step, item or issue number, a `#` reference, a year, the record's own shape ("one line
+# each"), a noun the word modifies ("three search results"), and a bare "search to" ("narrow the search to one
+# segment"). It fails CLOSED on negation: a limit word straight after "no" passes ("no search limit", "no search
+# budget"), any other negated limit ("never a search budget") is flagged - the ruling is pinned as "No count on
+# searches", so a second wording of it costs a rewrite, while a negation window let "do not exceed the search
+# budget" through.
+SEARCH_COUNT = (r"(?:(?<!step )(?<!item )(?<!issue )(?<!#)(?!(?:19|20)\d\d\b)\d+(?:\s*(?:[-–—]|to)\s*\d+)?"
+                r"|one|two|three|four|five|six|seven|eight|nine|ten|a\s+couple\s+of|a\s+few|a\s+handful\s+of)")
+RECORD_LINE = r"(?:lines?|per|rows?|entry|entries|sentences?)"
+NOT_A_RECORD_LINE = rf"(?!\s+{RECORD_LINE}\b)"
+SEARCH_AS_MODIFIER = r"(?!\s+(?:results?|terms?|engines?|bars?|box(?:es)?|operators?|pages?|history|keywords?)\b)"
+LIMIT_VERB = (r"(?:limit(?:s|ed|ing)?|cap(?:s|ped|ping)?|keep(?:s|ing)?|kept|restrict(?:s|ed|ing)?"
+              r"|hold(?:s|ing)?|held)")
+VISION_SEARCH_CAP_RE = re.compile(
+    # "three searches", "two Google searches", "one search per comparable", "up to 100 searches"
+    rf"\b{SEARCH_COUNT}(?:\s+(?!{RECORD_LINE}\b)[\w-]+)?\s+search(?:es)?\b{SEARCH_AS_MODIFIER}"
+    # "searches at most 3", "keep the searches under ten minutes", "searches limited to three"
+    r"|\bsearch(?:es)?\s+(?:(?:limited|capped|restricted|held|kept|bounded)\s+(?:to|at)|at(?:\s+most)?"
+    rf"|max(?:imum)?(?:\s+of)?|under|below|within|up\s+to|no\s+more\s+than)\s+{SEARCH_COUNT}\b{NOT_A_RECORD_LINE}"
+    # "cap searches at four", "limit the web searches to three" - never "keep the searches to one line each"
+    rf"|\b{LIMIT_VERB}\s+(?:the\s+|your\s+|its\s+)?(?:[\w-]+\s+)?search(?:es)?\s+(?:to|at)\s+(?:most\s+)?"
+    rf"{SEARCH_COUNT}\b{NOT_A_RECORD_LINE}"
+    # "a search budget", "the benchmark is bounded" - but not "no search limit" (and not "piano search limit" either)
+    r"|(?<!\bno )\bsearch(?:es)?\s+(?:budget|limit|cap|bound|quota)s?\b"
+    r"|\b(?:benchmark|search(?:es)?)\s+(?:is|are)\s+(?:bounded|capped|limited)\b",
+    re.IGNORECASE)
+
+
+def check_vision_search_record(files: dict[str, Path]) -> None:
+    """33. /vision records every search its market read ran, with no count, and Step 3b checks the named comparables
+    against that list.
+
+    A logged /vision test run wrote its three queries on one line above a table of eight comparables and ten
+    source links, and nothing said which search verified which product. Step 3b's "real named products (not from
+    memory)" was an assertion. #252 first proposed /architect's bound (one search per comparable). The owner's
+    re-review of seven logged runs found 1-4 searches each, so a bound saves nothing, and two of the 4-search runs
+    spent a query on user complaints - where a sharpening insight comes from, and exactly what a per-comparable
+    bound forbids. So the record is required, and a count or limit on the searches fails the check.
+    """
+    text = files["vision"].read_text(encoding="utf-8")
+    step2 = re.search(r"^## Step 2\b(.*?)^## Step 3\b", text, re.MULTILINE | re.DOTALL)
+    step3b = re.search(r"^## Step 3b\b(.*?)^## Step 3c\b", text, re.MULTILINE | re.DOTALL)
+    regions = {"vision Step 2": " ".join((step2.group(1) if step2 else "").split()),
+               "vision exit criteria": " ".join(" ".join(criteria_of(text)).split()),
+               "vision Step 3b": " ".join((step3b.group(1) if step3b else "").split())}
+    for token, where, what in VISION_SEARCH_TOKENS:
+        if token not in regions[where]:
+            fail(f"{where} lost {what} (expected {token!r})")
+    evals = json.loads((ROOT / "evals" / "evals.json").read_text(encoding="utf-8"))
+    cases = json.dumps([c for c in evals.get("evals", []) if c.get("skill") == "vision"], ensure_ascii=False)
+    for where, body in (("commands/vision.md", text), ("evals/evals.json (vision cases)", cases)):
+        m = VISION_SEARCH_CAP_RE.search(" ".join(body.split()))
+        if m:
+            fail(f"{where} bounds the market read's searches ({m.group(0)!r}) - #252 declined a count: the runs "
+                 f"made 1-4, and a bound cuts the complaint search a sharpening insight comes from (stating the "
+                 f"ruling? it is worded 'No count on searches')")
 
 
 def done(n: int = 0) -> int:
