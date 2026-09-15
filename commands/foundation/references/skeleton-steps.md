@@ -3,7 +3,7 @@
 > Opened by /foundation at Step 2. SKILL.md names the eight; this file is what each one actually
 > means, including the ownership seams with /structure and the failures behind each rule.
 
-1. **Dependency manifest: this phase owns its CONTENTS AND PROVABILITY** (`MECHANISMS.md` §Seam) — `/structure` created the file and its dev/prod split; pin the versions, **actually install**, write the tool config files those scripts reference (`biome.json`, `tsconfig.json`, the test-runner config), and get the first real run to pass. Then a runnable entrypoint with a **health/hello path** (the walking skeleton).
+1. **Dependency manifest: this phase owns its CONTENTS AND PROVABILITY** (`MECHANISMS.md` §Seam) — `/structure` created the file and its dev/prod split; pin the versions, **actually install**, write the tool config files those scripts reference (`biome.json`, `tsconfig.json`, the test-runner config), and get the first real run to pass. Then a runnable entrypoint with a **health/hello path** (the walking skeleton), and **prove it boots before step 2**: start it, hit the health path, print one plain-language line saying the app runs and how to see it (the command, the address), then stop what you started. A line, not a pause. This boot is never Step 3b's evidence, because steps 3–8 change the boot path.
 2. **The dev seed** (`/structure` named the task-runner target; **this phase makes it real** — the same
    ownership split as the dependency manifest, `MECHANISMS.md` §Seam): idempotent, production-refusing, and
    it prints the fake dev credentials once when it finishes.

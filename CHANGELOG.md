@@ -5,6 +5,32 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — `/foundation` shows the skeleton booting at step 1, and Step 3b cites a boot only under `/build`'s condition (#251)
+
+- **Step 1 ends by proving the app boots.** Step 1 already produced an app with a health path, but nothing told
+  the run to show it. On a logged run the first boot came at call 133 of 229, 22 minutes in, with most of the
+  skeleton built on top of it. Now the run hits the health path at the end of step 1 and prints one plain line
+  saying the app runs and how to see it. It stops whatever it started, and a failed boot is fixed before step 2.
+  It prints a line and never pauses, so a batched run is unaffected.
+- **Step 3b's `runs end-to-end` line may cite an earlier boot, under `/build`'s condition word for word:**
+  re-run a check when any code, config or test file changed after its evidence was captured; a review fix
+  counts, a doc-only change does not. `/build`'s stricter clauses come with it: uncommitted and scripted edits
+  count, a file a check reads is never doc-only for that check, and when unsure the run re-runs. **The step-1
+  boot never qualifies**, because steps 3–8 change the boot path; a CI boot of the final tree can. The
+  permission covers that one line. The guard proofs (the login, the missing secret, the dev-datastore refusal,
+  the unedited `.env.example`) still run at Step 3b. `/build`'s review re-run clauses are not carried over,
+  because `/foundation` composes no review.
+- **Room for it, with no exit criterion or guard proof removed.** `SKILL.md` was at 15,304 of 15,360 bytes and
+  is now 15,306. Two war stories moved to a new `references/case-files-foundation.md`, *The runbook in the
+  spine*. Two sentences that repeated a loaded companion or `PRINCIPLES.md` were cut: the 48-character
+  placeholder example and the test-datastore "not comparable" line. So were a contract field list that
+  Step 3 repeats and four rationale tails. The eight-step list and the CVE gate are unchanged.
+- **`tools/check.py` check 32** keeps the boot proof in Step 2, ahead of item 2. It holds the `runs end-to-end`
+  line to `RERUN_CONDITION` and the shared clauses, allows the condition only once in the skill, and requires
+  every guard proof. Check 30 still holds `/build` to the same constant, with its review clauses split into
+  `REVIEW_RERUN_TOKENS`. Case file: *The skeleton nobody saw boot*. Evals:
+  `foundation-step-one-shows-it-boots`, `foundation-step-one-boot-is-not-3b-evidence`.
+
 ## [1.50.0] - 2026-09-15
 
 ### Fixed — a review fix makes `/build` re-run its checks (#255)

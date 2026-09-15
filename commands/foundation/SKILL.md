@@ -20,10 +20,8 @@ description: >
 - **Purpose:** a thin end-to-end skeleton that runs, with config/logging/infra/tooling/CI in place.
 - **Reads:** `PRODUCT.md#Architecture`, `#Structure`.
 - **Writes:** **`docs/runbook.md`** (how to boot it, what `.env` needs, what each guard does and how to
-  verify it) + `PRODUCT.md#Foundation`, which stays a **record**: runs end-to-end? · config-flow verified ·
-  guards/secret-scan/CI · the pointer. This section hit **14KB** on a real run — one section at the
-  whole-file ceiling the playbook imposes on a skill — because a runbook was wearing a spine section's
-  clothes (`PRINCIPLES.md`: a section is a record, not a container).
+  verify it) + `PRODUCT.md#Foundation`, which stays a **record, not a container** (`PRINCIPLES.md`; case
+  file: The runbook in the spine).
 - **Gate type:** `derivation` — computable from `#Architecture` + `#Structure`. Batchable - a `derivation` run may chain with its neighbours and end in ONE review. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Foundation` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria:**
@@ -42,7 +40,7 @@ description: >
     session does not go looking.
   - [ ] Config loads from config/`.env`; **the value actually flows** (verify — no dead/overridden config).
   - [ ] **Fail-loud on misconfig, fail-closed on security**: boot refuses on missing/known-constant secrets.
-  - [ ] **Placeholders are rejected BY NAME at boot, not by length or format** — the loader knows the `CHANGE_ME__<VAR>__CHANGE_ME` values `/structure` wrote to `.env.example` and refuses to start on any of them, naming the variable and how to generate a real one. A length/format check is not this: a 48-char placeholder passes `min(32)` and boots the app on a public signing key. **A test proves it** (copy `.env.example` → `.env` unedited → boot fails), and under production (`NODE_ENV`/`APP_ENV`) there is **no override** — see `PRINCIPLES.md` §Production safeguards.
+  - [ ] **Placeholders are rejected BY NAME at boot, not by length or format** — the loader knows the `CHANGE_ME__<VAR>__CHANGE_ME` values `/structure` wrote to `.env.example` and refuses to start on any of them, naming the variable and how to generate a real one. **A test proves it** (copy `.env.example` → `.env` unedited → boot fails), and under production (`NODE_ENV`/`APP_ENV`) there is **no override** — see `PRINCIPLES.md` §Production safeguards.
   - [ ] **An isolated, disposable test datastore is provisioned** — its own variable (`TEST_DATABASE_URL`
     or the chosen datastore's equivalent) in `.env.example`, created and torn down by the task runner.
     Per-test transaction rollback is an acceptable alternative; **sharing the development datastore is
@@ -50,11 +48,10 @@ description: >
     names both, and exits non-zero — verified by pointing it at the dev one on purpose.
     **How you obtain it depends on the data custody `#Architecture` recorded** — a throwaway instance
     (local/self-hosted), a **database branch or a second project** (managed-serverless), or a temp file
-    (embedded). The mechanics are not comparable: near-trivial on a container, real work on a managed
-    service, which is why the obvious shortcut is the one thing this forbids. **Open
+    (embedded). **Open
     `references/test-datastore.md` and follow the recipe for the recorded custody** — including what to
     do when none is achievable today.
-  - [ ] **The test runner loads config the same way the app does** (same loader, same precedence) — not whatever happened to be exported into the shell. A runner with its own config path is dead config on the test side, and it is how a suite ends up pointed at the wrong datastore.
+  - [ ] **The test runner loads config the same way the app does** (same loader, same precedence) — not whatever happened to be exported into the shell. A runner with its own config path is dead config on the test side.
   - [ ] Structured logging (no stray prints); dev tooling wired — lint/format + the **commit-hook runner and secret scanner `#Architecture` chose** (not a tool this skill picks).
   - [ ] **CI is in place and mirrors the prod bootstrap** (builds/migrates/tests from the real schema), green — a must, not optional.
   - [ ] **UI product (`DESIGN.md` exists): the frontend audit runs in the commit hooks AND CI** from a committed copy of the installed engine, over `DESIGN.md` + the whole UI tree — an ERROR blocks, a WARN only reports — **proven red at Step 3b**.
@@ -70,7 +67,7 @@ description: >
 - **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** write ONE dated line at the top of `#Foundation` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
 
 ## Step 1 — Apply principles (this phase)
-- **No-hardcoding:** every endpoint/secret/threshold from config/`.env`. **Prove it flows** — read a value back at runtime; a setting silently overridden upstream is "dead config" and a real bug.
+- **No-hardcoding:** every endpoint/secret/threshold from config/`.env`. **Prove it flows** — read a value back at runtime.
 - **Fail-loud/fail-closed:** a startup guard refuses to boot if a required secret is unset, equals a default constant, **or is still one of `.env.example`'s placeholders**. Match the placeholder **by value, by name** — never infer "looks unset" from length or shape; `make setup` copying the example to `.env` is the normal path, so this guard is the only thing between a fresh clone and a public signing key.
 - **CI mirrors prod:** bootstrap the same way prod does (real schema/migrations), least-privilege tokens.
 
@@ -78,6 +75,9 @@ description: >
 **Open `references/skeleton-steps.md` and work through all eight** — each carries the detail, the
 ownership seam and the failure it prevents. **Print one line as each step lands** (`MECHANISMS-ON-DEMAND.md`
 §Context hygiene): a 50-minute phase with one question at the end is indistinguishable from a hung one.
+**Step 1 ends by proving it boots:** hit the health path, print one plain-language line — the app runs, and
+how to see it (the command, the address) — and stop whatever you started. A line, not a pause. No boot →
+fix it before step 2. (case file: The skeleton nobody saw boot)
 
 1. **Dependency manifest: contents and provability** (`MECHANISMS.md` §Seam — `/structure` owns its shape)
    — pin, install, write the tool configs, get the first real run green. Then a runnable entrypoint with
@@ -106,7 +106,7 @@ Fill `#Foundation`: runs end-to-end? · config-flow verified (how) · guards (**
 
 ## Step 3b — Principle-gate: verify it RUNS and the guards are real (evidence)
 Walk this phase's principles and prove each — don't assume:
-- runs end-to-end → actually start it / hit the health path (compose `/run`); evidence.
+- runs end-to-end → start it and hit the health path (compose `/run`); evidence. Or cite an earlier boot (this line only), as `/build` does: **re-run a check when any code, config or test file changed after its evidence was captured; a review fix counts, a doc-only change does not.** Uncommitted and scripted edits count. A file a check reads is never doc-only for that check, and **when unsure whether anything changed or whether a change is doc-only, re-run.** **The step-1 boot never qualifies** — steps 3–8 change the boot path; a CI boot of the final tree can.
 - **usable end-to-end (auth products) → actually log in with the seeded account**, and show the seed running
   **twice** without failing or duplicating. "The health check passes" is not this.
 - config flows / no dead config → read a value back at runtime; evidence.
@@ -117,7 +117,7 @@ Walk this phase's principles and prove each — don't assume:
 - **placeholder guard → replay the real failure:** copy `.env.example` to `.env` **unedited**, start the app, and show it **refusing to boot** with a readable message. If it starts, the guard is decorative and the product ships a public secret.
 **If any is "should" not "shown", STOP and make it real.** Record HOW in `#Foundation`.
 
-**Keep the context lean (`MECHANISMS-ON-DEMAND.md` §Context hygiene):** a command's output longer than a screen goes to a scratch file; read the tail or grep the verdict, and cite the file in the evidence line. Same commands, same verdicts, a fraction of the tokens.
+**Keep the context lean (`MECHANISMS-ON-DEMAND.md` §Context hygiene):** a command's output longer than a screen goes to a scratch file; read the tail or grep the verdict, and cite the file in the evidence line.
 
 **Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done".
 
@@ -126,4 +126,4 @@ Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decis
 
 ## Step 4 — Handoff
 "Skeleton runs, a seeded account can log in (credentials: <where>), and CI is green. Next run **`/contracts`** to define typed models/schemas/migrations
-BEFORE business logic — so the data shape is right from the start."
+BEFORE business logic."
