@@ -1267,11 +1267,10 @@ RERUN_CONDITION = ("re-run a check when any code, config or test file changed af
                    "a review fix counts, a doc-only change does not")
 RERUN_TOKENS = (
     (RERUN_CONDITION, "Step 3b's re-run condition, word for word"),
-    ("Tell from git, not memory", "reading what changed from git - that build's fix was a script, not an edit"),
-    ("git write-tree", "the snapshot taken before each check - Step 2 runs on uncommitted work, so a commit is no "
-     "fixed point, and `git diff <commit>` never lists a file git does not track yet, such as a test the fix added"),
-    ("has no fixed point, so re-run it", "re-running evidence with no snapshot to compare against"),
-    ("such as `.env`", "ignored config counting on its own - a snapshot follows .gitignore"),
+    ("never doc-only for that check", "a check's own input counting as a change - DESIGN.md is markdown, and "
+     "/frontend-audit's verdict moves when its tokens do"),
+    ("when unsure whether anything changed, re-run", "failing toward the re-run - a stale citation is the "
+     "failure this rule exists for, a spare re-run is not"),
     ("The reviews are checks too", "re-reviewing a review fix - nothing reviewed that build's fix either"),
 )
 LOOSE_RERUN = "only when its files changed"
