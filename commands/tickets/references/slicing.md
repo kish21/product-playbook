@@ -69,7 +69,8 @@ A ticket needs another ticket in one of two ways, and the difference decides who
 - **`Builds against` — the contract only.** Every name it uses from the other ticket already resolves in the
   files `#Contracts` names, so a stub typed from those contracts is enough to build, test and demo it. It is
   written on the ticket and in `TICKETS.md`, drawn as a **dotted arrow**, and is **not** a *blocked by* link:
-  a link would make `/build` stop a ticket that is free to start.
+  a link would make `/build` stop a ticket that is free to start. The two run side by side, so the stub lives
+  in the ticket's own Target Files, and a file both tickets write makes it a `Depends On` or a hub file.
 - **When unsure, it is `Depends On`.** A needless wait only delays a start; a wrong "build against" costs a
   rewrite when the real code lands.
 

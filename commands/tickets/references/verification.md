@@ -66,8 +66,8 @@ Walk the principles and prove each against the files just written — do not ass
 - **Independently mergeable.** For each ticket ask: could one developer open a PR containing only these
   files and have it reviewed on its own? **If not, the split is wrong — STOP and re-split before publishing.**
 - **No ticket lists a spine file or `TICKETS.md`; every ticket lists its feature doc and tests.** Two
-  tickets that name the same file are either **dependants** (fine — `Depends On` or `Builds against` says so)
-  or a **collision**
+  tickets that name the same file are either **dependants through a merge** (fine — `Depends On` orders them)
+  or a **collision** — a `Builds against` pair runs side by side, so a file both write is a collision too
   (STOP: re-split, or list the file as a hub file).
 
 ## §After publishing — the read-backs
@@ -78,8 +78,9 @@ Run once `/tickets` has published; each one reads GitHub back rather than trusti
   (**re-run it and show that**); no link points at a feature doc that does not exist yet; permissions —
   `project` scope included — were checked **before** the first create.
 - **Epics are parents, read back.** Every epic in `TICKETS.md` is one issue, and
-  `GET …/issues/<epic n>/sub_issues` returns exactly the tickets listed under it — none missing, none extra,
-  none left under a different parent — and the close states the count (`3 epics · 8 sub-issues`). The re-run
+  `GET …/issues/<epic n>/sub_issues` returns exactly the tickets listed under it — none extra, and none missing
+  except a ticket this run found under a different parent and left there, which the close names for the owner
+  to regroup — and the close states the count (`3 epics · 8 sub-issues`). The re-run
   above added no second epic and no second parent link. Before trusting the read-back, remove one sub-issue,
   watch the check go red, and attach it again (`DELETE …/sub_issue`): a read-back never seen failing proves
   nothing. (`publishing.md` §Epics are parent issues)

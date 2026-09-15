@@ -10,8 +10,8 @@
    from the bundled `templates/feature_ticket_template.md`. If `.github/PULL_REQUEST_TEMPLATE.md` is missing,
    copy `templates/pull_request_template.md`. Never overwrite a template the project already has.
 2. **Remote guard — NEVER blindly create a remote repository.** Run `git remote -v`.
-   - **No remote:** write tickets to `docs/issues/` only and say:
-     *"Tickets written to `docs/issues/`. No remote is linked — run `git remote add origin <url>`, then `/tickets` again to publish."*
+   - **No remote:** write the tickets to `docs/issues/` and the plan to `TICKETS.md`, publish nothing, and say:
+     *"Tickets written to `docs/issues/` and the plan to `TICKETS.md`. No remote is linked — run `git remote add origin <url>`, then `/tickets` again to publish."*
    - **Remote present:** check `gh auth status` and `gh repo view`. If either fails, keep the local files and
      tell the user to run `gh auth login`. **Do not run `gh repo create`.**
 3. **Capability pre-flight — a half-published backlog is worse than none.** Creating issues, milestones,
@@ -113,7 +113,8 @@ GitHub's *Parent issue* field. `gh` has no sub-issue command, so this is the RES
      id is `gh api repos/<o>/<r>/issues/<n> -q .id` — the numeric database id, **not** the issue number and
      not the node id (the same id a *blocked by* link takes).
 3. **Read it back, do not assume it.** `GET …/sub_issues` for each epic returns exactly the tickets
-   `TICKETS.md` lists under it — none missing, none extra — and the close states the count
+   `TICKETS.md` lists under it — none extra, and none missing except a ticket reported in step 2 as under a
+   different parent, which the close names — and the close states the count
    (`3 epics · 8 sub-issues`). Before trusting the read-back, remove one
    (`gh api -X DELETE repos/<o>/<r>/issues/<epic n>/sub_issue -F sub_issue_id=<id>`), watch the check go red,
    and attach it again: a read-back never seen failing proves nothing.

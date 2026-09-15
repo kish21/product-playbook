@@ -1914,6 +1914,7 @@ def plan_example_faults(example: str) -> list[str]:
         faults.append("the graph does not open with `flowchart LR`")
     nodes: set[str] = set()
     edges: set[tuple[str, str, str]] = set()   # (dependant ticket, blocker ticket, kind)
+    arrows: list[tuple[str, str, str, str]] = []  # (from lane, to lane, dependant ticket, blocker ticket)
     for ln in lines[1:]:
         node, edge = GRAPH_NODE.match(ln), GRAPH_EDGE.match(ln)
         if node:
@@ -1929,6 +1930,7 @@ def plan_example_faults(example: str) -> list[str]:
                               f"arrow reads '<ticket> {kind} <ticket>'")
             else:
                 edges.add((ids[0], ids[1], kind))
+                arrows.append((src, dst, ids[0], ids[1]))
             for end in (src, dst):
                 if end not in lanes:
                     faults.append(f"arrow {src} {arrow} {dst} ends at lane_{end}, which is not a lane")
@@ -1938,11 +1940,13 @@ def plan_example_faults(example: str) -> list[str]:
         faults.append(f"the graph has boxes {sorted(nodes)} for lanes {sorted(lanes)} - one box per lane, no other box")
     points: set[tuple[str, str, str]] = set()
     for line in md_section(example, "Coordination points").splitlines():
+        if not line.strip().startswith("-"):
+            continue  # prose around the list is not a point
         ids = EPIC_TICKET_ID.findall(line)
         kind = "waits for" if "waits for" in line else "builds against" if "builds against" in line else None
-        if line.strip().startswith("-") and (len(ids) != 2 or not kind):
+        if len(ids) != 2 or not kind:
             faults.append(f"coordination point {line.strip()!r} names no kind and two tickets")
-        elif kind:
+        else:
             points.add((ids[0], ids[1], kind))
     if points != edges:
         faults.append(f"the arrows {sorted(edges)} differ from the coordination points {sorted(points)} - one arrow "
@@ -1961,6 +1965,7 @@ def plan_example_faults(example: str) -> list[str]:
                     faults.append(f"day 1 starts {tid}, which waits for a merge - it cannot start on day one")
         if seen != lanes:
             faults.append(f"the Day 1 table covers lanes {sorted(seen)}, not every lane {sorted(lanes)}")
+    ticket_lane: dict[str, str] = {}
     for milestone in re.findall(r"^## M\d+\b.*?(?=^## |\Z)", example, re.MULTILINE | re.DOTALL):
         for row in table_rows(milestone)[1:]:
             epic = re.search(r"`(M\d+-[A-Z]{2,})`", row[0]) if row else None
@@ -1970,8 +1975,15 @@ def plan_example_faults(example: str) -> list[str]:
             if row[1] not in lanes:
                 faults.append(f"epic {epic.group(1)} sits in {row[1]!r}, which is not a lane")
             for tid in EPIC_TICKET_ID.findall(row[3]):
+                ticket_lane[tid] = row[1]
                 if not tid.startswith(epic.group(1) + "-"):
                     faults.append(f"ticket {tid} is listed under epic {epic.group(1)} - a ticket sits in its own epic")
+    # An arrow runs from the lane that goes first (the blocker's) to the lane that needs it (the dependant's).
+    for src, dst, dependant, blocker in arrows:
+        want = (ticket_lane.get(blocker), ticket_lane.get(dependant))
+        if (src, dst) != want:
+            faults.append(f"the arrow for {dependant} and {blocker} runs lane_{src} -> lane_{dst}, not from the "
+                          f"blocker's lane to the dependant's ({want[0]} -> {want[1]})")
     return faults
 
 

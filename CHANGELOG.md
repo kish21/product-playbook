@@ -62,7 +62,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
   `/build` or the template; when any file still reads or writes `docs/issues/README.md`; or when an old-style ID
   appears as the current form. It also reads the example `TICKETS.md` the way a plan file is read, and fails on
   status in it, a lane without a box or a box without a lane, an arrow whose kind disagrees with its coordination
-  point, a day-1 ticket that waits for a merge, or a ticket listed under the wrong epic. The example graph renders
+  point or that does not run from the blocker's lane to the dependant's, a day-1 ticket that waits for a merge, or
+  a ticket listed under the wrong epic. The example graph renders
   with the Mermaid CLI.
 - Three eval cases: the plan file and epics for a team of two, a re-run on a backlog published before epics, and
   a local-only run.
@@ -76,7 +77,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
   for the read-backs. A local-only run skips the second half and says so in the close. #249's sub-issue read-back
   joins that half. No check was removed: 16 before the split, 16 after it, 18 with #249's two.
 - **`tools/check.py` check 37** fails when the halves merge, a read-back moves before publishing, a local check
-  moves after it, or a check present today goes missing. Across checks 36 and 37, 37 breaks were each shown to
+  moves after it, or a check present today goes missing. Across checks 36 and 37, 39 breaks were each shown to
   turn the check red.
 
 ## [1.53.0] - 2026-09-15
