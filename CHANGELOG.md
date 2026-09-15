@@ -5,6 +5,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — a review fix makes `/build` re-run its checks (#255)
+
+- **Step 3b names when cited evidence stops counting.** It said *re-run a check only when its files changed
+  since*, and "its files" was a judgement call. A real build ran `/frontend-audit`, then a review fix rewrote
+  the form it had checked. The build re-ran CI and the journey, cited the old audit, and reviewed nothing. The
+  condition is now: **re-run a check when any code, config or test file changed after its evidence was
+  captured; a review fix counts, a doc-only change does not.** It is read from git (`git diff --name-only
+  <commit>`, working tree included), so a scripted edit counts, and the reviews re-run over the fixes as
+  `/ship` Step 2 already does. `/foundation` Step 3b takes the same sentence in #251.
+- **`tools/check.py` check 30** holds the sentence word for word, the git read and the review re-run in
+  `/build`, and fails on the old *only when its files changed* wording in any skill. Case file: *The audit the
+  review fix outran*. Eval: `build-review-fix-reruns-the-checks`.
+
 ## [1.49.0] - 2026-09-15
 
 ### Fixed — the frontend audit runs the installed engine, and `/foundation` makes it a gate (#256)

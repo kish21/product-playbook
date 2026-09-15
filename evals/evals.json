@@ -572,6 +572,18 @@
         "The run continues after the report to the doc, the commit and the close",
         "The final message is the plain-language close, not the review report"
       ]
+    },
+    {
+      "id": "build-review-fix-reruns-the-checks",
+      "skill": "build",
+      "prompt": "/build \"#9 host edits the event\"  (a UI ticket: /frontend-audit ran clean, then /code-review found a bug and the fix rewrote src/events/EventForm.tsx)",
+      "expected_output": "At Step 3b it reads from git what changed after each piece of evidence; the review fix is a code change, so it re-runs /frontend-audit on the fixed form, re-runs the other checks whose evidence predates the fix, and runs the reviews again over the fixes before the close. Only a check with no code, config or test change after its evidence is cited.",
+      "expectations": [
+        "It reads what changed from git, not from memory of its own edits",
+        "/frontend-audit runs again after the fix, before the close",
+        "The reviews run again over the fixes",
+        "A doc-only change after a check does not trigger a re-run"
+      ]
     }
   ]
 }

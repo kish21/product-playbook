@@ -87,7 +87,7 @@ description: >
 Append a `#Build log` row: feature · DoD-incl-security met? · **how verified** · link to the feature doc.
 
 ## Step 3b — Principle-gate: verify each principle is ACTUALLY implemented (not just claimed)
-Walk **this phase's load-bearing principles (Step 1)** and confirm each is real, **citing the evidence Step 2 already captured** (command · result · commit) — re-run a check only when its files changed since:
+Walk **this phase's load-bearing principles (Step 1)** and confirm each is real, **citing the evidence Step 2 already captured** (command · result · commit) — **re-run a check when any code, config or test file changed after its evidence was captured; a review fix counts, a doc-only change does not.** Tell from git, not memory: `git diff --name-only <that commit>` includes the working tree, so an edit made by a script counts too. **The reviews are checks too** — a review fix is code no review has seen, so each review that ran runs again over the fixes, as `/ship` Step 2 does. (case file: The audit the review fix outran)
 - security-in-DoD → **`/security-review`** (or the equivalent pass) passed — name which.
 - no secret in code / no-hardcoding → secret-scan clean.
 - live-path-works → **`/run`** exercised the real path **and the observable result was checked** — name the command **and what you saw**. An exit code is not the observable result.

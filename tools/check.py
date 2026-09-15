@@ -222,7 +222,8 @@ def main() -> int:
     check_adopt_routes_in_chain_order(files)
     # 29. /architect's benchmark is one search per open decision row, recorded
     check_architect_search_bound(files)
-    # 30. /build's loop carries its overhead rules: read limit, triggered checks, flaky capture, board status
+    # 30. /build's loop carries its overhead rules: read limit, triggered checks, flaky capture, board status,
+    #     and the re-run condition that says when cited evidence stops counting
     check_build_loop_overhead(files)
     # 31. the audit runs the INSTALLED engine, and /foundation wires a project copy into hooks + CI
     check_audit_engine_resolution(files)
@@ -1259,6 +1260,18 @@ BUILD_OVERHEAD_TOKENS = (
     ("citing the evidence Step 2 already captured", "Step 3b citing Step 2's evidence instead of re-running it"),
 )
 
+# When cited evidence stops counting (#255). One sentence, word for word: /foundation Step 3b carries the same
+# condition (#251). Potluck M2-SLICE-02 cited a 13:25 audit after a 13:31 review fix rewrote the form it had
+# checked - "re-run only when its files changed" left "its files" to judgement, and judgement skipped the audit.
+RERUN_CONDITION = ("re-run a check when any code, config or test file changed after its evidence was captured; "
+                   "a review fix counts, a doc-only change does not")
+RERUN_TOKENS = (
+    (RERUN_CONDITION, "Step 3b's re-run condition, word for word"),
+    ("Tell from git, not memory", "reading what changed from git - that build's fix was a script, not an edit"),
+    ("The reviews are checks too", "re-reviewing a review fix - nothing reviewed that build's fix either"),
+)
+LOOSE_RERUN = "only when its files changed"
+
 
 def check_build_loop_overhead(files: dict[str, Path]) -> None:
     """30. /build carries the rules that cut its fixed overhead, and every live-path check has a trigger.
@@ -1270,9 +1283,13 @@ def check_build_loop_overhead(files: dict[str, Path]) -> None:
     Step 2 had already produced - and a board card still at Todo after the ticket merged.
     """
     text = " ".join(files["build"].read_text(encoding="utf-8").split())
-    for token, what in BUILD_OVERHEAD_TOKENS:
+    for token, what in BUILD_OVERHEAD_TOKENS + RERUN_TOKENS:
         if token not in text:
             fail(f"build lost {what} (expected {token!r})")
+    for p in sorted((ROOT / "commands").rglob("*.md")):
+        if LOOSE_RERUN in " ".join(p.read_text(encoding="utf-8").split()):
+            fail(f"{p.relative_to(ROOT).as_posix()} says re-run {LOOSE_RERUN!r} - which files is a judgement "
+                 f"call; name the condition instead: {RERUN_CONDITION!r}")
     lp = (ROOT / "commands" / "build" / "references" / "live-path-checks.md").read_text(encoding="utf-8")
     untagged = [ln[:60] for ln in lp.splitlines() if ln.startswith("- **")]
     if untagged:
