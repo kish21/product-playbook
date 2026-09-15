@@ -11,6 +11,11 @@ Usage:  python tools/session_cost.py [<session>.jsonl]            # default: new
 
 Reads `message.usage` on assistant rows, de-duplicated by message id (a streamed reply is logged in
 several rows). Wall clock is first->last timestamp, so it includes the time the user spent answering.
+Agent working time is wall clock minus every wait that ended in the user's input - a typed reply, an
+answered question card or an approved plan; a background job's notification is the agent's own wait and stays
+in. It is the figure `/playbook` §Sitting lengths quotes, so a run measured here compares with that table. A
+tool permission prompt leaves no row of its own, so time spent approving a tool counts as working time here;
+the table's runs show none (no tool waited long on anything but its own work).
 Rates default to Opus 5 list prices; pass --rates for another model. Stdlib only.
 """
 import argparse
@@ -40,12 +45,33 @@ def newest_log(project: Path) -> Path:
     return logs[-1]
 
 
+FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
+USER_ANSWERED = ("AskUserQuestion", "ExitPlanMode")  # tools whose result is the user's answer, not the agent's work
+
+
+def is_user_input(row: dict, question_ids: set) -> bool:
+    """Of the conversation rows measure() passes in, one the user produced: a typed message (not a background
+    job's notification) or the answer to a question card or plan. Other tool results are the agent's own work."""
+    if row.get("type") != "user":
+        return False
+    content = (row.get("message") or {}).get("content")
+    if isinstance(content, list):
+        results = [b for b in content if isinstance(b, dict) and b.get("type") == "tool_result"]
+        if results:
+            return any(b.get("tool_use_id") in question_ids for b in results)
+        content = " ".join(b.get("text", "") for b in content if isinstance(b, dict))
+    return not str(content or "").lstrip().startswith("<task-notification>")
+
+
 def measure(log: Path) -> dict:
     seen: set[str] = set()
     calls = out = inp = cache_read = cache_write = 0
     first = last = None
     tools: dict[str, int] = {}
     questions = 0
+    question_ids: set[str] = set()
+    latest = None  # the newest timestamp so far; rows are not always logged in time order
+    waiting = 0.0  # seconds spent waiting for the user's input
     for line in log.read_text(encoding="utf-8").splitlines():
         if not line.strip():
             continue
@@ -53,7 +79,14 @@ def measure(log: Path) -> dict:
         ts = row.get("timestamp")
         if ts:
             first = first or ts
-            last = ts
+            last = max(last, ts) if last else ts  # rows are not always logged in time order
+        # Only the conversation moves the clock: an attachment, queue or meta row logged beside a reply must not
+        # shorten the wait that reply ends, nor count as the user's input.
+        if ts and row.get("type") in ("assistant", "user") and not row.get("isMeta"):
+            now = datetime.strptime(ts, FMT)
+            if latest and now > latest and is_user_input(row, question_ids):
+                waiting += (now - latest).total_seconds()
+            latest = max(latest, now) if latest else now
         if row.get("type") != "assistant":
             continue
         msg = row.get("message") or {}
@@ -70,12 +103,14 @@ def measure(log: Path) -> dict:
                 tools[block["name"]] = tools.get(block["name"], 0) + 1
                 if block["name"] == "AskUserQuestion":
                     questions += 1
+                if block["name"] in USER_ANSWERED:
+                    question_ids.add(block.get("id"))
     minutes = 0.0
     if first and last:
-        fmt = "%Y-%m-%dT%H:%M:%S.%fZ"
-        minutes = (datetime.strptime(last, fmt) - datetime.strptime(first, fmt)).total_seconds() / 60
+        minutes = (datetime.strptime(last, FMT) - datetime.strptime(first, FMT)).total_seconds() / 60
     return {"log": log.name, "calls": calls, "minutes": round(minutes, 1), "input": inp, "output": out,
-            "cache_read": cache_read, "cache_write": cache_write, "questions": questions, "tools": tools}
+            "cache_read": cache_read, "cache_write": cache_write, "questions": questions, "tools": tools,
+            "working": round(max(0.0, minutes - waiting / 60), 1)}
 
 
 def main(argv: list[str]) -> int:
@@ -98,6 +133,7 @@ def main(argv: list[str]) -> int:
     print(f"session {m['log']}")
     print(f"  calls {m['calls']} · {m['minutes']} min wall (includes time the user spent answering) · "
           f"questions asked {m['questions']}")
+    print(f"  agent working {m['working']} min (wall minus every wait for the user's reply or answer)")
     print(f"  tokens: output {m['output']:,} · cache read {m['cache_read']:,} · cache write "
           f"{m['cache_write']:,} · input {m['input']:,}")
     print(f"  avg context per call {m['cache_read'] // max(m['calls'], 1):,} tokens")

@@ -235,6 +235,8 @@ def main() -> int:
     check_vision_search_record(files)
     # 34. no private project is named anywhere in the repo; the names come from the environment, never the repo
     check_no_private_names()
+    # 35. /playbook's offers state a measured, version-labelled sitting from one table and warn to start with room left
+    check_sitting_lengths(files)
 
     return done(len(cmds))
 
@@ -1659,6 +1661,150 @@ def check_no_private_names() -> None:
         for loc, i in where:
             fail(f"{loc} names private project #{i} of {PRIVATE_NAMES_ENV} - write \"a logged test run\" for "
                  f"evidence and an invented example for a rule")
+
+
+# Check 35 (#259). Every phase /playbook can offer - /adopt for an existing codebase, then the chain - has a row.
+SITTING_SECTION = re.compile(r"^## Sitting lengths\b.*?(?=^## |\Z)", re.MULTILINE | re.DOTALL)
+SITTING_PHASES = ["adopt"] + CHAIN
+SITTING_ROW = re.compile(r"^\|\s*`/([a-z-]+)`\s*\|([^|\n]*)\|([^|\n]*)\|([^|\n]*)\|\s*$", re.MULTILINE)
+SITTING_FIGURE = re.compile(r"\b\d+(?:\s*[–-]\s*\d+)?\s*(?:min|minutes?|h|hours?)\b", re.IGNORECASE)
+SITTING_RANGE = re.compile(r"\d\s*[–-]\s*\d+\s*(?:min|minutes?|h|hours?)\b", re.IGNORECASE)
+SITTING_VERSIONS = re.compile(r"(\d+\.\d+\.\d+)(?:\s*[–-]\s*(\d+\.\d+\.\d+))?")
+NOT_MEASURED = "not measured yet"
+MONEY = re.compile(r"[$€£]\s*\d|\d\s*(?:USD|EUR|GBP)\b|\b(?:dollars?|euros?)\b", re.IGNORECASE)
+SITTING_OFFER = (("§Sitting lengths", "the pointer to the one table the figures live in"),
+                 ("room left on your plan", "the warning to start with room left on the plan"),
+                 ("loses review steps", "why the warning matters - a cut-off run loses review steps"),
+                 ("never estimated", "what to say when a phase has no measured run - that, never an estimate"),
+                 ("added up", "the batch's sitting, its phases' rows added up"))
+SESSION_COST_POINTER = '"${CLAUDE_PLUGIN_ROOT}/tools/session_cost.py"'
+
+
+def version_key(version: str) -> tuple[int, ...]:
+    return tuple(int(part) for part in version.split("."))
+
+
+def check_sitting_lengths(files: dict[str, Path]) -> None:
+    """35. /playbook's offers say how long a sitting is, from one measured table, and warn to start with room left.
+
+    The routing entry point offered /foundation + /contracts + /tickets as a batch because it was legal, and said
+    nothing about length: about two hours of agent work on a logged test run. A usage limit that cuts a run off
+    mid-review loses review steps - on one logged /build it struck inside the review, and four of the seven review
+    angles never ran. So every offer quotes a row and carries the warning, the figures live in one
+    section so a release updates one row, each is labelled with the version it was measured on, and no row may
+    hold a price or a range invented from one run.
+    """
+    text = files["playbook"].read_text(encoding="utf-8")
+    m = SITTING_SECTION.search(text)
+    if not m:
+        fail("playbook.md has no `## Sitting lengths` section - an offer that states a sitting has nowhere to "
+             "read it from, and figures scattered through the prose drift from each other")
+        return
+    section = m.group(0)
+    rows: dict[str, tuple[str, ...]] = {}
+    for row in SITTING_ROW.finditer(section):
+        if row.group(1) in rows:
+            fail(f"playbook.md §Sitting lengths lists /{row.group(1)} twice - one phase, one row")
+        rows[row.group(1)] = tuple(cell.strip() for cell in row.group(2, 3, 4))
+    for extra in sorted(set(rows) - set(SITTING_PHASES)):
+        fail(f"playbook.md §Sitting lengths has a row for /{extra}, which /playbook never offers as a phase")
+    released = released_version()
+    for phase in SITTING_PHASES:
+        if phase not in rows:
+            fail(f"playbook.md §Sitting lengths has no row for /{phase} - its offer would state no sitting, or an "
+                 f"invented one; a phase with no measured run gets a `{NOT_MEASURED}` row")
+            continue
+        figure, measured, runs = rows[phase]
+        if figure == NOT_MEASURED:
+            if SITTING_VERSIONS.search(measured) or runs not in ("0", "—", "-"):
+                fail(f"/{phase} reads `{NOT_MEASURED}` but names a version or a run count - a row is measured or it is not")
+            continue
+        if not SITTING_FIGURE.search(figure):
+            fail(f"/{phase}'s sitting {figure!r} states no minutes or hours - give the measured figure or "
+                 f"`{NOT_MEASURED}`")
+        label = SITTING_VERSIONS.fullmatch(measured)
+        if not label:
+            fail(f"/{phase}'s sitting is labelled {measured!r}, not with the playbook version(s) it was measured on - "
+                 f"a figure from an older version reads as current")
+        else:
+            versions = [v for v in label.groups() if v]
+            if released and any(version_key(v) > version_key(released) for v in versions):
+                fail(f"/{phase}'s sitting is labelled {measured!r}, newer than the released {released} - no run "
+                     f"was measured on it")
+            if len(versions) == 2 and version_key(versions[0]) >= version_key(versions[1]):
+                fail(f"/{phase}'s version range {measured!r} does not run oldest to newest")
+        if not runs.isdigit() or int(runs) < 1:
+            fail(f"/{phase}'s sitting gives {runs!r} runs - a measured figure names how many runs it rests on")
+        elif runs == "1" and SITTING_RANGE.search(figure):
+            fail(f"/{phase}'s sitting {figure!r} is a range from one run - one run gives one figure")
+    money = MONEY.search(text)
+    if money:
+        fail(f"playbook.md states a price ({money.group(0)!r}) - what a run costs depends on the user's plan, "
+             f"and a subscription meets a usage limit, not a bill")
+    stray = SITTING_FIGURE.search(text[:m.start()] + text[m.end():])
+    if stray:
+        fail(f"playbook.md states a sitting figure outside §Sitting lengths ({stray.group(0)!r}) - the figures "
+             f"live in one place, or a release updates one copy and the other goes stale")
+    step2 = re.search(r"^## Step 2\b(.*?)^2\. ", text, re.MULTILINE | re.DOTALL)
+    offer = " ".join(step2.group(1).split()) if step2 else ""
+    for token, what in SITTING_OFFER:
+        if token not in offer:
+            fail(f"playbook.md Step 2 item 1 (the phase and batch offers) lost {what} (expected {token!r})")
+    if SESSION_COST_POINTER not in section or not (ROOT / "tools" / "session_cost.py").is_file():
+        fail(f"playbook.md §Sitting lengths does not point at {SESSION_COST_POINTER} - a user cannot measure a run "
+             f"of their own against the table")
+    check_session_cost_working_time()
+
+
+def check_session_cost_working_time() -> None:
+    """35, behaviour. tools/session_cost.py's agent working time leaves out every wait that ended in the user's
+    input - a typed reply, an answered question card or an approved plan - and keeps the agent's own waits, and
+    its wall clock ends at the newest row, so the figure a user measures means what §Sitting lengths means."""
+    import importlib.util
+    import tempfile
+    spec = importlib.util.spec_from_file_location("session_cost", ROOT / "tools" / "session_cost.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    at = lambda hhmm: f"2026-01-01T{hhmm}:00.000Z"  # noqa: E731
+    rows = [
+        {"type": "user", "timestamp": at("10:00"), "message": {"content": "<command-name>/x</command-name>"}},
+        {"type": "assistant", "timestamp": at("10:05"), "message": {"id": "m1", "content": [
+            {"type": "tool_use", "id": "q1", "name": "AskUserQuestion", "input": {}}]}},
+        # the user answers the card 20 minutes later: a wait for the user
+        {"type": "user", "timestamp": at("10:25"), "message": {"content": [
+            {"type": "tool_result", "tool_use_id": "q1", "content": "answered"}]}},
+        {"type": "assistant", "timestamp": at("10:30"), "message": {"id": "m2", "content": [
+            {"type": "tool_use", "id": "b1", "name": "Bash", "input": {}}]}},
+        {"type": "user", "timestamp": at("10:31"), "message": {"content": [
+            {"type": "tool_result", "tool_use_id": "b1", "content": "ok"}]}},
+        # a meta row the harness injects is neither the user's input nor the end of a wait
+        {"type": "user", "isMeta": True, "timestamp": at("10:33"), "message": {"content": "meta"}},
+        # a background job reports 9 minutes later: the agent's own wait, so it is working time
+        {"type": "user", "timestamp": at("10:40"), "message": {"content": "<task-notification>done</task-notification>"}},
+        {"type": "assistant", "timestamp": at("10:41"), "message": {"id": "m3", "content": [{"type": "text", "text": "x"}]}},
+        {"type": "assistant", "timestamp": at("10:35"), "message": {"id": "m3", "content": [{"type": "text", "text": "x"}]}},
+        {"type": "user", "isMeta": True, "timestamp": at("10:50"), "message": {"content": "meta"}},
+        {"type": "attachment", "timestamp": at("10:55")},
+        # the user types 19 minutes after the agent's last message; neither row above shortens that wait
+        {"type": "user", "timestamp": at("11:00"), "message": {"content": "ok"}},
+        {"type": "assistant", "timestamp": at("11:02"), "message": {"id": "m4", "content": [
+            {"type": "tool_use", "id": "p1", "name": "ExitPlanMode", "input": {}}]}},
+        # the user approves the plan 8 minutes later: a wait for the user
+        {"type": "user", "timestamp": at("11:10"), "message": {"content": [
+            {"type": "tool_result", "tool_use_id": "p1", "content": "approved"}]}},
+        {"type": "assistant", "timestamp": at("11:12"), "message": {"id": "m5", "content": [{"type": "text", "text": "y"}]}},
+        # the file's last row was logged out of time order: the wall clock still ends at 11:12
+        {"type": "assistant", "timestamp": at("11:11"), "message": {"id": "m5", "content": [{"type": "text", "text": "y"}]}},
+    ]
+    with tempfile.TemporaryDirectory() as tmp:
+        log = Path(tmp) / "session.jsonl"
+        log.write_text("\n".join(json.dumps(r) for r in rows) + "\n", encoding="utf-8")
+        got = module.measure(log)
+    if (got.get("minutes"), got.get("working"), got.get("questions")) != (72.0, 25.0, 1):
+        fail(f"tools/session_cost.py measured wall {got.get('minutes')} / agent working {got.get('working')} / "
+             f"questions {got.get('questions')} on the fixture, not 72.0 / 25.0 / 1 - the wall clock ends at the "
+             f"newest row, and the working time leaves out waits for the user's reply, card answer or plan "
+             f"approval while keeping the agent's own waits")
 
 
 if __name__ == "__main__":
