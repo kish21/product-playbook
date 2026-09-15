@@ -99,7 +99,7 @@ A spine document, six phases, milestones and exit criteria are the vocabulary of
 
 **1. Two of the skills ship executable code, not prose.**
 
-- [`commands/frontend-audit/audit.py`](../commands/frontend-audit/audit.py) — a real OKLCH→WCAG contrast engine. Contrast is **computed** from your `DESIGN.md` tokens in both light and dark mode, never asserted; an ERROR exits non-zero, so it fails a CI build.
+- [`commands/frontend-audit/audit.py`](../commands/frontend-audit/audit.py) — a real OKLCH→WCAG contrast engine. Contrast is **computed** from your `DESIGN.md` tokens in both light and dark mode, never asserted; an ERROR exits non-zero, so it fails a CI build. For a product with a UI, `/foundation` commits a copy into your project and runs it in the commit hooks and CI, and the installed engine tells you when that copy falls behind.
 - [`../tools/session_cost.py`](../tools/session_cost.py) — what a phase run cost, read from the session log (calls, minutes, tokens, ≈ $), so a close never estimates.
 - [`../tools/check.py`](../tools/check.py) — the gate that guards the gates. Check 9 fails this repo's own build if a phase skill carries a `prior-gate check` heading whose body gates on nothing. That check exists because a skill did exactly that for five releases.
 

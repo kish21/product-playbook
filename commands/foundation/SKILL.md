@@ -57,6 +57,7 @@ description: >
   - [ ] **The test runner loads config the same way the app does** (same loader, same precedence) — not whatever happened to be exported into the shell. A runner with its own config path is dead config on the test side, and it is how a suite ends up pointed at the wrong datastore.
   - [ ] Structured logging (no stray prints); dev tooling wired — lint/format + the **commit-hook runner and secret scanner `#Architecture` chose** (not a tool this skill picks).
   - [ ] **CI is in place and mirrors the prod bootstrap** (builds/migrates/tests from the real schema), green — a must, not optional.
+  - [ ] **UI product (`DESIGN.md` exists): the frontend audit runs in the commit hooks AND CI** from a committed copy of the installed engine, over `DESIGN.md` + the whole UI tree — an ERROR blocks, a WARN only reports — **proven red at Step 3b**.
   - [ ] CI runs **both secret-scan AND dependency-vulnerability scan** (e.g. `pip-audit`/`npm audit`), **fail-closed on a known CVE**; CI creates throwaway creds at runtime (no literal secret in the repo).
   - [ ] An **automated dependency-update bot** is wired (`.github/dependabot.yml` or Renovate). Add it **on day one while deps are clean** — a strict CVE gate bolted on late faces a months-deep backlog (the bot patches one-at-a-time so the backlog never forms). **Group tightly-coupled packages** (react+react-dom, eslint+eslint-config-next) so they bump in one PR — bumping them independently drifts versions apart and breaks the build.
   - [ ] Long/first-use work (model download, slow external calls) **does not block the async event loop** (offload/async).
@@ -88,7 +89,9 @@ ownership seam and the failure it prevents. **Print one line as each step lands*
    (`references/test-datastore.md` for the recipe per custody).
 5. **Structured logging + a tracing/error-reporter hook**, and base infra behind `/architect`'s adapters.
 6. **The auto-layer** — lint, format, the recorded commit-hook runner, secret-scan, dependency-vuln scan,
-   and an automated dependency-update bot wired on day one.
+   and an automated dependency-update bot wired on day one. **UI product: the frontend audit too** — copy
+   `"${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py"` (the installed engine; never search the plugin cache)
+   into the project; the step's recipe says where and how the hook and CI call it.
 7. **The design tokens, if this product has a UI** — the stylesheet `/design-system` emitted is imported
    by the root entry and **resolves at runtime**; prove it by reading a token back.
 8. **CI that mirrors the prod bootstrap** — real schema/migrations, blocks on red, throwaway creds.
@@ -99,7 +102,7 @@ generate each, what every guard refuses and how to prove it, how to reset and re
 suite against the isolated datastore. It is the document someone opens at 2am, so it is written for
 someone who was not here. **`#Foundation` keeps the record and the pointer.**
 
-Fill `#Foundation`: runs end-to-end? · config-flow verified (how) · guards (**incl. the placeholder rejection and the test-datastore refuse-to-run guard, each with its test**) · isolated test datastore + how the runner loads config · secret-scan + dep-vuln · hook runner + CI (auto-layer) · container · observability hook.
+Fill `#Foundation`: runs end-to-end? · config-flow verified (how) · guards (**incl. the placeholder rejection and the test-datastore refuse-to-run guard, each with its test**) · isolated test datastore + how the runner loads config · secret-scan + dep-vuln · hook runner + CI (auto-layer; UI: audit copy path + engine version) · container · observability hook.
 
 ## Step 3b — Principle-gate: verify it RUNS and the guards are real (evidence)
 Walk this phase's principles and prove each — don't assume:
@@ -108,6 +111,7 @@ Walk this phase's principles and prove each — don't assume:
   **twice** without failing or duplicating. "The health check passes" is not this.
 - config flows / no dead config → read a value back at runtime; evidence.
 - **the commit hooks + CI actually run** the deterministic checks (lint/format/secret-scan + dependency-vuln/tests) and **block on red** → show a green run; this is the auto-layer the later skills rely on.
+- **UI product: the audit gate is real** → plant a raw hex colour in a component: the hook refuses the commit and the CI steps, on a clean clone with no plugin, exit non-zero. Remove it → both pass; a WARN alone passes.
 - fail-loud/fail-closed guard → trigger it with a missing secret and confirm it refuses to boot.
 - **test-isolation guard → point it at the dev datastore on purpose** and show it refusing to run, naming both targets. Then confirm the suite's teardown cannot reach the dev data. This one is verified by *attempting the destruction*, because the failure mode is silent until the data is gone.
 - **placeholder guard → replay the real failure:** copy `.env.example` to `.env` **unedited**, start the app, and show it **refusing to boot** with a readable message. If it starts, the guard is decorative and the product ships a public secret.

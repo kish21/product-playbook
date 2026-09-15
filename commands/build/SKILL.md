@@ -62,7 +62,7 @@ description: >
 1. **Declare the DoD** (incl. security + the exit criteria above).
 2. **Reuse scan:** find existing helpers/contracts; don't reinvent.
 3. **Code** against the typed contracts; keep it modular and generic (no domain special-casing in shared infra).
-   - **If the feature has a user-facing screen (UI products):** build to **`DESIGN.md`** — §5 layout, token look, `/new-component` parts (Law 15) — then run **`/frontend-audit`**, fix every ERROR. *(No `DESIGN.md`? `/design-system` first.)*
+   - **If the feature has a user-facing screen (UI products):** build to **`DESIGN.md`** — §5 layout, token look, `/new-component` parts (Law 15) — then run **`/frontend-audit`** — `python "${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py" DESIGN.md <ui-dir>`, the installed engine; **never search the plugin cache** (a `$` left in the path: `/frontend-audit` §Which engine runs) — fix every ERROR, and repeat its `engine copy:` line. *(No `DESIGN.md`? `/design-system` first.)*
    - **Some features carry rules that apply only to THEM. If this feature is one, open `references/feature-archetypes.md` and apply that cluster BEFORE you write:**
      - a **GATE** — a validator, quality check, policy engine, anything whose job is to say "no" → **§Gates** (10 rules)
      - an **ASYNC JOB** — work that outlives the request (spawn + poll, queue + callback) → **§Async jobs** (6 rules)

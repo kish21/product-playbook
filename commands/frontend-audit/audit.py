@@ -7,10 +7,19 @@ mechanically-checkable laws. Judgment laws (archetype fit, hierarchy) are out of
 scope here — this is the floor a machine can guarantee.
 
 Usage:  python audit.py <file-or-dir> [more files...]
+        python audit.py --version
 Exit:   non-zero if any ERROR-level law fails.
 Portable: stdlib only.
+
+A project's commit hooks and CI run a COMMITTED COPY of this file (kept at <tooling>/frontend-audit/audit.py,
+wired by /foundation), because a clean clone has no plugin. The copy carries ENGINE_VERSION, and the
+installed engine says on every run when that copy is older, newer or edited - see engine_copy_notes().
 """
-import sys, os, re, math, glob
+import sys, os, re, math, glob, subprocess
+
+# The playbook release this engine shipped in. tools/check.py (check 5) holds it equal to the release,
+# so a project copy can say which checks it carries.
+ENGINE_VERSION = "1.48.0"
 
 # ---------- colour math ----------------------------------------------------
 
@@ -365,7 +374,70 @@ def iter_files(args):
         elif os.path.isfile(a):
             yield a
 
+COPY_PATHSPEC = "*frontend-audit/audit.py"
+_VERSION_RE = re.compile(r'^ENGINE_VERSION = "([^"]*)"', re.MULTILINE)
+
+def version_tuple(v):
+    """'1.9.0' -> (1, 9, 0). Compared as numbers: as text, 1.9.0 sorts after 1.48.0 - which is how a real
+    build once ran an engine five checks behind the installed one."""
+    return tuple(int(n) for n in re.findall(r"\d+", v or "")) or (0,)
+
+def _engine_code(text):
+    """The engine with its version line removed and line endings normalised - two releases whose checks
+    are identical compare equal, so a version bump alone never asks anyone to refresh a copy."""
+    return _VERSION_RE.sub("", text.replace("\r\n", "\n"))
+
+def engine_copy_notes():
+    """Compare this engine with the copies committed in the current git project.
+
+    Hooks and CI run the project's copy; Claude Code runs the installed engine. When they differ, the two
+    gates check different laws, so say so. Informational: never changes the pass/warn/error counts.
+    """
+    here = os.path.realpath(__file__)
+    git = dict(capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=10)
+    try:
+        top = subprocess.run(["git", "rev-parse", "--show-toplevel"], **git)
+        if top.returncode != 0:
+            return ["engine copy: not checked - not inside a git project"]
+        root = top.stdout.strip()
+        listed = subprocess.run(["git", "-C", root, "ls-files", "-z", "--", COPY_PATHSPEC], **git)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return [f"engine copy: not checked - git unavailable ({exc.__class__.__name__})"]
+    # A project-level copy install commits the INSTALLED engine under .claude/commands/ - that is a skill,
+    # not the copy the hooks and CI run, so it is never the thing being judged.
+    copies = [os.path.realpath(os.path.join(root, p)) for p in listed.stdout.split("\0")
+              if p and "/.claude/" not in "/" + p]
+    if os.path.normcase(here) in {os.path.normcase(c) for c in copies}:
+        return []  # this IS the project's copy, running in a hook or CI
+    if not copies:
+        return ["engine copy: none committed in this project - commit hooks and CI do not run this audit "
+                "(/foundation wires it for a UI product)"]
+    mine = open(here, encoding="utf-8").read()
+    notes = []
+    for path in copies:
+        rel = os.path.relpath(path, root)
+        try:
+            theirs = open(path, encoding="utf-8", errors="ignore").read()
+        except OSError:
+            notes.append(f"engine copy: {rel} is listed by git but unreadable"); continue
+        if _engine_code(theirs) == _engine_code(mine):
+            notes.append(f"engine copy: {rel} has the same checks as this engine {ENGINE_VERSION}"); continue
+        m = _VERSION_RE.search(theirs)
+        v = m.group(1) if m else "unversioned"
+        if version_tuple(v) < version_tuple(ENGINE_VERSION):
+            notes.append(f"engine copy: {rel} is {v}, OLDER than this engine {ENGINE_VERSION} - hooks and CI "
+                         f"run fewer checks. Refresh: copy {here} over it and commit.")
+        elif version_tuple(v) > version_tuple(ENGINE_VERSION):
+            notes.append(f"engine copy: {rel} is {v}, NEWER than this engine {ENGINE_VERSION} - update the "
+                         f"product-playbook plugin, then re-run this audit.")
+        else:
+            notes.append(f"engine copy: {rel} says {v} but its checks differ from this engine - it was edited "
+                         f"in place, so hooks and CI do not run the released checks. Refresh: copy {here} over it.")
+    return notes
+
 def main(argv):
+    if argv[:1] == ["--version"]:
+        print(f"frontend-audit engine {ENGINE_VERSION}"); return 0
     paths = list(iter_files(argv or ["."]))
     if not paths:
         print("frontend-audit: no files to scan"); return 0
@@ -393,7 +465,8 @@ def main(argv):
     passes = sum(1 for f in findings if f[0] == "PASS")
 
     # ASCII-only output — portable across OSes / terminals (no PYTHONUTF8 needed).
-    print("=== frontend-audit " + "=" * 41)
+    title = f"=== frontend-audit engine {ENGINE_VERSION} "
+    print(title + "=" * max(3, 60 - len(title)))
     for level, law, path, msg in findings:
         tag = {"ERROR": "[FAIL]", "WARN": "[WARN]", "PASS": "[PASS]"}[level]
         print(f"  {tag}  [{law}]  {os.path.basename(path)} - {msg}")
@@ -417,6 +490,8 @@ def main(argv):
     print("  NOT checked: keyboard traps/tab order, focus management, real screen-reader output,")
     print("  alt-text quality, colour-only meaning, anything requiring a rendered page. Green here is")
     print("  a floor, not an accessibility pass - a human still has to drive it with a keyboard.")
+    for note in engine_copy_notes():
+        print("  " + note)
     return 1 if errors else 0
 
 if __name__ == "__main__":

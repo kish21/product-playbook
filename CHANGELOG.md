@@ -5,6 +5,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — the frontend audit runs the installed engine, and `/foundation` makes it a gate (#256)
+
+- **The audit ran an old engine.** Skills said `python commands/frontend-audit/audit.py`, a path only this
+  repo has, so a real build searched the plugin cache for the script — and as text `1.9.0` sorts after
+  `1.48.0`. That build's "frontend-audit clean" was checked by 8 law checks where the installed engine has 13.
+  `/frontend-audit` now carries **§Which engine runs**: `"${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py"`,
+  which Claude Code fills with the loaded plugin's folder, and *never search the plugin cache*. `/design-system`,
+  `/build`, `/new-component` and `/foundation` use the same path; a copy install falls back to
+  `.claude/commands/frontend-audit/`.
+- **The engine names itself.** `audit.py` carries `ENGINE_VERSION` (held to the release by check 5), prints it
+  on the scorecard's first line and on `--version`, and ends every run with an `engine copy:` line — the
+  project's committed copy matches, is **OLDER** (compared as numbers), is newer, was edited in place, or does
+  not exist. The line never changes the pass/warn/error counts.
+- **`/foundation` wires the audit into the commit hooks and CI** for a UI product: a committed copy at
+  `<tooling>/frontend-audit/audit.py` (a clean clone has no plugin), run over `DESIGN.md` + the whole UI tree —
+  an ERROR blocks, a WARN only reports — proven at Step 3b by planting a raw hex colour. New exit criterion,
+  `skeleton-steps.md` step 6 recipe, `#Foundation` record field.
+- **`tools/check.py` check 31** fails on a bare or cache-searching audit command anywhere under `commands/`, on
+  a runner skill that loses the installed-engine path or the never-search rule, and on `/foundation` losing the
+  wiring — and it **runs the engine** in a scratch git project: ERROR exits 1, WARN exits 0, a `1.9.0` copy is
+  reported OLDER, and the project copy stays silent about itself. All 14 mutations red, then green.
+
 ## [1.48.0] - 2026-09-14
 
 ### Changed — `/tickets` sizes tickets by behaviour, not by count (#247)
