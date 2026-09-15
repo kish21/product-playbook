@@ -5,9 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.50.0] - 2026-09-15
+
 ### Fixed — a review fix makes `/build` re-run its checks (#255)
 
-- **Step 3b names when cited evidence stops counting.** It said *re-run a check only when its files changed
+- **A review fix makes `/build` re-run its checks.** Step 3b names when cited evidence stops counting. It said *re-run a check only when its files changed
   since*, and "its files" was a judgement call. A real build ran `/frontend-audit`, then a review fix rewrote
   the form it had checked. The build re-ran CI and the journey, cited the old audit, and reviewed nothing. The
   condition is now: **re-run a check when any code, config or test file changed after its evidence was
