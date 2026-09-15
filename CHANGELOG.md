@@ -24,8 +24,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
   on the searches ("three searches", "up to 100 searches", "cap searches at four", "searches limited to three"),
   a time cap ("keep the searches under ten minutes"), a search budget, limit or cap, or a benchmark "bounded". A
   step, item or issue number, a year, "one line each", "three search results" and "narrow the search to one
-  segment" are not counts. It fails closed on negation: "no search limit" passes,
-  and any other negated limit is flagged, because the ruling is already pinned as "No count on searches". It is
+  segment" are not counts. It fails closed on negation: a limit word straight after "no" passes ("no
+  search limit", "no search budget"), and any other negated limit ("never a search budget") is flagged, because
+  the ruling is already pinned as "No count on searches". It is
   a pattern over prose, so it catches the usual wordings, not every possible one. `commands/vision.md`
   is 10,208 → 11,107 bytes (LF) of 15,360; nothing was pruned. Case file: *The search list nobody could
   check*. Evals: `vision-records-every-search`, `vision-3b-checks-comparables-against-search-list`.

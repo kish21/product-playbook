@@ -1250,9 +1250,10 @@ VISION_SEARCH_TOKENS = (
 # keep none; a time cap ("searches under ten minutes") is a limit too. Excluded only where it provably is not a
 # count of searches: a step, item or issue number, a `#` reference, a year, the record's own shape ("one line
 # each"), a noun the word modifies ("three search results"), and a bare "search to" ("narrow the search to one
-# segment"). It fails CLOSED on negation: "no search limit" passes, any other negated limit ("never a search
-# budget") is flagged - the ruling is pinned as "No count on searches", so a second wording of it costs a rewrite,
-# while a negation window let "do not exceed the search budget" through.
+# segment"). It fails CLOSED on negation: a limit word straight after "no" passes ("no search limit", "no search
+# budget"), any other negated limit ("never a search budget") is flagged - the ruling is pinned as "No count on
+# searches", so a second wording of it costs a rewrite, while a negation window let "do not exceed the search
+# budget" through.
 SEARCH_COUNT = (r"(?:(?<!step )(?<!item )(?<!issue )(?<!#)(?!(?:19|20)\d\d\b)\d+(?:\s*(?:[-–—]|to)\s*\d+)?"
                 r"|one|two|three|four|five|six|seven|eight|nine|ten|a\s+couple\s+of|a\s+few|a\s+handful\s+of)")
 RECORD_LINE = r"(?:lines?|per|rows?|entry|entries|sentences?)"
@@ -1264,13 +1265,13 @@ VISION_SEARCH_CAP_RE = re.compile(
     # "three searches", "two Google searches", "one search per comparable", "up to 100 searches"
     rf"\b{SEARCH_COUNT}(?:\s+(?!{RECORD_LINE}\b)[\w-]+)?\s+search(?:es)?\b{SEARCH_AS_MODIFIER}"
     # "searches at most 3", "keep the searches under ten minutes", "searches limited to three"
-    r"|\bsearch(?:es)?\s+(?:(?:limited|capped|restricted|held|kept|bounded)\s+(?:to|at)|at\s+most"
+    r"|\bsearch(?:es)?\s+(?:(?:limited|capped|restricted|held|kept|bounded)\s+(?:to|at)|at(?:\s+most)?"
     rf"|max(?:imum)?(?:\s+of)?|under|below|within|up\s+to|no\s+more\s+than)\s+{SEARCH_COUNT}\b{NOT_A_RECORD_LINE}"
     # "cap searches at four", "limit the web searches to three" - never "keep the searches to one line each"
     rf"|\b{LIMIT_VERB}\s+(?:the\s+|your\s+|its\s+)?(?:[\w-]+\s+)?search(?:es)?\s+(?:to|at)\s+(?:most\s+)?"
     rf"{SEARCH_COUNT}\b{NOT_A_RECORD_LINE}"
-    # "a search budget", "the benchmark is bounded"
-    r"|(?<!no )\bsearch(?:es)?\s+(?:budget|limit|cap|bound|quota)s?\b"
+    # "a search budget", "the benchmark is bounded" - but not "no search limit" (and not "piano search limit" either)
+    r"|(?<!\bno )\bsearch(?:es)?\s+(?:budget|limit|cap|bound|quota)s?\b"
     r"|\b(?:benchmark|search(?:es)?)\s+(?:is|are)\s+(?:bounded|capped|limited)\b",
     re.IGNORECASE)
 
