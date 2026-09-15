@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — a review fix makes `/build` re-run its checks (#255)
+
+- **Step 3b names when cited evidence stops counting.** It said *re-run a check only when its files changed
+  since*, and "its files" was a judgement call. A real build ran `/frontend-audit`, then a review fix rewrote
+  the form it had checked. The build re-ran CI and the journey, cited the old audit, and reviewed nothing. The
+  condition is now: **re-run a check when any code, config or test file changed after its evidence was
+  captured; a review fix counts, a doc-only change does not.** Uncommitted and scripted edits count. A file a
+  check reads is never doc-only for that check (`DESIGN.md` for `/frontend-audit`). When unsure whether
+  anything changed or whether a change is doc-only, the run re-runs. The reviews count as checks:
+  `/code-review` runs again over the fixes, and so does `/security-review` when they touch an auth/data
+  surface, until a round changes no code, config or test file. `/foundation` Step 3b takes the same sentence
+  in #251.
+- **`tools/check.py` check 30** holds the sentence word for word in `/build`, with each clause and the review
+  re-run's stopping point. It also fails on the old *only when its files changed* wording in any skill. Case file: *The audit the
+  review fix outran*. Evals: `build-review-fix-reruns-the-checks`, `build-check-input-is-never-doc-only`.
+
 ## [1.49.0] - 2026-09-15
 
 ### Fixed — the frontend audit runs the installed engine, and `/foundation` makes it a gate (#256)

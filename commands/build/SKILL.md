@@ -87,7 +87,7 @@ description: >
 Append a `#Build log` row: feature · DoD-incl-security met? · **how verified** · link to the feature doc.
 
 ## Step 3b — Principle-gate: verify each principle is ACTUALLY implemented (not just claimed)
-Walk **this phase's load-bearing principles (Step 1)** and confirm each is real, **citing the evidence Step 2 already captured** (command · result · commit) — re-run a check only when its files changed since:
+Walk **this phase's load-bearing principles (Step 1)** and confirm each is real, **citing the evidence Step 2 already captured** (command · result · commit) — **re-run a check when any code, config or test file changed after its evidence was captured; a review fix counts, a doc-only change does not.** Uncommitted and scripted edits count. A file a check reads is never doc-only for that check (`DESIGN.md` for `/frontend-audit`), and **when unsure whether anything changed or whether a change is doc-only, re-run** — a spare re-run costs minutes, a stale citation passes a broken feature. **The reviews are checks too** — a review fix is code no review has seen: `/code-review` runs again over the fixes, and `/security-review` too when they touch an auth/data surface, until a round changes no code, config or test file. (case file: The audit the review fix outran)
 - security-in-DoD → **`/security-review`** (or the equivalent pass) passed — name which.
 - no secret in code / no-hardcoding → secret-scan clean.
 - live-path-works → **`/run`** exercised the real path **and the observable result was checked** — name the command **and what you saw**. An exit code is not the observable result.

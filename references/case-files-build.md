@@ -707,3 +707,23 @@ never used.
 *Deliberately unchanged:* the transition guard still re-runs a phase's `evidence:` lines. It is a cross-skill
 mechanism, the commands are cheap, and re-running them is what proves the record is current at the close.
 
+## The audit the review fix outran
+
+**Potluck, M2-SLICE-02 (2026-09-14, playbook 1.46.0), read from the session log.** Step 3b had just learned to
+cite Step 2's evidence and *re-run a check only when its files changed since*. The build ran `/frontend-audit`
+at 13:25 and committed. `/code-review` found a bug, and at 13:31 the fix rewrote `src/events/EventForm.tsx`,
+through a Python script rather than the edit tool. The run then re-ran CI and the browser journey, and cited
+the 13:25 audit as the UI evidence. Nothing had checked the form against the design laws since it changed. CI
+and the journey have obvious inputs, so the run re-ran them. For the audit, *its files* meant a judgement
+call, and the judgement said the fix did not matter. Nobody reviewed the fix either. **The condition now names
+the file kinds, not a check's files**: any code, config or test change after the evidence means a re-run, a
+review fix included, a doc-only change not. A file a check reads is never doc-only for it, and the reviews
+are checks too.
+
+*Deliberately not added:* a git recipe for "what changed since the evidence". Three review rounds on the fix
+each found a new way for one to answer *nothing changed* wrongly: a diff from a commit misses new files, a
+commit is no fixed point when Step 2 runs on uncommitted work, a scratch-index snapshot split across two
+shell calls reads the real index, and ignored config such as `.env` is in no snapshot at all. That build had
+not lost track of its edit; it had a word that allowed judgement. A recipe that can return a confident
+*unchanged* is worse than the run's own record plus *when unsure, re-run*.
+
