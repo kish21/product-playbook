@@ -1245,18 +1245,26 @@ VISION_SEARCH_TOKENS = (
     ("against the search list in `docs/vision.md`", "vision Step 3b", "Step 3b checking the named comparables "
      "against the list - without it, 'not from memory' is an assertion"),
 )
-# A count or limit on /vision's searches. ANY number attached to "searches" counts, not only the phrasings a copy
-# of /architect's rule would use: "three searches", "2-3 searches, no more", "searches at four", "a search budget".
-# A number beside the searches reads as a norm to the run even when it was written as evidence, so the skill and
-# its evals keep none. "No search limit" is the ruling itself, so that negated form is not a bound.
-SEARCH_COUNT = (r"(?:\d+(?:\s*(?:[-–—]|to)\s*\d+)?|one|two|three|four|five|six|seven|eight|nine|ten"
+# A count or limit on /vision's searches, in more wordings than a copy of /architect's rule would use. A number
+# beside the searches reads as a norm to the run even when it was written as evidence, so the skill and its evals
+# keep none. What is NOT a count: a step, item or issue number, a year, "one line each" (the rule's own shape).
+SEARCH_COUNT = (r"(?:\d{1,2}(?:\s*(?:[-–—]|to)\s*\d{1,2})?|one|two|three|four|five|six|seven|eight|nine|ten"
                 r"|a\s+couple\s+of|a\s+few|a\s+handful\s+of)")
+SEARCH_ADJ = r"(?:\s+(?:more|web|targeted|focused|separate|total|quick|further|extra))?"
+NOT_A_COUNT_AFTER = r"(?!\s+(?:line|lines|sentence|row|entry)\b)"
 VISION_SEARCH_CAP_RE = re.compile(
-    rf"\b{SEARCH_COUNT}(?:\s+[\w-]+)?\s+search(?:es)?\b"
-    rf"|\bsearch(?:es)?\s+(?:at|to|under|below|max(?:imum)?(?:\s+of)?)\s+(?:most\s+)?{SEARCH_COUNT}\b"
-    r"|(?<!no )\bsearch(?:es)?\s+(?:budget|limit|cap|bound|quota)s?\b"
-    r"|\b(?:benchmark|search(?:es)?)\s+(?:is|are)\s+(?:bounded|capped|limited)\b",
+    # "three searches", "2-3 web searches", "one search per comparable"
+    rf"(?<!step )(?<!item )(?<!#)\b{SEARCH_COUNT}{SEARCH_ADJ}\s+search(?:es)?\b"
+    # "cap searches at four", "limit the searches to three" - a limiting verb, never "keep them to one line"
+    rf"|\b(?:limit|cap|keep|restrict|hold)(?:s|ed|ing)?\s+(?:the\s+)?(?:web\s+)?search(?:es)?\s+(?:to|at)\s+"
+    rf"(?:most\s+)?{SEARCH_COUNT}\b{NOT_A_COUNT_AFTER}"
+    rf"|\bsearch(?:es)?\s+(?:max(?:imum)?(?:\s+of)?|at\s+most)\s+{SEARCH_COUNT}\b"
+    # "a search budget", "the benchmark is bounded" - skipped when the clause negates it (see NEGATED_CLAUSE)
+    r"|(?P<limit>\bsearch(?:es)?\s+(?:budget|limit|cap|bound|quota)s?\b"
+    r"|\b(?:benchmark|search(?:es)?)\s+(?:is|are)\s+(?:bounded|capped|limited)\b)",
     re.IGNORECASE)
+# "no search limit", "no count or search limit", "never a search budget" state the ruling, not a bound.
+NEGATED_CLAUSE = re.compile(r"\b(?:no|never|not|without)\b[^.;:]{0,30}$", re.IGNORECASE)
 
 
 def check_vision_search_record(files: dict[str, Path]) -> None:
@@ -1282,10 +1290,13 @@ def check_vision_search_record(files: dict[str, Path]) -> None:
     evals = json.loads((ROOT / "evals" / "evals.json").read_text(encoding="utf-8"))
     cases = json.dumps([c for c in evals.get("evals", []) if c.get("skill") == "vision"], ensure_ascii=False)
     for where, body in (("commands/vision.md", text), ("evals/evals.json (vision cases)", cases)):
-        m = VISION_SEARCH_CAP_RE.search(" ".join(body.split()))
-        if m:
+        flat = " ".join(body.split())
+        for m in VISION_SEARCH_CAP_RE.finditer(flat):
+            if m.group("limit") and NEGATED_CLAUSE.search(flat[max(0, m.start() - 40):m.start()]):
+                continue
             fail(f"{where} bounds the market read's searches ({m.group(0)!r}) - #252 declined a count: the runs "
                  f"made 1-4, and a bound cuts the complaint search a sharpening insight comes from")
+            break
 
 
 def done(n: int = 0) -> int:
