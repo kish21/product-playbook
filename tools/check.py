@@ -1269,9 +1269,13 @@ RERUN_TOKENS = (
     (RERUN_CONDITION, "Step 3b's re-run condition, word for word"),
     ("never doc-only for that check", "a check's own input counting as a change - DESIGN.md is markdown, and "
      "/frontend-audit's verdict moves when its tokens do"),
-    ("when unsure whether anything changed, re-run", "failing toward the re-run - a stale citation is the "
-     "failure this rule exists for, a spare re-run is not"),
+    ("Uncommitted and scripted edits count", "counting edits no commit holds yet - that build's fix was an "
+     "uncommitted script run, and a commit-to-commit comparison sees nothing"),
+    ("when unsure whether anything changed or whether a change is doc-only, re-run", "failing toward the re-run - "
+     "the same build edited STRUCTURE.md, which a CI check reads, after that CI ran"),
     ("The reviews are checks too", "re-reviewing a review fix - nothing reviewed that build's fix either"),
+    ("until a round changes no code", "the review re-run's stopping point - without one each round's fixes "
+     "trigger another, and a limit of one leaves the fix to a fix unreviewed"),
 )
 LOOSE_RERUN = "only when its files changed"
 

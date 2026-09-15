@@ -576,13 +576,13 @@
     {
       "id": "build-review-fix-reruns-the-checks",
       "skill": "build",
-      "prompt": "/build \"#9 host edits the event\"  (a UI ticket: /frontend-audit ran clean, then /code-review found a bug and the fix rewrote src/events/EventForm.tsx)",
-      "expected_output": "At Step 3b the review fix counts as a code change, so it re-runs /frontend-audit on the fixed form, re-runs the other checks whose evidence predates the fix, and runs the reviews again over the fixes before the close. Only a check with no code, config or test change after its evidence is cited; a DESIGN.md edit counts for the audit, and when unsure it re-runs.",
+      "prompt": "/build \"#9 host edits the event\"  (a UI ticket: /frontend-audit and /run ran clean; /code-review found a bug and an uncommitted script rewrote src/events/EventForm.tsx to fix it; after that only docs/features/host-manage.md and one token in DESIGN.md changed)",
+      "expected_output": "At Step 3b the uncommitted, scripted review fix counts as a code change, so it re-runs /frontend-audit and /run instead of citing them, and runs /code-review again over the fix until a round changes no code. The feature-doc edit alone triggers nothing; the DESIGN.md token change would re-run the audit on its own, because the audit reads that file.",
       "expectations": [
-        "/frontend-audit runs again after the fix, before the close",
-        "The reviews run again over the fixes",
-        "A doc-only change after a check does not trigger a re-run, but a DESIGN.md change re-runs the audit",
-        "Where it cannot tell whether a file changed, it re-runs rather than cites"
+        "/frontend-audit and /run run again after the fix, before the close",
+        "/code-review runs again over the fix, and stops when a round changes no code",
+        "The docs/features edit is treated as doc-only; the DESIGN.md edit is not",
+        "Nothing about the fix is ruled unchanged because it is uncommitted or was made by a script"
       ]
     }
   ]

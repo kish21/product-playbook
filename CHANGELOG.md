@@ -11,13 +11,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
   since*, and "its files" was a judgement call. A real build ran `/frontend-audit`, then a review fix rewrote
   the form it had checked. The build re-ran CI and the journey, cited the old audit, and reviewed nothing. The
   condition is now: **re-run a check when any code, config or test file changed after its evidence was
-  captured; a review fix counts, a doc-only change does not.** A file a check reads is never doc-only for
-  that check (`DESIGN.md` for `/frontend-audit`). When unsure whether anything changed, the run re-runs. The
-  reviews re-run over the fixes, as `/ship` Step 2 already does. `/foundation` Step 3b takes the same sentence
-  in #251.
-- **`tools/check.py` check 30** holds the sentence word for word in `/build`, along with the check-input
-  clause, the unsure-means-re-run clause and the review re-run. It also fails on the old *only when its files
-  changed* wording in any skill. Case file: *The audit the
+  captured; a review fix counts, a doc-only change does not.** Uncommitted and scripted edits count. A file a
+  check reads is never doc-only for that check (`DESIGN.md` for `/frontend-audit`). When unsure whether
+  anything changed or whether a change is doc-only, the run re-runs. The reviews count as checks:
+  `/code-review` runs again over the fixes until a round changes no code, and `/security-review` runs again
+  when the fixes touch an auth/data surface. `/foundation` Step 3b takes the same sentence in #251.
+- **`tools/check.py` check 30** holds the sentence word for word in `/build`, with each clause and the review
+  re-run's stopping point. It also fails on the old *only when its files changed* wording in any skill. Case file: *The audit the
   review fix outran*. Eval: `build-review-fix-reruns-the-checks`.
 
 ## [1.49.0] - 2026-09-15
