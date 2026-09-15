@@ -5,9 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.49.0] - 2026-09-15
+
 ### Fixed — the frontend audit runs the installed engine, and `/foundation` makes it a gate (#256)
 
-- **The audit ran an old engine.** Skills said `python commands/frontend-audit/audit.py`, a path only this
+- **The audit runs the installed engine, not an old one.** Skills said `python commands/frontend-audit/audit.py`, a path only this
   repo has, so a real build searched the plugin cache for the script — and as text `1.9.0` sorts after
   `1.48.0`. That build's "frontend-audit clean" was checked by 8 law checks where the installed engine has 13.
   `/frontend-audit` now carries **§Which engine runs**: `"${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py"`,
