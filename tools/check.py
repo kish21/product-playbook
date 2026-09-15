@@ -1675,7 +1675,7 @@ MONEY = re.compile(r"[$€£]\s*\d|\d\s*(?:USD|EUR|GBP)\b|\b(?:dollars?|euros?)\
 SITTING_OFFER = (("§Sitting lengths", "the pointer to the one table the figures live in"),
                  ("room left on your plan", "the warning to start with room left on the plan"),
                  ("loses review steps", "why the warning matters - a cut-off run loses review steps"),
-                 (NOT_MEASURED, "what to say when a phase has no measured run"),
+                 ("never estimated", "what to say when a phase has no measured run - that, never an estimate"),
                  ("added up", "the batch's sitting, its phases' rows added up"))
 SESSION_COST_POINTER = '"${CLAUDE_PLUGIN_ROOT}/tools/session_cost.py"'
 
@@ -1777,6 +1777,8 @@ def check_session_cost_working_time() -> None:
             {"type": "tool_use", "id": "b1", "name": "Bash", "input": {}}]}},
         {"type": "user", "timestamp": at("10:31"), "message": {"content": [
             {"type": "tool_result", "tool_use_id": "b1", "content": "ok"}]}},
+        # a meta row the harness injects is neither the user's input nor the end of a wait
+        {"type": "user", "isMeta": True, "timestamp": at("10:33"), "message": {"content": "meta"}},
         # a background job reports 9 minutes later: the agent's own wait, so it is working time
         {"type": "user", "timestamp": at("10:40"), "message": {"content": "<task-notification>done</task-notification>"}},
         {"type": "assistant", "timestamp": at("10:41"), "message": {"id": "m3", "content": [{"type": "text", "text": "x"}]}},

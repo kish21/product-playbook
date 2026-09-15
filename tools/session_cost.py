@@ -47,9 +47,9 @@ FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
 
 
 def is_user_input(row: dict, question_ids: set) -> bool:
-    """A row the user produced: a typed message (not a meta row, not a background job's notification) or the
-    answer to a question card. Tool results are the agent's own work."""
-    if row.get("type") != "user" or row.get("isMeta"):
+    """Of the conversation rows measure() passes in, one the user produced: a typed message (not a background
+    job's notification) or the answer to a question card. Tool results are the agent's own work."""
+    if row.get("type") != "user":
         return False
     content = (row.get("message") or {}).get("content")
     if isinstance(content, list):
@@ -77,8 +77,8 @@ def measure(log: Path) -> dict:
         if ts:
             first = first or ts
             last = ts
-        # Only the conversation moves the clock: an attachment or queue row logged beside a reply must not
-        # shorten the wait that reply ends.
+        # Only the conversation moves the clock: an attachment, queue or meta row logged beside a reply must not
+        # shorten the wait that reply ends, nor count as the user's input.
         if ts and row.get("type") in ("assistant", "user") and not row.get("isMeta"):
             now = datetime.strptime(ts, FMT)
             if latest and now > latest and is_user_input(row, question_ids):
