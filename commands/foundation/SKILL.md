@@ -106,7 +106,7 @@ Fill `#Foundation`: runs end-to-end? · config-flow verified (how) · guards (**
 
 ## Step 3b — Principle-gate: verify it RUNS and the guards are real (evidence)
 Walk this phase's principles and prove each — don't assume:
-- runs end-to-end → start it and hit the health path (compose `/run`); evidence. Or cite an earlier boot (this line only), as `/build` does: **re-run a check when any code, config or test file changed after its evidence was captured; a review fix counts, a doc-only change does not.** Uncommitted and scripted edits count. A file a check reads is never doc-only for that check, and **when unsure whether anything changed or whether a change is doc-only, re-run.** **The item-1 boot never qualifies** — Step 2's items 3–8 change the boot path; a CI boot of the final tree can.
+- runs end-to-end → start it and hit the health path (compose `/run`); evidence. Or cite an earlier boot (this line only), as `/build` does: **re-run a check when any code, config or test file changed after its evidence was captured; a review fix counts, a doc-only change does not.** Uncommitted and scripted edits count. A file a check reads is never doc-only for that check, and **when unsure whether anything changed or whether a change is doc-only, re-run.** **The item-1 boot never qualifies** — Step 2's items 3–8 change the boot path; a CI health check on the final tree can.
 - **usable end-to-end (auth products) → actually log in with the seeded account**, and show the seed running
   **twice** without failing or duplicating. "The health check passes" is not this.
 - config flows / no dead config → read a value back at runtime; evidence.

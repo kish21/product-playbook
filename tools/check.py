@@ -1478,6 +1478,7 @@ FOUNDATION_BOOT_PROOF = (
 FOUNDATION_BOOT_CITE = (
     ("(this line only)", "keeping the citation to this one line - the guard proofs are new work, not repeats"),
     ("The item-1 boot never qualifies", "ruling out the item-1 boot - Step 2's items 3-8 change the boot path"),
+    ("a CI health check on the final tree", "a CI run counting only when it hit the health path, on the final tree"),
 )
 # Step 3b's guard proofs: #251 applied cite-don't-re-run to the boot line alone, and these always run.
 FOUNDATION_GUARD_PROOFS = (

@@ -16,7 +16,7 @@ is a record, not a container).
 
 **Potluck, `/foundation` (2026-09-13), read from the session log: 229 tool calls, 07:49 → 08:45 UTC.**
 Step 2 item 1 already ends with *a runnable entrypoint with a health path*, so the app could run after
-step 1 of 8. Nothing told the run to show it.
+item 1 of 8. Nothing told the run to show it.
 
 - **The first boot came at call 133 of 229, 22 minutes in** (08:12). A local `node backend/dist/index.js`
   answered `{"status":"ok"}`, but by then most of the skeleton had been built on top of it. It was also the
@@ -29,13 +29,13 @@ step 1 of 8. Nothing told the run to show it.
 - **A late boot did count.** At 08:39 (call 221) remote CI booted the container on the final tree:
   `healthy after 2s`. After that, only `PRODUCT.md` and notes outside the repo changed.
 
-**The rules this earned.** First, step 1 ends by proving the boot: hit the health path, print one plain line
+**The rules this earned.** First, Step 2 item 1 ends by proving the boot: hit the health path, print one plain line
 saying the app runs and how to see it, and stop whatever was started. A broken boot then surfaces before
-seven steps sit on top of it. The line is printed, not asked, so a batched run does not stop. Second, the
+seven items sit on top of it. The line is printed, not asked, so a batched run does not stop. Second, the
 `runs end-to-end` line in Step 3b may cite an earlier boot only under `/build`'s condition, word for word
-(case file `case-files-build.md`: *The audit the review fix outran*). Steps 3–8 add the startup guard,
-logging, adapters, the token import and the container, all of which change the boot path. So the step-1
-boot never qualifies, and a CI boot of the final tree can. The permission covers that one line. The guard
+(case file `case-files-build.md`: *The audit the review fix outran*). Step 2's items 3–8 add the startup guard,
+logging, adapters, the token import and the container, all of which change the boot path. So the item-1
+boot never qualifies, and a CI health check on the final tree can. The permission covers that one line. The guard
 proofs are new work at Step 3b, not repeats, so they always run.
 
 *Deliberately not added:* a git recipe for "what changed since the evidence", for the reason
