@@ -2142,17 +2142,19 @@ PATH_SYNC_TOKENS = (
     ("§A path rewrite reaches GitHub", "structure Step 0", "the pointer to the sync procedure"),
     ("the close counts the issues synced", "structure Step 0", "the synced count in the close"),
     ("§A path rewrite reaches GitHub", "publishing.md §Provision", "the dedup exception pointing at the sync"),
-    ("Every `/tickets` re-run runs that section's pre-flight", "publishing.md §Provision",
-     "/tickets catching a body the rewrite left behind"),
+    ("Every `/tickets` re-run looks for one it left behind, before any other edit", "publishing.md §Provision",
+     "/tickets finishing a sync the rewrite could not run, before a regroup reads the body as edited"),
+    ("just before a `path rewrite` commit", "publishing.md §Provision", "/tickets finding the rewrite by its commit"),
+    ("edit only by its exceptions", "tickets Step 2", "the one-line dedup rule admitting the exceptions"),
     ("The run that moved the paths syncs the issues, in the same run", "publishing.md sync", "who runs the sync"),
+    ("says `path rewrite` in its message", "publishing.md sync", "a rewrite commit a later run can find"),
+    ('git log --grep "path rewrite"', "publishing.md sync", "how a later run finds the rewrite"),
+    ("exactly what `<rewrite>` changed", "publishing.md sync", "the sync publishing the moved paths and nothing else"),
     ("Remote guard first", "publishing.md sync", "never syncing without a verified remote"),
     ("before editing any", "publishing.md sync", "the pre-flight covering every body before the first edit"),
-    ("`git show <commit>:<file>`", "publishing.md sync", "comparing each body with the committed versions of its file"),
-    ("equal to an earlier committed version of it → **to sync**", "publishing.md sync",
-     "a body the playbook wrote, from any earlier version, being the one kind that is synced"),
     ("by its bracketed ID tag, never by title", "publishing.md sync", "matching a file to its issue by the ID tag"),
-    ("changes more than moved paths is left out", "publishing.md sync", "the sync publishing paths only"),
-    ("equal to no version → edited on GitHub: sync nothing", "publishing.md sync", "a body edited on GitHub stopping the sync"),
+    ("`git show <rewrite>^:<file>` → **to sync**", "publishing.md sync", "syncing only a body equal to the file before the rewrite"),
+    ("equal to neither → edited on GitHub: sync nothing", "publishing.md sync", "a body edited on GitHub stopping the sync"),
     ("Closed issues keep their paths", "publishing.md sync", "closed issues keeping what they were built against"),
     ("An epic carries no paths", "publishing.md sync", "epics left alone"),
     ("owner's yes", "publishing.md sync", "the owner confirming the list before any edit"),
@@ -2185,7 +2187,10 @@ def check_structure_rerun_syncs_issues(files: dict[str, Path]) -> None:
         fail(f"tickets/references/publishing.md has no {PATH_SYNC_HEADING!r} section - a path moved by a /structure "
              f"re-run stays at its old address on GitHub")
     flat = lambda s: " ".join(s.split())  # noqa: E731
+    tickets = files["tickets"].read_text(encoding="utf-8")
+    step2 = re.search(r"^## Step 2\b(.*?)^## Step 3A\b", tickets, re.MULTILINE | re.DOTALL)
     regions = {"structure Step 0": flat(step0.group(1) if step0 else ""),
+               "tickets Step 2": flat(step2.group(1) if step2 else ""),
                "publishing.md §Provision": flat(provision.group(1) if provision else ""),
                "publishing.md sync": flat(sync.group(1) if sync else ""),
                "tickets-md.md": flat((TICKETS_REFS / "tickets-md.md").read_text(encoding="utf-8"))}

@@ -13,12 +13,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
   anyone working from GitHub was sent to folders that no longer existed. The re-run now syncs the open issues
   before it closes, and the close says how many it synced.
 - **The sync never overwrites an edit made on GitHub.** A new `publishing.md` §A path rewrite reaches GitHub
-  matches each ticket file to its issue by ID tag and compares the issue with the committed versions of that
-  file. It syncs only an issue that still reads as a version the playbook wrote, and edits nothing if any issue
-  was changed on GitHub. It publishes moved paths only, and the owner confirms the list first. Closed issues
-  keep the paths they were built against, epics carry no paths, and every synced issue is read back. Every
-  `/tickets` re-run runs the same check over the tickets it skips, so a sync that could not run (for example,
-  `gh` was not signed in) is picked up later instead of being skipped for good.
+  anchors the sync on the commit that rewrote the ticket files, whose message says `path rewrite`. It matches
+  each ticket file to its issue by ID tag, syncs only an issue that still equals the file as it was just before
+  that commit, and edits nothing if any issue was changed on GitHub. What it publishes is exactly what that
+  commit changed, and the owner confirms the list and the diff first. Closed issues keep the paths they were
+  built against, epics carry no paths, and every synced issue is read back.
+- **A sync that could not run is finished later, not lost.** Every `/tickets` re-run first looks for an open
+  issue still equal to its file before a `path rewrite` commit and runs the same sync for it, so a move made
+  while `gh` was not signed in is caught before a regroup would read those issues as edited on GitHub.
 - **`TICKETS.md` moves with the tickets.** The re-run rewrites the paths it moved in `TICKETS.md` (its hub-file
   list) in the same commit; `/structure` is now the one writer besides `/tickets`, and for paths only.
 - **Check 38** holds these rules and forbids leaving the sync to a later `/tickets` run.

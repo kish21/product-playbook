@@ -84,7 +84,7 @@ description: >
 1. **Templates — one master per file, never overwritten.** Copy the bundled issue and PR templates if the project has none.
 2. **Remote guard — NEVER blindly create a remote repository.** No remote, or `gh` not authenticated → write the local files only and say so. **Do not run `gh repo create`.**
 3. **Capability pre-flight — a half-published backlog is worse than none.** Issues, milestones, labels and the board (`project` scope) are separate permissions: check all four **before publishing anything**, then let the user choose degrade-with-a-warning or publish nothing.
-4. **Dedup index + numbering.** Fetch the existing issues once, never a truncated list; match epics and tickets by **exact ID tag** first, exact title second; skip a match, never edit or close it. Next number = `docs/issues/` **and** that list together, so a partial publish cannot reuse an ID.
+4. **Dedup index + numbering.** Fetch the existing issues once, never truncated; match epics and tickets by **exact ID tag** first, exact title second; skip a match; never close it, edit only by its exceptions. Next number = `docs/issues/` **and** that list together, so a partial publish cannot reuse an ID.
 
 ## Step 3A — Mode A: batch milestone decomposition
 
