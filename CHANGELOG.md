@@ -5,9 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.56.0] - 2026-09-16
+
 ### Fixed — the path sync no longer stops a later move on issues nobody edited, and an issue body is its ticket file (#279)
 
-- **A regroup or a ticked box no longer stops the next move.** 1.55.0's sync counted a body as synced only if it
+- **A later `/structure` move no longer stops on issues nobody edited.** 1.55.0's sync counted a body as synced only if it
   equalled its file at the newest `path rewrite` commit, and stopped the whole sync on anything else. A regroup
   after a synced move rewrites each body's Lane line, and a builder ticking a task-list box changes the body too,
   so the next move stopped on issues nobody had edited, and no later run could clear them. Now a body equal to its
@@ -32,6 +34,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 - **Check 38** holds the new sync rules; **check 39** holds the body rule; check 37 counts the two new
   verification checks. Two evals: a later move over regrouped and ticked issues, and a publish that sends each
   file unchanged.
+
+### Changed — the README no longer states a version
+
+- **The version badge is gone from the README.** It was a hard-coded number, and master moves ahead of the newest
+  release between a merge and the next release, so the badge read as the wrong version. The Releases page carries
+  the current version. Check 5 no longer reads the README, and fails if a version is written back into it.
 
 ## [1.55.0] - 2026-09-16
 
