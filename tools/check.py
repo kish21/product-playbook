@@ -2267,6 +2267,8 @@ BODY_RULE_TOKENS = (
     (BODY_RULE_POINTER, "slicing.md", "the pointer at the Mode A publish step"),
     (BODY_RULE_POINTER, "adhoc-capture.md", "the pointer at the Mode B publish step"),
     ("write `#N` into the ticket file", "adhoc-capture.md", "the parent reference kept in the file, so the body still equals it"),
+    ("Only then commit the file and publish it", "adhoc-capture.md",
+     "the ad-hoc file committed after its parent reference is written, and before it is published"),
     ("**Every ticket file is its issue body.**", "verification.md before publishing", "the front-matter check over the local files"),
     ("compare one body with a different ticket's file and watch it fail", "verification.md after publishing",
      "the body read-back seen failing before it is trusted"),
