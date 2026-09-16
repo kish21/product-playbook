@@ -1,6 +1,7 @@
 # Publishing a backlog to GitHub — provisioning, guards, dedup, mirroring
 
-> Loaded by `/tickets` **Step 2** (both modes) and **Step 3A**, on demand. `SKILL.md` carries the
+> Loaded by `/tickets` **Step 2** (both modes) and **Step 3A**, and by a shape-changing `/structure` re-run
+> (§A path rewrite reaches GitHub), on demand. `SKILL.md` carries the
 > guards as one-liners — never create a remote, never overwrite a template, never half-publish; this
 > file carries the procedure behind each.
 
@@ -31,9 +32,10 @@
    **The one exception is an owner-confirmed regroup** (new lanes on a backlog already published): change only
    the `lane:`/`owner:` labels and the Lane/Owner lines of the body, and only after a pre-flight shows every
    GitHub body still equals its committed file — a body edited on GitHub stops the run. (case file: Regrouping a backlog already on GitHub)
-   **A committed path rewrite (a `/structure` re-run) is the same exception:** a re-run diffs each open body
-   against its file, and where only the moved paths differ — the body equal to the file *before* that
-   commit — syncs the body to the file with the owner's yes; closed issues keep the paths they were built against. (case file: The paths that moved in the repo, not on GitHub)
+   **A committed path rewrite (a shape-changing `/structure` re-run) is the same exception** — paths only, by
+   §A path rewrite reaches GitHub. **Every `/tickets` re-run looks for one it left behind, before any other
+   edit:** a skipped open ticket whose body equals its file as it was just before a `path rewrite` commit gets
+   that section run, which walks every such commit — otherwise it is skipped for good.
    **A link is not an edit.** A skipped (already published) ticket still gets its missing *blocked by* links
    and its missing parent link in §Mirror the plan structure — both are relationships on the issue, not its
    body, so the rule above is untouched and a re-run completes a backlog that was published without them.
@@ -56,6 +58,42 @@ A re-run brings it forward without duplicating anything:
 - **`docs/issues/README.md` is migrated, never kept beside `TICKETS.md`:** its plan content moves into
   `TICKETS.md`, anything in it that is status is dropped (the board holds status), the README is deleted in
   the same commit, and the close says so. Two plan files disagree the first time one of them is edited.
+
+## §A path rewrite reaches GitHub
+
+A shape-changing `/structure` re-run rewrites the paths in `docs/issues/*.md` and `TICKETS.md`, but the issues
+a team reads still name the old folders. **The run that moved the paths syncs the issues, in the same run** —
+leaving it to a later `/tickets` re-run means leaving it to a phase nothing tells the user to run. (case file: The paths that moved in the repo, not on GitHub)
+
+1. **The rewrite is committed as a `path rewrite`** — those words in the commit message and, when it reaches the
+   default branch through a pull request, in the PR title too, so a squash-merge keeps them. A file's rewrites are
+   `git log --reverse --grep "path rewrite" --format=%H -- <file>`, oldest first; `<rewrite>` is the newest.
+   **A run that rewrote paths and finds no such commit stops and says the marker is missing** — never reports
+   `0 issues synced`. What the sync publishes is exactly what those commits changed. Remote guard first (§Provision item 2): no
+   remote → nothing was published, nothing to sync.
+2. **Pre-flight every open ticket issue whose file has a `path rewrite` commit, before editing any.** Fetch the
+   open bodies once to a scratch file (`gh issue list --state open --limit 1000 --json number,title,body`;
+   §Provision item 4's limit rule applies) and match each file to its issue **by its bracketed ID tag, never by
+   title** — a file with no issue was never published. Walk the file's `path rewrite` commits oldest first and
+   compare, line endings and trailing whitespace normalised:
+   - the body equals `git show <rewrite>:<file>` → already synced, skip;
+   - the body equals `git show <commit>^:<file>` for one of them, and each later rewrite starts where the one
+     before it ended (its `^` version equals the earlier commit's version) → **to sync**;
+   - **anything else → sync nothing.** Name each such issue and stop the sync: it was edited on GitHub, or its
+     file changed some other way between two rewrites, and either way a person decides — a body someone wrote
+     on GitHub is theirs, and a backlog half on old paths and half on new is read as all current.
+3. **Closed issues keep their paths** — they name what they were built against. **An epic carries no paths**
+   (§Epics are parent issues), so nothing on it is synced.
+4. **Show the list and ask once** — issue, ticket ID, and the diff from the body's version to `<rewrite>`'s
+   (`git diff <commit>^ <rewrite> -- <file>`). **A diff that changes more than paths is flagged**: a squash can
+   carry another edit in with the move, and the owner's yes covers only what the list shows. With that yes, write
+   `git show <rewrite>:<file>` to a scratch file and `gh issue edit <n> --body-file` it; the body changes,
+   nothing else does.
+5. **Read every synced body back**, compared the same way: each now equals `<rewrite>`'s version. A mismatch is
+   reported.
+6. **The close counts it** — `9 issues synced · 2 closed kept their paths`. A sync that could not run (`gh` not
+   signed in, the rewrite not yet committed, an issue edited on GitHub) is named with its issues and what clears
+   it; once cleared, the next `/tickets` re-run finishes it (§Provision item 4).
 
 ## §Mirror the plan structure onto GitHub
 `#Plan` → milestones → epics → lanes → tickets has a native GitHub equivalent at every level, and a flat list

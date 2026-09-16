@@ -5,6 +5,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — a `/structure` re-run that moves folders updates the GitHub issues in the same run (#235)
+
+- **`/structure` syncs the issues itself.** When a re-run moves folders after `/tickets` has published, it
+  already rewrote the paths in the ticket files, but the issues on GitHub kept the old ones until a later
+  `/tickets` re-run. `/structure`'s handoff never names `/tickets`, so that re-run happened only by chance, and
+  anyone working from GitHub was sent to folders that no longer existed. The re-run now syncs the open issues
+  before it closes, and the close says how many it synced.
+- **The sync never overwrites an edit made on GitHub.** A new `publishing.md` §A path rewrite reaches GitHub
+  anchors the sync on the commits that rewrote the ticket files, marked `path rewrite` in the commit message
+  and in the PR title, so a squash-merge keeps the marker. It matches each ticket file to its issue by ID tag
+  and syncs only an issue that still equals the file as it was before one of those commits, walking every later
+  rewrite in order. It edits nothing if any issue was changed on GitHub. What it publishes is exactly what those
+  commits changed; the owner sees the diff, with any non-path change flagged, and confirms first. Closed issues
+  keep the paths they were built against, epics carry no paths, and every synced issue is read back.
+- **A sync that could not run is finished later, not lost.** Every `/tickets` re-run first looks for an open
+  issue still equal to its file before a `path rewrite` commit and runs the same sync for it, so a move made
+  while `gh` was not signed in is caught before a regroup would read those issues as edited on GitHub.
+- **`TICKETS.md` moves with the tickets.** The re-run rewrites the paths it moved in `TICKETS.md` (its hub-file
+  list) in the same commit; `/structure` is now the one writer besides `/tickets`, and for paths only.
+- **Check 38** holds these rules and forbids leaving the sync to a later `/tickets` run.
+
 ## [1.54.0] - 2026-09-15
 
 ### Added — `/tickets` plans a backlog as milestone → epic → ticket, in a root `TICKETS.md` with a lane flow graph (#249)

@@ -13,7 +13,8 @@ the lanes wait on each other, and who starts what on day one. It replaces `docs/
   column, no checkbox, no done mark, no progress count, no issue state. A plan that tracks status goes stale
   the day a ticket merges and nobody edits it; one that never tracks it cannot. `/build` never writes
   `TICKETS.md`, and no ticket lists it in its Target Files.
-- **Written by `/tickets` alone.** A re-run rewrites it from the confirmed proposal; nothing else edits it.
+- **Written by `/tickets` alone.** A re-run rewrites it from the confirmed proposal; nothing else edits it —
+  except a shape-changing `/structure` re-run, which rewrites the paths it moved and nothing else.
 - **One file for the whole backlog**, every milestone in it, in `#Plan` order.
 - **A stopped run** (`MECHANISMS.md` §Declined runs) leaves its one dated `_Not run …_` line at the top of
   this file, and the next attempt replaces that line.

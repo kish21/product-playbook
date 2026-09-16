@@ -254,6 +254,21 @@
       "files": []
     },
     {
+      "id": "structure-rerun-syncs-moved-paths-to-github",
+      "skill": "structure",
+      "prompt": "/structure  (re-run: #Structure is filled, /tickets already published 12 issues and wrote TICKETS.md; the owner picks moving every module's handlers from the shared http/ folder into the module folders)",
+      "expected_output": "After the owner's yes it moves the files, rewrites every moved path in docs/issues/*.md and TICKETS.md (planned files included, lanes and owners unchanged) and commits with 'path rewrite' in the message. In the same run it follows publishing.md §A path rewrite reaches GitHub: it matches each ticket file to its issue by ID tag, checks each open issue's body against the ticket file as it was before that commit, shows the diff, and syncs the bodies only after the owner's yes. Closed issues and epics are left alone, every synced body is read back, and the close gives the count.",
+      "expectations": [
+        "TICKETS.md's hub-file paths are rewritten in the same commit as docs/issues/*.md, and nothing else in TICKETS.md changes",
+        "The commit that rewrites the ticket files has 'path rewrite' in its message",
+        "Each ticket file is matched to its issue by its bracketed ID tag, never by title",
+        "No issue body is edited before every open body has been compared with its file as it was before the rewrite commit",
+        "An open issue whose body matches neither version stops the sync, and no body is edited",
+        "Closed issues keep their old paths",
+        "The close states how many issues were synced, or why none were"
+      ]
+    },
+    {
       "id": "foundation-placeholder-fails-the-boot",
       "skill": "foundation",
       "prompt": "wire up the config loader and startup guard for a Node app whose .env.example ships BETTER_AUTH_SECRET",
