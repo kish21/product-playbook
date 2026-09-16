@@ -243,6 +243,8 @@ def main() -> int:
     check_verification_publish_split(files)
     # 38. a shape-changing /structure re-run rewrites the moved paths in the tickets and TICKETS.md and syncs the issues
     check_structure_rerun_syncs_issues(files)
+    # 39. an issue body is its ticket file, so "edited on GitHub" means what it says
+    check_issue_body_is_ticket_file()
 
     return done(len(cmds))
 
@@ -2071,14 +2073,16 @@ def check_epic_plan(files: dict[str, Path]) -> None:
 
 # Check 37 (#260). The verification companion's two halves.
 VERIFY_READ_BACKS = ("Structure mirrored + idempotent.", "Epics are parents, read back.",
-                     "The board reads back set.", "Dependencies are links, read back.")
-# Every check verification.md held when #260 split it (16), plus the two #249 added. A check may be reworded only
-# by editing this list in the same change, so a dropped check is a visible diff, never a silent one.
+                     "Bodies are their files, read back.", "The board reads back set.",
+                     "Dependencies are links, read back.")
+# Every check verification.md held when #260 split it (16), plus the two #249 added and the two #279 added. A check
+# may be reworded only by editing this list in the same change, so a dropped check is a visible diff, never a silent one.
 VERIFY_CHECKS = ("§Resolve every symbol first", "Strategy was confirmed", "Lanes are modules.",
                  "Every ticket sits in one epic, in its epic's lane, under an epic-scoped ID.",
                  "`TICKETS.md` is the plan, never the status", "Every path resolves.", "Vertical:", "Vertical:",
                  "Horizontal:", "Every `#Plan` item has a home: a ticket, or a named later phase with its sequence point.",
-                 "IDs unique.", "Dedup ran.", "Security DoD present", "Independently mergeable.",
+                 "IDs unique.", "Dedup ran.", "Every ticket file is its issue body.", "Security DoD present",
+                 "Independently mergeable.",
                  "No ticket lists a spine file or `TICKETS.md`; every ticket lists its feature doc and tests.",
                  *VERIFY_READ_BACKS)
 VERIFY_SPLIT_TOKENS = (
@@ -2143,9 +2147,19 @@ PATH_SYNC_TOKENS = (
     ("§A path rewrite reaches GitHub", "structure Step 0", "the pointer to the sync procedure"),
     ("the close counts the issues synced", "structure Step 0", "the synced count in the close"),
     ("§A path rewrite reaches GitHub", "publishing.md §Provision", "the dedup exception pointing at the sync"),
-    ("Every `/tickets` re-run looks for one it left behind, before any other edit", "publishing.md §Provision",
+    ("Every Mode A re-run runs that section's pre-flight before any other edit", "publishing.md §Provision",
      "/tickets finishing a sync the rewrite could not run, before a regroup reads the body as edited"),
-    ("just before a `path rewrite` commit", "publishing.md §Provision", "/tickets finding the rewrite by its commit"),
+    ("over the skipped open tickets whose file has a `path rewrite` commit", "publishing.md §Provision",
+     "/tickets finding the rewrite by its commit, whatever the body now holds"),
+    ("finishes whatever sync or settle it finds", "publishing.md §Provision", "/tickets finishing a settle as well as a sync"),
+    ("normalised as §A path rewrite reaches GitHub normalises", "publishing.md §Provision",
+     "the regroup pre-flight normalising a body the way the sync does, ticks included"),
+    ("The lines change in the ticket files first, committed, then in each body", "publishing.md §Provision",
+     "a regroup committing its lane change to the files, so a regrouped body reads as current later"),
+    ("every ticket issue's body still equals its committed file", "publishing.md §Provision",
+     "the regroup pre-flight comparing ticket issues only - an epic has no ticket file"),
+    ("settled as that section's item 4 settles one", "publishing.md §Provision",
+     "a regroup settling a body that differs instead of stopping for good"),
     ("edit only by its exceptions", "tickets Step 2", "the one-line dedup rule admitting the exceptions"),
     ("The run that moved the paths syncs the issues, in the same run", "publishing.md sync", "who runs the sync"),
     ("The rewrite is committed as a `path rewrite`", "publishing.md sync", "a rewrite commit a later run can find"),
@@ -2161,12 +2175,31 @@ PATH_SYNC_TOKENS = (
     ("before editing any", "publishing.md sync", "the pre-flight covering every body before the first edit"),
     ("by its bracketed ID tag, never by title", "publishing.md sync", "matching a file to its issue by the ID tag"),
     ("`git show <commit>^:<file>` for one of them", "publishing.md sync", "syncing only a body equal to the file before a rewrite"),
-    ("anything else → sync nothing", "publishing.md sync", "a body edited on GitHub stopping the sync"),
+    ("trailing whitespace and task-list marks normalised", "publishing.md sync",
+     "a ticked box read as progress, never as an edit made on GitHub"),
+    ("`[x]` or `[X]` reads as `[ ]`", "publishing.md sync", "both spellings GitHub accepts for a tick normalised"),
+    ("the file at `<rewrite>` **or at any later commit**", "publishing.md sync",
+     "a body a regroup or a later file edit moved on read as current, not as edited"),
+    ("anything else → to settle", "publishing.md sync", "a body that matches no version going to the owner, never synced"),
+    ("published in another shape than its file", "publishing.md sync", "a body published in another shape settled, not synced"),
     ("Closed issues keep their paths", "publishing.md sync", "closed issues keeping what they were built against"),
     ("An epic carries no paths", "publishing.md sync", "epics left alone"),
     ("owner's yes", "publishing.md sync", "the owner confirming the list before any edit"),
-    ("Read every synced body back", "publishing.md sync", "the read-back"),
+    ("nothing is edited until every issue on it is answered", "publishing.md sync", "no edit before every listed issue has an answer"),
+    ("any ticked line the rewrite did not replace one for one, for the owner to place", "publishing.md sync",
+     "a tick the sync cannot carry shown to the owner"),
+    ("**the file wins**", "publishing.md sync", "settling an issue by dropping the GitHub change"),
+    ("**the GitHub text wins**", "publishing.md sync", "settling an issue by keeping the GitHub change"),
+    ("committed — never as a `path rewrite`", "publishing.md sync", "a settled GitHub change never passed off as a path move"),
+    ("An issue left unsettled stops the sync", "publishing.md sync", "a body someone wrote on GitHub never overwritten unasked"),
+    ("**keeping its ticks**", "publishing.md sync", "a sync never unticking a builder's boxes"),
+    ("a line it replaced one for one passes its mark on", "publishing.md sync", "a tick on a moved path carried to the new path"),
+    ("A settled issue gets `git show HEAD:<file>`", "publishing.md sync", "a settled issue published from the file, so it reads current"),
+    ("Read every edited body back", "publishing.md sync", "the read-back"),
+    ("each carries the ticks it was written with", "publishing.md sync", "the read-back checking the ticks"),
     ("The close counts it", "publishing.md sync", "the count in the close"),
+    ("asks once more about every issue still to settle", "publishing.md sync",
+     "the close naming the run that finishes a stopped sync, settles included"),
     (f"(case file: {PATH_SYNC_CASE})", "publishing.md sync", "the pointer to the war story"),
     ("except a shape-changing `/structure` re-run, which rewrites the paths it moved and nothing else",
      "tickets-md.md", "the one other writer of TICKETS.md"),
@@ -2184,6 +2217,8 @@ def check_structure_rerun_syncs_issues(files: dict[str, Path]) -> None:
     run only happened because the owner wanted a regroup - /structure's handoff never names /tickets (#235). And
     TICKETS.md (#249) lists hub files by path, while nothing told the re-run to rewrite it. The rules are read where
     they must appear; the deferral is forbidden in /structure Step 0; the case file the procedure cites must exist.
+    A review of that sync (#279) replayed a regroup and a ticked box after a synced move: both stopped the next move
+    on issues nobody had edited, with no way to clear them - so ticks, later file versions and the settle are held too.
     """
     skill = files["structure"].read_text(encoding="utf-8")
     step0 = re.search(r"^## Step 0\b(.*?)^## Step 1\b", skill, re.MULTILINE | re.DOTALL)
@@ -2211,6 +2246,65 @@ def check_structure_rerun_syncs_issues(files: dict[str, Path]) -> None:
     cases = (ROOT / "references" / "case-files-tickets.md").read_text(encoding="utf-8")
     if f"\n## {PATH_SYNC_CASE}\n" not in cases.replace("\r\n", "\n"):
         fail(f"references/case-files-tickets.md has no heading {PATH_SYNC_CASE!r}, which publishing.md cites")
+
+
+# Check 39 (#279). An issue body is its ticket file.
+BODY_RULE_HEADING = "## §An issue body is its ticket file"
+BODY_RULE_POINTER = "§An issue body is its ticket file"
+BODY_RULE_TOKENS = (
+    ("--body-file docs/issues/<file>", "publishing.md body rule", "each issue created from its ticket file"),
+    ("in both modes", "publishing.md body rule", "an ad-hoc issue published the same way as a planned one"),
+    ("never retyped, trimmed, or given a header or footer", "publishing.md body rule",
+     "no title line dropped and no footer added on the way to GitHub"),
+    ("holds **no front matter**", "publishing.md body rule", "the issue template's header kept out of the ticket file"),
+    ("reads as edited from the day it is published", "publishing.md body rule", "why the body must be the file"),
+    ("Publish only committed files", "publishing.md body rule", "no body made from a file no later comparison can find"),
+    ("declined, the run publishes nothing and says why", "publishing.md body rule", "a declined commit stopping the publish"),
+    ("nothing uncommitted before the first `gh issue create`", "verification.md before publishing",
+     "the commit checked before anything is published"),
+    ("committed version of its ticket file it was written from", "verification.md after publishing",
+     "the body read-back against a committed file"),
+    (BODY_RULE_POINTER, "slicing.md", "the pointer at the Mode A publish step"),
+    (BODY_RULE_POINTER, "adhoc-capture.md", "the pointer at the Mode B publish step"),
+    ("write `#N` into the ticket file", "adhoc-capture.md", "the parent reference kept in the file, so the body still equals it"),
+    ("Only then commit the file and publish it", "adhoc-capture.md",
+     "the ad-hoc file committed after its parent reference is written, and before it is published"),
+    ("**Every ticket file is its issue body.**", "verification.md before publishing", "the front-matter check over the local files"),
+    ("compare one body with a different ticket's file and watch it fail", "verification.md after publishing",
+     "the body read-back seen failing before it is trusted"),
+    ("Every ticket issue this run created or edited", "verification.md after publishing",
+     "the body read-back over ticket issues only - an epic has no ticket file"),
+    ("IS the issue body: it starts at this comment, never copies the front matter", "feature_ticket_template.md",
+     "the template saying where a ticket file starts"),
+)
+
+
+def check_issue_body_is_ticket_file() -> None:
+    """39. A ticket's GitHub issue body is its file in docs/issues/, unchanged, and the tickets companions say so.
+
+    The regroup pre-flight and the path sync decide "edited on GitHub" by comparing a body with its file, and nothing
+    said how the body was made (#279). A logged test run published fifteen bodies with the file's title line dropped
+    and a source footer added, so none equalled its file at any commit and the sync as written would have stopped on
+    every one; two other runs wrote the issue template's front matter into their ticket files. The rule, its
+    pointers at both publish steps, the check before publishing and the read-back after are read where they belong.
+    """
+    pub = (TICKETS_REFS / "publishing.md").read_text(encoding="utf-8")
+    rule = re.search(rf"^{re.escape(BODY_RULE_HEADING)}\n(.*?)(?=^## |\Z)", pub, re.MULTILINE | re.DOTALL)
+    if not rule:
+        fail(f"tickets/references/publishing.md has no {BODY_RULE_HEADING!r} section - nothing says how an issue body "
+             f"is made from its ticket file, so every comparison between them is a guess")
+    verify = (TICKETS_REFS / "verification.md").read_text(encoding="utf-8")
+    split = verify.find("\n## §After publishing")
+    flat = lambda s: " ".join(s.split())  # noqa: E731
+    regions = {"publishing.md body rule": flat(rule.group(1) if rule else ""),
+               "slicing.md": flat((TICKETS_REFS / "slicing.md").read_text(encoding="utf-8")),
+               "adhoc-capture.md": flat((TICKETS_REFS / "adhoc-capture.md").read_text(encoding="utf-8")),
+               "verification.md before publishing": flat(verify[:split] if split >= 0 else verify),
+               "verification.md after publishing": flat(verify[split:] if split >= 0 else ""),
+               "feature_ticket_template.md": flat((ROOT / "templates" / "feature_ticket_template.md").read_text(encoding="utf-8"))}
+    for token, where, what in BODY_RULE_TOKENS:
+        if token not in regions[where]:
+            fail(f"{where} lost {what} (expected {token!r})")
 
 
 if __name__ == "__main__":
