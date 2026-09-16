@@ -31,7 +31,8 @@
    match: skip and log `Skipping [M2-PARTY-01]: exists as #<num>`. Never edit or close an existing issue.
    **The one exception is an owner-confirmed regroup** (new lanes on a backlog already published): change only
    the `lane:`/`owner:` labels and the Lane/Owner lines of the body, and only after a pre-flight shows every
-   GitHub body still equals its committed file, compared as §A path rewrite reaches GitHub compares — a body that
+   ticket issue's body still equals its committed file, compared as §A path rewrite reaches GitHub compares (an
+   epic has no ticket file — §Epics are parent issues) — a body that
    does not is settled as that section's item 4 settles one, and an unsettled body stops the run. (case file: Regrouping a backlog already on GitHub)
    **A committed path rewrite (a shape-changing `/structure` re-run) is the same exception** — paths only, by
    §A path rewrite reaches GitHub. **Every Mode A re-run runs that section's pre-flight before any other edit**,
@@ -80,13 +81,14 @@ leaving it to a later `/tickets` re-run means leaving it to a phase nothing tell
    `git log --reverse --grep "path rewrite" --format=%H -- <file>`, oldest first; `<rewrite>` is the newest.
    **A run that rewrote paths and finds no such commit stops and says the marker is missing** — never reports
    `0 issues synced`. What a sync publishes is exactly what those commits changed; anything else reaches an issue
-   only through item 4's settle. Remote guard first (§Provision item 2): no remote → nothing was published, nothing to sync.
+   only through item 4's settle. Remote guard first (§Provision item 2): no remote → nothing was published,
+   nothing to sync.
 2. **Pre-flight every open ticket issue whose file has a `path rewrite` commit, before editing any.** Fetch the
    open bodies once to a scratch file (`gh issue list --state open --limit 1000 --json number,title,body`;
    §Provision item 4's limit rule applies) and match each file to its issue **by its bracketed ID tag, never by
    title** — a file with no issue was never published. **Compare a body with a version of its file with line
-   endings, trailing whitespace and task-list marks normalised** — `[x]` reads as `[ ]`, because a ticked box is
-   progress, not an edit. Walk the file's `path rewrite` commits oldest first:
+   endings, trailing whitespace and task-list marks normalised** — `[x]` or `[X]` reads as `[ ]`, because a
+   ticked box is progress, not an edit. Walk the file's `path rewrite` commits oldest first:
    - the body equals the file at `<rewrite>` **or at any later commit** (`git log --format=%H <rewrite>..HEAD --
      <file>`) → **current**, skip — a regroup or a later edit of the file moved it on, not a person;
    - the body equals `git show <commit>^:<file>` for one of them, and each later rewrite starts where the one

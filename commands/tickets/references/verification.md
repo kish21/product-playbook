@@ -87,8 +87,9 @@ Run once `/tickets` has published; each one reads GitHub back rather than trusti
   above added no second epic and no second parent link. Before trusting the read-back, remove one sub-issue,
   watch the check go red, and attach it again (`DELETE …/sub_issue`): a read-back never seen failing proves
   nothing. (`publishing.md` §Epics are parent issues)
-- **Bodies are their files, read back.** Every issue this run created or edited returns, as its body, the
-  version of its ticket file it was written from (`gh issue view <n> --json body`), compared as `publishing.md` §A path rewrite reaches GitHub compares;
+- **Bodies are their files, read back.** Every ticket issue this run created or edited returns, as its body, the
+  version of its ticket file it was written from (`gh issue view <n> --json body`) — an epic has no ticket file
+  and is read back by *Epics are parents* — compared as `publishing.md` §A path rewrite reaches GitHub compares;
   the close states the count (`13 bodies · 13 equal`). Before trusting it, compare one body with a different
   ticket's file and watch it fail: a read-back never seen failing proves nothing.
 - **The board reads back set.** Every published ticket issue is a card on the Delivery Board and
