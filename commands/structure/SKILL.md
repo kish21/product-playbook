@@ -26,7 +26,7 @@ description: >
 - **Purpose:** a chosen, explained layout + the root scaffolding files + (AI) `prompts/`.
 - **Reads:** `PRODUCT.md#Architecture` — the **stack** *and* the **Dev tooling** line (which decides the
   tool in every scaffolding slot); `#Scope` (the concerns that become modules); `#Vision` (AI product?).
-- **Writes:** `STRUCTURE.md` (folder→purpose map) + `PRODUCT.md#Structure` (summary).
+- **Writes:** `STRUCTURE.md` (folder→purpose map) + `PRODUCT.md#Structure` (summary); re-run after `/tickets`: moved paths in `docs/issues/`, `TICKETS.md`, open issues.
 - **Gate type:** `derivation` — computable from `#Architecture` + the stack. Batchable - a `derivation` run may chain with its neighbours and end in ONE review. (`docs/state-model.md` §2d)
 - **State model** (`docs/state-model.md` §2c): writes `#Structure` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria:**
@@ -85,7 +85,7 @@ description: >
 - **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate, ask for the **reason in the user's own words**, and write `Override <date>: <reason> — bypassed <gate>` at the top of `#Structure` before continuing. Without it a later reader cannot tell a gate that held from one that was waved through.
 - Brownfield: read the existing tree; propose a clean target layout + a migration note — don't blindly move files.
 - **Re-running — `MECHANISMS.md` §Re-run semantics, in full.** The section is already filled → show what would change and ask first; a reversed decision keeps its dated `superseded` line.
-- **A shape-changing re-run after `/tickets` rewrites every path — named AND planned files — in `docs/issues/*.md` and `TICKETS.md`, closes the finding, and syncs the open issues in this run (`/tickets`' `publishing.md` §A path rewrite reaches GitHub); lanes, order and owners stay.** Stale paths send the next builder to recreate the folder just emptied. The close counts the issues synced. (case file: The move that came a phase late)
+- **A shape-changing re-run after `/tickets` rewrites every path — named AND planned files — in `docs/issues/*.md` and `TICKETS.md`, closes the finding, and syncs the open issues in this run (`/tickets`' `publishing.md` §A path rewrite reaches GitHub); lanes, order and owners stay.** Stale paths send the next builder to recreate the emptied folder; the close counts the issues synced. (case file: The move that came a phase late)
 - **A file moved from a shared folder into a lane carries its imports with it — check the import graph, not just the tree.** Hand cross-lane needs across in the composition root and enforce the arrows with a check beside `check_structure.py`. (case file: The move that came a phase late)
 - **Stopping at an unmet gate — `MECHANISMS.md` §Declined runs, in full.** One dated `_Not run_` line at the top of `#Structure`, nothing else touched; the section stays unfilled so `/playbook` still routes here.
 
@@ -135,9 +135,9 @@ summary + the prompts location (AI).
 ## Step 3b — Self-verify (completeness gate)
 **Copy `templates/check_structure.py` into the project** (`scripts/`, or wherever `STRUCTURE.md` puts
 tooling), **commit it, and run it** — it compares the map against the tree in **both** directions and
-exits non-zero on either mismatch, which is faster and stricter than reading 25 folders by eye. It is
-committed rather than scratch because the transition guard re-runs `evidence:` lines in later sessions:
-the line it produces names the script, its result, `STRUCTURE.md` and today's date.
+exits non-zero on either mismatch — faster and stricter than reading 25 folders by eye. It is committed,
+not scratch, because the transition guard re-runs `evidence:` lines in later sessions; the line names the
+script, its result, `STRUCTURE.md` and today's date.
 
 Check the boxes. **STOP and fix if:** a folder is unexplained; **the map and the tree disagree either
 way** (the script says which); ignore rules don't cover `.env*`;
