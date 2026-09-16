@@ -16,7 +16,8 @@ Checks:
      stays exempt: its contract is enforced by audit.py's exit code, not by prose.
   4. Every skill file is under the SKILL line budget (500).
   5. One version everywhere: the newest CHANGELOG release is the source of truth, and
-     manifest.json, .claude-plugin/plugin.json and the README badge must all match it.
+     manifest.json, .claude-plugin/plugin.json and the audit engine must all match it. The README states
+     no version: a hard-coded one reads as current between a merge and the next release.
   6. Every `#Section` a skill references is a real heading in templates/PRODUCT.md (a skill pointing at
      a section the template never defines is doc<->code drift inside the playbook itself).
   7. A plugin install ships every skill: each directory-form skill's folder is listed under
@@ -174,7 +175,7 @@ def main() -> int:
                 # match the literal heading regardless of hyphen/dash style
                 if token not in text and token.replace(" - ", " — ") not in text:
                     fail(f"{c} missing {token!r}")
-    # 5. one version across CHANGELOG + manifest + plugin manifest + README badge
+    # 5. one version across CHANGELOG + manifest + plugin manifest + audit engine; none in the README
     check_versions(manifest)
     # 6. every referenced spine section actually exists in the template
     check_section_refs(files)
@@ -256,6 +257,11 @@ def released_version() -> str | None:
     return m.group(1) if m else None
 
 
+# A version the README states: a version badge, "version 1.2.3" / "release 1.2.3", or a bare "v1.2.3".
+README_VERSION = re.compile(r"badge/version-[^)\s]*|\b(?:version|release)\s+v?\d+\.\d+\.\d+|\bv\d+\.\d+\.\d+\b",
+                            re.IGNORECASE)
+
+
 def check_versions(manifest: dict) -> None:
     """5. Every version surface agrees with the newest CHANGELOG release."""
     want = released_version()
@@ -269,9 +275,12 @@ def check_versions(manifest: dict) -> None:
         surfaces.append((".claude-plugin/plugin.json",
                          json.loads(plugin.read_text(encoding="utf-8")).get("version")))
 
-    badge = re.search(r"badge/version-(\d+\.\d+\.\d+)-",
-                      (ROOT / "README.md").read_text(encoding="utf-8"))
-    surfaces.append(("README.md badge", badge.group(1) if badge else None))
+    # The README used to carry a version badge. Master moves ahead of the newest release between a merge and the
+    # next release, so a hard-coded number there read as wrong to the owner; the Releases page carries it now.
+    stated = README_VERSION.search((ROOT / "README.md").read_text(encoding="utf-8"))
+    if stated:
+        fail(f"README.md states a version ({stated.group(0)!r}) - a hard-coded version goes stale between releases; "
+             f"the Releases page carries the current one")
 
     # A project's hooks and CI run a committed copy of the audit engine; its ENGINE_VERSION is how the
     # installed engine tells an old copy from a current one, so it moves with every release.

@@ -47,7 +47,7 @@ Skills stay runnable on their own, but a few **call other skills** when they are
 
 ### Did it work?
 
-Open a new Claude Code session and type `/playbook` (route A: `/product-playbook:playbook`). It should be offered as a command and greet you with the journey. Route A users can also run `/plugin list` and expect `product-playbook@product-playbook · Version: <the version on the README badge> · enabled`.
+Open a new Claude Code session and type `/playbook` (route A: `/product-playbook:playbook`). It should be offered as a command and greet you with the journey. Route A users can also run `/plugin list` and expect `product-playbook@product-playbook · Version: <the Latest version on the Releases page> · enabled`.
 
 ### Uninstall
 

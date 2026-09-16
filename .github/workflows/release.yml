@@ -1,7 +1,7 @@
 name: Release
 
 # The CHANGELOG is the single source of truth for a version (tools/check.py check 5 already makes
-# manifest.json, plugin.json and the README badge agree with it). This closes the last gap: on every
+# manifest.json, plugin.json and the audit engine agree with it). This closes the last gap: on every
 # merge to master, if the newest CHANGELOG version has no tag yet, cut the tag + GitHub Release from
 # it — so "Latest" on the Releases page can never fall behind what master actually is.
 
