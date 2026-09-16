@@ -13,6 +13,8 @@ labels: ["enhancement", "product-playbook"]
     HORIZONTAL slice                : one architectural layer of one milestone.
   Ad-hoc         [ADHOC-<nn>]       : a bug, edge case, tech debt or security item found mid-build.
   If a reviewer would need a second concern to approve this, it is two tickets. Split it.
+  A ticket file in docs/issues/ IS the issue body: it starts at this comment, never copies the front matter
+  above, and is published unchanged with `gh issue create --body-file`.
 -->
 
 ### 🎯 Goal

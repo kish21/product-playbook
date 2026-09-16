@@ -131,3 +131,15 @@ names `/design-system` or `/foundation`, never `/tickets`, so without that regro
 the emptied folders until a builder tripped over one. The run that moves the paths now syncs the issues itself
 and rewrites `TICKETS.md` — which came later, with a hub-file list of its own — in the same commit; a
 `/tickets` re-run only finishes a sync that could not run, which it finds by the `path rewrite` commit.
+
+**Reviewed 2026-09-16 (playbook 1.55.0).** That rule was replayed in a scratch repository and against the same
+run's issues, and two things broke it. First, it counted a body as synced only if it equalled the file at the
+newest rewrite, and stopped the whole sync on anything else. A regroup after a synced move rewrites each body's
+Lane line, and a builder ticking a task-list box changes the body too. Either way the next move stopped on issues
+nobody had edited, and no later run could clear them. Second, the bodies had never been their files. None of the
+fifteen published in the batch equalled its file at any commit: each matched only once the file's title line,
+which the publish had dropped, and a source footer it had added were set aside. The one ad-hoc issue, published
+later, was its file whole. The comparison that made the first sync safe had allowed for that difference without
+writing it down, so a fresh run applying the rule as written would have stopped on every issue. Now a tick counts
+as progress, any later version of the file counts as current, an issue that matches nothing is settled by the
+owner instead of stopping every later move, and a body is its file, published with `--body-file`.

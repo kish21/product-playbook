@@ -257,15 +257,30 @@
       "id": "structure-rerun-syncs-moved-paths-to-github",
       "skill": "structure",
       "prompt": "/structure  (re-run: #Structure is filled, /tickets already published 12 issues and wrote TICKETS.md; the owner picks moving every module's handlers from the shared http/ folder into the module folders)",
-      "expected_output": "After the owner's yes it moves the files, rewrites every moved path in docs/issues/*.md and TICKETS.md (planned files included, lanes and owners unchanged) and commits with 'path rewrite' in the message. In the same run it follows publishing.md §A path rewrite reaches GitHub: it matches each ticket file to its issue by ID tag, checks each open issue's body against the ticket file as it was before that commit, shows the diff, and syncs the bodies only after the owner's yes. Closed issues and epics are left alone, every synced body is read back, and the close gives the count.",
+      "expected_output": "After the owner's yes it moves the files, rewrites every moved path in docs/issues/*.md and TICKETS.md (planned files included, lanes and owners unchanged) and commits with 'path rewrite' in the message. In the same run it follows publishing.md §A path rewrite reaches GitHub: it matches each ticket file to its issue by ID tag, checks each open issue's body against the ticket file as it was before that commit, with ticked task-list boxes read as unticked, shows the diff, and syncs the bodies, ticks kept, only after the owner's yes. Closed issues and epics are left alone, every synced body is read back, and the close gives the count.",
       "expectations": [
         "TICKETS.md's hub-file paths are rewritten in the same commit as docs/issues/*.md, and nothing else in TICKETS.md changes",
         "The commit that rewrites the ticket files has 'path rewrite' in its message",
         "Each ticket file is matched to its issue by its bracketed ID tag, never by title",
         "No issue body is edited before every open body has been compared with its file as it was before the rewrite commit",
-        "An open issue whose body matches neither version stops the sync, and no body is edited",
+        "An open issue whose body matches no version of its file is listed to settle, and no body is edited until the owner has answered for it",
         "Closed issues keep their old paths",
         "The close states how many issues were synced, or why none were"
+      ]
+    },
+    {
+      "id": "structure-later-move-reads-regrouped-and-ticked-issues-as-current",
+      "skill": "structure",
+      "prompt": "/structure  (re-run: an earlier re-run moved the parties handlers and synced the issues; /tickets then regrouped the lanes, and builders have ticked Target Files boxes on two open issues; one open issue's Goal was rewritten on GitHub; now the owner picks moving the notify handlers out of the shared http/ folder too)",
+      "expected_output": "It moves the notify files, rewrites their paths in docs/issues/*.md and TICKETS.md and commits the rewrite as a 'path rewrite'. The sync pre-flight reads the regrouped issues and the ticked ones as current: a body equal to the file at the newest rewrite or at any later commit is current, and a ticked box is progress, not an edit. It lists the notify issues to sync with their diffs, and the issue whose Goal changed on GitHub to settle, with its difference from the file at HEAD and the choice between the file and the GitHub text. It edits nothing until every listed issue has an answer, writes the synced bodies with their ticks kept, reads every edited body back, and the close counts synced, settled and closed issues.",
+      "expectations": [
+        "An open issue whose body equals its file at the regroup commit is read as current, not as edited on GitHub",
+        "An open issue that differs from its file only by ticked task-list boxes is read as current, not as edited on GitHub",
+        "The issue whose Goal was rewritten on GitHub is listed with its difference from the file at HEAD and two choices: the file wins, or the GitHub text wins",
+        "If the GitHub text wins, it is committed into the ticket file with the new paths, not as a 'path rewrite', and the issue is then published from the file at HEAD",
+        "No issue body is edited before every listed issue has an answer",
+        "A synced issue keeps the ticks it had, and the read-back checks them",
+        "The close counts synced, settled and closed issues"
       ]
     },
     {
@@ -502,6 +517,22 @@
         "No remote repository is created and nothing is published",
         "The after-publishing read-backs are not treated as a reason to stop: the close says they did not run because nothing was published",
         "The close gives the command to link a remote and says to run /tickets again to publish"
+      ]
+    },
+    {
+      "id": "tickets-issue-body-is-the-ticket-file",
+      "skill": "tickets",
+      "prompt": "publish the backlog to GitHub  (docs/issues/ holds nine new ticket files; the remote is verified and gh is signed in)",
+      "expected_output": "Publishes each ticket with gh issue create --body-file naming its file in docs/issues/, unchanged: no title line dropped, no header or footer added. Before publishing it checks that no ticket file opens with the issue template's front matter; after publishing it reads every body back and compares it with its file, having first watched that comparison fail against a different ticket's file, and the close states the count.",
+      "expected_artifacts": [
+        "docs/issues/*.md"
+      ],
+      "expectations": [
+        "Every issue is created with --body-file naming its own ticket file",
+        "No ticket file in docs/issues/ opens with front matter (name:, about:, title:, labels:)",
+        "No body is retyped, trimmed, or given a header or footer",
+        "Every published body is read back and equals its ticket file, and the close states the count",
+        "The body read-back is seen failing once, against a different ticket's file, before it is trusted"
       ]
     },
     {

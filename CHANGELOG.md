@@ -5,6 +5,31 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — the path sync no longer stops a later move on issues nobody edited, and an issue body is its ticket file (#279)
+
+- **A regroup or a ticked box no longer stops the next move.** 1.55.0's sync counted a body as synced only if it
+  equalled its file at the newest `path rewrite` commit, and stopped the whole sync on anything else. A regroup
+  after a synced move rewrites each body's Lane line, and a builder ticking a task-list box changes the body too,
+  so the next move stopped on issues nobody had edited, and no later run could clear them. Now a body equal to its
+  file at the newest rewrite **or any later commit** is current, and bodies are compared with task-list marks
+  normalised: a tick is progress, not an edit. A sync keeps the ticks it finds, and the read-back checks them.
+- **An issue that matches nothing is settled, not a dead end.** It is shown against the file at `HEAD`, and the
+  owner picks *the file wins* or *the GitHub text wins* (written into the ticket file and committed). Either way
+  it is published from the file at `HEAD`, so every later run reads it as current. Nothing is edited until every
+  listed issue has an answer, and one left unsettled still stops the sync. The regroup pre-flight settles the same
+  way, and every Mode A `/tickets` re-run runs the sync's pre-flight before any other edit, so a settle left behind
+  is found too. The close names the step that finishes a stopped sync.
+- **An issue body is its ticket file.** The sync and the regroup both decide "edited on GitHub" by comparing a body
+  with its file, but nothing said how the body was made. A logged test run published every backlog issue with the
+  file's title line dropped and a source footer added — none equalled its file at any commit — and two others
+  wrote the issue template's front matter into their ticket files. New `publishing.md` §An issue body is its
+  ticket file: `gh issue create --body-file <file>` in both modes, never retyped, trimmed or footed, and no front
+  matter in a ticket file. `verification.md` checks the files before publishing and reads every body back after;
+  `slicing.md`, `adhoc-capture.md` and the ticket template point to it.
+- **Check 38** holds the new sync rules; **check 39** holds the body rule; check 37 counts the two new
+  verification checks. Two evals: a later move over regrouped and ticked issues, and a publish that sends each
+  file unchanged.
+
 ## [1.55.0] - 2026-09-16
 
 ### Fixed — a `/structure` re-run that moves folders updates the GitHub issues in the same run (#235)

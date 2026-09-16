@@ -62,6 +62,9 @@ Walk the principles and prove each against the files just written — do not ass
   and the fetched GitHub issues.
 - **Dedup ran.** Confirm `gh issue list` was fetched before any `gh issue create`, and that no remote
   repository was created.
+- **Every ticket file is its issue body.** No file in `docs/issues/` opens with front matter, and each is
+  published with `--body-file` as it stands (`publishing.md` §An issue body is its ticket file) — a body made any
+  other way reads as edited on GitHub to every later regroup and path sync.
 - **Security DoD present** on every ticket, including the ad-hoc ones.
 - **Independently mergeable.** For each ticket ask: could one developer open a PR containing only these
   files and have it reviewed on its own? **If not, the split is wrong — STOP and re-split before publishing.**
@@ -84,6 +87,10 @@ Run once `/tickets` has published; each one reads GitHub back rather than trusti
   above added no second epic and no second parent link. Before trusting the read-back, remove one sub-issue,
   watch the check go red, and attach it again (`DELETE …/sub_issue`): a read-back never seen failing proves
   nothing. (`publishing.md` §Epics are parent issues)
+- **Bodies are their files, read back.** Every issue this run created or edited returns, as its body, the
+  version of its ticket file it was written from (`gh issue view <n> --json body`), compared as `publishing.md` §A path rewrite reaches GitHub compares;
+  the close states the count (`13 bodies · 13 equal`). Before trusting it, compare one body with a different
+  ticket's file and watch it fail: a read-back never seen failing proves nothing.
 - **The board reads back set.** Every published ticket issue is a card on the Delivery Board and
   `gh project item-list --format json` shows Status, Owner, Lane and Seat set on each (lowercase keys); the
   close states the count. No board (scope missing) → the close says so and names the command that grants it.

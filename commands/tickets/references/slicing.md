@@ -177,5 +177,6 @@ Fill the provisioned `feature_ticket.md` template for each ticket:
 - **Verification command:** the exact command a reviewer runs to see it work.
 
 Write each to `docs/issues/<id>_<slug>.md`, then the plan to `TICKETS.md` (`tickets-md.md`), verify, and only
-then publish the non-duplicates with `gh issue create`.
+then publish the non-duplicates with `gh issue create`, each ticket file as its body, unchanged (`publishing.md`
+§An issue body is its ticket file).
 
