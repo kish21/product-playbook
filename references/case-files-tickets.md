@@ -125,9 +125,9 @@ the move, so the only difference was the move itself and nothing written on GitH
 bodies were synced with the owner's yes and read back equal; closed #5 and #6 kept the paths they were built
 against.
 
-The first rule written from this run let a `/tickets` re-run do the sync, and that was the wrong phase to
-trust with it. The re-run above happened only because the owner wanted the backlog regrouped the next day;
-`/structure`'s handoff names `/design-system` or `/foundation`, never `/tickets`, so without that regroup the
-issues would have kept the emptied folders until a builder tripped over one. The run that moves the paths now
-syncs the issues itself, and rewrites `TICKETS.md` — which came later, with a hub-file list of its own — in the
-same commit.
+The first rule written from this run left the sync to a `/tickets` re-run, and nothing schedules one. The
+re-run above happened only because the owner wanted the backlog regrouped the next day; `/structure`'s handoff
+names `/design-system` or `/foundation`, never `/tickets`, so without that regroup the issues would have kept
+the emptied folders until a builder tripped over one. The run that moves the paths now syncs the issues itself
+and rewrites `TICKETS.md` — which came later, with a hub-file list of its own — in the same commit; a
+`/tickets` re-run only finishes a sync that could not run, which it finds by the `path rewrite` commit.
