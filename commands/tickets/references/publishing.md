@@ -1,6 +1,7 @@
 # Publishing a backlog to GitHub — provisioning, guards, dedup, mirroring
 
-> Loaded by `/tickets` **Step 2** (both modes) and **Step 3A**, on demand. `SKILL.md` carries the
+> Loaded by `/tickets` **Step 2** (both modes) and **Step 3A**, and by a shape-changing `/structure` re-run
+> (§A path rewrite reaches GitHub), on demand. `SKILL.md` carries the
 > guards as one-liners — never create a remote, never overwrite a template, never half-publish; this
 > file carries the procedure behind each.
 
@@ -31,9 +32,8 @@
    **The one exception is an owner-confirmed regroup** (new lanes on a backlog already published): change only
    the `lane:`/`owner:` labels and the Lane/Owner lines of the body, and only after a pre-flight shows every
    GitHub body still equals its committed file — a body edited on GitHub stops the run. (case file: Regrouping a backlog already on GitHub)
-   **A committed path rewrite (a `/structure` re-run) is the same exception:** a re-run diffs each open body
-   against its file, and where only the moved paths differ — the body equal to the file *before* that
-   commit — syncs the body to the file with the owner's yes; closed issues keep the paths they were built against. (case file: The paths that moved in the repo, not on GitHub)
+   **A committed path rewrite (a shape-changing `/structure` re-run) is the same exception** — paths only, by
+   §A path rewrite reaches GitHub; a `/tickets` re-run runs that sync for any body the rewrite left behind.
    **A link is not an edit.** A skipped (already published) ticket still gets its missing *blocked by* links
    and its missing parent link in §Mirror the plan structure — both are relationships on the issue, not its
    body, so the rule above is untouched and a re-run completes a backlog that was published without them.
@@ -56,6 +56,29 @@ A re-run brings it forward without duplicating anything:
 - **`docs/issues/README.md` is migrated, never kept beside `TICKETS.md`:** its plan content moves into
   `TICKETS.md`, anything in it that is status is dropped (the board holds status), the README is deleted in
   the same commit, and the close says so. Two plan files disagree the first time one of them is edited.
+
+## §A path rewrite reaches GitHub
+
+A shape-changing `/structure` re-run rewrites the paths in `docs/issues/*.md` and `TICKETS.md`, but the issues
+a team reads still name the old folders. **The run that moved the paths syncs the issues, in the same run** —
+leaving it to a later `/tickets` re-run means leaving it to a phase nothing tells the user to run. (case file: The paths that moved in the repo, not on GitHub)
+
+1. **Once the rewrite is committed** — `<rewrite>` is that commit (a later `/tickets` run finds it with
+   `git log -- <file>`), `<rewrite>^` the files before it. Remote guard first (§Provision item 2): no remote →
+   nothing was published, nothing to sync; `gh` not signed in → sync nothing, and the close says the published
+   issues still name the old paths until `gh auth login` and a `/tickets` re-run.
+2. **Pre-flight every open ticket issue whose file the rewrite changed, before editing any.** Read the body
+   (`gh issue view <n> --json body -q .body`) and compare it with line endings and trailing whitespace normalised:
+   - equal to `git show <rewrite>^:<file>` → **to sync**;
+   - equal to the file now → already synced, skip;
+   - **equal to neither → edited on GitHub: sync nothing.** Name each such issue and stop the sync; a body
+     someone wrote on GitHub is theirs, and a backlog half on old paths and half on new is read as all current.
+3. **Closed issues keep their paths** — they name what they were built against. **An epic carries no paths**
+   (§Epics are parent issues), so nothing on it is synced.
+4. **Show the list and ask once** — issue, ticket ID, old → new paths. With the owner's yes,
+   `gh issue edit <n> --body-file <file>` for each; the body changes, nothing else does.
+5. **Read every synced body back**, compared the same way: each now equals its file. A mismatch is reported.
+6. **The close counts it** — `9 issues synced · 2 closed kept their paths` — or says why nothing was synced.
 
 ## §Mirror the plan structure onto GitHub
 `#Plan` → milestones → epics → lanes → tickets has a native GitHub equivalent at every level, and a flat list

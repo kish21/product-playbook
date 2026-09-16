@@ -241,6 +241,8 @@ def main() -> int:
     check_epic_plan(files)
     # 37. /tickets' verification runs over the local files before publishing and reads GitHub back after
     check_verification_publish_split(files)
+    # 38. a shape-changing /structure re-run rewrites the moved paths in the tickets and TICKETS.md and syncs the issues
+    check_structure_rerun_syncs_issues(files)
 
     return done(len(cmds))
 
@@ -2129,6 +2131,69 @@ def check_verification_publish_split(files: dict[str, Path]) -> None:
     for token, where, what in VERIFY_SPLIT_TOKENS:
         if token not in regions[where]:
             fail(f"{where} lost {what} (expected {token!r})")
+
+
+# Check 38 (#235). A shape-changing /structure re-run syncs the moved paths to GitHub itself.
+PATH_SYNC_HEADING = "## §A path rewrite reaches GitHub"
+PATH_SYNC_CASE = "The paths that moved in the repo, not on GitHub"
+PATH_SYNC_TOKENS = (
+    ("`docs/issues/*.md` and `TICKETS.md`", "structure Step 0", "rewriting the moved paths in the plan as well as the tickets"),
+    ("syncs the open issues in this run", "structure Step 0", "the sync happening in the run that moved the paths"),
+    ("§A path rewrite reaches GitHub", "structure Step 0", "the pointer to the sync procedure"),
+    ("The close counts the issues synced", "structure Step 0", "the synced count in the close"),
+    ("§A path rewrite reaches GitHub", "publishing.md §Provision", "the dedup exception pointing at the sync"),
+    ("a `/tickets` re-run runs that sync", "publishing.md §Provision", "/tickets catching a body the rewrite left behind"),
+    ("The run that moved the paths syncs the issues, in the same run", "publishing.md sync", "who runs the sync"),
+    ("Remote guard first", "publishing.md sync", "never syncing without a verified remote"),
+    ("before editing any", "publishing.md sync", "the pre-flight covering every body before the first edit"),
+    ("`git show <rewrite>^:<file>`", "publishing.md sync", "comparing each body with its file before the rewrite"),
+    ("equal to neither → edited on GitHub: sync nothing", "publishing.md sync", "a body edited on GitHub stopping the sync"),
+    ("Closed issues keep their paths", "publishing.md sync", "closed issues keeping what they were built against"),
+    ("An epic carries no paths", "publishing.md sync", "epics left alone"),
+    ("owner's yes", "publishing.md sync", "the owner confirming the list before any edit"),
+    ("Read every synced body back", "publishing.md sync", "the read-back"),
+    ("The close counts it", "publishing.md sync", "the count in the close"),
+    (f"(case file: {PATH_SYNC_CASE})", "publishing.md sync", "the pointer to the war story"),
+    ("except a shape-changing `/structure` re-run, which rewrites the paths it moved and nothing else",
+     "tickets-md.md", "the one other writer of TICKETS.md"),
+)
+# The deferral #235 removed: a sync left to a later /tickets run that nothing tells the user to start.
+PATH_SYNC_DEFERRAL = re.compile(r"keeps? the old paths until `/tickets`", re.IGNORECASE)
+
+
+def check_structure_rerun_syncs_issues(files: dict[str, Path]) -> None:
+    """38. A shape-changing /structure re-run rewrites the moved paths in the tickets AND TICKETS.md, and syncs the
+    open issues in the same run.
+
+    A logged test run (2026-09-13/14): a /structure re-run moved 55 files and rewrote every ticket file, while the
+    published issues kept naming the emptied folders. The first fix let a later /tickets re-run sync them, but that
+    run only happened because the owner wanted a regroup - /structure's handoff never names /tickets (#235). And
+    TICKETS.md (#249) lists hub files by path, while nothing told the re-run to rewrite it. The rules are read where
+    they must appear; the deferral is forbidden in /structure Step 0; the case file the procedure cites must exist.
+    """
+    skill = files["structure"].read_text(encoding="utf-8")
+    step0 = re.search(r"^## Step 0\b(.*?)^## Step 1\b", skill, re.MULTILINE | re.DOTALL)
+    pub = (TICKETS_REFS / "publishing.md").read_text(encoding="utf-8")
+    provision = re.search(r"^## §Provision and pre-flight\b(.*?)^## ", pub, re.MULTILINE | re.DOTALL)
+    sync = re.search(rf"^{re.escape(PATH_SYNC_HEADING)}\n(.*?)(?=^## |\Z)", pub, re.MULTILINE | re.DOTALL)
+    if not sync:
+        fail(f"tickets/references/publishing.md has no {PATH_SYNC_HEADING!r} section - a path moved by a /structure "
+             f"re-run stays at its old address on GitHub")
+    flat = lambda s: " ".join(s.split())  # noqa: E731
+    regions = {"structure Step 0": flat(step0.group(1) if step0 else ""),
+               "publishing.md §Provision": flat(provision.group(1) if provision else ""),
+               "publishing.md sync": flat(sync.group(1) if sync else ""),
+               "tickets-md.md": flat((TICKETS_REFS / "tickets-md.md").read_text(encoding="utf-8"))}
+    for token, where, what in PATH_SYNC_TOKENS:
+        if token not in regions[where]:
+            fail(f"{where} lost {what} (expected {token!r})")
+    m = PATH_SYNC_DEFERRAL.search(regions["structure Step 0"])
+    if m:
+        fail(f"structure Step 0 still defers the issue sync ({m.group(0)!r}...) - no phase after /structure is told "
+             f"to run /tickets, so the issues keep the emptied folders")
+    cases = (ROOT / "references" / "case-files-tickets.md").read_text(encoding="utf-8")
+    if f"\n## {PATH_SYNC_CASE}\n" not in cases.replace("\r\n", "\n"):
+        fail(f"references/case-files-tickets.md has no heading {PATH_SYNC_CASE!r}, which publishing.md cites")
 
 
 if __name__ == "__main__":

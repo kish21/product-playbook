@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — a `/structure` re-run that moves folders updates the GitHub issues in the same run (#235)
+
+- **`/structure` syncs the issues itself.** When a re-run moves folders after `/tickets` has published, it
+  already rewrote the paths in the ticket files, but the issues on GitHub kept the old ones until a later
+  `/tickets` re-run. `/structure`'s handoff never names `/tickets`, so that re-run happened only by chance, and
+  anyone working from GitHub was sent to folders that no longer existed. The re-run now syncs the open issues
+  before it closes, and the close says how many it synced.
+- **The sync never overwrites an edit made on GitHub.** A new `publishing.md` §A path rewrite reaches GitHub
+  compares every open issue with its ticket file as it was before the move, and edits nothing if any issue was
+  changed on GitHub since. The owner confirms the list first. Closed issues keep the paths they were built
+  against, epics carry no paths, and every synced issue is read back. A `/tickets` re-run runs the same sync
+  for anything left behind, for example when `gh` was not signed in.
+- **`TICKETS.md` moves with the tickets.** The re-run rewrites the paths it moved in `TICKETS.md` (its hub-file
+  list) in the same commit; `/structure` is now the one writer besides `/tickets`, and for paths only.
+- **Check 38** holds these rules and forbids leaving the sync to a later `/tickets` run.
+
 ## [1.54.0] - 2026-09-15
 
 ### Added — `/tickets` plans a backlog as milestone → epic → ticket, in a root `TICKETS.md` with a lane flow graph (#249)
