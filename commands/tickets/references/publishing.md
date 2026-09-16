@@ -30,10 +30,11 @@
    `[M2-PARTY-01]`, `[ADHOC-07]` — `[M2-PARTY]` never matches `[M2-PARTY-01]`) first, exact title second. On a
    match: skip and log `Skipping [M2-PARTY-01]: exists as #<num>`. Never edit or close an existing issue.
    **The one exception is an owner-confirmed regroup** (new lanes on a backlog already published): change only
-   the `lane:`/`owner:` labels and the Lane/Owner lines of the body, and only after a pre-flight shows every
-   ticket issue's body still equals its committed file, compared as §A path rewrite reaches GitHub compares (an
-   epic has no ticket file — §Epics are parent issues) — a body that
-   does not is settled as that section's item 4 settles one, and an unsettled body stops the run. (case file: Regrouping a backlog already on GitHub)
+   the `lane:`/`owner:` labels and the Lane/Owner lines, and only after a pre-flight shows every ticket issue's
+   body still equals its committed file at `HEAD`, normalised as §A path rewrite reaches GitHub normalises (an
+   epic has no ticket file — §Epics are parent issues). A body that does not is settled as that section's item 4
+   settles one, and an unsettled body stops the run. **The lines change in the ticket files first, committed, then
+   in each body**, so every regrouped body equals a committed version of its file. (case file: Regrouping a backlog already on GitHub)
    **A committed path rewrite (a shape-changing `/structure` re-run) is the same exception** — paths only, by
    §A path rewrite reaches GitHub. **Every Mode A re-run runs that section's pre-flight before any other edit**,
    over the skipped open tickets whose file has a `path rewrite` commit, and finishes whatever sync or settle it
@@ -66,9 +67,12 @@ A re-run brings it forward without duplicating anything:
 **A ticket's issue body is its file in `docs/issues/`, unchanged:** `gh issue create --title "[<ID>] <title>"
 --body-file docs/issues/<file>`, in both modes — never retyped, trimmed, or given a header or footer. So a ticket
 file holds **no front matter**: `name:`, `about:`, `title:` and `labels:` belong to the issue template in
-`.github/ISSUE_TEMPLATE/`, and the title, labels and milestone go on the command's flags. The regroup pre-flight
-and §A path rewrite reaches GitHub both decide whether someone edited an issue by comparing its body with its
-file, so a body made any other way reads as edited from the day it is published. (case file: The paths that moved in the repo, not on GitHub)
+`.github/ISSUE_TEMPLATE/`, and the title, labels and milestone go on the command's flags. **Publish only
+committed files:** commit `docs/issues/` before the first `gh issue create`, so nothing published is
+uncommitted — `MECHANISMS.md` §Commit the work's offer, made before publishing; declined, the run publishes
+nothing and says why. The regroup pre-flight and §A path rewrite reaches GitHub both decide whether someone
+edited an issue by comparing its body with the committed versions of its file, so a body made any other way, or
+from a file never committed, reads as edited from the day it is published. (case file: The paths that moved in the repo, not on GitHub)
 
 ## §A path rewrite reaches GitHub
 
@@ -114,9 +118,9 @@ leaving it to a later `/tickets` re-run means leaving it to a phase nothing tell
 6. **Read every edited body back**, compared the same way: a synced one equals `<rewrite>`'s version, a settled
    one `HEAD`'s, and each carries the ticks it was written with. A mismatch is reported.
 7. **The close counts it** — `9 issues synced · 1 settled · 2 closed kept their paths`. A sync that could not run
-   (`gh` not signed in, the rewrite not yet committed, an issue left unsettled) is named with its issues, what
-   clears it — sign in, commit, or settle — and the step after: run `/tickets` once it is cleared, and its Mode A
-   re-run finishes the sync (§Provision item 4).
+   (`gh` not signed in, the rewrite not yet committed, an issue left unsettled) is named with its issues and the
+   step that finishes it: sign in or commit, then run `/tickets`, whose Mode A re-run runs this pre-flight again
+   and asks once more about every issue still to settle (§Provision item 4).
 
 ## §Mirror the plan structure onto GitHub
 `#Plan` → milestones → epics → lanes → tickets has a native GitHub equivalent at every level, and a flat list

@@ -523,11 +523,12 @@
       "id": "tickets-issue-body-is-the-ticket-file",
       "skill": "tickets",
       "prompt": "publish the backlog to GitHub  (docs/issues/ holds nine new ticket files; the remote is verified and gh is signed in)",
-      "expected_output": "Publishes each ticket with gh issue create --body-file naming its file in docs/issues/, unchanged: no title line dropped, no header or footer added. Before publishing it checks that no ticket file opens with the issue template's front matter; after publishing it reads every body back and compares it with its file, having first watched that comparison fail against a different ticket's file, and the close states the count.",
+      "expected_output": "Commits docs/issues/ first, then publishes each ticket with gh issue create --body-file naming its file in docs/issues/, unchanged: no title line dropped, no header or footer added. Before publishing it checks that no ticket file opens with the issue template's front matter and nothing in docs/issues/ is uncommitted; after publishing it reads every body back and compares it with its file, having first watched that comparison fail against a different ticket's file, and the close states the count.",
       "expected_artifacts": [
         "docs/issues/*.md"
       ],
       "expectations": [
+        "docs/issues/ has nothing uncommitted before the first gh issue create",
         "Every issue is created with --body-file naming its own ticket file",
         "No ticket file in docs/issues/ opens with front matter (name:, about:, title:, labels:)",
         "No body is retyped, trimmed, or given a header or footer",

@@ -19,12 +19,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
   listed issue has an answer, and one left unsettled still stops the sync. The regroup pre-flight settles the same
   way, and every Mode A `/tickets` re-run runs the sync's pre-flight before any other edit, so a settle left behind
   is found too. The close names the step that finishes a stopped sync.
+- **A regroup commits its lane change to the ticket files before it edits the bodies**, so a regrouped issue
+  equals a committed version of its file. The logged regroup did this; the rule now says it.
 - **An issue body is its ticket file.** The sync and the regroup both decide "edited on GitHub" by comparing a body
   with its file, but nothing said how the body was made. A logged test run published every backlog issue with the
   file's title line dropped and a source footer added — none equalled its file at any commit — and two others
   wrote the issue template's front matter into their ticket files. New `publishing.md` §An issue body is its
-  ticket file: `gh issue create --body-file <file>` in both modes, never retyped, trimmed or footed, and no front
-  matter in a ticket file. `verification.md` checks the files before publishing and reads every body back after;
+  ticket file: `gh issue create --body-file <file>` in both modes, never retyped, trimmed or footed, no front
+  matter in a ticket file, and `docs/issues/` committed before the first issue is created (declined, nothing is
+  published) — a body made from a file never committed matches no version a later run can find. `verification.md` checks the files before publishing and reads every body back after;
   `slicing.md`, `adhoc-capture.md` and the ticket template point to it.
 - **Check 38** holds the new sync rules; **check 39** holds the body rule; check 37 counts the two new
   verification checks. Two evals: a later move over regrouped and ticked issues, and a publish that sends each
