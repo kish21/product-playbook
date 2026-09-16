@@ -13,11 +13,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
   anyone working from GitHub was sent to folders that no longer existed. The re-run now syncs the open issues
   before it closes, and the close says how many it synced.
 - **The sync never overwrites an edit made on GitHub.** A new `publishing.md` §A path rewrite reaches GitHub
-  anchors the sync on the commit that rewrote the ticket files, whose message says `path rewrite`. It matches
-  each ticket file to its issue by ID tag, syncs only an issue that still equals the file as it was just before
-  that commit, and edits nothing if any issue was changed on GitHub. What it publishes is exactly what that
-  commit changed, and the owner confirms the list and the diff first. Closed issues keep the paths they were
-  built against, epics carry no paths, and every synced issue is read back.
+  anchors the sync on the commits that rewrote the ticket files, marked `path rewrite` in the commit message
+  and in the PR title, so a squash-merge keeps the marker. It matches each ticket file to its issue by ID tag
+  and syncs only an issue that still equals the file as it was before one of those commits, walking every later
+  rewrite in order. It edits nothing if any issue was changed on GitHub. What it publishes is exactly what those
+  commits changed; the owner sees the diff, with any non-path change flagged, and confirms first. Closed issues
+  keep the paths they were built against, epics carry no paths, and every synced issue is read back.
 - **A sync that could not run is finished later, not lost.** Every `/tickets` re-run first looks for an open
   issue still equal to its file before a `path rewrite` commit and runs the same sync for it, so a move made
   while `gh` was not signed in is caught before a regroup would read those issues as edited on GitHub.

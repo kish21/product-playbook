@@ -18,9 +18,8 @@ description: >
 > **no secret in any code file**.
 
 > This skill exists because bad/ad-hoc folder structure is the #1 thing newcomers get wrong (god-files,
-> "where does this go?"). The goal is not just to create folders — it is to **teach what each folder is
-> for** so the layout stays clean as the product grows. Adapt names to the chosen stack, but always lay
-> the same solid base.
+> "where does this go?"). The goal is to **teach what each folder is for**, not just create it, so the
+> layout stays clean as it grows. Adapt names to the chosen stack, but always lay the same solid base.
 
 ## Contract
 - **Purpose:** a chosen, explained layout + the root scaffolding files + (AI) `prompts/`.
@@ -85,7 +84,7 @@ description: >
 - **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate, ask for the **reason in the user's own words**, and write `Override <date>: <reason> — bypassed <gate>` at the top of `#Structure` before continuing. Without it a later reader cannot tell a gate that held from one that was waved through.
 - Brownfield: read the existing tree; propose a clean target layout + a migration note — don't blindly move files.
 - **Re-running — `MECHANISMS.md` §Re-run semantics, in full.** The section is already filled → show what would change and ask first; a reversed decision keeps its dated `superseded` line.
-- **A shape-changing re-run after `/tickets` rewrites every path — named AND planned files — in `docs/issues/*.md` and `TICKETS.md`, closes the finding, and syncs the open issues in this run (`/tickets`' `publishing.md` §A path rewrite reaches GitHub); lanes, order and owners stay.** Stale paths send the next builder to recreate the emptied folder; the close counts the issues synced. (case file: The move that came a phase late)
+- **A shape-changing re-run after `/tickets` rewrites every path — named AND planned files — in `docs/issues/*.md` and `TICKETS.md`, closes the finding, then commits it as a `path rewrite` and syncs the open issues (`/tickets`' `publishing.md` §A path rewrite reaches GitHub); lanes, order and owners stay.** Stale paths send the next builder to recreate the emptied folder; the close counts the issues synced. (case file: The move that came a phase late)
 - **A file moved from a shared folder into a lane carries its imports with it — check the import graph, not just the tree.** Hand cross-lane needs across in the composition root and enforce the arrows with a check beside `check_structure.py`. (case file: The move that came a phase late)
 - **Stopping at an unmet gate — `MECHANISMS.md` §Declined runs, in full.** One dated `_Not run_` line at the top of `#Structure`, nothing else touched; the section stays unfilled so `/playbook` still routes here.
 
