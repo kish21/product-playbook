@@ -2151,6 +2151,8 @@ PATH_SYNC_TOKENS = (
     ("The rewrite is committed as a `path rewrite`", "publishing.md sync", "a rewrite commit a later run can find"),
     ("in the PR title too, so a squash-merge keeps them", "publishing.md sync", "the marker surviving a squash-merge"),
     ('git log --reverse --grep "path rewrite"', "publishing.md sync", "how a later run finds every rewrite, oldest first"),
+    ("finds no such commit stops and says the marker is missing", "publishing.md sync",
+     "a forgotten marker reported, never a silent `0 issues synced`"),
     ("each later rewrite starts where the one before it ended", "publishing.md sync",
      "a body several unsynced rewrites behind brought forward through all of them, and only them"),
     ("exactly what those commits changed", "publishing.md sync", "the sync publishing the rewrites and nothing else"),

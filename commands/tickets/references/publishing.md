@@ -68,7 +68,8 @@ leaving it to a later `/tickets` re-run means leaving it to a phase nothing tell
 1. **The rewrite is committed as a `path rewrite`** — those words in the commit message and, when it reaches the
    default branch through a pull request, in the PR title too, so a squash-merge keeps them. A file's rewrites are
    `git log --reverse --grep "path rewrite" --format=%H -- <file>`, oldest first; `<rewrite>` is the newest.
-   What the sync publishes is exactly what those commits changed. Remote guard first (§Provision item 2): no
+   **A run that rewrote paths and finds no such commit stops and says the marker is missing** — never reports
+   `0 issues synced`. What the sync publishes is exactly what those commits changed. Remote guard first (§Provision item 2): no
    remote → nothing was published, nothing to sync.
 2. **Pre-flight every open ticket issue whose file has a `path rewrite` commit, before editing any.** Fetch the
    open bodies once to a scratch file (`gh issue list --state open --limit 1000 --json number,title,body`;
