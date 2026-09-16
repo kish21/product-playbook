@@ -5,9 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.55.0] - 2026-09-16
+
 ### Fixed — a `/structure` re-run that moves folders updates the GitHub issues in the same run (#235)
 
-- **`/structure` syncs the issues itself.** When a re-run moves folders after `/tickets` has published, it
+- **A `/structure` re-run that moves folders updates the GitHub issues itself.** When it runs after `/tickets` has published, it
   already rewrote the paths in the ticket files, but the issues on GitHub kept the old ones until a later
   `/tickets` re-run. `/structure`'s handoff never names `/tickets`, so that re-run happened only by chance, and
   anyone working from GitHub was sent to folders that no longer existed. The re-run now syncs the open issues
