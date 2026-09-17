@@ -12,7 +12,7 @@ $ARGUMENTS
 > Part of **product-playbook**. Reads `DESIGN.md` (+ `PRODUCT.md#Design`) — resolve per
 > `MECHANISMS.md` §Spine resolution; writes one component file.
 > **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
-> Apply `PRINCIPLES.md` — load-bearing: **no-hardcoding (tokens/fonts come from `DESIGN.md`, never
+> **Open `PRINCIPLES.md` and `MECHANISMS.md` before Step 0** (paths above; the other two only when a rule points into them), then apply them — load-bearing: **no-hardcoding (tokens/fonts come from `DESIGN.md`, never
 > baked into the component)**, **accessibility (keyboard · focus · contrast · semantic markup) is part
 > of the definition-of-done**, **intention-revealing naming**, **docs match reality**.
 

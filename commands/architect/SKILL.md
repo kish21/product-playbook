@@ -12,7 +12,7 @@ description: >
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
 > **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
-> Apply `PRINCIPLES.md` — load-bearing this phase:
+> **Open `PRINCIPLES.md` and `MECHANISMS.md` before Step 0** (paths above; the other two only when a rule points into them), then apply them — load-bearing this phase:
 > **benchmark 2026 then optimise for constraints (incl. lock-in)**, **patterns & anti-patterns**, **provider/adapter for externals**,
 > **resilience strategy**, **perf/cost budget**, **migrations (not raw schema)**, **no-hardcoding /
 > no secret in code**, **typed-contracts intent**, **layered/decoupled**. (Depth lives in Step 2 +

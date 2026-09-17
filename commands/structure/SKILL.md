@@ -13,7 +13,7 @@ description: >
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution); writes `STRUCTURE.md`.
 > **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
-> Apply `PRINCIPLES.md` — load-bearing:
+> **Open `PRINCIPLES.md` and `MECHANISMS.md` before Step 0** (paths above; the other two only when a rule points into them), then apply them — load-bearing:
 > **modular/single-responsibility**, **layered sub-packages**, **intention-revealing naming**,
 > **prompts externalized to `prompts/` YAML**, **no-hardcoding (secrets→`.env`, knobs→config)**,
 > **no secret in any code file**.
