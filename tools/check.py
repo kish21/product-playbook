@@ -2560,15 +2560,19 @@ def check_copy_install_rule_paths() -> None:
 
 
 
-# The instruction every skill carries. The two files named here each state that they are read on every run:
-# PRINCIPLES.md "is loaded by every skill", and MECHANISMS.md is "read by every phase, every run".
-OPEN_RULES_LINE = "**Open `PRINCIPLES.md` and `MECHANISMS.md` before Step 0**"
-OPEN_RULES_SITUATIONAL = "the other two only when a rule points into them"
+# The instruction every skill carries. Both files are read on every run, by their own statement: PRINCIPLES.md
+# "is loaded by every skill" (PRINCIPLES.md), and of MECHANISMS.md, "Everything in that file is read by every
+# phase, every run" (MECHANISMS-ON-DEMAND.md, which is the file that says it). "the first step" and not "Step 0":
+# /drift-check runs Step 0b and 0c before its Step 0, and /new-component has no Step 0 at all.
+OPEN_RULES_LINE = "**Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step**"
+OPEN_RULES_SITUATIONAL = "a situational companion only when a rule points into it"
 # MECHANISMS-ON-DEMAND.md is "the mechanism you open only when its trigger fires" and LESSONS.md is the same:
 # opening either on every run is the per-session context cost they were split out to avoid, so no skill may
 # order it. Checked as a phrase that would ORDER it, not as a mention - every skill names both files' paths.
 ALWAYS_OPEN_SITUATIONAL = re.compile(
-    r"[Oo]pen\s+`?(?:MECHANISMS-ON-DEMAND|LESSONS)\.md`?[^.\n]{0,40}\b(?:before Step 0|on every run|every run|always)\b")
+    r"(?:\b(?:[Aa]lways|[Uu]nconditionally)\s+(?:open|read|load)\b[^\n]{0,60}?`?(?:MECHANISMS-ON-DEMAND|LESSONS)\.md"
+    r"|\b(?:[Oo]pen|[Rr]ead|[Ll]oad)\b[^\n]{0,60}?`?(?:MECHANISMS-ON-DEMAND|LESSONS)\.md`?[^\n]{0,60}?"
+    r"\b(?:before the first step|before Step 0|on every run|every run|always|unconditionally|at the start))")
 
 
 def check_rule_files_are_opened(files: dict[str, Path]) -> None:
@@ -2580,6 +2584,10 @@ def check_rule_files_are_opened(files: dict[str, Path]) -> None:
     while a headless run opened MECHANISMS.md and MECHANISMS-ON-DEMAND.md and never PRINCIPLES.md. Both wrote a
     spine section, which §Step 3b and §Step 3c govern. The situational companions stay opt-in: this check fails
     a skill that orders them open on every run, which would restore the context cost they were split out to avoid.
+
+    Known limit: that last guard reads prose, so it catches the phrasings a skill would plausibly use ("always
+    open X", "open X on every run", "read X at the start") and not every possible rewording. The load-bearing
+    half is the exact instruction above, which is a literal match.
     """
     for name, path in sorted(files.items()):
         text = path.read_text(encoding="utf-8")
