@@ -2364,7 +2364,7 @@ def check_theme_studio_export() -> None:
     missing = sorted(set(re.findall(r"(--[\w-]+)\s*:", s2.group(1))) - set(re.findall(r"'(--[\w-]+)'", keys.group(1))))
     if missing:
         fail(f"theme-studio.md's export leaves out §2 tokens {missing} - build-loop.md pastes the export as all of §2")
-    if not re.search(r"function rd\(m\)\{[^}]*classList\.add\(m\)", studio):
+    if not re.search(r"function rd\(m\)\{el\.classList\.remove\('dark','light'\);el\.classList\.add\(m\);", studio):
         fail("theme-studio.md's export no longer SETS the mode class before each read - with only .dark removed, "
              "an OS in dark mode exports dark values as the light block")
     if re.search(r"rs\.setProperty\('--(primary|accent|ring)'", studio):
