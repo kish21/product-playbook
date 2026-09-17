@@ -209,6 +209,7 @@ point_rule_paths() {
     -e "s|${PLUGIN_ROOT}references/mechanisms\.md|${RULES_ESC}/MECHANISMS.md|g" \
     -e "s|${PLUGIN_ROOT}references/lessons\.md|${RULES_ESC}/LESSONS.md|g" \
     -e "s|${PLUGIN_ROOT}tools/session_cost\.py|${RULES_ESC}/session_cost.py|g" \
+    -e "s|${PLUGIN_ROOT}templates/PRODUCT\.md|${RULES_ESC}/PRODUCT.md|g" \
     "$1"
   rm -f "$1.bak"
 }

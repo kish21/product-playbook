@@ -2409,7 +2409,10 @@ PLUGIN_PATH_RE = re.compile(r"\$\{CLAUDE_PLUGIN_ROOT\}/([A-Za-z0-9_./-]+)")
 RULE_FILE_RE = re.compile(r"(?<![\w/-])(MECHANISMS-ON-DEMAND|MECHANISMS|PRINCIPLES|LESSONS)\.md")
 RULES_LINE = "**Rule files — open by path, never search:**"
 RULES_FALLBACK = "still starting with `$`"
-DEAD_README_POINTER = "see README for its path"
+DEAD_README_POINTER = "see README"
+# A skill that starts the spine from the template gives the template's path on the same line.
+TEMPLATE_MENTION = "`PRODUCT.md` template"
+TEMPLATE_PATH = "`${CLAUDE_PLUGIN_ROOT}/templates/PRODUCT.md`"
 # Plugin paths a copy install may leave as they are, because the skill names its own copy-install fallback.
 PLUGIN_PATHS_WITH_FALLBACK = {"commands/frontend-audit/audit.py": "/frontend-audit §Which engine runs (#256)"}
 # Files the agent opens with Read: Claude Code fills `${CLAUDE_PLUGIN_ROOT}` into skill text only.
@@ -2448,6 +2451,9 @@ def check_rule_file_paths(files: dict[str, Path]) -> None:
         where = path.relative_to(ROOT).as_posix()
         if DEAD_README_POINTER in text:
             fail(f"{where} still says {DEAD_README_POINTER!r} - the README gives no path; name the rule files by path")
+        for ln in text.splitlines():
+            if TEMPLATE_MENTION in ln and TEMPLATE_PATH not in ln:
+                fail(f"{where} names the {TEMPLATE_MENTION} without its path {TEMPLATE_PATH}: {ln.strip()[:80]!r}")
         named = sorted({m.group(1) + ".md" for m in RULE_FILE_RE.finditer(text)})
         if named:
             line = next((ln for ln in text.splitlines() if RULES_LINE in ln), None)

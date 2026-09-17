@@ -61,7 +61,7 @@ description: >
 - **Evidence beats inference:** an explicit "not doing" list in a README is a real Non-goal; a feature
   that merely doesn't exist is **not**.
 
-## Step 2 — Draft, from the bundled `PRODUCT.md` template
+## Step 2 — Draft, from the bundled `PRODUCT.md` template (`${CLAUDE_PLUGIN_ROOT}/templates/PRODUCT.md`)
 Fill only what the repo can actually support:
 
 | Section | Draw it from | Leave empty when |

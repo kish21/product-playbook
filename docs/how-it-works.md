@@ -32,10 +32,12 @@ The *mechanisms* those rules run on — how a phase closes its loop, what a re-r
 declined run and a recorded override leave a trace, how the spine is resolved in a brownfield repo, lane
 mode — live in [`../references/mechanisms.md`](../references/mechanisms.md), and the harvested war-story rules
 live in [`../references/lessons.md`](../references/lessons.md). Both install as companions and are read on
-demand, by name (`MECHANISMS.md §Declined runs`). `tools/check.py` fails a pointer that resolves to
-nothing, and fails any governing file **or skill** over the ~15KB threshold `LESSONS.md` §Lesson
-format sets — a skill goes under it by moving conditional mechanism into its own installed
-`references/`, not by widening the rule.
+demand, by name (`MECHANISMS.md §Declined runs`). Each skill's header gives their paths
+(`${CLAUDE_PLUGIN_ROOT}/…`, which Claude Code fills in; `install.sh` rewrites them for a copy install), so the
+agent opens them without searching. `tools/check.py` fails a pointer that resolves to nothing and a rule
+file a skill names without its path, and fails any governing file over the ~15KB threshold `LESSONS.md`
+§Lesson format sets. Skill files carry no size cap (#287): fitting a needed line under it meant cutting
+working instructions. A skill stays short by moving conditional mechanism into its own installed `references/`.
 
 ### 3. The Commands (`commands/*.md`)
 These are plain **Markdown commands** (skills) that you install into Claude Code. Each command (e.g., `/vision`, `/scope`, `/architect`, `/dev-check`) has a strict contract:

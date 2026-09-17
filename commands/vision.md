@@ -39,7 +39,7 @@ description: >
 ## Step 0 — Context + prior-gate check
 - If `PRODUCT.md` exists, read `#Vision`; you are refining, not overwriting blindly.
 - If a codebase exists but no `PRODUCT.md`, skim it to infer what's being built, then confirm with the user.
-- If neither, start fresh from the bundled `PRODUCT.md` template (shipped with this playbook; see README).
+- If neither, start fresh from the bundled `PRODUCT.md` template: `${CLAUDE_PLUGIN_ROOT}/templates/PRODUCT.md`.
 
 - **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** if the section is already filled, **show what would change and ask before replacing it** — never a silent overwrite — and leave a reversed decision in place with a dated `superseded <date>: <why>` line. A first run over an empty section is unchanged.
 - **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** write ONE dated line at the top of `#Vision` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
