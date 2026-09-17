@@ -59,8 +59,10 @@
   // sRGB 0-255 (+ alpha) -> oklch(), so every exported colour is OKLCH (Law 8), custom picks included
   function okFromRgb(r,g,b,a){r=sl(r);g=sl(g);b=sl(b);var l=Math.cbrt(.4122214708*r+.5363325363*g+.0514459929*b),m=Math.cbrt(.2119034982*r+.6806995451*g+.1073969566*b),s=Math.cbrt(.0883024619*r+.2817188376*g+.6299787005*b),L=.2104542553*l+.793617785*m-.0040720468*s,A=1.9779984951*l-2.428592205*m+.4505937099*s,B=.0259040371*l+.7827717662*m-.808675766*s,C=Math.sqrt(A*A+B*B),H=C<5e-4?0:(Math.atan2(B,A)*180/Math.PI+360)%360;return 'oklch('+Math.max(0,L).toFixed(3)+' '+C.toFixed(3)+' '+H.toFixed(1)+(a<1?' / '+(+a.toFixed(3)):'')+')'}
   // --- /maths ---
-  // any CSS colour -> oklch(), resolved by the browser; a colour it can't turn into sRGB is flagged, never passed off as OKLCH
-  function toOk(v){v=(v||'').trim();if(!v||/^oklch\(/i.test(v)||!CSS.supports('color',v))return v;var p=document.createElement('i');p.style.color=v;document.body.appendChild(p);var c=getComputedStyle(p).color;p.remove();var n=c.match(/^rgba?\(([^)]*)\)/),q=c.match(/^color\(srgb ([^)]*)\)/);if(n){n=n[1].split(/[\s,\/]+/).map(Number);return okFromRgb(n[0],n[1],n[2],n.length>3?n[3]:1)}if(q){q=q[1].split(/[\s\/]+/).map(Number);return okFromRgb(q[0]*255,q[1]*255,q[2]*255,q.length>3?q[3]:1)}return v+' /* NOT OKLCH - convert before pasting */'}
+  // any CSS colour -> plain oklch(L C H), resolved by the browser (hex, hsl, var(), oklch(52% ...)); anything else comes back
+  // unchanged, and the export flags it (a plain value is also what the contrast maths and audit.py can read)
+  var PLAIN=/^oklch\(\s*[0-9.]+\s+[0-9.]+\s+[0-9.]+\s*(\/\s*[0-9.]+\s*)?\)$/i;
+  function toOk(v){v=(v||'').trim();if(!v||PLAIN.test(v)||!CSS.supports('color',v))return v;var p=document.createElement('i');p.style.color=v;document.body.appendChild(p);var c=getComputedStyle(p).color;p.remove();var n=c.match(/^rgba?\(([^)]*)\)/),q=c.match(/^color\(srgb ([^)]*)\)/);if(PLAIN.test(c))return c;if(n){n=n[1].split(/[\s,\/]+/).map(Number);return okFromRgb(n[0],n[1],n[2],n.length>3?n[3]:1)}if(q){q=q[1].split(/[\s\/]+/).map(Number);return okFromRgb(q[0]*255,q[1]*255,q[2]*255,q.length>3?q[3]:1)}return v}
   var el=document.documentElement,rs=el.style,cs=function(){return getComputedStyle(el)},dq=matchMedia('(prefers-color-scheme: dark)');
   // accent picks are kept PER MODE and written inline only for the mode on screen: one inline value beats .dark,
   // and the export then wrote the same accent into both blocks
@@ -90,8 +92,8 @@
   // every DESIGN.md §2 key (design-md-template.md §2 - check 40 holds this list to it) + the studio's type picks
   var KEYS=['--background','--foreground','--card','--card-foreground','--popover','--popover-foreground','--primary','--primary-foreground','--secondary','--secondary-foreground','--muted','--muted-foreground','--accent','--accent-foreground','--destructive','--destructive-foreground','--success','--warning','--info','--border','--input','--ring','--radius','--font-size-base','--font-sans'];
   // read one mode with its class SET (removing .dark alone reads dark values when the OS is dark) and its own accent applied
-  function rd(m){el.classList.remove('dark','light');el.classList.add(m);apply();var c=cs(),v={},miss=[];KEYS.forEach(function(k){var x=c.getPropertyValue(k).trim();if(!x&&k==='--font-size-base')x=document.querySelector('#ts_size .on').dataset.s+'px';if(x)v[k]=toOk(x);else miss.push(k)});return {v:v,miss:miss}}
-  function blk(sel,r){var f=function(x){return x==null?'unchecked':x.toFixed(2)+':1'+(x<4.5?' FAIL':'')};return sel+' {\n  /* AA: body text '+f(ct(r.v['--foreground'],r.v['--background']))+' - button text '+f(ct(r.v['--primary-foreground'],r.v['--primary']))+' */\n'+(r.miss.length?'  /* MISSING - the sample defines no '+r.miss.join(', ')+': add them to the sample, then export again */\n':'')+Object.keys(r.v).map(function(k){return '  '+k+': '+r.v[k]+';'}).join('\n')+'\n}\n'}
+  function rd(m){el.classList.remove('dark','light');el.classList.add(m);apply();var c=cs(),v={},miss=[];KEYS.forEach(function(k){var x=c.getPropertyValue(k).trim();if(!x&&k==='--font-size-base')x=document.querySelector('#ts_size .on').dataset.s+'px';if(!x){miss.push(k);return}x=toOk(x);if(!/^--(radius|font-)/.test(k)&&!PLAIN.test(x))x+=' /* NOT OKLCH - write it as oklch(L C H) before pasting */';v[k]=x});return {v:v,miss:miss}}
+  function blk(sel,r){var f=function(x){return x==null?'NOT CHECKED (unreadable colour)':x.toFixed(2)+':1'+(x<4.5?' FAIL':'')};return sel+' {\n  /* AA: body text '+f(ct(r.v['--foreground'],r.v['--background']))+' - button text '+f(ct(r.v['--primary-foreground'],r.v['--primary']))+' */\n'+(r.miss.length?'  /* MISSING - the sample defines no '+r.miss.join(', ')+': add them to the sample, then export again */\n':'')+Object.keys(r.v).map(function(k){return '  '+k+': '+r.v[k]+';'}).join('\n')+'\n}\n'}
   document.getElementById('ts_export').onclick=function(){var was=el.className,L=rd('light'),D=rd('dark');el.className=was;apply();var same=L.v['--background']===D.v['--background']?"/* WARNING: light and dark read the same --background - the sample's system-dark rule needs the :root:not(.light) escape hatch */\n":'';document.getElementById('ts_out').value=same+blk(':root',L)+blk('.dark',D)};
   aa();
 })();
@@ -121,7 +123,7 @@
   token** from the template, each read with its own mode class set and its own accent, **every colour in OKLCH**
   (custom picks converted), plus `--font-size-base` and `--font-sans`. Paste the two blocks whole as §2 and into
   shadcn `globals.css`; §3's other fonts and §6's shadows still come from Step 3. **Before pasting, act on its
-  notes:** `MISSING` → add those tokens to the sample and export again · `FAIL` in the AA line → fix the pair ·
+  notes:** `MISSING` → add those tokens to the sample and export again · `FAIL` or `NOT CHECKED` in the AA line → fix the pair ·
   `NOT OKLCH` → convert that value · the same-`--background` `WARNING` → the sample lacks the escape hatch above.
 - Strip the entire commented block for production; the chosen tokens already live in `DESIGN.md`.
 - The block is delimited by the `THEME STUDIO … /THEME STUDIO` markers; **`/frontend-audit` skips everything between
