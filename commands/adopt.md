@@ -14,6 +14,7 @@ description: >
 > Part of **product-playbook**. This is an **entry** skill, like `/playbook` — not a phase in the
 > vision→learn chain. It **creates** the spine that `MECHANISMS.md` §Spine resolution otherwise only
 > knows how to *read*.
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > Apply `PRINCIPLES.md` — load-bearing: **no assumptions / verify against the real code**, **honesty
 > (label what is inferred; never fabricate)**, **docs must match reality**, **plain-language
 > communication**, **one clear recommendation + yes/no**.

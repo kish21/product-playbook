@@ -2,7 +2,8 @@
 # product-playbook installer
 # Copies the product-playbook skills into ~/.claude/commands/ so they become
 # globally available slash commands, plus the companion files the skills read
-# (PRINCIPLES.md, MECHANISMS.md, MECHANISMS-ON-DEMAND.md, LESSONS.md, VISION.md, templates/PRODUCT.md).
+# (PRINCIPLES.md, MECHANISMS.md, MECHANISMS-ON-DEMAND.md, LESSONS.md, VISION.md, templates/PRODUCT.md,
+# tools/session_cost.py), and rewrites the skills' rule-file paths to where it put them.
 #
 # Usage (one-liner, recommended):
 #   curl -fsSL https://raw.githubusercontent.com/kish21/product-playbook/master/install.sh | bash
@@ -185,7 +186,41 @@ cp "${ROOT}/references/mechanisms-on-demand.md" "${SUPPORT}/MECHANISMS-ON-DEMAND
 cp "${ROOT}/references/lessons.md"    "${SUPPORT}/LESSONS.md"
 cp "${ROOT}/VISION.md"            "${SUPPORT}/VISION.md"
 cp "${ROOT}/templates/PRODUCT.md" "${SUPPORT}/PRODUCT.md"
-echo "  ✓ companions → ${SUPPORT} (PRINCIPLES.md · MECHANISMS.md · MECHANISMS-ON-DEMAND.md · LESSONS.md · VISION.md · PRODUCT.md)"
+cp "${ROOT}/tools/session_cost.py" "${SUPPORT}/session_cost.py"
+echo "  ✓ companions → ${SUPPORT} (PRINCIPLES.md · MECHANISMS.md · MECHANISMS-ON-DEMAND.md · LESSONS.md · VISION.md · PRODUCT.md · session_cost.py)"
+
+# 3) Point the rule-file paths at the companions just installed.
+#    Skills name the plugin's paths (`${CLAUDE_PLUGIN_ROOT}/…`), which Claude Code fills in only for a plugin.
+#    A copy install has no plugin folder, so without this step the agent would have to search for its rules.
+#    A project install gets a path relative to the project root, so it still works after a teammate clones.
+if [[ "${SCOPE}" == "project" ]]; then
+  RULES_AT=".claude/product-playbook"
+elif command -v cygpath >/dev/null 2>&1; then
+  RULES_AT="$(cygpath -m "${SUPPORT}")"   # Git Bash on Windows: C:/Users/…, a path every tool opens
+else
+  RULES_AT="${SUPPORT}"
+fi
+RULES_ESC="$(printf '%s' "${RULES_AT}" | sed 's/[&|\\]/\\&/g')"
+PLUGIN_ROOT='\${CLAUDE_PLUGIN_ROOT}/'
+point_rule_paths() {
+  sed -i.bak \
+    -e "s|${PLUGIN_ROOT}PRINCIPLES\.md|${RULES_ESC}/PRINCIPLES.md|g" \
+    -e "s|${PLUGIN_ROOT}references/mechanisms-on-demand\.md|${RULES_ESC}/MECHANISMS-ON-DEMAND.md|g" \
+    -e "s|${PLUGIN_ROOT}references/mechanisms\.md|${RULES_ESC}/MECHANISMS.md|g" \
+    -e "s|${PLUGIN_ROOT}references/lessons\.md|${RULES_ESC}/LESSONS.md|g" \
+    -e "s|${PLUGIN_ROOT}tools/session_cost\.py|${RULES_ESC}/session_cost.py|g" \
+    "$1"
+  rm -f "$1.bak"
+}
+for name in "${SELECTED[@]}"; do
+  if [[ -f "${TARGET}/${name}.md" ]]; then
+    point_rule_paths "${TARGET}/${name}.md"
+  else
+    while IFS= read -r f; do point_rule_paths "$f"; done < <(find "${TARGET}/${name}" -name "*.md")
+  fi
+done
+for f in "${SUPPORT}"/*.md; do point_rule_paths "$f"; done
+echo "  ✓ rule-file paths → ${RULES_AT}"
 
 echo "─── Done ─────────────────────────────────────────────────────"
 echo "Installed ${INSTALLED} skill(s) + companions to ${TARGET}"

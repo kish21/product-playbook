@@ -11,7 +11,8 @@ description: >
 # `/vision` — Phase 1 · Product · run as a **product developer**
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
-> Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing here: **vision-alignment**, **verify-don't-assume**,
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> Apply `PRINCIPLES.md` — load-bearing here: **vision-alignment**, **verify-don't-assume**,
 > **benchmark-to-current-year**, **plain-language communication**.
 
 ## Contract

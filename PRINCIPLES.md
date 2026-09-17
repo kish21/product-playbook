@@ -4,10 +4,11 @@
 > subset that is load-bearing for its phase. Do not duplicate these rules inside a skill — reference
 > them, so they can never drift.
 >
-> **The mechanisms live next door, in `MECHANISMS.md`** (`references/mechanisms.md` in this repo;
-> installed beside `PRINCIPLES.md` as a companion) — §Step 3b · §Step 3c · §Re-run semantics ·
-> §Declined runs · §Seam · §Spine resolution. **The harvested lessons live in
-> `LESSONS.md`** (`references/lessons.md`) — §Lessons baked in.
+> **The mechanisms live next door, in `MECHANISMS.md`** — §Step 3b · §Step 3c · §Re-run semantics ·
+> §Declined runs · §Seam · §Spine resolution. **The harvested lessons live in `LESSONS.md`** — §Lessons
+> baked in. **Where, from this file's folder:** plugin or clone → `references/mechanisms.md`,
+> `references/mechanisms-on-demand.md`, `references/lessons.md`; copy install → `MECHANISMS.md`,
+> `MECHANISMS-ON-DEMAND.md`, `LESSONS.md` beside this file. Open them by that path; never search.
 > This file is loaded by every skill, so its size is the per-session attention cost of the whole
 > system; a rule that is followed has to be short enough to read.
 

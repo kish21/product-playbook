@@ -25,6 +25,7 @@
 
 Skills are **namespaced by the plugin**: wherever this README says `/vision`, type `/product-playbook:vision` (same for `/playbook`, `/build`, …).
 Context cost, from `claude plugin details`: ~3.5k tokens always-on per session; each skill's full text loads only when you invoke it.
+Rule files: each skill names them as `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` and `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` (and so on), and Claude Code fills in the installed plugin's folder. The agent opens the installed version's rules directly, and never searches the plugin cache, which keeps every old version.
 
 ### B. Copy install
 
@@ -35,13 +36,13 @@ Context cost, from `claude plugin details`: ~3.5k tokens always-on per session; 
 | **Project-level** — teammates get it on clone | `./install.sh --project /path/to/project` then commit `<project>/.claude/` |
 | **Subset** — only the skills you name | `./install.sh --only build,ship` (remote: `curl -fsSL …/install.sh \| bash -s -- --only build,ship`) |
 
-What it puts where: the 22 skills → `~/.claude/commands/` (or `<project>/.claude/commands/`), plus the companions the skills read (`PRINCIPLES.md`, `MECHANISMS.md`, `LESSONS.md`, `VISION.md`, `PRODUCT.md` template) → `~/.claude/product-playbook/` (or `<project>/.claude/product-playbook/`).
+What it puts where: the 22 skills → `~/.claude/commands/` (or `<project>/.claude/commands/`), plus the companions the skills read (`PRINCIPLES.md`, `MECHANISMS.md`, `MECHANISMS-ON-DEMAND.md`, `LESSONS.md`, `VISION.md`, `PRODUCT.md` template, `session_cost.py`) → `~/.claude/product-playbook/` (or `<project>/.claude/product-playbook/`). Each skill names its rule files by path. The installer rewrites those paths to this folder: a full path for a global install, and `.claude/product-playbook/…` for a project install, so the paths still work after a teammate clones.
 
 **Updating:** re-run the exact same command. It overwrites in place. There is no version check — if you want to be told about updates, use route A.
 
 #### C. Copy install, subset (`--only`)
 
-`--only` takes a comma-separated list of skill names — `./install.sh --only build,ship,drift-check`. It installs exactly those (flat skills and directory-form ones like `design-system`, with their `references/`) **plus the companions every skill reads** (`PRINCIPLES.md`, `MECHANISMS.md`, `LESSONS.md`, `VISION.md`, the `PRODUCT.md` template), which are never optional. It combines with `--project`. An unknown name installs nothing and prints the valid ones; `./install.sh --list` prints them on demand. Add more skills later by re-running with a new list — nothing already installed is removed.
+`--only` takes a comma-separated list of skill names — `./install.sh --only build,ship,drift-check`. It installs exactly those (flat skills and directory-form ones like `design-system`, with their `references/`) **plus the companions every skill reads** (`PRINCIPLES.md`, `MECHANISMS.md`, `MECHANISMS-ON-DEMAND.md`, `LESSONS.md`, `VISION.md`, the `PRODUCT.md` template, `session_cost.py`), which are never optional. It combines with `--project`. An unknown name installs nothing and prints the valid ones; `./install.sh --list` prints them on demand. Add more skills later by re-running with a new list — nothing already installed is removed.
 
 Skills stay runnable on their own, but a few **call other skills** when they are present — `/build` → `/code-review` and `/run`, `/ship` → `/security-review`, `/learn` → `/loop` or `/schedule`, `/eval` → `/enterprise-ai-audit` (AI products, optional). Those live outside this repo; if they are not installed, the composing skill runs without that step rather than failing.
 

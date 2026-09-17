@@ -11,7 +11,8 @@ description: >
 # `/learn` — Phase 6 · Learn · run as a **product analyst**
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
-> Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing: **honesty**, **measure-first**, **vision-alignment re-check**,
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> Apply `PRINCIPLES.md` — load-bearing: **honesty**, **measure-first**, **vision-alignment re-check**,
 > **defer until a real trigger**, **decide from evidence**.
 
 ## Contract

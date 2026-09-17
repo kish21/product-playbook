@@ -15,7 +15,8 @@ description: >
 # `/tickets` — Phase 2 · Development ④b · run as a **tech lead / project engineer**
 
 > Part of **product-playbook**. Reads the project spine (`PRODUCT.md`, `STRUCTURE.md`, `#Contracts` — resolve per MECHANISMS.md §Spine resolution).
-> Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing:
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> Apply `PRINCIPLES.md` — load-bearing:
 > **modular / single-responsibility** (one ticket = one concern), **layered & decoupled** (a ticket respects
 > the layer boundaries even when it crosses them), **typed contracts** at every seam a ticket exposes,
 > **security in the definition-of-done**, and **no hardcoding** (a ticket never asks for a baked-in

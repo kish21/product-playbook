@@ -9,7 +9,7 @@ Rules:
 - A section that is empty/missing = that phase's exit criteria are not yet met.
 - A section whose only content is a dated `_Not run <date>: <what was missing> — run <phase> first._`
   line is STILL empty: that phase was attempted and correctly declined. One line, replaced on the next
-  attempt, scaffold untouched (PRINCIPLES.md §Declined runs). An `Override <date>:` line is different —
+  attempt, scaffold untouched (MECHANISMS.md §Declined runs). An `Override <date>:` line is different —
   it is a deliberate skip, and it DOES count as filled.
 - Keep entries short and honest. Record HOW something was verified, not just "done".
 - **A section is a RECORD, not a container** (PRINCIPLES.md): summary, the decision, the evidence line,
