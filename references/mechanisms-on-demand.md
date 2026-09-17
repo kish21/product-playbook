@@ -178,6 +178,8 @@ what a phase checks, writes or verifies — reporting and context only.** (case 
    card, before any file is written; then the phase runs unattended and says so. A card asked six
    minutes in stalled everything behind it for 37 minutes.
 4. **Close metrics are measured or absent.** Time, tokens or cost come from the session log
-   (`python tools/session_cost.py --project .` in the playbook repo) — or the line reads *"not measured"*.
+   (`python <tool> --project .`, where `<tool>` is `tools/session_cost.py` in the folder above this
+   file's `references/` folder (plugin or clone), or `session_cost.py` beside this file (copy install))
+   — or the line reads *"not measured"*.
    Never an estimate: live closes guessed "$1.50–2.50" for a $20 run and "not visible" for a $75 one.
 

@@ -33,7 +33,8 @@ Checks:
      heading that file really has. ~100 pointers were rewritten when the mechanisms moved out of
      PRINCIPLES.md, and a dangling cross-reference is worse than the fat file it came from.
  11. No governing file is over the SIZE threshold it sets for everyone else. PRINCIPLES.md reached
-     25.8KB against its own ~15KB prune rule, because a rule with no check is a suggestion.
+     25.8KB against its own ~15KB prune rule, because a rule with no check is a suggestion. Skill files
+     carry no size cap (#287): at the cap, a needed line could only land by cutting working instructions.
  12. Every phase skill declares its GATE TYPE - input (the answer lives only in the user's head, so it
      can never be batched) - derivation (computable from prior sections) - verification (pass/fail on
      repo evidence). Declared per skill because it is a property of the gate; a global '--auto' flag
@@ -73,6 +74,10 @@ Checks:
      may be skipped over). /contracts said "run /build" while the chain says contracts -> tickets -> build;
      on a live run the owner did what the skill said and /tickets never ran. Sixteen handoffs, one wrong,
      and nothing compared them to the order /playbook walks - so the chain had a hole only a user could find.
+ 41. Every rule file a skill names (PRINCIPLES, MECHANISMS, MECHANISMS-ON-DEMAND, LESSONS) is given by
+     PATH: `${CLAUDE_PLUGIN_ROOT}/...`, which must exist in the repo, and a copy install (install.sh run for
+     real) rewrites each such path to a file it installed. A plugin run grepped for MECHANISMS.md at the
+     plugin root, found nothing, and went on without opening any rule file (#287).
  23. The long derivation phases (foundation, contracts, tickets, build) carry the CONTEXT-HYGIENE rule -
      bulky command output goes to a file, one progress line per named step, close metrics measured or
      "not measured". Four phases in a row ignored /build's "bulky output to files" sentence and cost
@@ -248,6 +253,9 @@ def main() -> int:
     check_issue_body_is_ticket_file()
     # 40. the Theme Studio export is all of DESIGN.md §2, per mode, with the higher-contrast button text
     check_theme_studio_export()
+    # 41. every rule file a skill names is opened by path, on the plugin AND the copy-install route
+    check_rule_file_paths(files)
+    check_copy_install_rule_paths()
 
     return done(len(cmds))
 
@@ -409,14 +417,12 @@ COUNT_PATTERNS = (
 POINTER_FILES = {"PRINCIPLES.md": "PRINCIPLES.md", "MECHANISMS.md": "references/mechanisms.md",
                  "MECHANISMS-ON-DEMAND.md": "references/mechanisms-on-demand.md",
                  "LESSONS.md": "references/lessons.md"}
-# ~15KB is the prune threshold CONTRIBUTING.md §Lesson format sets for everyone; it is enforced on the
-# governing files every session loads AND on every skill file. The exemption set is EMPTY (#138): build,
-# tickets and design-system were the three holdouts, and each was pruned by moving on-demand mechanism
-# into its own `references/` companion rather than by widening the rule. A directory-form skill's
-# references/ is deliberately NOT size-checked - that is the whole point of moving mechanism there: it
-# ships with the skill but is opened only when the situation calls for it.
+# ~15KB is the prune threshold for the governing files every session loads. Skill files had the same cap
+# until #287: /tickets sat 2 bytes under it, so the one line naming where the rule files are could only land
+# by cutting working instructions - and no playbook change may lower output quality. A skill is loaded only
+# when invoked; the line budget (check 4) still bounds it, and moving situational mechanism into its own
+# `references/` stays the way to keep one short.
 SIZE_LIMIT = 15 * 1024
-SIZE_EXEMPT: dict[str, str] = {}
 # MECHANISMS-ON-DEMAND first: the alternation is ordered longest-first so a pointer at the companion can
 # never be matched as the shorter MECHANISMS.md branch and validated against the wrong file's headings.
 POINTER_RE = re.compile(r"`?(MECHANISMS-ON-DEMAND\.md|PRINCIPLES\.md|MECHANISMS\.md)`?\s+§([^\n]{2,60})")
@@ -453,9 +459,12 @@ def check_section_pointers(files: dict[str, Path]) -> None:
             fail(f"{rel} is missing, but skills point at it as {label}")
             return
         known[label] = headings(path)
+    # The template is copied into every project and the evals state what a run must say, so a stale pointer
+    # there ships to users; "PRINCIPLES.md §Declined runs" sat in both, unseen, after the section moved (#287).
     extra = {ROOT / "README.md", ROOT / "VISION.md", ROOT / "PRINCIPLES.md",
              ROOT / "references" / "mechanisms.md",
-             ROOT / "references" / "mechanisms-on-demand.md"}
+             ROOT / "references" / "mechanisms-on-demand.md",
+             ROOT / "templates" / "PRODUCT.md", ROOT / "evals" / "evals.json"}
     for path in sorted(set(files.values()) | extra):
         text = path.read_text(encoding="utf-8")
         where = path.relative_to(ROOT).as_posix()
@@ -489,11 +498,6 @@ def check_file_sizes(files: dict[str, Path]) -> None:
         if size > SIZE_LIMIT:
             fail(f"{rel} is {size / 1024:.1f}KB (> {SIZE_LIMIT // 1024}KB) - the prune rule it defines "
                  f"applies to it first: move mechanism into references/, or condense")
-    for name, path in sorted(files.items()):
-        size = content_size(path)
-        if size > SIZE_LIMIT and name not in SIZE_EXEMPT:
-            fail(f"{name} is {size / 1024:.1f}KB (> {SIZE_LIMIT // 1024}KB) - run a prune pass, or add "
-                 f"a named exemption with a reason to SIZE_EXEMPT")
 
 
 # Skills that must declare a gate type. frontend-audit is a verification gate by nature but carries no
@@ -2396,6 +2400,157 @@ def check_theme_studio_export() -> None:
         if got is None or abs(got - want) > 0.002:
             fail(f"theme-studio.md converts rgb({r} {g} {b}) to {out!r}, which is not OKLCH the audit engine reads "
                  f"back to the same luminance ({want:.4f})")
+
+
+
+PLUGIN_ROOT_VAR = "${CLAUDE_PLUGIN_ROOT}"
+PLUGIN_PATH_RE = re.compile(r"\$\{CLAUDE_PLUGIN_ROOT\}/([A-Za-z0-9_./-]+)")
+# Longest name first, so MECHANISMS-ON-DEMAND.md is never read as MECHANISMS.md.
+RULE_FILE_RE = re.compile(r"(?<![\w/-])(MECHANISMS-ON-DEMAND|MECHANISMS|PRINCIPLES|LESSONS)\.md")
+RULES_LINE = "**Rule files — open by path, never search:**"
+RULES_FALLBACK = "still starting with `$`"
+# What a project install writes in its place: the relative paths start at the project root, not the working folder.
+PROJECT_ROOT_NOTE = "paths start at the project root: the nearest folder, from the working directory up"
+DEAD_README_POINTER = "see README"
+# A skill that starts the spine from the template gives the template's path on the same line.
+TEMPLATE_MENTION = "`PRODUCT.md` template"
+TEMPLATE_PATH = "`${CLAUDE_PLUGIN_ROOT}/templates/PRODUCT.md`"
+# Plugin paths a copy install may leave as they are, because the skill names its own copy-install fallback.
+PLUGIN_PATHS_WITH_FALLBACK = {"commands/frontend-audit/audit.py": "/frontend-audit §Which engine runs (#256)"}
+# Files the agent opens with Read: Claude Code fills `${CLAUDE_PLUGIN_ROOT}` into skill text only.
+READ_COMPANIONS = ("PRINCIPLES.md", "references/mechanisms.md", "references/mechanisms-on-demand.md",
+                   "references/lessons.md")
+# Each Read companion gives the route paths from its own folder.
+COMPANION_ROUTE_TOKENS = (
+    ("PRINCIPLES.md", ("`references/mechanisms.md`", "`references/mechanisms-on-demand.md`",
+                       "`references/lessons.md`", "`MECHANISMS-ON-DEMAND.md`", "beside this file",
+                       "never search")),
+    ("references/mechanisms.md", ("`mechanisms-on-demand.md` in the plugin or a clone",
+                                  "`MECHANISMS-ON-DEMAND.md` in a copy install")),
+    ("references/mechanisms-on-demand.md", ("`tools/session_cost.py` in the folder above this",
+                                            "`session_cost.py` beside this file")),
+)
+
+
+def rule_path_for(label: str) -> str:
+    """The exact text a skill's rule-files line carries for one rule file it names."""
+    path = f"`{PLUGIN_ROOT_VAR}/{POINTER_FILES[label]}`"
+    return path if label == "PRINCIPLES.md" else f"{label} = {path}"
+
+
+def check_rule_file_paths(files: dict[str, Path]) -> None:
+    """41. A skill that names a rule file says where it is, and every plugin path it gives exists (#287).
+
+    Every skill header said "see README for its path per install mode"; the README gave none, and in the plugin
+    no file is called MECHANISMS.md (it ships as references/mechanisms.md). A logged /vision run on plugin 1.57.0
+    grepped for MECHANISMS.md at the plugin root, ran a case-sensitive `find` for MECHANISMS*, found nothing, and
+    never opened PRINCIPLES.md or the mechanisms - it ran without the rules it was meant to follow. Claude Code
+    fills `${CLAUDE_PLUGIN_ROOT}` into skill text (checked on 2.1.274, flat and SKILL.md skills alike), but not
+    into a file the agent opens with Read and not into the shell, so those files give paths from their own folder.
+    """
+    for name, path in sorted(files.items()):
+        text = path.read_text(encoding="utf-8")
+        where = path.relative_to(ROOT).as_posix()
+        if DEAD_README_POINTER in text:
+            fail(f"{where} still says {DEAD_README_POINTER!r} - the README gives no path; name the rule files by path")
+        for ln in text.splitlines():
+            if TEMPLATE_MENTION in ln and TEMPLATE_PATH not in ln:
+                fail(f"{where} names the {TEMPLATE_MENTION} without its path {TEMPLATE_PATH}: {ln.strip()[:80]!r}")
+        named = sorted({m.group(1) + ".md" for m in RULE_FILE_RE.finditer(text)})
+        if named:
+            line = next((ln for ln in text.splitlines() if RULES_LINE in ln), None)
+            if line is None:
+                fail(f"{where} names {', '.join(named)} but has no {RULES_LINE!r} line - in a plugin install no "
+                     f"file is called MECHANISMS.md, so the agent has to search for its rules")
+            else:
+                for label in named:
+                    if rule_path_for(label) not in line:
+                        fail(f"{where} names {label}, but its rule-files line does not give "
+                             f"{rule_path_for(label)} - the agent cannot open it without searching")
+                if RULES_FALLBACK not in line:
+                    fail(f"{where}'s rule-files line has no fallback for a path Claude Code did not fill in "
+                         f"({RULES_FALLBACK!r})")
+        for m in PLUGIN_PATH_RE.finditer(text):
+            if not (ROOT / m.group(1)).is_file():
+                fail(f"{where} gives {PLUGIN_ROOT_VAR}/{m.group(1)}, which is not a file in the plugin - "
+                     f"the path opens nothing")
+    read_files = [ROOT / rel for rel in READ_COMPANIONS] + sorted((ROOT / "commands").glob("*/references/*.md"))
+    for path in read_files:
+        if PLUGIN_ROOT_VAR in path.read_text(encoding="utf-8"):
+            fail(f"{path.relative_to(ROOT).as_posix()} uses {PLUGIN_ROOT_VAR} - the agent opens this file with "
+                 f"Read, where Claude Code never fills it in; give the path from this file's own folder")
+    for rel, tokens in COMPANION_ROUTE_TOKENS:
+        unquoted = re.sub(r"^\s*>\s?", "", (ROOT / rel).read_text(encoding="utf-8"), flags=re.MULTILINE)
+        flat = " ".join(unquoted.split())
+        for token in tokens:
+            if token not in flat:
+                fail(f"{rel} no longer says {token!r} - the path from that file to the other rule files or "
+                     f"tools, per install route")
+
+
+def bash_for_install() -> str | None:
+    """A POSIX bash for install.sh. On Windows, Git's own: System32's bash.exe is WSL, a different machine."""
+    import shutil
+    if os.name == "nt":
+        git = shutil.which("git")
+        if git:  # <Git>/cmd/git.exe or <Git>/mingw64/bin/git.exe
+            for root in Path(git).parents[1:3]:
+                cand = root / "bin" / "bash.exe"
+                if cand.is_file():
+                    return str(cand)
+        return None
+    return shutil.which("bash")
+
+
+def check_copy_install_rule_paths() -> None:
+    """41b. A real copy install leaves no rule-file path the agent cannot open (#287).
+
+    install.sh copies the rule files under their installed names (MECHANISMS.md, not references/mechanisms.md)
+    and must rewrite every `${CLAUDE_PLUGIN_ROOT}/...` path in what it installed. It is run for real into a
+    temporary project: a plugin path left behind, or a rewritten path with no file under it, is a skill that has
+    to search.
+    """
+    import subprocess
+    import tempfile
+
+    bash = bash_for_install()
+    if bash is None:
+        if os.environ.get("CI"):
+            fail("check 41: no bash to run install.sh - the copy-install route goes unchecked")
+        else:
+            print("note: check 41's copy-install run skipped - no Git bash found")
+        return
+    with tempfile.TemporaryDirectory() as tmp:
+        base = Path(tmp) / ".claude"
+        run = subprocess.run([bash, (ROOT / "install.sh").as_posix(), "--project", Path(tmp).as_posix()],
+                             cwd=ROOT, capture_output=True)
+        if run.returncode != 0:
+            fail(f"check 41: install.sh --project failed: {run.stderr.decode('utf-8', 'replace')[-300:]}")
+            return
+        support = base / "product-playbook"
+        installed = sorted((base / "commands").rglob("*.md")) + sorted(support.glob("*.md"))
+        if not installed:
+            fail("check 41: install.sh --project installed no Markdown files - nothing to check")
+        for path in installed:
+            text = path.read_text(encoding="utf-8")
+            where = path.relative_to(base).as_posix()
+            for m in PLUGIN_PATH_RE.finditer(text):
+                if m.group(1) not in PLUGIN_PATHS_WITH_FALLBACK:
+                    fail(f"copy install: {where} still gives {PLUGIN_ROOT_VAR}/{m.group(1)} - install.sh must "
+                         f"rewrite it to the file it installed")
+            if RULES_LINE in text:
+                given = re.findall(r"`\.claude/product-playbook/([A-Za-z0-9_.-]+)`", text)
+                if "PRINCIPLES.md" not in given:
+                    fail(f"copy install: {where}'s rule-files line does not point at the installed PRINCIPLES.md")
+                if PROJECT_ROOT_NOTE not in text or RULES_FALLBACK in text:
+                    fail(f"copy install: {where}'s rule-files line does not say where the project root is - its "
+                         f"paths are relative, and Claude Code may start in a subfolder")
+                for name in given:
+                    if not (support / name).is_file():
+                        fail(f"copy install: {where} points at .claude/product-playbook/{name}, which "
+                             f"install.sh did not install")
+        if not (support / "session_cost.py").is_file():
+            fail("copy install: session_cost.py is not installed - a copy-install close could never measure its cost")
 
 
 if __name__ == "__main__":

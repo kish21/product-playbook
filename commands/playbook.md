@@ -11,7 +11,8 @@ description: >
 # `/playbook` — guided orchestrator · run as a **calm guide**
 
 > Part of **product-playbook**. Reads the project spine (`PRODUCT.md`, or existing project docs — see MECHANISMS.md §Spine resolution); orchestrates the phase skills.
-> Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) —
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> Apply `PRINCIPLES.md` —
 > load-bearing here: **plain-language communication**, **one recommendation + confirm**, **never
 > bypass a gate**.
 

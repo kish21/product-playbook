@@ -14,6 +14,7 @@ description: >
 > Part of **product-playbook**. This is an **entry** skill, like `/playbook` — not a phase in the
 > vision→learn chain. It **creates** the spine that `MECHANISMS.md` §Spine resolution otherwise only
 > knows how to *read*.
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > Apply `PRINCIPLES.md` — load-bearing: **no assumptions / verify against the real code**, **honesty
 > (label what is inferred; never fabricate)**, **docs must match reality**, **plain-language
 > communication**, **one clear recommendation + yes/no**.
@@ -60,7 +61,7 @@ description: >
 - **Evidence beats inference:** an explicit "not doing" list in a README is a real Non-goal; a feature
   that merely doesn't exist is **not**.
 
-## Step 2 — Draft, from the bundled `PRODUCT.md` template
+## Step 2 — Draft, from the bundled `PRODUCT.md` template (`${CLAUDE_PLUGIN_ROOT}/templates/PRODUCT.md`)
 Fill only what the repo can actually support:
 
 | Section | Draw it from | Leave empty when |

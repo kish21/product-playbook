@@ -14,7 +14,8 @@ description: >
 > Part of **product-playbook**. Reads the project spine — `PRODUCT.md`, or (for existing/brownfield
 > projects) the project's own docs, or an inferred-from-code picture — and the codebase/docs.
 > Resolve the spine per `MECHANISMS.md` §Spine resolution.
-> Apply `PRINCIPLES.md` (bundled `PRINCIPLES.md`; see README for its path per install mode) — load-bearing: **vision-alignment (top priority)**, **scope discipline**,
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · LESSONS.md = `${CLAUDE_PLUGIN_ROOT}/references/lessons.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> Apply `PRINCIPLES.md` — load-bearing: **vision-alignment (top priority)**, **scope discipline**,
 > **no-drift / no-assumptions**, **docs match reality**, **verify against real code**.
 
 > This is the seatbelt against the pain that motivated product-playbook: *"I started this product but

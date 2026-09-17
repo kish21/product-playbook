@@ -2,7 +2,8 @@
 
 > The mechanisms every skill references by name (`§Declined runs`, `§Step 3c`, …). The rule sits inline
 > with at most a sentence of mechanism; situational mechanism lives in `MECHANISMS-ON-DEMAND.md`, which
-> installs beside it.
+> installs beside it: `mechanisms-on-demand.md` in the plugin or a clone, `MECHANISMS-ON-DEMAND.md` in a
+> copy install.
 
 ## §Step 3b — closing the loop (every phase that writes)
 
