@@ -5,6 +5,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — skills tell the run to OPEN the rule files, not just to apply them (#290)
+
+**Naming a file is not reading it.** Every skill header said "Apply `PRINCIPLES.md`" and named `MECHANISMS.md`
+sections (§Spine resolution, §Step 3b, §Step 3c), but no line told the agent to open either file, so loading the
+rules was left to its judgement. Once #287 made the paths resolvable, this showed up plainly: on v1.58.0 a logged
+`/vision` test run opened `PRINCIPLES.md` and never `MECHANISMS.md`, while a headless run on the same version
+opened `MECHANISMS.md` and never `PRINCIPLES.md`. Both wrote a spine section, which §Step 3b and §Step 3c govern.
+
+- **Each of the 21 skills that name a rule file** now says to open `PRINCIPLES.md` and `MECHANISMS.md` before its
+  first step, then apply them. Those are the two files that state they are read on every run.
+- **The situational companions stay opt-in.** `MECHANISMS-ON-DEMAND.md` and `LESSONS.md` are opened when a rule
+  points into them. Opening them every run is the context cost they were split out to avoid.
+- **Check 42** fails a skill that names its rule files without saying to open them, that drops the clause holding
+  the situational files back, or that orders one of them open on every run. Proven red for each case. Its
+  always-open guard reads prose, so its known limit is stated in the check: it catches the phrasings a skill
+  would plausibly use, while the instruction itself is a literal match.
+- **Proof:** a headless `/vision` run from an empty folder opened `PRINCIPLES.md` and `references/mechanisms.md`
+  by path, in that order, immediately after the skill launched, and quoted both back in its close.
+
 ## [1.58.0] - 2026-09-17
 
 ### Fixed — every skill opens its rule files by path, in the plugin and in a copy install (#287)
