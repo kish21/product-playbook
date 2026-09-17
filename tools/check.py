@@ -2409,6 +2409,8 @@ PLUGIN_PATH_RE = re.compile(r"\$\{CLAUDE_PLUGIN_ROOT\}/([A-Za-z0-9_./-]+)")
 RULE_FILE_RE = re.compile(r"(?<![\w/-])(MECHANISMS-ON-DEMAND|MECHANISMS|PRINCIPLES|LESSONS)\.md")
 RULES_LINE = "**Rule files — open by path, never search:**"
 RULES_FALLBACK = "still starting with `$`"
+# What a project install writes in its place: the relative paths start at the project root, not the working folder.
+PROJECT_ROOT_NOTE = "paths start at the project root: the nearest folder, from the working directory up"
 DEAD_README_POINTER = "see README"
 # A skill that starts the spine from the template gives the template's path on the same line.
 TEMPLATE_MENTION = "`PRODUCT.md` template"
@@ -2540,6 +2542,9 @@ def check_copy_install_rule_paths() -> None:
                 given = re.findall(r"`\.claude/product-playbook/([A-Za-z0-9_.-]+)`", text)
                 if "PRINCIPLES.md" not in given:
                     fail(f"copy install: {where}'s rule-files line does not point at the installed PRINCIPLES.md")
+                if PROJECT_ROOT_NOTE not in text or RULES_FALLBACK in text:
+                    fail(f"copy install: {where}'s rule-files line does not say where the project root is - its "
+                         f"paths are relative, and Claude Code may start in a subfolder")
                 for name in given:
                     if not (support / name).is_file():
                         fail(f"copy install: {where} points at .claude/product-playbook/{name}, which "

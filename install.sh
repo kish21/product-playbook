@@ -192,9 +192,12 @@ echo "  ✓ companions → ${SUPPORT} (PRINCIPLES.md · MECHANISMS.md · MECHANI
 # 3) Point the rule-file paths at the companions just installed.
 #    Skills name the plugin's paths (`${CLAUDE_PLUGIN_ROOT}/…`), which Claude Code fills in only for a plugin.
 #    A copy install has no plugin folder, so without this step the agent would have to search for its rules.
-#    A project install gets a path relative to the project root, so it still works after a teammate clones.
+#    A project install gets a path relative to the project root, so it still works after a teammate clones,
+#    and the header's fallback note is replaced by where that root is: Claude Code may start in a subfolder.
+FALLBACK_NOTE=()
 if [[ "${SCOPE}" == "project" ]]; then
   RULES_AT=".claude/product-playbook"
+  FALLBACK_NOTE=( -e 's|(a path still starting with `\$`: [^)]*)|(paths start at the project root: the nearest folder, from the working directory up, that holds `.claude/product-playbook/`)|g' )
 elif command -v cygpath >/dev/null 2>&1; then
   RULES_AT="$(cygpath -m "${SUPPORT}")"   # Git Bash on Windows: C:/Users/…, a path every tool opens
 else
@@ -210,6 +213,7 @@ point_rule_paths() {
     -e "s|${PLUGIN_ROOT}references/lessons\.md|${RULES_ESC}/LESSONS.md|g" \
     -e "s|${PLUGIN_ROOT}tools/session_cost\.py|${RULES_ESC}/session_cost.py|g" \
     -e "s|${PLUGIN_ROOT}templates/PRODUCT\.md|${RULES_ESC}/PRODUCT.md|g" \
+    ${FALLBACK_NOTE[@]+"${FALLBACK_NOTE[@]}"} \
     "$1"
   rm -f "$1.bak"
 }
