@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.59.0] - 2026-09-17
+
 ### Fixed — skills tell the run to OPEN the rule files, not just to apply them (#290)
 
 **Naming a file is not reading it.** Every skill header said "Apply `PRINCIPLES.md`" and named `MECHANISMS.md`
