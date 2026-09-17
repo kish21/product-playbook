@@ -246,6 +246,8 @@ def main() -> int:
     check_structure_rerun_syncs_issues(files)
     # 39. an issue body is its ticket file, so "edited on GitHub" means what it says
     check_issue_body_is_ticket_file()
+    # 40. the Theme Studio export is all of DESIGN.md §2, per mode, with the higher-contrast button text
+    check_theme_studio_export()
 
     return done(len(cmds))
 
@@ -2314,6 +2316,86 @@ def check_issue_body_is_ticket_file() -> None:
     for token, where, what in BODY_RULE_TOKENS:
         if token not in regions[where]:
             fail(f"{where} lost {what} (expected {token!r})")
+
+
+DESIGN_REFS = ROOT / "commands" / "design-system" / "references"
+# Known sRGB colours the studio's converter must turn into OKLCH that the audit engine reads back unchanged.
+STUDIO_RGB_PROBES = ((255, 136, 0, 1), (10, 125, 90, 1), (0, 0, 0, 1), (255, 255, 255, 1), (18, 52, 86, 0.5))
+STUDIO_OKLCH_OUT = re.compile(r"^oklch\(\d\.\d{3} \d\.\d{3} \d{1,3}\.\d( / [\d.]+)?\)$")
+STUDIO_DRIVER = """
+var bad = [];
+PRESETS.forEach(function (p) {
+  if (p.length !== 3) { bad.push(p[0] + ' is not [name, light, dark]'); return; }
+  [[1, 'light'], [2, 'dark']].forEach(function (x) {
+    var v = p[x[0]], fg = fgFor(v), r = ct(fg, v), other = ct(fg === INK ? WHITE : INK, v);
+    if (r == null) bad.push(p[0] + ' ' + x[1] + ' is not a colour the studio can read: ' + v);
+    else if (r < 4.5) bad.push(p[0] + ' ' + x[1] + ' exports button text at ' + r.toFixed(2) + ':1');
+  });
+});
+for (var L = 0.30; L <= 0.95; L += 0.05) for (var H = 0; H < 360; H += 30) {
+  var v = 'oklch(' + L.toFixed(2) + ' 0.12 ' + H + ')', fg = fgFor(v);
+  if (ct(fg, v) < ct(fg === INK ? WHITE : INK, v)) bad.push('fgFor picks the lower-contrast text for ' + v);
+}
+process.stdout.write(JSON.stringify({bad: bad, conv: PROBES.map(function (c) { return okFromRgb(c[0], c[1], c[2], c[3]); })}));
+"""
+
+
+def check_theme_studio_export() -> None:
+    """40. The Theme Studio export is all of DESIGN.md §2, every colour OKLCH, with the higher-contrast button text.
+
+    build-loop.md says the export IS §2. It read the light block with only `.dark` removed, so an OS in dark mode
+    exported dark values as light; one inline accent beat `.dark`, so both blocks carried the same accent; custom
+    picks left as hex; 15 of the §2 keys; and a luminance cut-off gave the Amber preset white text at 2.29:1 (#282).
+    Exercised where a browser is not needed: the studio's own maths runs in node against its presets, a lightness
+    sweep and known sRGB colours, and the audit engine reads the converted values back. The DOM half (the class set
+    for each read, the per-mode accent) is held by the two lines that do it and was proven in headless Chromium.
+    """
+    import importlib.util
+    import shutil
+    import subprocess
+
+    studio = (DESIGN_REFS / "theme-studio.md").read_text(encoding="utf-8")
+    template = (DESIGN_REFS / "design-md-template.md").read_text(encoding="utf-8")
+    s2 = re.search(r"^## 2\. Color & Roles.*?^:root \{\n(.*?)^\}", template, re.MULTILINE | re.DOTALL)
+    keys = re.search(r"var KEYS=\[([^\]]*)\]", studio)
+    if not s2 or not keys:
+        fail("check 40 cannot find the §2 :root block in design-md-template.md or the export KEYS in theme-studio.md")
+        return
+    missing = sorted(set(re.findall(r"(--[\w-]+)\s*:", s2.group(1))) - set(re.findall(r"'(--[\w-]+)'", keys.group(1))))
+    if missing:
+        fail(f"theme-studio.md's export leaves out §2 tokens {missing} - build-loop.md pastes the export as all of §2")
+    if not re.search(r"function rd\(m\)\{[^}]*classList\.add\(m\)", studio):
+        fail("theme-studio.md's export no longer SETS the mode class before each read - with only .dark removed, "
+             "an OS in dark mode exports dark values as the light block")
+    if re.search(r"rs\.setProperty\('--(primary|accent|ring)'", studio):
+        fail("theme-studio.md writes the accent inline directly - one inline value beats .dark, so both exported "
+             "blocks carry the same accent; keep picks per mode and write them through apply()")
+
+    maths = re.search(r"// --- maths.*?\n(.*?)\n\s*// --- /maths ---", studio, re.DOTALL)
+    presets = re.search(r"^\s*var PRESETS=\[.*?\];$", studio, re.MULTILINE)
+    if not maths or not presets:
+        fail("check 40 cannot find the studio's `// --- maths` section or its PRESETS line in theme-studio.md")
+        return
+    if shutil.which("node") is None:
+        fail("check 40 needs node on PATH to run the Theme Studio's contrast and OKLCH maths")
+        return
+    script = (f"{maths.group(1)}\n{presets.group(0)}\nvar PROBES={json.dumps(STUDIO_RGB_PROBES)};\n{STUDIO_DRIVER}")
+    run = subprocess.run(["node", "-"], input=script, capture_output=True, text=True, encoding="utf-8", timeout=60)
+    if run.returncode != 0:
+        fail(f"check 40: the studio's maths did not run in node: {run.stderr.strip()[:300]}")
+        return
+    result = json.loads(run.stdout)
+    for problem in result["bad"]:
+        fail(f"theme-studio.md: {problem}")
+    spec = importlib.util.spec_from_file_location("audit_engine", AUDIT_ENGINE)
+    engine = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(engine)
+    for (r, g, b, _a), out in zip(STUDIO_RGB_PROBES, result["conv"]):
+        want = engine.luminance_from_hex(f"#{r:02x}{g:02x}{b:02x}")
+        got = engine.luminance(out) if STUDIO_OKLCH_OUT.match(out) else None
+        if got is None or abs(got - want) > 0.002:
+            fail(f"theme-studio.md converts rgb({r} {g} {b}) to {out!r}, which is not OKLCH the audit engine reads "
+                 f"back to the same luminance ({want:.4f})")
 
 
 if __name__ == "__main__":

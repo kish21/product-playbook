@@ -44,9 +44,9 @@
 | **Terracotta** | editorial warmth · Warm Editorial | `oklch(0.55 0.13 40)` | `oklch(0.68 0.13 45)` | white(L) / ink(D) |
 | **Amber** | bright accent (use as fill sparingly) | `oklch(0.74 0.15 75)` | `oklch(0.80 0.14 80)` | **ink both** (bright) |
 
-- **white** = `oklch(0.99 0.005 250)`, **ink** = `oklch(0.20 0.02 260)`. The studio/Step-3 auto-picks per the rule above; verify with the audit.
+- **white** = `oklch(0.99 0.005 250)`, **ink** = `oklch(0.20 0.02 260)`. The studio takes whichever of the two contrasts more with the accent (Step 3 follows the column above); verify with the audit.
 - **Semantic status (shared):** success `oklch(0.55 0.13 155)` · warning `oklch(0.65 0.13 75)` · destructive `oklch(0.55 0.20 27)` · info `oklch(0.55 0.14 250)` — **AA-darken the *label* text** on light surfaces (T1-b).
 
 ## How the Theme Studio uses this
-The studio's `PRESETS` array is 3–5 accents from the row above that fit the archetype (e.g. Calm Authority → Teal-Slate,
+The studio's `PRESETS` array is 3–5 rows from the Accents table above that fit the archetype, each as `[name, light, dark]` (e.g. Calm Authority → Teal-Slate,
 Slate-Indigo, Forest). The user flips between them live; the live AA badge confirms each.

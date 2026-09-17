@@ -69,8 +69,8 @@ Generate **a single, representative screen of THIS product** using the §Concret
   render differently across screens — pick **clearly visible** values and verify on the user's monitor, not just code.
 - **Ship it as an INTERACTIVE sample (the visualization moat):** inject `theme-studio.md` (the drop-in editor)
   before `</body>`, wrap the page content in `<div id="ts_stage">…</div>`, size readable text in **rem** with
-  `html { font-size: var(--font-size-base,16px) }`, and replace the studio's `PRESETS` with 3–5 vetted palettes for the
-  archetype (from `palettes.md`). Now the user **tweaks colour / theme / type-size / responsive LIVE, AA-guarded** —
+  `html { font-size: var(--font-size-base,16px) }`, define **every §2 token** in both modes (the export reads them all), and
+  replace the studio's `PRESETS` with 3–5 vetted accents for the archetype (`palettes.md` rows, light + dark). Now the user **tweaks colour / theme / type-size / responsive LIVE, AA-guarded** —
   not "agent regenerates". Dev-only: stripped from the real build; only the finalized tokens persist.
   **For the studio to actually work:** give `#ts_stage` `container-type:inline-size` and write the page's responsive with
   **`@container` queries (not `@media`)** so the width buttons reflow (T5-1); use the `.light`/`.dark` **escape-hatch** dark
@@ -152,7 +152,9 @@ filled with the concrete approved values — a placeholder that ships is a secti
 - Tokens are **shadcn/ui-compatible CSS variables in OKLCH** (rebrand = change values; plugs into
   shadcn/21st.dev with no theme provider/build step).
 - **Emit light AND dark token sets + system switch** (`:root` + `.dark` + `prefers-color-scheme`) — Law 22.
-  *(If the user used the Theme Studio **Export**, those tokens — both modes + `--font-size-base` — ARE §2; paste them in.)*
+  *(If the user used the Theme Studio **Export**, its two blocks ARE §2 — every §2 token, both modes, OKLCH, plus
+  `--font-size-base` and `--font-sans`; paste them whole. First act on any `MISSING` / `FAIL` / `NOT OKLCH` /
+  `WARNING` note it carries (`theme-studio.md` §Notes). §3's other fonts and §6's shadows still come from Step 3.)*
 - **Record the page inventory** in §5 (each page type → its layout pattern from `page-patterns.md`).
 - **Re-run the WCAG-AA contrast check** on every foreground/surface pair, **in both modes**, before writing (Laws 7 & 22).
 - The **Agent Guide** (§9) tells every later build step how to obey this file.
