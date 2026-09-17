@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.58.0] - 2026-09-17
+
 ### Fixed — every skill opens its rule files by path, in the plugin and in a copy install (#287)
 
 **Skills now say where the rule files are.** Every skill header said "see README for its path per install mode",
