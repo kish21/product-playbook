@@ -15,7 +15,7 @@ description: >
 > vision→learn chain. It **creates** the spine that `MECHANISMS.md` §Spine resolution otherwise only
 > knows how to *read*.
 > **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
-> Apply `PRINCIPLES.md` — load-bearing: **no assumptions / verify against the real code**, **honesty
+> **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing: **no assumptions / verify against the real code**, **honesty
 > (label what is inferred; never fabricate)**, **docs must match reality**, **plain-language
 > communication**, **one clear recommendation + yes/no**.
 

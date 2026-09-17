@@ -13,7 +13,7 @@ description: >
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's
 > existing docs — resolve per `MECHANISMS.md` §Spine resolution); writes `docs/deployment.md`.
 > **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
-> Apply `PRINCIPLES.md` — load-bearing: **secrets are the user's to paste, never yours to write**,
+> **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing: **secrets are the user's to paste, never yours to write**,
 > **no-hardcoding**, **fail-closed**, **docs match reality**, **honest gap surfacing**.
 
 > **This phase executes a decision; it does not make one.** `#Architecture` already recorded the runtime

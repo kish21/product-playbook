@@ -78,6 +78,10 @@ Checks:
      PATH: `${CLAUDE_PLUGIN_ROOT}/...`, which must exist in the repo, and a copy install (install.sh run for
      real) rewrites each such path to a file it installed. A plugin run grepped for MECHANISMS.md at the
      plugin root, found nothing, and went on without opening any rule file (#287).
+ 42. Every skill that names a rule file tells the run to OPEN `PRINCIPLES.md` and `MECHANISMS.md` before its
+     first step - the two files that state they are read on every run - and does NOT pull the situational
+     companions into that set. Naming a file is not reading it: with #287's paths in place, one run opened
+     PRINCIPLES.md and not MECHANISMS.md, another the reverse (#290).
  23. The long derivation phases (foundation, contracts, tickets, build) carry the CONTEXT-HYGIENE rule -
      bulky command output goes to a file, one progress line per named step, close metrics measured or
      "not measured". Four phases in a row ignored /build's "bulky output to files" sentence and cost
@@ -256,6 +260,8 @@ def main() -> int:
     # 41. every rule file a skill names is opened by path, on the plugin AND the copy-install route
     check_rule_file_paths(files)
     check_copy_install_rule_paths()
+    # 42. the run is told to OPEN the two rule files that are read on every run
+    check_rule_files_are_opened(files)
 
     return done(len(cmds))
 
@@ -2551,6 +2557,53 @@ def check_copy_install_rule_paths() -> None:
                              f"install.sh did not install")
         if not (support / "session_cost.py").is_file():
             fail("copy install: session_cost.py is not installed - a copy-install close could never measure its cost")
+
+
+
+# The instruction every skill carries. Both files are read on every run, by their own statement: PRINCIPLES.md
+# "is loaded by every skill" (PRINCIPLES.md), and of MECHANISMS.md, "Everything in that file is read by every
+# phase, every run" (MECHANISMS-ON-DEMAND.md, which is the file that says it). "the first step" and not "Step 0":
+# /drift-check runs Step 0b and 0c before its Step 0, and /new-component has no Step 0 at all.
+OPEN_RULES_LINE = "**Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step**"
+OPEN_RULES_SITUATIONAL = "a situational companion only when a rule points into it"
+# MECHANISMS-ON-DEMAND.md is "the mechanism you open only when its trigger fires" and LESSONS.md is the same:
+# opening either on every run is the per-session context cost they were split out to avoid, so no skill may
+# order it. Checked as a phrase that would ORDER it, not as a mention - every skill names both files' paths.
+ALWAYS_OPEN_SITUATIONAL = re.compile(
+    r"(?:\b(?:[Aa]lways|[Uu]nconditionally)\s+(?:open|read|load)\b[^\n]{0,60}?`?(?:MECHANISMS-ON-DEMAND|LESSONS)\.md"
+    r"|\b(?:[Oo]pen|[Rr]ead|[Ll]oad)\b[^\n]{0,60}?`?(?:MECHANISMS-ON-DEMAND|LESSONS)\.md`?[^\n]{0,60}?"
+    r"\b(?:before the first step|before Step 0|on every run|every run|always|unconditionally|at the start))")
+
+
+def check_rule_files_are_opened(files: dict[str, Path]) -> None:
+    """42. A skill that names its rule files says to OPEN the two that are read every run (#290).
+
+    Every header said "Apply PRINCIPLES.md" and named MECHANISMS.md sections (§Step 3b, §Spine resolution), but
+    no line told the agent to open either file, so it was left to judgement. After #287 gave the paths, two
+    /vision runs on the same version split: a logged test run opened PRINCIPLES.md and never MECHANISMS.md,
+    while a headless run opened MECHANISMS.md and MECHANISMS-ON-DEMAND.md and never PRINCIPLES.md. Both wrote a
+    spine section, which §Step 3b and §Step 3c govern. The situational companions stay opt-in: this check fails
+    a skill that orders them open on every run, which would restore the context cost they were split out to avoid.
+
+    Known limit: that last guard reads prose, so it catches the phrasings a skill would plausibly use ("always
+    open X", "open X on every run", "read X at the start") and not every possible rewording. The load-bearing
+    half is the exact instruction above, which is a literal match.
+    """
+    for name, path in sorted(files.items()):
+        text = path.read_text(encoding="utf-8")
+        where = path.relative_to(ROOT).as_posix()
+        if RULES_LINE not in text:
+            continue  # a skill that names no rule file has none to open (/frontend-audit)
+        if OPEN_RULES_LINE not in text:
+            fail(f"{where} names its rule files but never says to open them - naming a file is not reading it, "
+                 f"so whether the run loads the rules is left to chance ({OPEN_RULES_LINE!r})")
+        elif OPEN_RULES_SITUATIONAL not in text:
+            fail(f"{where} says to open the rule files without holding the situational ones back "
+                 f"({OPEN_RULES_SITUATIONAL!r}) - MECHANISMS-ON-DEMAND.md and LESSONS.md are opened on a trigger")
+        m = ALWAYS_OPEN_SITUATIONAL.search(" ".join(text.split()))
+        if m:
+            fail(f"{where} orders a situational companion open every run ({m.group(0)!r}) - that file exists to "
+                 f"be opened when its trigger fires; always-open is the context cost it was split out to avoid")
 
 
 if __name__ == "__main__":
