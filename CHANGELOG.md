@@ -5,6 +5,39 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — every skill opens its rule files by path, in the plugin and in a copy install (#287)
+
+**Skills now say where the rule files are.** Every skill header said "see README for its path per install mode",
+and the README gave no path. In the plugin, no file is called `MECHANISMS.md` (it ships as
+`references/mechanisms.md`). On a logged test run (plugin 1.57.0), `/vision` grepped for `MECHANISMS.md` at the
+plugin root, got "No such file", ran a case-sensitive `find`, found nothing, and went on without opening
+`PRINCIPLES.md` or the mechanisms at all.
+
+- **Each skill header gives the paths.** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md`, and `MECHANISMS.md`,
+  `MECHANISMS-ON-DEMAND.md` and (where named) `LESSONS.md` under `${CLAUDE_PLUGIN_ROOT}/references/`. Claude Code
+  fills in the installed plugin's folder, so the run opens this version's rules, never a search result or an old
+  cached copy. `/vision` and `/adopt` give the `PRODUCT.md` template's path the same way.
+- **A copy install gets the same paths.** `install.sh` rewrites them to the files it installed:
+  `.claude/product-playbook/…` for a project install (so the paths still work after a clone), and a full path for
+  a global one. It now also ships `session_cost.py`.
+- **The files the agent opens with Read give paths from their own folder.** Claude Code fills in
+  `${CLAUDE_PLUGIN_ROOT}` only in skill text, not in a file the agent opens with Read, and not in the shell.
+  `PRINCIPLES.md`, `MECHANISMS.md` and the context rule in `MECHANISMS-ON-DEMAND.md` now say where the other
+  files and `session_cost.py` are for each install route. The context rule named a path that existed only in a
+  clone.
+- **Stale pointers fixed.** The `PRODUCT.md` template and three evals pointed at "PRINCIPLES.md §Declined runs".
+  They now say `MECHANISMS.md`, and check 10 scans the template and the evals.
+- **Check 41** fails when a skill names a rule file or the template without its path, gives a
+  `${CLAUDE_PLUGIN_ROOT}` path that is not in the plugin, or uses that variable in a file the agent opens with
+  Read. It also runs `install.sh --project` for real and fails if a rule path is left unrewritten or points at
+  a file the installer did not ship. Each case was proven red by breaking it.
+- **Skill files have no size cap any more** (owner's call). `/tickets` was 2 bytes under 15 KB, so the header
+  line could fit only by cutting working instructions. The 15 KB cap still applies to `PRINCIPLES.md` and the
+  mechanisms and lessons files, which every session loads; the 500-line skill budget stays.
+- **Proof:** a headless `claude -p` `/vision` run from an empty folder, with this branch as the plugin, opened
+  `PRINCIPLES.md`, `references/mechanisms.md`, `references/mechanisms-on-demand.md` and the template by the paths
+  in the header. It ran no search for them and never touched the plugin cache.
+
 ## [1.57.0] - 2026-09-17
 
 ### Fixed — the `/design-system` Theme Studio export writes each mode's own colours, in OKLCH, for all of §2 (#282)
