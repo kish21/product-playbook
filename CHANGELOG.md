@@ -19,7 +19,8 @@ plugin root, got "No such file", ran a case-sensitive `find`, found nothing, and
   cached copy. `/vision` and `/adopt` give the `PRODUCT.md` template's path the same way.
 - **A copy install gets the same paths.** `install.sh` rewrites them to the files it installed:
   `.claude/product-playbook/…` for a project install (so the paths still work after a clone), and a full path for
-  a global one. It now also ships `session_cost.py`.
+  a global one. A project install's header also says those paths start at the project root, because Claude Code
+  may start in a subfolder. It now also ships `session_cost.py`.
 - **The files the agent opens with Read give paths from their own folder.** Claude Code fills in
   `${CLAUDE_PLUGIN_ROOT}` only in skill text, not in a file the agent opens with Read, and not in the shell.
   `PRINCIPLES.md`, `MECHANISMS.md` and the context rule in `MECHANISMS-ON-DEMAND.md` now say where the other
