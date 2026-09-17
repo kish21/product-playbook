@@ -5,11 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.57.0] - 2026-09-17
+
 ### Fixed — the `/design-system` Theme Studio export writes each mode's own colours, in OKLCH, for all of §2 (#282)
 
-`build-loop.md` tells the agent to paste the studio's **Export** in as `DESIGN.md` §2, and every later UI step
-builds from that file. The export was wrong in three ways and incomplete in a fourth, and the AA re-check could
-not notice, because it compared pairs from the same wrong export.
+**The Theme Studio export now writes each mode's own OKLCH colours for all of §2.** `build-loop.md` tells the
+agent to paste the export in as `DESIGN.md` §2, and every later UI step builds from that file. The export was
+wrong in three ways and incomplete in a fourth, and the AA re-check could not notice, because it compared pairs
+from the same wrong export.
 
 - **The light block has the light values.** The export removed `.dark` to read the light block but never set
   `.light`. The sample's system-dark rule is `:root:not(.light)`, so on a computer set to dark mode the "light"
