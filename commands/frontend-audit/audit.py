@@ -19,7 +19,7 @@ import sys, os, re, math, glob, subprocess
 
 # The playbook release this engine shipped in. tools/check.py (check 5) holds it equal to the release,
 # so a project copy can say which checks it carries.
-ENGINE_VERSION = "1.58.0"
+ENGINE_VERSION = "1.59.0"
 
 # ---------- colour math ----------------------------------------------------
 
