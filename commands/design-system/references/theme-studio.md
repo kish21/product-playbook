@@ -5,11 +5,13 @@
 > finalized tokens → they become `DESIGN.md` §2. **Dev-only — STRIPPED from the real shadcn build** (only the chosen
 > tokens persist; the live AA math is the same engine as `frontend-audit/audit.py`).
 >
-> **The sample must (the skill already enforces these):** define both `:root` (light) + `.dark` token blocks (Law 22);
-> size readable text in **rem** with `html { font-size: var(--font-size-base, 16px) }`; use the standard shadcn token
-> names (`--background/-foreground/-card/-primary/-primary-foreground/-accent/-accent-foreground/-ring/-border/-radius/-font-sans`).
+> **The sample must (the skill already enforces these):** define both `:root` (light) + `.dark` token blocks (Law 22)
+> plus the `:root:not(.light)` system-dark escape hatch; define **every `DESIGN.md` §2 token** in each block
+> (`design-md-template.md` §2 — the export reads them all) plus `--font-sans`; size readable text in **rem** with
+> `html { font-size: var(--font-size-base, 16px) }`.
 >
-> **AGENT:** replace the `PRESETS` array with **3–5 vetted palettes for the chosen archetype** (from `palettes.md`).
+> **AGENT:** replace the `PRESETS` array with **3–5 vetted accents for the chosen archetype** — each entry is one
+> `palettes.md` Accents row: `[name, --primary light, --primary dark]`.
 
 ```html
 <!-- ===== THEME STUDIO (dev-only; delete this whole block for the production build) ===== -->
@@ -34,35 +36,52 @@
 <aside class="ts" id="ts" aria-label="Theme studio">
   <h3>Theme Studio</h3><button class="close" id="tsClose" aria-label="Close">&times;</button>
   <div class="grp"><div class="glab">Starter looks</div><div class="swatches" id="presets"></div></div>
-  <div class="grp"><div class="glab">Accent</div><div class="row"><input type="color" id="ts_accent" value="#4f46e5" aria-label="Accent colour"><span style="font-size:12px;color:var(--muted-foreground)">Text auto-adjusts for contrast.</span></div></div>
+  <div class="grp"><div class="glab">Accent</div><div class="row"><input type="color" id="ts_accent" value="#4f46e5" aria-label="Accent colour"><span style="font-size:12px;color:var(--muted-foreground)">Sets the mode on screen. Text takes ink or white, whichever reads better.</span></div></div>
   <div class="grp"><div class="glab">Mode</div><div class="seg" id="ts_mode"><button data-m="light">Light</button><button data-m="dark">Dark</button><button data-m="system">System</button></div></div>
   <div class="grp"><div class="glab">Preview width</div><div class="seg" id="ts_vw"><button data-w="375">Mobile</button><button data-w="768">Tablet</button><button data-w="0" class="on">Desktop</button></div></div>
   <div class="grp"><div class="glab">Base text size</div><div class="seg" id="ts_size"><button data-s="14">14</button><button data-s="15">15</button><button data-s="16" class="on">16</button><button data-s="17">17</button><button data-s="18">18</button></div></div>
-  <div class="grp"><div class="glab">Font</div><div class="row"><select id="ts_font"><option value="var(--font-sans)">Default</option><option value='"Plus Jakarta Sans",sans-serif'>Plus Jakarta Sans</option><option value='"Space Grotesk",sans-serif'>Space Grotesk</option><option value='"IBM Plex Sans",sans-serif'>IBM Plex Sans</option></select></div></div>
+  <div class="grp"><div class="glab">Font</div><div class="row"><select id="ts_font"><option value="">Default</option><option value='"Plus Jakarta Sans",sans-serif'>Plus Jakarta Sans</option><option value='"Space Grotesk",sans-serif'>Space Grotesk</option><option value='"IBM Plex Sans",sans-serif'>IBM Plex Sans</option></select></div></div>
   <div class="grp"><div class="glab">Roundness</div><div class="row"><input type="range" id="ts_radius" min="0" max="1.6" step="0.05" value="0.6"></div></div>
   <div class="grp"><div class="glab">Accessibility (live WCAG AA)</div><div class="aa"><div class="line"><span>Button text on accent</span><span><span class="v" id="ts_aaBtnV"></span> <span class="pill" id="ts_aaBtnP"></span></span></div><div class="line"><span>Body text on background</span><span><span class="v" id="ts_aaBodyV"></span> <span class="pill" id="ts_aaBodyP"></span></span></div></div></div>
   <div class="grp"><div class="glab">Finalize &rarr; DESIGN.md tokens</div><button class="exp" id="ts_export">Export tokens (light + dark)</button><textarea id="ts_out" readonly placeholder="Click Export to capture the tokens you finalized -> paste into DESIGN.md section 2."></textarea></div>
 </aside>
 <script>
 (function(){
-  // OKLCH/hex -> WCAG contrast (same math as audit.py)
+  // --- maths: OKLCH/hex -> WCAG contrast (same math as audit.py). tools/check.py runs this part in node ---
   var sl=function(c){c/=255;return c<=.04045?c/12.92:Math.pow((c+.055)/1.055,2.4)};
   function lh(h){h=h.replace('#','');if(h.length===3)h=h.split('').map(function(c){return c+c}).join('');return .2126*sl(parseInt(h.slice(0,2),16))+.7152*sl(parseInt(h.slice(2,4),16))+.0722*sl(parseInt(h.slice(4,6),16))}
   function lo(L,C,H){var h=H*Math.PI/180,a=C*Math.cos(h),b=C*Math.sin(h),l=L+.3963377774*a+.2158037573*b,m=L-.1055613458*a-.0638541728*b,s=L-.0894841775*a-1.291485548*b;l=l*l*l;m=m*m*m;s=s*s*s;var R=4.0767416621*l-3.3077115913*m+.2309699292*s,G=-1.2684380046*l+2.6097574011*m-.3413193965*s,B=-.0041960863*l-.7034186147*m+1.707614701*s;R=Math.min(1,Math.max(0,R));G=Math.min(1,Math.max(0,G));B=Math.min(1,Math.max(0,B));return .2126*R+.7152*G+.0722*B}
   function lum(v){v=(v||'').trim();var m=v.match(/oklch\(\s*([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)/i);if(m)return lo(+m[1],+m[2],+m[3]);m=v.match(/#([0-9a-fA-F]{3,6})/);if(m)return lh(m[0]);return null}
   function ct(a,b){var x=lum(a),y=lum(b);if(x==null||y==null)return null;var hi=Math.max(x,y),lo2=Math.min(x,y);return (hi+.05)/(lo2+.05)}
-  var rs=document.documentElement.style, cs=function(){return getComputedStyle(document.documentElement)};
-  function setAccent(v){rs.setProperty('--primary',v);rs.setProperty('--accent',v);rs.setProperty('--ring',v);var L=lum(v),fg=(L!=null&&L>.45)?'oklch(0.20 0.02 265)':'oklch(0.99 0.005 265)';rs.setProperty('--primary-foreground',fg);rs.setProperty('--accent-foreground',fg);aa()}
+  var INK='oklch(0.20 0.02 265)',WHITE='oklch(0.99 0.005 265)';
+  // text on an accent: whichever of ink or white contrasts MORE (a fixed luminance cut-off gave Amber white text at 2.29:1)
+  function fgFor(v){var i=ct(INK,v),w=ct(WHITE,v);return i!=null&&w!=null&&i>w?INK:WHITE}
+  // sRGB 0-255 (+ alpha) -> oklch(), so every exported colour is OKLCH (Law 8), custom picks included
+  function okFromRgb(r,g,b,a){r=sl(r);g=sl(g);b=sl(b);var l=Math.cbrt(.4122214708*r+.5363325363*g+.0514459929*b),m=Math.cbrt(.2119034982*r+.6806995451*g+.1073969566*b),s=Math.cbrt(.0883024619*r+.2817188376*g+.6299787005*b),L=.2104542553*l+.793617785*m-.0040720468*s,A=1.9779984951*l-2.428592205*m+.4505937099*s,B=.0259040371*l+.7827717662*m-.808675766*s,C=Math.sqrt(A*A+B*B),H=C<5e-4?0:(Math.atan2(B,A)*180/Math.PI+360)%360;return 'oklch('+Math.max(0,L).toFixed(3)+' '+C.toFixed(3)+' '+H.toFixed(1)+(a<1?' / '+(+a.toFixed(3)):'')+')'}
+  // --- /maths ---
+  // any CSS colour -> plain oklch(L C H), resolved by the browser (hex, hsl, var(), oklch(52% ...)); anything else comes back
+  // unchanged, and the export flags it (a plain value is also what the contrast maths and audit.py can read)
+  var PLAIN=/^oklch\(\s*[0-9.]+\s+[0-9.]+\s+[0-9.]+\s*(\/\s*[0-9.]+\s*)?\)$/i;
+  function toOk(v){v=(v||'').trim();if(!v||PLAIN.test(v)||!CSS.supports('color',v))return v;var p=document.createElement('i');p.style.color=v;document.body.appendChild(p);var c=getComputedStyle(p).color;p.remove();var n=c.match(/^rgba?\(([^)]*)\)/),q=c.match(/^color\(srgb ([^)]*)\)/);if(PLAIN.test(c))return c;if(n){n=n[1].split(/[\s,\/]+/).map(Number);return okFromRgb(n[0],n[1],n[2],n.length>3?n[3]:1)}if(q){q=q[1].split(/[\s\/]+/).map(Number);return okFromRgb(q[0]*255,q[1]*255,q[2]*255,q.length>3?q[3]:1)}return v}
+  var el=document.documentElement,rs=el.style,cs=function(){return getComputedStyle(el)},dq=matchMedia('(prefers-color-scheme: dark)');
+  // accent picks are kept PER MODE and written inline only for the mode on screen: one inline value beats .dark,
+  // and the export then wrote the same accent into both blocks
+  var PICK={light:{},dark:{}};
+  function mode(){return el.classList.contains('dark')?'dark':el.classList.contains('light')?'light':dq.matches?'dark':'light'}
+  function apply(){var k,o=PICK[mode()];for(k in PICK.light)rs.removeProperty(k);for(k in PICK.dark)rs.removeProperty(k);for(k in o)rs.setProperty(k,o[k]);aa()}
+  function setAccent(m,v){v=toOk(v);var o=PICK[m],fg=fgFor(v);o['--primary']=o['--accent']=o['--ring']=v;o['--primary-foreground']=o['--accent-foreground']=fg}
   function paint(id,r){document.getElementById(id+'V').textContent=r?r.toFixed(2)+':1':'-';var p=document.getElementById(id+'P'),ok=r&&r>=4.5;p.textContent=ok?'AA':(r&&r>=3?'large':'FAIL');p.className='pill '+(ok?'ok':'bad')}
   function aa(){var c=cs();paint('ts_aaBtn',ct(c.getPropertyValue('--primary-foreground'),c.getPropertyValue('--primary')));paint('ts_aaBody',ct(c.getPropertyValue('--foreground'),c.getPropertyValue('--background')))}
-  // AGENT: replace with 3-5 vetted palettes for this archetype (from palettes.md)
-  var PRESETS=[['Indigo','oklch(0.52 0.16 265)'],['Coral','oklch(0.58 0.20 25)'],['Emerald','oklch(0.55 0.15 155)'],['Violet','oklch(0.55 0.22 300)'],['Amber','oklch(0.74 0.15 75)']];
-  var pc=document.getElementById('presets');PRESETS.forEach(function(p){var b=document.createElement('button');b.className='sw';b.title=p[0];b.style.background=p[1];b.onclick=function(){setAccent(p[1])};pc.appendChild(b)});
-  document.getElementById('ts_accent').addEventListener('input',function(e){setAccent(e.target.value)});
-  document.getElementById('ts_font').addEventListener('change',function(e){rs.setProperty('--font-sans',e.target.value)});
+  // AGENT: replace with 3-5 vetted accents for this archetype - each is one palettes.md Accents row: [name, light, dark]
+  var PRESETS=[['Indigo','oklch(0.52 0.17 265)','oklch(0.68 0.16 265)'],['Coral','oklch(0.58 0.18 28)','oklch(0.70 0.17 28)'],['Forest','oklch(0.50 0.12 155)','oklch(0.68 0.13 155)'],['Violet','oklch(0.55 0.20 290)','oklch(0.68 0.18 290)'],['Amber','oklch(0.74 0.15 75)','oklch(0.80 0.14 80)']];
+  var pc=document.getElementById('presets');PRESETS.forEach(function(p){var b=document.createElement('button');b.className='sw';b.title=p[0];b.style.background=p[1];b.onclick=function(){setAccent('light',p[1]);setAccent('dark',p[2]);apply()};pc.appendChild(b)});
+  document.getElementById('ts_accent').addEventListener('input',function(e){setAccent(mode(),e.target.value);apply()});
+  // "Default" removes the pick: writing var(--font-sans) into --font-sans is a cycle, and the export read it as empty
+  document.getElementById('ts_font').addEventListener('change',function(e){var v=e.target.value;if(v)rs.setProperty('--font-sans',v);else rs.removeProperty('--font-sans')});
   document.getElementById('ts_radius').addEventListener('input',function(e){rs.setProperty('--radius',e.target.value+'rem')});
   function seg(id,fn){var el=document.getElementById(id);el.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;[].forEach.call(el.children,function(x){x.classList.remove('on')});b.classList.add('on');fn(b)})}
-  seg('ts_mode',function(b){var el=document.documentElement,m=b.dataset.m;el.classList.remove('dark');el.classList.remove('light');if(m==='dark')el.classList.add('dark');else if(m==='light')el.classList.add('light');aa()});
+  seg('ts_mode',function(b){var el=document.documentElement,m=b.dataset.m;el.classList.remove('dark');el.classList.remove('light');if(m==='dark')el.classList.add('dark');else if(m==='light')el.classList.add('light');apply()});
+  if(dq.addEventListener)dq.addEventListener('change',apply);
   seg('ts_vw',function(b){var st=document.getElementById('ts_stage')||document.body;var w=+b.dataset.w;if(w){st.style.maxWidth=w+'px';st.style.margin='14px auto';st.style.border='1px solid var(--border)';st.style.borderRadius='20px';st.style.overflow='hidden'}else{st.style.maxWidth='';st.style.border='';st.style.borderRadius='';st.style.margin=''}});
   seg('ts_size',function(b){rs.setProperty('--font-size-base',b.dataset.s+'px')});
   var body=document.body;document.getElementById('tsOpen').onclick=function(){body.classList.add('ts-on')};document.getElementById('tsClose').onclick=function(){body.classList.remove('ts-on')};document.getElementById('tsScrim').onclick=function(){body.classList.remove('ts-on')};
@@ -70,8 +89,12 @@
   // sync the Mode toggle to the page's ACTUAL starting mode (.dark / .light / neither = System) — so a
   // dark-default product opens on "Dark", not a hard-coded "Light" (T5-6).
   (function(){var el=document.documentElement,m=el.classList.contains('dark')?'dark':el.classList.contains('light')?'light':'system';var sg=document.getElementById('ts_mode');[].forEach.call(sg.children,function(b){b.classList.toggle('on',b.dataset.m===m)})})();
-  var KEYS=['--background','--foreground','--card','--card-foreground','--muted','--muted-foreground','--primary','--primary-foreground','--accent','--accent-foreground','--border','--ring','--radius','--font-size-base','--font-sans'];
-  document.getElementById('ts_export').onclick=function(){var el=document.documentElement,was=el.classList.contains('dark');function rd(){var c=cs();return KEYS.map(function(k){return '  '+k+': '+c.getPropertyValue(k).trim()+';'}).join('\n')}el.classList.remove('dark');var L=rd();el.classList.add('dark');var D=rd();if(!was)el.classList.remove('dark');document.getElementById('ts_out').value=':root {\n'+L+'\n}\n.dark {\n'+D+'\n}\n'};
+  // every DESIGN.md §2 key (design-md-template.md §2 - check 40 holds this list to it) + the studio's type picks
+  var KEYS=['--background','--foreground','--card','--card-foreground','--popover','--popover-foreground','--primary','--primary-foreground','--secondary','--secondary-foreground','--muted','--muted-foreground','--accent','--accent-foreground','--destructive','--destructive-foreground','--success','--warning','--info','--border','--input','--ring','--radius','--font-size-base','--font-sans'];
+  // read one mode with its class SET (removing .dark alone reads dark values when the OS is dark) and its own accent applied
+  function rd(m){el.classList.remove('dark','light');el.classList.add(m);apply();var c=cs(),v={},miss=[];KEYS.forEach(function(k){var x=c.getPropertyValue(k).trim();if(!x&&k==='--font-size-base')x=document.querySelector('#ts_size .on').dataset.s+'px';if(!x){miss.push(k);return}x=toOk(x);if(!/^--(radius|font-)/.test(k)&&!PLAIN.test(x))x+=' /* NOT OKLCH - write it as oklch(L C H) before pasting */';v[k]=x});return {v:v,miss:miss}}
+  function blk(sel,r){var f=function(x){return x==null?'NOT CHECKED (unreadable colour)':x.toFixed(2)+':1'+(x<4.5?' FAIL':'')};return sel+' {\n  /* AA: body text '+f(ct(r.v['--foreground'],r.v['--background']))+' - button text '+f(ct(r.v['--primary-foreground'],r.v['--primary']))+' */\n'+(r.miss.length?'  /* MISSING - the sample defines no '+r.miss.join(', ')+': add them to the sample, then export again */\n':'')+Object.keys(r.v).map(function(k){return '  '+k+': '+r.v[k]+';'}).join('\n')+'\n}\n'}
+  document.getElementById('ts_export').onclick=function(){var was=el.className,L=rd('light'),D=rd('dark');el.className=was;apply();var same=L.v['--background']===D.v['--background']?"/* WARNING: light and dark read the same --background - the sample's system-dark rule needs the :root:not(.light) escape hatch */\n":'';document.getElementById('ts_out').value=same+blk(':root',L)+blk('.dark',D)};
   aa();
 })();
 </script>
@@ -93,7 +116,15 @@
   shadcn/Next build uses self-hosted `next/font`. Without it the preview silently falls back to a system font.
 - **Base text size** sets `--font-size-base`; the sample's `html { font-size: var(--font-size-base,16px) }` + rem text
   makes the whole type scale respond. Export captures it as a token (so DESIGN.md is complete).
-- **Export** writes BOTH `:root` and `.dark` blocks → drop straight into `DESIGN.md` §2 / shadcn `globals.css`.
+- **Accent per mode:** a preset sets the light AND dark accent from its `palettes.md` row; a custom colour sets the
+  accent of the mode **on screen** only, so flip Mode and pick again for the other. Button text is ink or white,
+  whichever contrasts more.
+- **Export = all of `DESIGN.md` §2 (the merge rule):** it writes BOTH `:root` and `.dark` blocks with **every §2
+  token** from the template, each read with its own mode class set and its own accent, **every colour in OKLCH**
+  (custom picks converted), plus `--font-size-base` and `--font-sans`. Paste the two blocks whole as §2 and into
+  shadcn `globals.css`; §3's other fonts and §6's shadows still come from Step 3. **Before pasting, act on its
+  notes:** `MISSING` → add those tokens to the sample and export again · `FAIL` or `NOT CHECKED` in the AA line → fix the pair ·
+  `NOT OKLCH` → convert that value · the same-`--background` `WARNING` → the sample lacks the escape hatch above.
 - Strip the entire commented block for production; the chosen tokens already live in `DESIGN.md`.
 - The block is delimited by the `THEME STUDIO … /THEME STUDIO` markers; **`/frontend-audit` skips everything between
   them** (it's dev-only), so the studio's own colour-input hex literal + 🎨 emoji + panel labels don't false-positive.

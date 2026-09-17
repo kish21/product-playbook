@@ -670,6 +670,13 @@
       "files": []
     },
     {
+      "id": "design-system-theme-studio-export-is-all-of-section-2",
+      "skill": "design-system",
+      "prompt": "My laptop is in dark mode. I picked Amber in the Theme Studio, then a custom orange for dark, and hit Export - paste it into DESIGN.md",
+      "expected_output": "Pastes the export's two blocks whole as DESIGN.md §2 as build-loop.md says: the :root block carries the light values and the .dark block the dark ones, each with its own accent, every §2 token present and every colour in OKLCH, Amber's button text ink (7.68:1) rather than white. Acts on any MISSING, FAIL, NOT CHECKED, NOT OKLCH or WARNING note before writing instead of pasting around it, still fills §3's other fonts and §6's shadows from Step 3, and re-runs the AA check in both modes",
+      "files": []
+    },
+    {
       "id": "drift-check-catches-a-fabricated-claim",
       "skill": "drift-check",
       "prompt": "check we're on track - dev-check says everything passed",
