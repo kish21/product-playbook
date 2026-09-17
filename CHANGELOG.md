@@ -5,6 +5,36 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — the `/design-system` Theme Studio export writes each mode's own colours, in OKLCH, for all of §2 (#282)
+
+`build-loop.md` tells the agent to paste the studio's **Export** in as `DESIGN.md` §2, and every later UI step
+builds from that file. The export was wrong in three ways and incomplete in a fourth, and the AA re-check could
+not notice, because it compared pairs from the same wrong export.
+
+- **The light block has the light values.** The export removed `.dark` to read the light block but never set
+  `.light`. The sample's system-dark rule is `:root:not(.light)`, so on a computer set to dark mode the "light"
+  block carried the dark values. Each block is now read with its own mode class set, and the page's own mode is
+  put back after.
+- **Each mode keeps its own accent.** A pick was written as one inline style, which beats `.dark`, so after any
+  preset or custom pick both blocks had the same accent. Picks are now kept per mode. A preset sets both, from its
+  `palettes.md` row (`PRESETS` entries are now `[name, light, dark]`), and a custom colour sets the mode on screen.
+- **Every exported colour is OKLCH.** A custom pick was exported as hex. The export now converts every colour,
+  including hex, `hsl()`, `var()` and `oklch(52% …)`, to plain `oklch(L C H)`, and flags any value it cannot
+  convert as `NOT OKLCH`.
+- **Button text takes the higher-contrast option.** Ink was used only above a luminance of 0.45, so the studio's
+  own Amber preset got white text at 2.29:1 (ink gives 7.68:1). The studio now computes both ratios and takes
+  the higher. Each exported block opens with its body and button ratios, and a pair below AA is marked `FAIL`.
+- **The export is all of §2 (the merge rule).** It carried 15 tokens. It now writes every §2 token in the
+  template, plus `--font-size-base` and `--font-sans`, and lists any the sample lacks as `MISSING`. §3's other
+  fonts and §6's shadows still come from Step 3. `build-loop.md` and `theme-studio.md` both say so, and both say
+  to act on every note in the export before pasting.
+- **The font "Default" option no longer blanks the font.** Choosing a font and then "Default" wrote
+  `--font-sans: var(--font-sans)`, which refers to itself, so the export wrote `--font-sans: ;`.
+- **Check 40** holds the export's token list to the template's §2. It runs the studio's own contrast and OKLCH
+  maths in node against its presets, a lightness sweep and known sRGB colours, and has the audit engine read the
+  converted values back. It also holds the two lines that set each mode's class and keep accents per mode.
+  New eval: a dark-mode export with a preset and a custom pick.
+
 ## [1.56.0] - 2026-09-16
 
 ### Fixed — the path sync no longer stops a later move on issues nobody edited, and an issue body is its ticket file (#279)
