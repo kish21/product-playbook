@@ -16,6 +16,7 @@ description: >
 
 > Part of **product-playbook**. Reads the project spine (`PRODUCT.md`, `STRUCTURE.md`, `#Contracts` — resolve per MECHANISMS.md §Spine resolution).
 > **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **This skill's OWN reference files are a DIFFERENT folder** — they live in `references/` **beside this SKILL.md** (`commands/tickets/references/`), not in the plugin-root `references/` named above. Both install routes put them there. Below, `adhoc-capture.md` · `publishing.md` · `slicing.md` · `tickets-md.md` · `verification.md` each mean that folder: open them by that path, and never look for them next to MECHANISMS.md.
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing:
 > **modular / single-responsibility** (one ticket = one concern), **layered & decoupled** (a ticket respects
 > the layer boundaries even when it crosses them), **typed contracts** at every seam a ticket exposes,
