@@ -12,6 +12,7 @@ description: >
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
 > **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **This skill's OWN reference files are a DIFFERENT folder** — they live in `references/` **beside this SKILL.md** (`commands/architect/references/`), not in the plugin-root `references/` named above. Both install routes put them there. Below, `decisions.md` each mean that folder: open them by that path, and never look for them next to MECHANISMS.md.
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing this phase:
 > **benchmark 2026 then optimise for constraints (incl. lock-in)**, **patterns & anti-patterns**, **provider/adapter for externals**,
 > **resilience strategy**, **perf/cost budget**, **migrations (not raw schema)**, **no-hardcoding /

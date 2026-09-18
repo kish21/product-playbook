@@ -13,6 +13,7 @@ description: >
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
 > **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **This skill's OWN reference files are a DIFFERENT folder** — they live in `references/` **beside this SKILL.md** (`commands/foundation/references/`), not in the plugin-root `references/` named above. Both install routes put them there. Below, `skeleton-steps.md` · `test-datastore.md` each mean that folder: open them by that path, and never look for them next to MECHANISMS.md.
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing: **no-hardcoding (config/.env)**, **verify config actually
 > flows (no dead config)**, **fail-loud on misconfig / fail-closed on security**, **structured
 > logging (no prints)**, **CI mirrors prod**, **fast feedback early**.

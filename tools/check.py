@@ -143,6 +143,50 @@ def skill_files() -> dict[str, Path]:
     return out
 
 
+SKILL_LOCAL_HEADER = "This skill's OWN reference files are a DIFFERENT folder"
+
+
+def check_skill_local_references(files: dict[str, Path]) -> None:
+    """42. `references/<file>.md` means two different folders, so every citation must resolve.
+
+    The plugin root has `references/` (MECHANISMS.md, MECHANISMS-ON-DEMAND.md, LESSONS.md,
+    case-files-build.md) and each directory-form skill has its own `references/` beside SKILL.md.
+    Both are spelled the same way inline. Once #287 made the plugin-root path explicit, runs learned
+    "`references/` means the plugin root" - true for 4 files, false for 18. A logged run resolved
+    `references/decisions.md` against the plugin root, found nothing, declared four shipped files
+    missing, fell back to inline guidance and still reported every guard PASS.
+
+    So: a bare `references/<file>.md` inside a skill must exist beside that SKILL.md, a
+    `${CLAUDE_PLUGIN_ROOT}/references/<file>.md` must exist at the plugin root, and any skill with a
+    local references/ folder must carry the header line that tells the two apart.
+    """
+    bare = re.compile(r"(?<!\{CLAUDE_PLUGIN_ROOT\}/)(?<![\w/])references/([a-z0-9-]+\.md)")
+    rooted = re.compile(r"\$\{CLAUDE_PLUGIN_ROOT\}/references/([a-z0-9-]+\.md)")
+    for name, path in sorted(files.items()):
+        if path.name != "SKILL.md":
+            continue
+        local_dir = path.parent / "references"
+        text = path.read_text(encoding="utf-8")
+        where = path.relative_to(ROOT).as_posix()
+        for m in rooted.finditer(text):
+            if not (ROOT / "references" / m.group(1)).exists():
+                fail(f"{where} points at plugin-root references/{m.group(1)}, which does not ship")
+        cited = {m.group(1) for m in bare.finditer(text)} - {m.group(1) for m in rooted.finditer(text)}
+        for ref in sorted(cited):
+            if not (local_dir / ref).exists():
+                at_root = (ROOT / "references" / ref).exists()
+                extra = (" - it ships at the PLUGIN ROOT, so write it as "
+                         "${CLAUDE_PLUGIN_ROOT}/references/" + ref) if at_root else ""
+                fail(f"{where} cites bare references/{ref}, but no such file sits beside it"
+                     f" in {local_dir.relative_to(ROOT).as_posix()}{extra}")
+        # A skill that owns reference files must disambiguate the two folders, or the citations above
+        # are readable as plugin-root paths again the moment someone reads only the header.
+        if local_dir.is_dir() and any(local_dir.glob("*.md")):
+            if SKILL_LOCAL_HEADER not in text:
+                fail(f"{where} has its own references/ folder but never says so in the header - "
+                     f"a run that learned the plugin-root rule will look in the wrong place")
+
+
 def main() -> int:
     files = skill_files()
     cmds = sorted(files)
@@ -260,6 +304,8 @@ def main() -> int:
     # 41. every rule file a skill names is opened by path, on the plugin AND the copy-install route
     check_rule_file_paths(files)
     check_copy_install_rule_paths()
+    # 42. a skill's OWN references/ is a different folder from the plugin-root one, and says so
+    check_skill_local_references(files)
     # 42. the run is told to OPEN the two rule files that are read on every run
     check_rule_files_are_opened(files)
 
