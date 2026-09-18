@@ -5,6 +5,34 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — a skill's own `references/` is a different folder from the plugin-root one, and now says so (#295)
+
+**Two folders were both spelled `references/`.** The plugin root holds `mechanisms.md`,
+`mechanisms-on-demand.md`, `lessons.md` and `case-files-build.md`; each directory-form skill holds its own
+beside `SKILL.md`. Inline they were written identically, so nothing in the text told the two apart. Once
+#287 made the plugin-root path explicit, runs learned a rule — *"`references/` means the plugin root"* —
+that is true for 4 files and false for 18.
+
+Seen on a logged test run of v1.59.0: a `/structure` run resolved `references/decisions.md` against the
+plugin root, found nothing, reported four shipped files as **missing from the release**, fell back to the
+inline guidance, and still recorded every transition-guard criterion as PASS. `/structure` defers only
+0.6x of itself to its references so the output survived; `/design-system` defers **7.0x** and `/tickets`
+3.3x, where the same silence would cost most of the phase.
+
+- **The six skills that own reference files** (`architect` · `build` · `design-system` · `foundation` ·
+  `structure` · `tickets`) now state in the header that their `references/` sits beside `SKILL.md`, name
+  the files, and say not to look for them next to `MECHANISMS.md`. The citations stay relative, because
+  both install routes already put those files there — only the reading was ambiguous.
+- **`/build`'s one genuine plugin-root pointer** (`case-files-build.md`) is now written as
+  `${CLAUDE_PLUGIN_ROOT}/references/…`, so the two namespaces can't be confused in the one skill that
+  cites both.
+- **The copy install now ships `case-files-build.md`** as `CASE-FILES-BUILD.md` and rewrites the path to
+  it, like every other companion. It had never been installed, so that pointer was dead on that route.
+- **New check 42** — every `references/<file>.md` a skill cites must resolve: bare means beside that
+  `SKILL.md`, `${CLAUDE_PLUGIN_ROOT}/` means the plugin root, and a skill with its own folder must carry
+  the header that distinguishes them. A bare citation of a plugin-root file is named and corrected in the
+  failure message. Verified to fail on all three breakages before it passed.
+
 ## [1.59.0] - 2026-09-17
 
 ### Fixed — skills tell the run to OPEN the rule files, not just to apply them (#290)
