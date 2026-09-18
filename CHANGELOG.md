@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.60.0] - 2026-09-18
+
 ### Fixed — a skill's own `references/` is a different folder from the plugin-root one, and now says so (#295)
 
 **Two folders were both spelled `references/`.** The plugin root holds `mechanisms.md`,
