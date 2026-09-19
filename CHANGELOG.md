@@ -5,6 +5,40 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — a re-run is scoped to the files the check actually reads (#298)
+
+**Step 3b told a run to re-run a check when *any* code, config or test file changed** — not when a
+file *that check* reads changed. So one backend-only review fix re-ran the whole gate: lint,
+structure, API-spec, tokens, the UI audit, two dependency audits, both suites and the secret scan.
+That sits inside a loop with no bound, so the cost is **rounds × whole-gate**, and both factors grow
+with the project.
+
+The line justified itself with a claim that had gone stale — *"a spare re-run costs minutes"* —
+written when the project under test had 33 backend tests. Three consecutive builds on a logged test
+run: **$28 / 55 min**, then **$53 / 125 min** over five review rounds, then a third still at 58
+minutes when its reviews began. Cost **doubled between two tickets with every check green**, and the
+twelve slowest steps of the third were almost all whole-gate re-runs (105s, 90s, 84s, 79s, 44s).
+
+`/build` already stated the right shape one step earlier, but only for tests (`SKILL.md:76`, *"the
+affected files while you iterate, the full suite once at the gate"*). Step 3b now applies it to every
+check.
+
+- **The condition gains two words** — *"any code, config or test file **it reads** changed"* — kept
+  word for word in `/build` Step 3b and `/foundation`'s `runs end-to-end` line, which check 32 holds
+  to the same string.
+- **Two guards keep scoping from costing coverage.** *"When you cannot name the files a check reads,
+  re-run it"* — a guessed-narrow input set is exactly how a check gets outrun (#255). And **the whole
+  gate runs once more at the close**, whatever the scoping said, so the committed tree is verified by
+  everything and scoping only removes repetition *inside* the loop. Final coverage is unchanged.
+- **Check 30 enforces the rule and both guards** (`GATE_SCOPE_TOKENS`). Five mutations were seen
+  failing first, each on its own message. The first run caught a hole in the check itself: it held
+  the two guards but not the clause that states the rule, so the rule could have been deleted
+  silently. Fixed, then 5/5.
+
+**Not changed:** the review loop is still unbounded. A cap trades rigour for time — the five rounds
+on that second build found 14 real defects, 8 of them user-facing — so it is left to an explicit
+decision rather than folded into a cost fix. Tracked in #298.
+
 ## [1.60.0] - 2026-09-18
 
 ### Fixed — a skill's own `references/` is a different folder from the plugin-root one, and now says so (#295)
