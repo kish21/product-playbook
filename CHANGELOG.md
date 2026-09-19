@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.61.0] - 2026-09-19
+
 ### Fixed — a re-run is scoped to the files the check actually reads (#298)
 
 **Step 3b told a run to re-run a check when *any* code, config or test file changed** — not when a
