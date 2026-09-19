@@ -1443,6 +1443,8 @@ REVIEW_RERUN_TOKENS = (
 )
 # Scoping a re-run to a check's own inputs (#298) may never cost coverage: /build carries both guards.
 GATE_SCOPE_TOKENS = (
+    ("**Scope by what a check reads**", "the scoping rule itself - without it the two guards below guard "
+     "nothing, and a run is back to re-running the whole gate for any change"),
     ("when you cannot name the files a check reads, re-run it", "the fail-toward-re-run guard on scoping - "
      "a guessed-narrow input set is exactly how a check gets outrun (#255)"),
     ("the whole gate runs once more at the close", "the close-gate safety net - scoping may remove repetition "
