@@ -1423,8 +1423,8 @@ BUILD_OVERHEAD_TOKENS = (
 # `runs end-to-end` line (check 32, #251). A logged M2-SLICE-02 build cited a 13:25 audit after a 13:31 review fix
 # rewrote the form it had checked - "re-run only when its files changed" left "its files" to judgement, and
 # judgement skipped the audit.
-RERUN_CONDITION = ("re-run a check when any code, config or test file changed after its evidence was captured; "
-                   "a review fix counts, a doc-only change does not")
+RERUN_CONDITION = ("re-run a check when any code, config or test file it reads changed after its evidence "
+                   "was captured; a review fix counts, a doc-only change does not")
 RERUN_TOKENS = (
     (RERUN_CONDITION, "Step 3b's re-run condition, word for word"),
     ("never doc-only for that check", "a check's own input counting as a change - DESIGN.md is markdown, and "
@@ -1441,6 +1441,16 @@ REVIEW_RERUN_TOKENS = (
      "file", "one stopping point for both reviews, in the condition's own file kinds - a limit of one leaves the "
      "fix to a fix unreviewed, and 'no code' alone ends the loop on a fix that only touched a test"),
 )
+# Scoping a re-run to a check's own inputs (#298) may never cost coverage: /build carries both guards.
+GATE_SCOPE_TOKENS = (
+    ("**Scope by what a check reads**", "the scoping rule itself - without it the two guards below guard "
+     "nothing, and a run is back to re-running the whole gate for any change"),
+    ("when you cannot name the files a check reads, re-run it", "the fail-toward-re-run guard on scoping - "
+     "a guessed-narrow input set is exactly how a check gets outrun (#255)"),
+    ("the whole gate runs once more at the close", "the close-gate safety net - scoping may remove repetition "
+     "inside the loop, never coverage of the committed tree"),
+)
+
 LOOSE_RERUN = "only when its files changed"
 
 
@@ -1454,7 +1464,7 @@ def check_build_loop_overhead(files: dict[str, Path]) -> None:
     Step 2 had already produced - and a board card still at Todo after the ticket merged.
     """
     text = " ".join(files["build"].read_text(encoding="utf-8").split())
-    for token, what in BUILD_OVERHEAD_TOKENS + RERUN_TOKENS + REVIEW_RERUN_TOKENS:
+    for token, what in BUILD_OVERHEAD_TOKENS + RERUN_TOKENS + REVIEW_RERUN_TOKENS + GATE_SCOPE_TOKENS:
         if token not in text:
             fail(f"build lost {what} (expected {token!r})")
     for p in sorted((ROOT / "commands").rglob("*.md")):
