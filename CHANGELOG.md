@@ -5,6 +5,37 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Changed — /build: the review loop is two rounds, the second scoped to the fix, then it stops (#301)
+
+**Step 3b told a run to re-review its own review fixes "until a round changes no code, config or test
+file"** — a loop with no end, placed in the gate rather than in the review step, so every round re-ran the
+whole gate, the live path and the spine update, over the whole diff. On a logged test run a build coded its
+feature in 47 minutes and then spent 78 in review — `/code-review` and four security rounds — before the
+owner killed it; the build before it ran five rounds, the last two of which changed a constant, an import
+and a comment. Across four builds the coding took 12–35 minutes each and the process multiplied it by
+three to five. The tickets were the right size; the fixed overhead was the driver — the finding of
+`references/case-files-build.md` §Two builds, the same forty minutes, back six days later.
+
+- **Step 5 owns the reviews, bounded.** Round 1 over the diff, both reviews in parallel; findings inside
+  the files the ticket changed are fixed, findings outside are filed with `/tickets` and named in the close
+  (Step 4's flake rule, applied to reviews) — one that would block this feature stops the run and goes to
+  the user. Round 2 over the files round 1's fixes touched, only. **No round 3**: a round-2 fix is covered
+  by the deterministic gate at the close; a round-2 finding that would fail the DoD stops the run and goes
+  to the user. The `#Build log` row records the rounds.
+- **Step 3b runs once**, after the last round, and never re-opens the reviews. Step 6 writes the doc once.
+- Step 0's three "verify the claim" rules are one rule with one case file; Step 1's restatement of context
+  hygiene is the pointer check 23 requires; the stale "a spare re-run costs minutes" clause is gone.
+- The case file keeps its lesson and records what the first remedy overshot; its "deliberately not added:
+  a scoped-diff recipe" paragraph was overtaken by #298.
+- **check 30** holds the scoped second round, the bound, the escalation and the gate-once rule, and fails
+  any skill that says "until a round changes no code, config or test file" — proven red against the
+  previous skill text before the fix. The review-fix eval expects two rounds; a new eval covers a finding
+  outside the ticket.
+
+Nothing found in rounds 1 and 2 goes unfixed. What goes is rounds 3+, whose only job was to re-inspect
+fixes that the close gate covers — the trade, stated: a round-2 fix is checked by the deterministic gate,
+not by a third model pass.
+
 ## [1.61.0] - 2026-09-19
 
 ### Fixed — a re-run is scoped to the files the check actually reads (#298)
