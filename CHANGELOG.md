@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.62.0] - 2026-09-20
+
 ### Changed — /build: the review loop is two rounds, the second scoped to the fix, then it stops (#301)
 
 **Step 3b told a run to re-review its own review fixes "until a round changes no code, config or test
