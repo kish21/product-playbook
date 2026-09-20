@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.63.0] - 2026-09-20
+
 ### Fixed — /build: a DoD gap is never deferred, and the run files its own findings (#301)
 
 **The first live build on the bounded review loop held the bound** — two rounds, the second over four
