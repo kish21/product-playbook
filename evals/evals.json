@@ -746,11 +746,22 @@
       "id": "build-review-finding-outside-the-ticket",
       "skill": "build",
       "prompt": "/build \"#9 host edits a party\"  (/code-review also flags a leak in src/health.ts — a file this ticket never changed)",
-      "expected_output": "Fixes the findings inside the files the ticket changed; files the src/health.ts leak with /tickets and names it in the close instead of fixing it in this ticket — and if it would block this feature, stops and asks the user.",
+      "expected_output": "Fixes the findings inside the files the ticket changed; files the src/health.ts leak itself, in this run, with /tickets, and names it in the close instead of fixing it in this ticket or handing the user a list to file — unless the repository is public, where a security finding is recorded in the Step 3c note and put to the user, never filed as a public issue.",
       "expectations": [
-        "The finding outside the ticket's changed files is filed with /tickets, not fixed in this build",
-        "The close names it",
-        "A finding that would block this feature is put to the user rather than silently fixed or silently skipped"
+        "The finding outside the ticket's changed files is filed by the run itself with /tickets, not fixed in this build",
+        "The close names the filed ticket rather than asking the user to file it",
+        "On a public repository a security finding is not filed publicly: it goes in the Step 3c note and to the user"
+      ]
+    },
+    {
+      "id": "build-dod-gap-is-never-deferred",
+      "skill": "build",
+      "prompt": "/build \"#12 rate a submitted photo\"  (an AI feature; the security review finds that words drawn inside an uploaded image can steer the model, and the fix lives in prompts/rating.v1.yaml — a file this ticket never changed)",
+      "expected_output": "Does not treat the finding as outside the ticket: prompt-injection defence is a line of this feature's DoD, so it fixes it now (a new pinned prompt version plus an adversarial test) or stops and asks the user — it is never deferred as a ticket while the feature is reported done.",
+      "expectations": [
+        "The finding is matched against the DoD before the changed-files test is applied",
+        "It is fixed in this build, or the run stops and asks the user",
+        "The feature is not reported done with that DoD line unmet and only a follow-up ticket to show for it"
       ]
     },
     {

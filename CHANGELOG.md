@@ -5,6 +5,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — /build: a DoD gap is never deferred, and the run files its own findings (#301)
+
+**The first live build on the bounded review loop held the bound** — two rounds, the second over four
+files, 52.6 minutes against 99–127 on the release before — **and exposed two sentences that did not hold.**
+
+- **"Filed with `/tickets`" was read as "tell the owner to file".** The run listed five findings in its
+  close as a to-do list (*"I did not file them, to keep this session bounded"*) while its feature doc said
+  "Filed" with nothing filed. Step 5 now says an outside finding is **filed IN THIS RUN**, one each, never
+  handed to the user as a list.
+- **A line of the definition of done was deferred by the file test.** Words drawn inside an image could
+  steer the model judging it — prompt-injection defence, on an AI feature — and it was deferred because its
+  fix lived in a file the ticket had not changed. Step 5 now reads the DoD first: **a finding that leaves a
+  DoD line unmet is never "outside"** — fix it now, or STOP and ask the user.
+- **A security finding on a PUBLIC repo is never filed publicly** — a public issue is a disclosure. It goes
+  in the Step 3c note and to the user. The run did this check unprompted; it is now the rule.
+- **check 30** holds all three, proven red against the previous text first. The outside-the-ticket eval
+  expects the run to file; a new eval expects a DoD gap to be fixed or put to the user, never deferred.
+- War story: `references/case-files-build.md` §The findings handed back.
+
 ## [1.62.0] - 2026-09-20
 
 ### Changed — /build: the review loop is two rounds, the second scoped to the fix, then it stops (#301)

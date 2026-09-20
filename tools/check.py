@@ -1451,6 +1451,19 @@ REVIEW_RERUN_TOKENS = (
      "full check, the live path and the spine update after each of five rounds"),
 )
 UNBOUNDED_REVIEW = "until a round changes no code, config or test file"
+# What a review finds that is not this ticket's to fix. The first live run on the bounded loop (2026-09-20,
+# #301) listed five findings in its close and told the owner to file them, while its feature doc said "Filed"
+# with nothing filed; and a prompt-injection gap - a line of the AI DoD - was deferred as a finding because its
+# fix lived in a file the ticket had not changed. Unprompted, the same run checked whether the repository was
+# public before filing security findings: a public issue is a disclosure.
+REVIEW_FINDING_TOKENS = (
+    ('**A finding that leaves a DoD line unmet is never "outside"**', "the DoD overriding the file test - a "
+     "prompt-injection gap was deferred because its fix lived in a file the ticket had not changed"),
+    ("filed IN THIS RUN", "the run filing its own findings - one listed five in its close and told the owner to "
+     "file them, and its feature doc said 'Filed' with nothing filed"),
+    ("**A security finding on a PUBLIC repo is never filed publicly**", "keeping a security finding out of a "
+     "public issue - filing it there is a disclosure"),
+)
 # Scoping a re-run to a check's own inputs (#298) may never cost coverage: /build carries both guards.
 GATE_SCOPE_TOKENS = (
     ("**Scope by what a check reads**", "the scoping rule itself - without it the two guards below guard "
@@ -1474,7 +1487,8 @@ def check_build_loop_overhead(files: dict[str, Path]) -> None:
     Step 2 had already produced - and a board card still at Todo after the ticket merged.
     """
     text = " ".join(files["build"].read_text(encoding="utf-8").split())
-    for token, what in BUILD_OVERHEAD_TOKENS + RERUN_TOKENS + REVIEW_RERUN_TOKENS + GATE_SCOPE_TOKENS:
+    for token, what in (BUILD_OVERHEAD_TOKENS + RERUN_TOKENS + REVIEW_RERUN_TOKENS + REVIEW_FINDING_TOKENS
+                        + GATE_SCOPE_TOKENS):
         if token not in text:
             fail(f"build lost {what} (expected {token!r})")
     for p in sorted((ROOT / "commands").rglob("*.md")):
