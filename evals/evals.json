@@ -734,11 +734,23 @@
       "id": "build-review-fix-reruns-the-checks",
       "skill": "build",
       "prompt": "/build \"#9 host edits a party\"  (a UI ticket: /frontend-audit and /run ran clean; /code-review found a bug and an uncommitted script rewrote src/parties/PartyForm.tsx to fix it)",
-      "expected_output": "At Step 3b the uncommitted, scripted review fix counts as a code change, so it re-runs /frontend-audit and /run instead of citing them, and runs /code-review again over the fix until a round changes no code, config or test file.",
+      "expected_output": "At Step 3b the uncommitted, scripted review fix counts as a code change, so it re-runs /frontend-audit and /run instead of citing them; /code-review runs a second round over the files the fix touched, only — and no third: a round-2 fix is covered by the close gate, and a round-2 finding that would fail the DoD stops the run and goes to the user.",
       "expectations": [
         "/frontend-audit and /run run again after the fix, before the close",
-        "/code-review runs again over the fix, and again after any round that changes a code, config or test file",
-        "Nothing about the fix is ruled unchanged because it is uncommitted or was made by a script"
+        "/code-review runs a second round scoped to the files the fix touched, and never a third",
+        "Nothing about the fix is ruled unchanged because it is uncommitted or was made by a script",
+        "A round-2 finding that would fail the DoD stops the run and is put to the user, not fixed in a silent third round"
+      ]
+    },
+    {
+      "id": "build-review-finding-outside-the-ticket",
+      "skill": "build",
+      "prompt": "/build \"#9 host edits a party\"  (/code-review also flags a leak in src/health.ts — a file this ticket never changed)",
+      "expected_output": "Fixes the findings inside the files the ticket changed; files the src/health.ts leak with /tickets and names it in the close instead of fixing it in this ticket — and if it would block this feature, stops and asks the user.",
+      "expectations": [
+        "The finding outside the ticket's changed files is filed with /tickets, not fixed in this build",
+        "The close names it",
+        "A finding that would block this feature is put to the user rather than silently fixed or silently skipped"
       ]
     },
     {

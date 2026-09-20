@@ -1435,12 +1435,22 @@ RERUN_TOKENS = (
      "the same build edited STRUCTURE.md, which a CI check reads, after that CI ran"),
 )
 # /build's reviews are checks its fixes can outrun; /foundation composes no review, so these stay /build's.
+# The rule as first written ("until a round changes no code, config or test file") had no end: nothing about a
+# review fix is a fixed point, so on a logged test run (2026-09-20) a build coded for 47 minutes and reviewed
+# for 78 - a code review and four security rounds, each over the whole diff, each followed by the whole gate -
+# until the owner killed it. Two rounds, the second scoped to the fix, then stop: the close gate covers a
+# round-2 fix, and a round-2 finding that would fail the DoD goes to the user.
 REVIEW_RERUN_TOKENS = (
     ("The reviews are checks too", "re-reviewing a review fix - nothing reviewed that build's fix either"),
-    ("`/security-review` too when they touch an auth/data surface, until a round changes no code, config or test "
-     "file", "one stopping point for both reviews, in the condition's own file kinds - a limit of one leaves the "
-     "fix to a fix unreviewed, and 'no code' alone ends the loop on a fix that only touched a test"),
+    ("over **the files round 1's fixes touched, only**", "the second round scoped to the fix - four rounds each "
+     "re-read a 14-file diff to inspect a three-line fix"),
+    ("**No round 3.**", "the bound on review rounds - without it a build ran four security rounds and was killed"),
+    ("**STOP and tell the user**", "the escalation - a blocking round-2 finding goes to the user, never to a "
+     "silent third round"),
+    ("**This gate runs ONCE, after Step 5's last round**", "the gate running once - one logged build re-ran the "
+     "full check, the live path and the spine update after each of five rounds"),
 )
+UNBOUNDED_REVIEW = "until a round changes no code, config or test file"
 # Scoping a re-run to a check's own inputs (#298) may never cost coverage: /build carries both guards.
 GATE_SCOPE_TOKENS = (
     ("**Scope by what a check reads**", "the scoping rule itself - without it the two guards below guard "
@@ -1468,9 +1478,13 @@ def check_build_loop_overhead(files: dict[str, Path]) -> None:
         if token not in text:
             fail(f"build lost {what} (expected {token!r})")
     for p in sorted((ROOT / "commands").rglob("*.md")):
-        if LOOSE_RERUN in " ".join(p.read_text(encoding="utf-8").split()):
+        flat_p = " ".join(p.read_text(encoding="utf-8").split())
+        if LOOSE_RERUN in flat_p:
             fail(f"{p.relative_to(ROOT).as_posix()} says re-run {LOOSE_RERUN!r} - which files is a judgement "
                  f"call; name the condition instead: {RERUN_CONDITION!r}")
+        if UNBOUNDED_REVIEW in flat_p:
+            fail(f"{p.relative_to(ROOT).as_posix()} re-reviews {UNBOUNDED_REVIEW!r} - a loop with no end; "
+                 f"/build Step 5 bounds it at two rounds, the second scoped to the fix")
     lp = (ROOT / "commands" / "build" / "references" / "live-path-checks.md").read_text(encoding="utf-8")
     untagged = [ln[:60] for ln in lp.splitlines() if ln.startswith("- **")]
     if untagged:

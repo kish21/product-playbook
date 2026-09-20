@@ -2,7 +2,7 @@
 
 War stories behind the rules in `commands/build/SKILL.md` and its `references/`. Each heading is pointed to from the rule it
 evidences as `(case file: <heading>)`. Stories are verbatim; where a rule's longer mechanism prose
-was condensed in `build.md`, the full text is kept here under *Full rule context*.
+was condensed in `SKILL.md`, the full text is kept here under *Full rule context*.
 
 ### Wrong serving surface
 *(Backs: the live-path exit criterion — verify on the runtime the USER actually runs.)*
@@ -20,6 +20,7 @@ into a one-seam fix; the same doc also claimed a prior session had shipped a fla
 built, and listed the wrong destination for deferred work.
 
 ### Rotted skills
+*(Merged 2026-09-20 into the one claim rule pointed to as (case file: The pinned plan was wrong).)*
 *(Backs: Step 0 — "The project's own skills have rotted.")*
 Real instance: a repo's three most relevant skills each contradicted the shipped system — one said
 the QC stage used "no LLM, schema check only" when it runs a vision judge; one listed brief fields
@@ -376,6 +377,8 @@ test the last call, not just the first.
 
 ## The number that justified the feature
 
+*(Merged 2026-09-20 into the one claim rule pointed to as (case file: The pinned plan was wrong).)*
+
 A tracked issue opened with a crisp piece of arithmetic: the text-to-speech voice reads at ~1.3
 words per second, the generation prompt asks for ~2, so every script is written half again too long
 and the quality gate blocks it after the money is spent. That number survived into a plan, a memory
@@ -718,12 +721,18 @@ and the journey have obvious inputs, so the run re-ran them. For the audit, *its
 call, and the judgement said the fix did not matter. Nobody reviewed the fix either. **The condition now names
 the file kinds, not a check's files**: any code, config or test change after the evidence means a re-run, a
 review fix included, a doc-only change not. A file a check reads is never doc-only for it, and the reviews
-are checks too.
+are checks too — for one scoped second round.
 
-*Deliberately not added:* a git recipe for "what changed since the evidence". Three review rounds on the fix
-each found a new way for one to answer *nothing changed* wrongly: a diff from a commit misses new files, a
-commit is no fixed point when Step 2 runs on uncommitted work, a scratch-index snapshot split across two
-shell calls reads the real index, and ignored config such as `.env` is in no snapshot at all. That build had
-not lost track of its edit; it had a word that allowed judgement. A recipe that can return a confident
-*unchanged* is worse than the run's own record plus *when unsure, re-run*.
-
+*What the first remedy overshot (2026-09-20).* As first written, the rule re-ran the reviews "until a round
+changes no code, config or test file". Nothing about a review fix is a fixed point — every round finds
+something — so the loop had no end, and it sat in the gate, so every round re-ran the whole gate. On a
+logged test run a build coded its feature in 47 minutes and then spent 78 in review: `/code-review`, then
+security rounds 1, 2, 3 and 4, each re-reading a 14-file diff to inspect the last round's three-line fix,
+each followed by the full check, the live path and a spine update, until the owner killed it. The build
+before it had run five rounds; the last two changed a constant, an import and a comment. Across four builds
+the coding took 12–35 minutes each and the process multiplied it by three to five — the finding of *Two
+builds, the same forty minutes*, back six days later through a different door. The rule is now two rounds:
+the second over the files the first round's fixes touched, only; then stop. A round-2 fix is covered by the
+deterministic gate at the close, and a round-2 finding that would fail the DoD goes to the user. A paragraph
+that stood here rejecting a scoped-diff recipe was overtaken by #298, which scopes a re-run to the files a
+check reads.

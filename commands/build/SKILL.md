@@ -51,14 +51,14 @@ description: >
 - **Read the ticket's slice, not the repo.** Up front: its Target Files and a grep for each contract name it
   uses. Anything else when a step needs it, a line range rather than a file — never paste whole modules into
   the conversation; every later call re-reads them. (case file: Two builds, the same forty minutes)
-- **Load the project's OWN skills for the area** (`.claude/skills/`, `CLAUDE.md`), **but treat every doc, skill and pinned plan as a CLAIM**: verify a spec's load-bearing claims against the code (case file: The pinned plan was wrong), reproduce a load-bearing NUMBER by measuring (case file: The number that justified the feature), grep a skill's concrete claims — paths, fields, providers (case file: Rotted skills).
+- **Load the project's OWN skills for the area** (`.claude/skills/`, `CLAUDE.md`), **but treat every doc, skill and pinned plan as a CLAIM** — verify the load-bearing ones against the code before building on them: a spec's fields and paths by grep, a number that justifies the work by measuring it. (case file: The pinned plan was wrong)
 - **When a project doc or skill is wrong, FIX IT IN THIS SESSION** — a PR-description correction dies there; record the corrected premises where the wrong ones lived.
 - **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** write ONE dated line at the top of `#Build log` — `_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._` — and change nothing else. The scaffold stays intact and the section stays **unfilled**, so `/playbook` still routes to the missing phase; the next attempt **replaces** that line rather than appending to it.
 
 ## Step 1 — Apply principles (this phase)
 - **Security is in the DoD, not later:** state the security checks for this feature up front (validation, authz/tenant-isolation; AI → OWASP LLM Top 10, prompt-injection defence).
 - **Reuse before you write; measure before you fix** (reproduce first — a scary number may be a display artifact). **No swallowed errors** (route failures; retry only transient). **Prompts → `prompts/` YAML**.
-- **Session economy — one feature per session is a COST rule, not just a focus rule.** Cost grows ~quadratically with session length — hand off at a natural checkpoint; bulky output to files, a progress line per step, broad searches to subagents (`MECHANISMS-ON-DEMAND.md` §Context hygiene). (case file: The 97% cache bill)
+- **Session economy — one feature per session is a COST rule, not just a focus rule:** hand off at a natural checkpoint and apply `MECHANISMS-ON-DEMAND.md` §Context hygiene. (case file: The 97% cache bill)
 
 ## Step 2 — The build loop (per feature)
 1. **Declare the DoD** (incl. security + the exit criteria above).
@@ -75,21 +75,29 @@ description: >
    - **Walk the checks in `references/live-path-checks.md` whose trigger matches this feature** — the ones that separate *the code exists* from *the product runs it*.
    - **Tests: the affected files while you iterate, the full suite once at the gate.**
    - **A test that fails, then passes with no change, is FLAKY — record it (name · error · N of M runs failed) and file it with `/tickets "<bug>"` in the lane that owns it.** Outside what you changed → carry on and name the issue in the close; inside it and small → fix it with a proof. **Never re-run until green.** (case file: The flake nobody wrote down)
-5. **Review the diff** — compose `/code-review`, then `/security-review` on any auth/data surface — **both
-   BEFORE the commit and the close**, so their verdicts land in the record; fix findings. **Record each
-   review's SCOPE** in the `#Build log` row — `/code-review high → 8 findings, all fixed · <sha> · <date>` —
-   so `/ship` can tell whether the diff changed since.
+5. **Review the diff — two rounds, then stop.** Round 1: compose `/code-review` and, on any auth/data
+   surface, `/security-review` — in parallel, **both BEFORE the commit and the close**, so their verdicts
+   land in the record. Fix every finding inside the files this ticket changed. **A finding outside them is
+   filed with `/tickets "<finding>"` and named in the close, never fixed here** (Step 4's flake rule, applied
+   to reviews); if it would block THIS feature, STOP and tell the user. Round 2: **The reviews are checks too**
+   — a review fix is code no review has seen — so run `/code-review` again over **the files round 1's fixes
+   touched, only**, and `/security-review` too when they touch an auth/data surface; fix what it finds.
+   **No round 3.** A round-2 fix is covered by the deterministic gate at the close (tests · lint · audit ·
+   secret-scan · live path, once over the final tree); if round 2 found anything that would fail the DoD,
+   **STOP and tell the user** — the finding and the fix — never a silent third round. **Record each round's
+   SCOPE** in the `#Build log` row — `/code-review → R1 8 findings · R2 (3 files) 1 finding · <sha> · <date>`
+   — so `/ship` can tell whether the diff changed since. (case file: The audit the review fix outran)
    - **Run `/security-review` inside a subagent** (prompt: *run /security-review on this branch and return
      the findings*) — invoked inline it takes over the turn and ends it on its report. **Its report is
      input: record the verdict, then step 6, Step 3, 3b and the close.** (case file: The review that ended the run again)
    - ⚠️ **If you cannot invoke it, ASK the user to run it, or do the deep pass by hand and say which you did** — see `PRINCIPLES.md`, *Composed skills*.
-6. **Document** — write/update `docs/features/<feature>.md`; reconcile it with the code. **Copy every `evidence:` number from the command's captured output, never ahead of it** — a figure pencilled in while CI runs reads exactly like a measured one. (case file: The pencilled bundle size)
+6. **Document** — once, after Step 5's last round — write/update `docs/features/<feature>.md`; reconcile it with the code. **Copy every `evidence:` number from the command's captured output, never ahead of it** — a figure pencilled in while CI runs reads exactly like a measured one. (case file: The pencilled bundle size)
 
 ## Step 3 — Write back to `PRODUCT.md`
 Append a `#Build log` row: feature · DoD-incl-security met? · **how verified** · link to the feature doc.
 
 ## Step 3b — Principle-gate: verify each principle is ACTUALLY implemented (not just claimed)
-Walk **this phase's load-bearing principles (Step 1)** and confirm each is real, **citing the evidence Step 2 already captured** (command · result · commit) — **re-run a check when any code, config or test file it reads changed after its evidence was captured; a review fix counts, a doc-only change does not.** Uncommitted and scripted edits count. A file a check reads is never doc-only for that check (`DESIGN.md` for `/frontend-audit`), and **when unsure whether anything changed or whether a change is doc-only, re-run** — a spare re-run costs minutes, a stale citation passes a broken feature. **Scope by what a check reads** — a backend-only fix does not re-run the UI audit — but **when you cannot name the files a check reads, re-run it**, and **the whole gate runs once more at the close**, whatever the scoping said: scoping removes repetition inside the loop, never coverage of the committed tree. **The reviews are checks too** — a review fix is code no review has seen: `/code-review` runs again over the fixes, and `/security-review` too when they touch an auth/data surface, until a round changes no code, config or test file. (case file: The audit the review fix outran)
+Walk **this phase's load-bearing principles (Step 1)** and confirm each is real, **citing the evidence Step 2 already captured** (command · result · commit) — **re-run a check when any code, config or test file it reads changed after its evidence was captured; a review fix counts, a doc-only change does not.** Uncommitted and scripted edits count. A file a check reads is never doc-only for that check (`DESIGN.md` for `/frontend-audit`), and **when unsure whether anything changed or whether a change is doc-only, re-run** — a stale citation passes a broken feature. **Scope by what a check reads** — a backend-only fix does not re-run the UI audit — but **when you cannot name the files a check reads, re-run it**, and **the whole gate runs once more at the close**, whatever the scoping said: scoping removes repetition inside the loop, never coverage of the committed tree. **This gate runs ONCE, after Step 5's last round** — never after each round, and it never re-opens the reviews: Step 5 bounds them. (case file: The audit the review fix outran)
 - security-in-DoD → **`/security-review`** (or the equivalent pass) passed — name which.
 - no secret in code / no-hardcoding → secret-scan clean.
 - live-path-works → **`/run`** exercised the real path **and the observable result was checked** — name the command **and what you saw**. An exit code is not the observable result.
