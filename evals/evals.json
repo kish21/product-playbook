@@ -811,6 +811,18 @@
       ]
     },
     {
+      "id": "build-names-the-archetype-and-walks-the-checks",
+      "skill": "build",
+      "prompt": "/build \"#16 block a listing that breaks the rules\"  (a feature whose whole job is to say no; its verdict is cached on the listing row)",
+      "expected_output": "Declares the DoD with `Archetype: gate` (and the trust-boundary cluster, for the cached verdict), tells the user in one plain sentence what kind of feature this is and what that makes it careful about, and opens references/feature-archetypes.md §Gates before writing code rather than applying it from memory. At Step 4 it opens references/live-path-checks.md — as on every build — walks the checks whose trigger matches, and the feature doc carries both lines: `Archetype: gate → §Gates opened` and `Live-path checks walked: …` naming them.",
+      "expectations": [
+        "The DoD names the archetype, and the user is told in plain words what kind of feature this is",
+        "The matching cluster of feature-archetypes.md is opened before code is written",
+        "live-path-checks.md is opened on this build, as on every build",
+        "The feature doc carries the Archetype line and the list of live-path checks walked"
+      ]
+    },
+    {
       "id": "build-check-input-is-never-doc-only",
       "skill": "build",
       "prompt": "/build \"#9 host edits a party\"  (a UI ticket: /frontend-audit ran clean and every review is done; the only change since is one colour token edited in DESIGN.md)",

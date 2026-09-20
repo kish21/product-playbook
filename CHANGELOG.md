@@ -5,6 +5,25 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — /build names what kind of feature it is, opens its companions where skipping would show, and edits files directly
+
+**Two consecutive logged builds never opened `feature-archetypes.md` or `live-path-checks.md`** — no tool call
+in either log names them — and one of them built a judge over an AI's output: §Gates' trigger, word for word.
+The two builds before them had opened both. It came out sound, but on the run's competence, not the playbook's
+rules, and nothing showed the difference. An owner ruling (#257) already said every trigger is read on every run.
+
+- **The DoD names the archetype** — `Archetype: gate · async job · latency fix · trust boundary · third-party
+  content · none` — and the run tells the user, in one plain sentence, what kind of feature this is and what that
+  makes it careful about.
+- **`live-path-checks.md` is opened on EVERY build** — a trigger nobody read cannot match.
+- **The feature doc carries both traces** — `Archetype: <kind> → §<cluster> opened` and `Live-path checks
+  walked: …` — so a skipped companion is visible.
+- **§Context hygiene:** write code and tests with the edit tool, not with a patch script (10–14% of one build;
+  it broke on quoting four times). A cut-the-wire proof stays a script — its cut and restore are one unit.
+- **The review step and Step 3b are one rule per bullet again.** Same wording; every bolded rule counted
+  before (27) and after (31, with the three new ones). `§Async jobs` is "7 rules", as its file says.
+- check 30 and check 23 hold the four new rules — proven red first. One new eval; one new case file.
+
 ## [1.65.0] - 2026-09-20
 
 ### Changed — /build: one review round, the user is shown what it caught, and a second round is the user's call (owner's ruling)

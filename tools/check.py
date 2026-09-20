@@ -1020,6 +1020,10 @@ def check_context_hygiene(files: dict[str, Path]) -> None:
     if REREAD_RULE not in ondemand:
         fail(f"MECHANISMS-ON-DEMAND.md {HYGIENE_POINTER} never says to {REREAD_RULE!r} - two logged builds re-read "
              f"whole files they had just edited (22k and ~45k characters), carried through every later step")
+    if PATCH_SCRIPT_RULE not in ondemand:
+        fail(f"MECHANISMS-ON-DEMAND.md {HYGIENE_POINTER} never says to change files with the edit tool, "
+             f"{PATCH_SCRIPT_RULE!r} - on a logged build, patch scripts cost 10-14% of the run: the code enters "
+             f"the conversation twice, and the script broke on quoting four times")
     for name in sorted(HYGIENE_DECLARING):
         text = files[name].read_text(encoding="utf-8")
         if HYGIENE_POINTER not in text:
@@ -1498,6 +1502,20 @@ BUILD_WEIGHT_TOKENS = (
     ("never into an issue or a committed file", "a public repo's security finding staying out of committed files "
      "too - the spine of a public repo is public"),
 )
+# The companions a build opens on demand must leave a trace. Two logged builds (2026-09-20) never opened
+# feature-archetypes.md or live-path-checks.md - no tool call even named them - and one of the two was a gate
+# and an AI feature, exactly the first file's trigger; the two builds before them had opened both. An owner
+# ruling (#257) already says every trigger is read on every run. A cluster applied from memory is a cluster not
+# applied, and nothing showed the difference.
+BUILD_GUIDE_TOKENS = (
+    ("**Name the archetype in it**", "the DoD naming the feature's archetype - a gate feature was built without its "
+     "cluster ever being opened, and nothing showed it"),
+    ("Open the file on EVERY build", "the live-path triggers being read on every build - a trigger nobody read "
+     "cannot match (owner ruling, #257)"),
+    ("Live-path checks walked", "the feature doc listing the live-path checks that matched - the trace that "
+     "makes a skipped companion visible"),
+)
+PATCH_SCRIPT_RULE = "not with a patch script"
 # 1.63.0 sent a public repo's security finding to the Step 3c note - which lives in PRODUCT.md, a committed file.
 PUBLIC_NOTE_LEAK = "record it in the Step 3c note and put it to the user"
 REREAD_RULE = "read back the lines you changed, never the file"
@@ -1525,7 +1543,7 @@ def check_build_loop_overhead(files: dict[str, Path]) -> None:
     """
     text = " ".join(files["build"].read_text(encoding="utf-8").split())
     for token, what in (BUILD_OVERHEAD_TOKENS + RERUN_TOKENS + REVIEW_RERUN_TOKENS + REVIEW_FINDING_TOKENS
-                        + REVIEW_VISIBLE_TOKENS + BUILD_WEIGHT_TOKENS + GATE_SCOPE_TOKENS):
+                        + REVIEW_VISIBLE_TOKENS + BUILD_GUIDE_TOKENS + BUILD_WEIGHT_TOKENS + GATE_SCOPE_TOKENS):
         if token not in text:
             fail(f"build lost {what} (expected {token!r})")
     for p in sorted((ROOT / "commands").rglob("*.md")):

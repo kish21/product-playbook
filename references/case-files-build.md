@@ -807,3 +807,26 @@ recommendation and its reason. The recommendation keeps the second round where i
 auth/data surface, a serious first-round finding, fixes that were more than small edits — and a skipped round
 is recorded with its reason, because a bypass that leaves no trace is the one thing this playbook exists to
 prevent.
+
+## The companions nobody opened
+
+**Read from the session logs of four consecutive builds on a logged test run (2026-09-19/20).** `/build` keeps its
+situational rules in two companions opened on demand — `feature-archetypes.md` (gates, async jobs, trust
+boundaries…) and `live-path-checks.md` (proving a change is wired in) — so a build carries only the rules that
+apply to it. The first two builds opened both. The next two opened **neither**: no tool call in either log so
+much as names the files. One of those two built a judge — a feature whose whole job is to say no, over an AI's
+output — which is §Gates' trigger word for word. It came out sound: it failed closed, and the code, not the
+model, computed the verdict. But that was the run's competence, not the playbook's ten rules, and nothing in
+the feature doc, the close or the record showed the difference. An owner ruling (#257) already said every
+trigger is read on every run.
+
+Between the two pairs of builds both the skill and the model had changed, so the cause is unproven — and the
+cure is the same either way. **An on-demand companion saves context only if skipping it is visible.** The DoD
+names the archetype and the run says it to the user in plain words; `live-path-checks.md` is opened on every
+build; and the feature doc carries both lines — `Archetype: <kind> → §<cluster> opened` and `Live-path checks
+walked: …`.
+
+*Same measurement, two smaller things.* One build wrote its code through patch scripts instead of the edit
+tool: 10–14% of the run, the code in the conversation twice, and the script broke on quoting four times. And the
+review step had grown into thirty lines of unbroken prose in one day; it is one rule per bullet again, every
+bolded rule accounted for before and after.

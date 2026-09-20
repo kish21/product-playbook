@@ -61,50 +61,28 @@ description: >
 - **Session economy — one feature per session is a COST rule, not just a focus rule:** hand off at a natural checkpoint and apply `MECHANISMS-ON-DEMAND.md` §Context hygiene. (case file: The 97% cache bill)
 
 ## Step 2 — The build loop (per feature)
-1. **Declare the DoD** (incl. security + the exit criteria above).
+1. **Declare the DoD** (incl. security + the exit criteria above). **Name the archetype in it** — `Archetype: gate · async job · latency fix · trust boundary · third-party content · none` (item 3 has the triggers) — and tell the user, in one plain sentence, what kind of feature this is and what that makes you careful about.
 2. **Reuse scan:** find existing helpers/contracts; don't reinvent.
 3. **Code** against the typed contracts; keep it modular and generic (no domain special-casing in shared infra).
    - **If the feature has a user-facing screen (UI products):** build to **`DESIGN.md`** — §5 layout, token look, `/new-component` parts (Law 15) — then run **`/frontend-audit`** — `python "${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py" DESIGN.md <ui-dir>`, the installed engine; **never search the plugin cache** (a `$` left in the path: `/frontend-audit` §Which engine runs) — fix every ERROR, and repeat its `engine copy:` line. *(No `DESIGN.md`? `/design-system` first.)*
    - **Some features carry rules that apply only to THEM. If this feature is one, open `references/feature-archetypes.md` and apply that cluster BEFORE you write:**
      - a **GATE** — a validator, quality check, policy engine, anything whose job is to say "no" → **§Gates** (10 rules)
-     - an **ASYNC JOB** — work that outlives the request (spawn + poll, queue + callback) → **§Async jobs** (6 rules)
+     - an **ASYNC JOB** — work that outlives the request (spawn + poll, queue + callback) → **§Async jobs** (7 rules)
      - a **LATENCY / CONCURRENCY fix** → **§Latency and concurrency** (expect more than one serializer)
      - anything **shared across tenants, cached, AI-suggested, or keyed by a client-supplied selector** → **§Trust boundaries and shared state**
      - **third-party content shipped to your users** → **§Third-party content** (the licence is a feasibility gate)
+     - The feature doc carries the line — `Archetype: <kind> → §<cluster> opened`, or `Archetype: none`. A cluster applied from memory is a cluster not applied. (case file: The companions nobody opened)
 4. **Run + verify the LIVE path** — compose `/run` to exercise the path the product actually runs, **then check the observable result yourself** (the response, the row, the rendered page — not the exit code), then **trace your change to its real callers** (green unit tests ≠ wired in).
-   - **Walk the checks in `references/live-path-checks.md` whose trigger matches this feature** — the ones that separate *the code exists* from *the product runs it*.
+   - **Walk the checks in `references/live-path-checks.md` whose trigger matches this feature** — the ones that separate *the code exists* from *the product runs it*. **Open the file on EVERY build** — a trigger you have not read cannot match — and list the ones that matched, by name, in the feature doc: `Live-path checks walked: …`. (case file: The companions nobody opened)
    - **Tests: the affected files while you iterate, the full suite once at the gate.**
    - **A test that fails, then passes with no change, is FLAKY — record it (name · error · N of M runs failed) and file it with `/tickets "<bug>"` in the lane that owns it.** Outside what you changed → carry on and name the issue in the close; inside it and small → fix it with a proof. **Never re-run until green.** **Attribution is one traceback, not an investigation** — it fails in a file this ticket did not change, or before any test runs → it is OUTSIDE; at most ONE re-run with your change stashed when the traceback cannot say. Never run the suite again to characterise it. (case file: The flake nobody wrote down)
-5. **Review the diff — one round, then the user decides.** Round 1: compose `/code-review` and, on any auth/data
-   surface, `/security-review` — in parallel, **both BEFORE the commit and the close**, so their verdicts
-   land in the record. Fix every finding inside the files this ticket changed, each with its proof. **A finding that leaves a DoD
-   line unmet is never "outside"** — whichever file its fix lives in, fix it now or STOP and ask the user; it
-   is never deferred. **Any other finding outside them is filed IN THIS RUN** — `/tickets "<finding>"`, one
-   each, never handed to the user as a list to file — **and named in the close, never fixed here** (Step 4's
-   flake rule, applied to reviews). **A security finding on a PUBLIC repo is never filed publicly** — never
-   into an issue or a committed file (the spine of a public repo is public too): put it to the user in the
-   close. (case file: The findings handed back)
-   **Then show the user what the reviews caught** — before anything else runs: how many, and the ones that
-   mattered most, each in ONE plain sentence saying what would have gone wrong for a user (*"a second shop
-   could have read this shop's photos"*, never *"missing tenant filter"*); that they are fixed and tested;
-   and the time and cost so far, measured (`MECHANISMS-ON-DEMAND.md` §Context hygiene, item 4) or "not
-   measured". A user who is never shown what a review caught sees only the time and the money. Say it again
-   in the close. (case file: The review nobody saw)
-   **Round 2 is the user's call, never automatic.** **The reviews are checks too** — a review fix is code no
-   review has seen — so ask ONE question: review again, over **the files round 1's fixes touched, only**
-   (`/security-review` too when they touch an auth/data surface)? Give your recommendation AND its reason:
-   **recommend YES when the fixes touched an auth/data surface**, when round 1 found a HIGH or MEDIUM, or
-   when the fixes were more than small edits; otherwise recommend NO — each fix carries its own proof and the
-   close gate runs over the final tree. This is the one question a build asks mid-run — it depends on what
-   round 1 found — and the tree is green and reviewed once, so it is a safe place to wait. The user chose up
-   front (*"one round"*, *"two rounds"*) → do not ask; nobody can answer (headless, a batch) → follow your
-   own recommendation and say so. **A skipped round 2 is RECORDED** in the `#Build log` row with its reason —
-   never silent. On yes: run it, fix what it finds.
-   **No round 3.** A round-2 fix is covered by the deterministic gate at the close (tests · lint · audit ·
-   secret-scan · live path, once over the final tree); if round 2 found anything that would fail the DoD,
-   **STOP and tell the user** — the finding and the fix — never a silent third round. **Record each round's
-   SCOPE** in the `#Build log` row — `/code-review → R1 8 findings · R2 (3 files) 1 finding · <sha> · <date>`,
-   or `· R2 skipped by the user: <reason>` — so `/ship` can tell whether the diff changed since. (case file: The audit the review fix outran)
+5. **Review the diff — one round, then the user decides.**
+   - **Round 1.** Compose `/code-review` and, on any auth/data surface, `/security-review` — in parallel, **both BEFORE the commit and the close**, so their verdicts land in the record. Fix every finding inside the files this ticket changed, each with its proof.
+   - **Findings that are not this ticket's.** **A finding that leaves a DoD line unmet is never "outside"** — whichever file its fix lives in, fix it now or STOP and ask the user; it is never deferred. **Any other finding outside the ticket's files is filed IN THIS RUN** — `/tickets "<finding>"`, one each, never handed to the user as a list to file — **and named in the close, never fixed here** (Step 4's flake rule, applied to reviews). **A security finding on a PUBLIC repo is never filed publicly** — never into an issue or a committed file (the spine of a public repo is public too): put it to the user in the close. (case file: The findings handed back)
+   - **Then show the user what the reviews caught** — before anything else runs: how many, and the ones that mattered most, each in ONE plain sentence saying what would have gone wrong for a user (*"a second shop could have read this shop's photos"*, never *"missing tenant filter"*); that they are fixed and tested; and the time and cost so far, measured (`MECHANISMS-ON-DEMAND.md` §Context hygiene, item 4) or "not measured". Say it again in the close. (case file: The review nobody saw)
+   - **Round 2 is the user's call, never automatic.** **The reviews are checks too** — a review fix is code no review has seen — so ask ONE question: review again, over **the files round 1's fixes touched, only** (`/security-review` too when they touch an auth/data surface)? Give your recommendation AND its reason: **recommend YES when the fixes touched an auth/data surface**, when round 1 found a HIGH or MEDIUM, or when the fixes were more than small edits; otherwise recommend NO — each fix carries its own proof and the close gate runs over the final tree. It is the one question a build asks mid-run — it depends on what round 1 found — and the tree is green and reviewed once, so it is a safe place to wait. The user chose up front (*"one round"*, *"two rounds"*) → do not ask; nobody can answer (headless, a batch) → follow your own recommendation and say so. On yes: run it, fix what it finds. **A skipped round 2 is RECORDED** in the `#Build log` row with its reason — never silent.
+   - **No round 3.** A round-2 fix is covered by the deterministic gate at the close (tests · lint · audit · secret-scan · live path, once over the final tree); if round 2 found anything that would fail the DoD, **STOP and tell the user** — the finding and the fix — never a silent third round. (case file: The audit the review fix outran)
+   - **Record each round's SCOPE** in the `#Build log` row — `/code-review → R1 8 findings · R2 (3 files) 1 finding · <sha> · <date>`, or `· R2 skipped by the user: <reason>` — so `/ship` can tell whether the diff changed since.
    - **Run `/security-review` inside a subagent** (prompt: *run /security-review on this branch and return
      the findings*) — invoked inline it takes over the turn and ends it on its report. **Its report is
      input: record the verdict, then step 6, Step 3, 3b and the close.** (case file: The review that ended the run again)
@@ -116,7 +94,12 @@ description: >
 Append ONE table row to `#Build log` — `| feature | DoD-incl-security met? | how verified: command → result, plus Step 5's round scope | docs/features/<feature>.md |`. **A row is one line.** Findings, defects, round detail and Step 3c notes live in the feature doc, never in the row (`MECHANISMS-ON-DEMAND.md` §Section is a record). **Find your place with `grep -n` — the section heading, your ticket's id — and never load the log**: a log every build reads makes each ticket cost more than the last. (case file: The log every build read)
 
 ## Step 3b — Principle-gate: verify each principle is ACTUALLY implemented (not just claimed)
-Walk **this phase's load-bearing principles (Step 1)** and confirm each is real, **citing the evidence Step 2 already captured** (command · result · commit) — **re-run a check when any code, config or test file it reads changed after its evidence was captured; a review fix counts, a doc-only change does not.** Uncommitted and scripted edits count. A file a check reads is never doc-only for that check (`DESIGN.md` for `/frontend-audit`), and **when unsure whether anything changed or whether a change is doc-only, re-run** — a stale citation passes a broken feature. **Scope by what a check reads** — a backend-only fix does not re-run the UI audit — but **when you cannot name the files a check reads, re-run it**, and **the whole gate runs once more at the close**, whatever the scoping said: scoping removes repetition inside the loop, never coverage of the committed tree. **This gate runs ONCE, after Step 5's last round** — never after each round, and it never re-opens the reviews: Step 5 bounds them. (case file: The audit the review fix outran)
+Walk **this phase's load-bearing principles (Step 1)** and confirm each is real, **citing the evidence Step 2 already captured** (command · result · commit). (case file: The audit the review fix outran)
+- **Cite, or re-run?** **re-run a check when any code, config or test file it reads changed after its evidence was captured; a review fix counts, a doc-only change does not.** Uncommitted and scripted edits count. A file a check reads is never doc-only for that check (`DESIGN.md` for `/frontend-audit`), and **when unsure whether anything changed or whether a change is doc-only, re-run** — a stale citation passes a broken feature.
+- **Scope by what a check reads** — a backend-only fix does not re-run the UI audit — but **when you cannot name the files a check reads, re-run it**, and **the whole gate runs once more at the close**, whatever the scoping said: scoping removes repetition inside the loop, never coverage of the committed tree.
+- **This gate runs ONCE, after Step 5's last round** — never after each round, and it never re-opens the reviews: Step 5 bounds them.
+
+**Evidence, per principle:**
 - security-in-DoD → **`/security-review`** (or the equivalent pass) passed — name which.
 - no secret in code / no-hardcoding → secret-scan clean.
 - live-path-works → **`/run`** exercised the real path **and the observable result was checked** — name the command **and what you saw**. An exit code is not the observable result.

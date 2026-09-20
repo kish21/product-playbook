@@ -172,7 +172,10 @@ what a phase checks, writes or verifies — reporting and context only.** (case 
 1. **Bulky output goes to a file.** Output that would exceed a screen is redirected to the scratchpad
    (`> <scratch>/ci.log 2>&1`); read the tail or grep the verdict line; the `evidence:` line cites the
    file. Read a file in full only when about to edit it; otherwise the range you need. After your own
-   edit, read back the lines you changed, never the file.
+   edit, read back the lines you changed, never the file. Write code and tests with the edit tool where
+   one exists, not with a patch script: the script puts the code in the conversation twice and breaks on
+   quoting. (A cut-the-wire proof is the exception — its cut and its restore are one script, so the restore
+   cannot be forgotten.)
 2. **One progress line per named step**, as it lands (*"3/8 — config loader + guards: boots,
    refuses the placeholder"*). A 50-minute phase with one question at the end looks hung.
 3. **Blocking decisions up front.** A decision an earlier section left open is asked at Step 0, in one
