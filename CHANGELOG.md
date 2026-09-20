@@ -5,6 +5,37 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Changed — /build carries less: a one-line Build log it never reads back, a bounded flake, a rule for a dead reviewer (#306)
+
+**Cost is steps × context, and over half a build's cost falls after its first review**, when every step
+re-reads 250–350k tokens — measured on two logged builds ($20.54 and $25.47; $11.31 and $13.10 of it from the
+first review to the end). So whatever a build carries in early is paid for about a hundred times. Nothing
+here changes what a build checks; only what it carries.
+
+- **The Build log made every ticket cost more than the last.** The template defines an entry as one table
+  row; after four builds the section was 36 lines and **53,610 characters** (~13k per "row"), and the next
+  build loaded `PRODUCT.md` three times — 19% of everything tools put into its conversation. Step 3 now
+  appends **ONE table row**, sends findings, defects, round detail and Step 3c notes to the feature doc
+  (`MECHANISMS-ON-DEMAND.md` §Section is a record, which `/build` never pointed at), and finds its place with
+  `grep -n` — it **never loads the log**.
+- **Attribution is one traceback, not an investigation.** A build had its flake's cause in one traceback —
+  the suite died in the harness's setup, in a file the ticket never changed — then ran the suite ~10 more
+  times to characterise it: ~20 steps at ~330k, ~14% of the run. At most one re-run with the change stashed,
+  when the traceback cannot say.
+- **A review that never returns has found nothing.** A reviewer killed by a usage limit left the run with no
+  rule: re-run it once, same scope; a second failure stops the run and goes to the user.
+- **§Context hygiene:** after your own edit, read back the lines you changed, never the file (two builds
+  re-read 22k and ~45k characters of files they had just edited).
+- **Correction to 1.63.0:** a public repo's security finding was sent to "the Step 3c note" — which lives in
+  `PRODUCT.md`, a committed file, public with the repo. It now goes to the user in the close, **never into an
+  issue or a committed file**; check 30 fails the old sentence.
+- **Checks:** check 30 holds the five new `/build` rules and check 23 the read-back rule — proven red (7
+  failures) against the previous text first. Three new evals; two new case files and one extended.
+
+Deliberately unchanged: `PRINCIPLES.md` and `MECHANISMS.md` are still opened whole (7k tokens, 2–3% of a
+build — the quality core), and the review-fix phase still runs in the build's own context (owner's ruling,
+2026-09-13: only what a run carries is trimmed, never what it checks).
+
 ## [1.63.0] - 2026-09-20
 
 ### Fixed — /build: a DoD gap is never deferred, and the run files its own findings (#301)
