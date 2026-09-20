@@ -734,12 +734,25 @@
       "id": "build-review-fix-reruns-the-checks",
       "skill": "build",
       "prompt": "/build \"#9 host edits a party\"  (a UI ticket: /frontend-audit and /run ran clean; /code-review found a bug and an uncommitted script rewrote src/parties/PartyForm.tsx to fix it)",
-      "expected_output": "At Step 3b the uncommitted, scripted review fix counts as a code change, so it re-runs /frontend-audit and /run instead of citing them; /code-review runs a second round over the files the fix touched, only — and no third: a round-2 fix is covered by the close gate, and a round-2 finding that would fail the DoD stops the run and goes to the user.",
+      "expected_output": "At Step 3b the uncommitted, scripted review fix counts as a code change, so it re-runs /frontend-audit and /run instead of citing them. A second review is not automatic: it tells the user what round 1 caught, then asks ONE question — review the files the fix touched, only? — with a recommendation and its reason. On yes it runs that scoped round and never a third; on no it records the skipped round and the reason in the Build log row.",
       "expectations": [
         "/frontend-audit and /run run again after the fix, before the close",
-        "/code-review runs a second round scoped to the files the fix touched, and never a third",
-        "Nothing about the fix is ruled unchanged because it is uncommitted or was made by a script",
-        "A round-2 finding that would fail the DoD stops the run and is put to the user, not fixed in a silent third round"
+        "A second review is asked of the user, with a recommendation and its reason — never run automatically, never silently skipped",
+        "If run, it is scoped to the files the fix touched, and there is never a third",
+        "A skipped round 2 is recorded in the Build log row with the reason",
+        "Nothing about the fix is ruled unchanged because it is uncommitted or was made by a script"
+      ]
+    },
+    {
+      "id": "build-shows-what-the-reviews-caught",
+      "skill": "build",
+      "prompt": "/build \"#14 export a report\"  (round 1 is back: the code review found nine things and the security review found that another account's reports could be downloaded by guessing an id; all fixed and tested)",
+      "expected_output": "Before anything else runs, tells the user what the reviews caught: how many, and the ones that mattered most in one plain sentence each saying what would have gone wrong for a user — another account's reports could have been downloaded by guessing a number — never the jargon name of the defect; that they are fixed and tested; and the measured time and cost so far (or 'not measured'). Because the fixes touched an auth/data surface it recommends a second, scoped review and says why, and leaves the choice to the user. It repeats what was caught in the close.",
+      "expectations": [
+        "The user is shown what round 1 caught in plain language, not just a count or a defect name",
+        "Time and cost so far are measured or reported as not measured — never estimated",
+        "A second review is recommended, with the reason, because the fixes touched an auth/data surface",
+        "What was caught is repeated in the close"
       ]
     },
     {

@@ -788,3 +788,22 @@ idle for forty-nine until the limit reset. On resuming it said the right thing �
 before handing back its findings — I won't guess at them"* — and then had no instruction: the skill covered a
 review it could not invoke, never one that started and did not return. **A review that never returns has found
 nothing: re-run it once, same scope; a second failure stops the run and goes to the user.**
+
+## The review nobody saw
+
+**A logged test run, one day (2026-09-20), the owner using the playbook as a real user.** The owner stopped two
+builds while their reviews were running: the first at minute 125, on a loop that had reached its fourth security
+round; the second when a reviewer had been running for seventy minutes of clock time (it had died on a usage
+limit). Both times, what was on the screen was a reviewer running and a cost rising. At no point had either run
+said what a review had *caught*. On the one build that finished between them, round 1 had caught 21 defects and
+round 2 another 15 — real ones: a secret printed by a failing test, a query with no index, a cursor with no
+bound — and they reached the owner as two counts in a closing paragraph. The owner's words: *"otherwise the user
+will only think he is wasting time and money."*
+
+That is an adoption failure, not a wording one. **A check whose value the user never sees gets switched off —
+and then it guards nothing.** So one round runs; the run then says, in plain words, what it caught, what would
+have gone wrong, and what it has cost so far; and a second round is the user's decision, asked with a
+recommendation and its reason. The recommendation keeps the second round where it earns its cost — fixes on an
+auth/data surface, a serious first-round finding, fixes that were more than small edits — and a skipped round
+is recorded with its reason, because a bypass that leaves no trace is the one thing this playbook exists to
+prevent.
