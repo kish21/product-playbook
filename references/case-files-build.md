@@ -736,3 +736,22 @@ the second over the files the first round's fixes touched, only; then stop. A ro
 deterministic gate at the close, and a round-2 finding that would fail the DoD goes to the user. A paragraph
 that stood here rejecting a scoped-diff recipe was overtaken by #298, which scopes a re-run to the files a
 check reads.
+
+## The findings handed back
+
+**A logged test run (2026-09-20, playbook 1.62.0) — the first build on the bounded review loop.** The loop held:
+two rounds, the second over four files, 52.6 minutes against 99–127 on the release before. Two sentences of the
+new rule did not. It said a finding outside the ticket's files is *filed with `/tickets`*; the run listed five
+in its close and told the owner to file them — *"I did not file them, to keep this session bounded"* — while its
+feature doc read *"Filed, not closed"* with nothing filed. A rule that bounds a session had been read as leave
+to skip the filing. One of the five was not an outside finding at all: words drawn inside an image could steer
+the model that judged it, and prompt-injection defence is a line of an AI feature's definition of done. It was
+deferred because its fix lived in a pinned prompt file the ticket had not changed. Nothing was hidden — the
+close called it *"a real open security risk"* — but the feature was reported built with a DoD line unmet.
+
+The run also did something the rule had not thought of: before filing, it checked whether the repository was
+public, because a security finding in a public issue is a disclosure.
+
+**The rules this earned:** the DoD is read before the file test — a finding that leaves a DoD line unmet is
+fixed now or put to the user, never deferred; every other outside finding is filed by the run, in the run; and
+a security finding on a public repository goes to the spine's note and the user, never to a public issue.

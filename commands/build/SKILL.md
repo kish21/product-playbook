@@ -77,9 +77,13 @@ description: >
    - **A test that fails, then passes with no change, is FLAKY — record it (name · error · N of M runs failed) and file it with `/tickets "<bug>"` in the lane that owns it.** Outside what you changed → carry on and name the issue in the close; inside it and small → fix it with a proof. **Never re-run until green.** (case file: The flake nobody wrote down)
 5. **Review the diff — two rounds, then stop.** Round 1: compose `/code-review` and, on any auth/data
    surface, `/security-review` — in parallel, **both BEFORE the commit and the close**, so their verdicts
-   land in the record. Fix every finding inside the files this ticket changed. **A finding outside them is
-   filed with `/tickets "<finding>"` and named in the close, never fixed here** (Step 4's flake rule, applied
-   to reviews); if it would block THIS feature, STOP and tell the user. Round 2: **The reviews are checks too**
+   land in the record. Fix every finding inside the files this ticket changed. **A finding that leaves a DoD
+   line unmet is never "outside"** — whichever file its fix lives in, fix it now or STOP and ask the user; it
+   is never deferred. **Any other finding outside them is filed IN THIS RUN** — `/tickets "<finding>"`, one
+   each, never handed to the user as a list to file — **and named in the close, never fixed here** (Step 4's
+   flake rule, applied to reviews). **A security finding on a PUBLIC repo is never filed publicly**: record
+   it in the Step 3c note and put it to the user. (case file: The findings handed back)
+   Round 2: **The reviews are checks too**
    — a review fix is code no review has seen — so run `/code-review` again over **the files round 1's fixes
    touched, only**, and `/security-review` too when they touch an auth/data surface; fix what it finds.
    **No round 3.** A round-2 fix is covered by the deterministic gate at the close (tests · lint · audit ·
