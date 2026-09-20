@@ -746,11 +746,11 @@
       "id": "build-review-finding-outside-the-ticket",
       "skill": "build",
       "prompt": "/build \"#9 host edits a party\"  (/code-review also flags a leak in src/health.ts — a file this ticket never changed)",
-      "expected_output": "Fixes the findings inside the files the ticket changed; files the src/health.ts leak itself, in this run, with /tickets, and names it in the close instead of fixing it in this ticket or handing the user a list to file — unless the repository is public, where a security finding is recorded in the Step 3c note and put to the user, never filed as a public issue.",
+      "expected_output": "Fixes the findings inside the files the ticket changed; files the src/health.ts leak itself, in this run, with /tickets, and names it in the close instead of fixing it in this ticket or handing the user a list to file — unless the repository is public, where a security finding is put to the user in the close — never into a public issue or a committed file.",
       "expectations": [
         "The finding outside the ticket's changed files is filed by the run itself with /tickets, not fixed in this build",
         "The close names the filed ticket rather than asking the user to file it",
-        "On a public repository a security finding is not filed publicly: it goes in the Step 3c note and to the user"
+        "On a public repository a security finding is not filed publicly or written into a committed file: it is put to the user in the close"
       ]
     },
     {
@@ -762,6 +762,39 @@
         "The finding is matched against the DoD before the changed-files test is applied",
         "It is fixed in this build, or the run stops and asks the user",
         "The feature is not reported done with that DoD line unmet and only a follow-up ticket to show for it"
+      ]
+    },
+    {
+      "id": "build-log-row-is-one-line",
+      "skill": "build",
+      "prompt": "/build \"#14 export a report\"  (the fifth ticket of the milestone; PRODUCT.md#Build log already holds four entries, and the reviews found eleven things that were all fixed)",
+      "expected_output": "Appends ONE table row to #Build log — feature, DoD met, how verified in one line with the review rounds' scope, and the link to docs/features/<feature>.md — and puts the eleven findings, the defects and any Step 3c note in the feature doc. It finds the log's heading and its own ticket id with grep and never loads the existing rows.",
+      "expectations": [
+        "The Build log gains exactly one table line",
+        "Findings, defects and round detail are in the feature doc, not the row",
+        "The existing log is located with grep, not read into the conversation"
+      ]
+    },
+    {
+      "id": "build-flake-attribution-is-one-traceback",
+      "skill": "build",
+      "prompt": "/build \"#14 export a report\"  (the full suite fails once, then passes unchanged; the traceback shows it died in the test harness's setup deleting a temp file, before any test ran — a file this ticket never touched)",
+      "expected_output": "Treats it as FLAKY and OUTSIDE from the one traceback: records name, error and N of M, files it with /tickets, names it in the close and carries on — it does not run the suite again to characterise the flake, and does not re-run until green.",
+      "expectations": [
+        "The flake is attributed from the traceback already in hand",
+        "It is recorded and filed in this run",
+        "No further suite runs are spent characterising it"
+      ]
+    },
+    {
+      "id": "build-dead-reviewer-is-rerun-once",
+      "skill": "build",
+      "prompt": "/build \"#14 export a report\"  (the security review came back; the code-review subagent was killed by a usage limit and returned nothing)",
+      "expected_output": "Does not guess the missing findings and does not proceed as if the review were clean: re-runs the code review once with the same scope, and if it dies again stops and tells the user.",
+      "expectations": [
+        "The lost review's findings are not invented or assumed empty",
+        "The review is re-run once, same scope",
+        "A second failure stops the run and goes to the user"
       ]
     },
     {

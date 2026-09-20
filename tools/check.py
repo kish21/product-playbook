@@ -1016,6 +1016,10 @@ def check_context_hygiene(files: dict[str, Path]) -> None:
     runs commands for most of a session must point at it. Reporting and context only - the rule changes
     nothing a phase checks, writes or verifies.
     """
+    ondemand = " ".join((ROOT / "references" / "mechanisms-on-demand.md").read_text(encoding="utf-8").split())
+    if REREAD_RULE not in ondemand:
+        fail(f"MECHANISMS-ON-DEMAND.md {HYGIENE_POINTER} never says to {REREAD_RULE!r} - two logged builds re-read "
+             f"whole files they had just edited (22k and ~45k characters), carried through every later step")
     for name in sorted(HYGIENE_DECLARING):
         text = files[name].read_text(encoding="utf-8")
         if HYGIENE_POINTER not in text:
@@ -1464,6 +1468,26 @@ REVIEW_FINDING_TOKENS = (
     ("**A security finding on a PUBLIC repo is never filed publicly**", "keeping a security finding out of a "
      "public issue - filing it there is a disclosure"),
 )
+# What a build carries (#306). Cost is steps x context, and over half a build's cost falls after its first
+# review, when every step re-reads 250-350k tokens - so what is carried in early is paid for ~100 times. On a
+# logged test run (2026-09-20) the Build log was 36 lines and 53,610 characters after four builds, ~13k per
+# "row", and every build loaded it: each ticket cost more than the last. One build had a flake's cause in one
+# traceback and ran the suite ~10 more times to characterise it; its reviewer was killed by a usage limit and
+# the skill had no rule for that. Nothing here changes what a build checks - only what it carries.
+BUILD_WEIGHT_TOKENS = (
+    ("ONE table row", "the Build-log row being one line - rows of ~13k characters made a 53k log every build read"),
+    ("never load the log", "appending without reading the log back - a log every build reads makes each ticket "
+     "cost more than the last"),
+    ("**Attribution is one traceback, not an investigation**", "the bound on attributing a flake - one build ran "
+     "the suite ~10 more times after the traceback had already named a file it never changed"),
+    ("**A review that never returns has found nothing**", "the dead-reviewer rule - a reviewer killed by a usage "
+     "limit left the run with no instruction"),
+    ("never into an issue or a committed file", "a public repo's security finding staying out of committed files "
+     "too - the spine of a public repo is public"),
+)
+# 1.63.0 sent a public repo's security finding to the Step 3c note - which lives in PRODUCT.md, a committed file.
+PUBLIC_NOTE_LEAK = "record it in the Step 3c note and put it to the user"
+REREAD_RULE = "read back the lines you changed, never the file"
 # Scoping a re-run to a check's own inputs (#298) may never cost coverage: /build carries both guards.
 GATE_SCOPE_TOKENS = (
     ("**Scope by what a check reads**", "the scoping rule itself - without it the two guards below guard "
@@ -1488,7 +1512,7 @@ def check_build_loop_overhead(files: dict[str, Path]) -> None:
     """
     text = " ".join(files["build"].read_text(encoding="utf-8").split())
     for token, what in (BUILD_OVERHEAD_TOKENS + RERUN_TOKENS + REVIEW_RERUN_TOKENS + REVIEW_FINDING_TOKENS
-                        + GATE_SCOPE_TOKENS):
+                        + BUILD_WEIGHT_TOKENS + GATE_SCOPE_TOKENS):
         if token not in text:
             fail(f"build lost {what} (expected {token!r})")
     for p in sorted((ROOT / "commands").rglob("*.md")):
@@ -1496,6 +1520,9 @@ def check_build_loop_overhead(files: dict[str, Path]) -> None:
         if LOOSE_RERUN in flat_p:
             fail(f"{p.relative_to(ROOT).as_posix()} says re-run {LOOSE_RERUN!r} - which files is a judgement "
                  f"call; name the condition instead: {RERUN_CONDITION!r}")
+        if PUBLIC_NOTE_LEAK in flat_p:
+            fail(f"{p.relative_to(ROOT).as_posix()} sends a public repo's security finding to the Step 3c note - "
+                 f"that note is in PRODUCT.md, a committed file, so it is published with the repo")
         if UNBOUNDED_REVIEW in flat_p:
             fail(f"{p.relative_to(ROOT).as_posix()} re-reviews {UNBOUNDED_REVIEW!r} - a loop with no end; "
                  f"/build Step 5 bounds it at two rounds, the second scoped to the fix")

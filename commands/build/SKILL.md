@@ -74,15 +74,16 @@ description: >
 4. **Run + verify the LIVE path** — compose `/run` to exercise the path the product actually runs, **then check the observable result yourself** (the response, the row, the rendered page — not the exit code), then **trace your change to its real callers** (green unit tests ≠ wired in).
    - **Walk the checks in `references/live-path-checks.md` whose trigger matches this feature** — the ones that separate *the code exists* from *the product runs it*.
    - **Tests: the affected files while you iterate, the full suite once at the gate.**
-   - **A test that fails, then passes with no change, is FLAKY — record it (name · error · N of M runs failed) and file it with `/tickets "<bug>"` in the lane that owns it.** Outside what you changed → carry on and name the issue in the close; inside it and small → fix it with a proof. **Never re-run until green.** (case file: The flake nobody wrote down)
+   - **A test that fails, then passes with no change, is FLAKY — record it (name · error · N of M runs failed) and file it with `/tickets "<bug>"` in the lane that owns it.** Outside what you changed → carry on and name the issue in the close; inside it and small → fix it with a proof. **Never re-run until green.** **Attribution is one traceback, not an investigation** — it fails in a file this ticket did not change, or before any test runs → it is OUTSIDE; at most ONE re-run with your change stashed when the traceback cannot say. Never run the suite again to characterise it. (case file: The flake nobody wrote down)
 5. **Review the diff — two rounds, then stop.** Round 1: compose `/code-review` and, on any auth/data
    surface, `/security-review` — in parallel, **both BEFORE the commit and the close**, so their verdicts
    land in the record. Fix every finding inside the files this ticket changed. **A finding that leaves a DoD
    line unmet is never "outside"** — whichever file its fix lives in, fix it now or STOP and ask the user; it
    is never deferred. **Any other finding outside them is filed IN THIS RUN** — `/tickets "<finding>"`, one
    each, never handed to the user as a list to file — **and named in the close, never fixed here** (Step 4's
-   flake rule, applied to reviews). **A security finding on a PUBLIC repo is never filed publicly**: record
-   it in the Step 3c note and put it to the user. (case file: The findings handed back)
+   flake rule, applied to reviews). **A security finding on a PUBLIC repo is never filed publicly** — never
+   into an issue or a committed file (the spine of a public repo is public too): put it to the user in the
+   close. (case file: The findings handed back)
    Round 2: **The reviews are checks too**
    — a review fix is code no review has seen — so run `/code-review` again over **the files round 1's fixes
    touched, only**, and `/security-review` too when they touch an auth/data surface; fix what it finds.
@@ -94,11 +95,12 @@ description: >
    - **Run `/security-review` inside a subagent** (prompt: *run /security-review on this branch and return
      the findings*) — invoked inline it takes over the turn and ends it on its report. **Its report is
      input: record the verdict, then step 6, Step 3, 3b and the close.** (case file: The review that ended the run again)
+   - **A review that never returns has found nothing** — killed, rate-limited or timed out, its findings are never guessed: re-run it once, same scope; if it dies again, STOP and tell the user. (case file: The reviewer that never came back)
    - ⚠️ **If you cannot invoke it, ASK the user to run it, or do the deep pass by hand and say which you did** — see `PRINCIPLES.md`, *Composed skills*.
 6. **Document** — once, after Step 5's last round — write/update `docs/features/<feature>.md`; reconcile it with the code. **Copy every `evidence:` number from the command's captured output, never ahead of it** — a figure pencilled in while CI runs reads exactly like a measured one. (case file: The pencilled bundle size)
 
 ## Step 3 — Write back to `PRODUCT.md`
-Append a `#Build log` row: feature · DoD-incl-security met? · **how verified** · link to the feature doc.
+Append ONE table row to `#Build log` — `| feature | DoD-incl-security met? | how verified: command → result, plus Step 5's round scope | docs/features/<feature>.md |`. **A row is one line.** Findings, defects, round detail and Step 3c notes live in the feature doc, never in the row (`MECHANISMS-ON-DEMAND.md` §Section is a record). **Find your place with `grep -n` — the section heading, your ticket's id — and never load the log**: a log every build reads makes each ticket cost more than the last. (case file: The log every build read)
 
 ## Step 3b — Principle-gate: verify each principle is ACTUALLY implemented (not just claimed)
 Walk **this phase's load-bearing principles (Step 1)** and confirm each is real, **citing the evidence Step 2 already captured** (command · result · commit) — **re-run a check when any code, config or test file it reads changed after its evidence was captured; a review fix counts, a doc-only change does not.** Uncommitted and scripted edits count. A file a check reads is never doc-only for that check (`DESIGN.md` for `/frontend-audit`), and **when unsure whether anything changed or whether a change is doc-only, re-run** — a stale citation passes a broken feature. **Scope by what a check reads** — a backend-only fix does not re-run the UI audit — but **when you cannot name the files a check reads, re-run it**, and **the whole gate runs once more at the close**, whatever the scoping said: scoping removes repetition inside the loop, never coverage of the committed tree. **This gate runs ONCE, after Step 5's last round** — never after each round, and it never re-opens the reviews: Step 5 bounds them. (case file: The audit the review fix outran)

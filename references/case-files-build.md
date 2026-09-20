@@ -692,6 +692,13 @@ four times, the full CI gate three times. It fixed one timing issue in a test; a
 re-run until it passed and may still be there. A flaky test costs its investigation on **every** build until
 someone records it — so the first build that sees one records it and files it, and never re-runs until green.
 
+*Back again (2026-09-20, #306).* A later build recorded and filed its flake — and then investigated it anyway.
+One traceback had the answer: the suite died in the test harness's setup, before any test ran, in a file the
+ticket had not changed. The run then ran the full suite three times, a subset six times, and alternating full
+runs with and without its own tests: about twenty steps, each re-reading ~330k tokens, ~14% of the build. The
+rule said what to do with a flake and never bounded working out whose it was. **Attribution is one traceback;**
+at most one re-run with the change stashed when the traceback cannot say.
+
 ## Two builds, the same forty minutes
 
 **A logged test run, M1-SLICE-03 and M2-SLICE-01 (2026-09-14), measured from the session logs.** `/build #7` (a
@@ -754,4 +761,30 @@ public, because a security finding in a public issue is a disclosure.
 
 **The rules this earned:** the DoD is read before the file test — a finding that leaves a DoD line unmet is
 fixed now or put to the user, never deferred; every other outside finding is filed by the run, in the run; and
-a security finding on a public repository goes to the spine's note and the user, never to a public issue.
+a security finding on a public repository goes to the user, never to a public issue. *(Corrected the same day,
+#306: the first wording sent it to the spine's Step 3c note — a committed file, public with the repo. It goes
+to the user in the close, and into no issue and no committed file.)*
+
+## The log every build read
+
+**Measured from the session logs of two builds on a logged test run (2026-09-20, #306).** The template defines a
+`#Build log` entry as one table row. After four builds the section was 36 lines and **53,610 characters** —
+about 13,000 per "row": the findings, the defects, the round-by-round detail, the Step 3c notes. The next build
+loaded `PRODUCT.md` three times, 79,000 characters, 19% of everything tools put into its conversation — in its
+first minute, so it was carried through every one of the ~130 steps that followed. Cost is steps × context,
+and over half a build's cost falls after its first review, when each step re-reads 250–350k tokens. So every
+build paid for the log that every earlier build had fattened, and each ticket cost more than the last: by the
+nineteenth the log alone would have been ~60k tokens.
+
+Nothing in those rows was wrong. It was in the wrong file: `docs/features/<feature>.md` already existed to hold
+it, and `MECHANISMS-ON-DEMAND.md` §Section is a record already said a section keeps the decision and the pointer.
+`/build` never pointed at it. **A Build-log entry is one line, and a build finds its place with `grep` — it never
+loads the log.**
+
+## The reviewer that never came back
+
+**Same run.** Round 1's code review ran for twenty minutes and was then killed by a usage limit; the build sat
+idle for forty-nine until the limit reset. On resuming it said the right thing — *"the code reviewer … died
+before handing back its findings — I won't guess at them"* — and then had no instruction: the skill covered a
+review it could not invoke, never one that started and did not return. **A review that never returns has found
+nothing: re-run it once, same scope; a second failure stops the run and goes to the user.**
