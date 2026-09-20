@@ -75,23 +75,36 @@ description: >
    - **Walk the checks in `references/live-path-checks.md` whose trigger matches this feature** — the ones that separate *the code exists* from *the product runs it*.
    - **Tests: the affected files while you iterate, the full suite once at the gate.**
    - **A test that fails, then passes with no change, is FLAKY — record it (name · error · N of M runs failed) and file it with `/tickets "<bug>"` in the lane that owns it.** Outside what you changed → carry on and name the issue in the close; inside it and small → fix it with a proof. **Never re-run until green.** **Attribution is one traceback, not an investigation** — it fails in a file this ticket did not change, or before any test runs → it is OUTSIDE; at most ONE re-run with your change stashed when the traceback cannot say. Never run the suite again to characterise it. (case file: The flake nobody wrote down)
-5. **Review the diff — two rounds, then stop.** Round 1: compose `/code-review` and, on any auth/data
+5. **Review the diff — one round, then the user decides.** Round 1: compose `/code-review` and, on any auth/data
    surface, `/security-review` — in parallel, **both BEFORE the commit and the close**, so their verdicts
-   land in the record. Fix every finding inside the files this ticket changed. **A finding that leaves a DoD
+   land in the record. Fix every finding inside the files this ticket changed, each with its proof. **A finding that leaves a DoD
    line unmet is never "outside"** — whichever file its fix lives in, fix it now or STOP and ask the user; it
    is never deferred. **Any other finding outside them is filed IN THIS RUN** — `/tickets "<finding>"`, one
    each, never handed to the user as a list to file — **and named in the close, never fixed here** (Step 4's
    flake rule, applied to reviews). **A security finding on a PUBLIC repo is never filed publicly** — never
    into an issue or a committed file (the spine of a public repo is public too): put it to the user in the
    close. (case file: The findings handed back)
-   Round 2: **The reviews are checks too**
-   — a review fix is code no review has seen — so run `/code-review` again over **the files round 1's fixes
-   touched, only**, and `/security-review` too when they touch an auth/data surface; fix what it finds.
+   **Then show the user what the reviews caught** — before anything else runs: how many, and the ones that
+   mattered most, each in ONE plain sentence saying what would have gone wrong for a user (*"a second shop
+   could have read this shop's photos"*, never *"missing tenant filter"*); that they are fixed and tested;
+   and the time and cost so far, measured (`MECHANISMS-ON-DEMAND.md` §Context hygiene, item 4) or "not
+   measured". A user who is never shown what a review caught sees only the time and the money. Say it again
+   in the close. (case file: The review nobody saw)
+   **Round 2 is the user's call, never automatic.** **The reviews are checks too** — a review fix is code no
+   review has seen — so ask ONE question: review again, over **the files round 1's fixes touched, only**
+   (`/security-review` too when they touch an auth/data surface)? Give your recommendation AND its reason:
+   **recommend YES when the fixes touched an auth/data surface**, when round 1 found a HIGH or MEDIUM, or
+   when the fixes were more than small edits; otherwise recommend NO — each fix carries its own proof and the
+   close gate runs over the final tree. This is the one question a build asks mid-run — it depends on what
+   round 1 found — and the tree is green and reviewed once, so it is a safe place to wait. The user chose up
+   front (*"one round"*, *"two rounds"*) → do not ask; nobody can answer (headless, a batch) → follow your
+   own recommendation and say so. **A skipped round 2 is RECORDED** in the `#Build log` row with its reason —
+   never silent. On yes: run it, fix what it finds.
    **No round 3.** A round-2 fix is covered by the deterministic gate at the close (tests · lint · audit ·
    secret-scan · live path, once over the final tree); if round 2 found anything that would fail the DoD,
    **STOP and tell the user** — the finding and the fix — never a silent third round. **Record each round's
-   SCOPE** in the `#Build log` row — `/code-review → R1 8 findings · R2 (3 files) 1 finding · <sha> · <date>`
-   — so `/ship` can tell whether the diff changed since. (case file: The audit the review fix outran)
+   SCOPE** in the `#Build log` row — `/code-review → R1 8 findings · R2 (3 files) 1 finding · <sha> · <date>`,
+   or `· R2 skipped by the user: <reason>` — so `/ship` can tell whether the diff changed since. (case file: The audit the review fix outran)
    - **Run `/security-review` inside a subagent** (prompt: *run /security-review on this branch and return
      the findings*) — invoked inline it takes over the turn and ends it on its report. **Its report is
      input: record the verdict, then step 6, Step 3, 3b and the close.** (case file: The review that ended the run again)

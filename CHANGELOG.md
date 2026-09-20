@@ -5,6 +5,30 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Changed — /build: one review round, the user is shown what it caught, and a second round is the user's call (owner's ruling)
+
+**The owner stopped two builds mid-review in one day**, having been shown only a reviewer running and a cost
+rising — never what a review had caught. On the build that finished between them the reviews caught 36 real
+defects, and they reached the owner as two counts in the close. *"Otherwise the user will only think he is
+wasting time and money."* A check whose value the user never sees gets switched off, and then it guards nothing.
+
+- **Round 1 runs as before** — `/code-review` and `/security-review` in parallel; every finding in the
+  ticket's files fixed, each with its proof.
+- **Then the run shows the user what the reviews caught** — how many, and the ones that mattered most in one
+  plain sentence each saying what would have gone wrong for a user; that they are fixed and tested; and the
+  time and cost so far, measured or "not measured". It says it again in the close.
+- **Round 2 is the user's call, never automatic.** The run asks ONE question — review the files round 1's
+  fixes touched, only? — with its recommendation and the reason: **YES when the fixes touched an auth/data
+  surface, when round 1 found a HIGH or MEDIUM, or when the fixes were more than small edits**; otherwise NO.
+  A choice made up front (*"one round"* / *"two rounds"*) is not asked again; a run nobody can answer follows
+  its own recommendation and says so. Still scoped, still **no round 3**.
+- **A skipped round 2 is RECORDED** in the `#Build log` row with its reason — never silent.
+- check 30 holds all four (proven red first); the review eval expects the question, and a new eval expects the
+  plain-language account. War story: `references/case-files-build.md` §The review nobody saw.
+
+What this trades, stated: on one logged build round 2 found 15 real defects in round 1's fixes. It now runs
+when the user says so, on the run's recommendation — which says yes exactly where those defects were found.
+
 ## [1.64.0] - 2026-09-20
 
 ### Changed — /build carries less: a one-line Build log it never reads back, a bounded flake, a rule for a dead reviewer (#306)

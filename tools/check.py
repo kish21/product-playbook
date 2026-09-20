@@ -1455,6 +1455,19 @@ REVIEW_RERUN_TOKENS = (
      "full check, the live path and the spine update after each of five rounds"),
 )
 UNBOUNDED_REVIEW = "until a round changes no code, config or test file"
+# The owner's ruling (2026-09-20), after stopping two builds during their reviews: what a user can SEE of a
+# review is time and money going - never what it caught. One round runs; the run then says, in plain words, what
+# it caught and what it has cost; a second round is the user's decision, asked with a recommendation and its
+# reason, and a skipped one is recorded. A check whose value the user never sees gets switched off - and then it
+# guards nothing.
+REVIEW_VISIBLE_TOKENS = (
+    ("**Then show the user what the reviews caught**", "making a review's value visible - the owner stopped two "
+     "builds mid-review having been shown only a running reviewer and a rising cost"),
+    ("**Round 2 is the user's call, never automatic.**", "the second round being asked, not assumed"),
+    ("recommend YES when the fixes touched an auth/data surface", "the recommendation that keeps round 2 where "
+     "it matters - on one logged build it found 15 real defects in round 1's fixes"),
+    ("**A skipped round 2 is RECORDED**", "a skipped round never being silent - a bypass is recorded with its reason"),
+)
 # What a review finds that is not this ticket's to fix. The first live run on the bounded loop (2026-09-20,
 # #301) listed five findings in its close and told the owner to file them, while its feature doc said "Filed"
 # with nothing filed; and a prompt-injection gap - a line of the AI DoD - was deferred as a finding because its
@@ -1512,7 +1525,7 @@ def check_build_loop_overhead(files: dict[str, Path]) -> None:
     """
     text = " ".join(files["build"].read_text(encoding="utf-8").split())
     for token, what in (BUILD_OVERHEAD_TOKENS + RERUN_TOKENS + REVIEW_RERUN_TOKENS + REVIEW_FINDING_TOKENS
-                        + BUILD_WEIGHT_TOKENS + GATE_SCOPE_TOKENS):
+                        + REVIEW_VISIBLE_TOKENS + BUILD_WEIGHT_TOKENS + GATE_SCOPE_TOKENS):
         if token not in text:
             fail(f"build lost {what} (expected {token!r})")
     for p in sorted((ROOT / "commands").rglob("*.md")):
