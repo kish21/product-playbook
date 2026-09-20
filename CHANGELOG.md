@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.66.0] - 2026-09-20
+
 ### Fixed — /build names what kind of feature it is, opens its companions where skipping would show, and edits files directly
 
 **Two consecutive logged builds never opened `feature-archetypes.md` or `live-path-checks.md`** — no tool call
