@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.65.0] - 2026-09-20
+
 ### Changed — /build: one review round, the user is shown what it caught, and a second round is the user's call (owner's ruling)
 
 **The owner stopped two builds mid-review in one day**, having been shown only a reviewer running and a cost
