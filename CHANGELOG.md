@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.64.0] - 2026-09-20
+
 ### Changed — /build carries less: a one-line Build log it never reads back, a bounded flake, a rule for a dead reviewer (#306)
 
 **Cost is steps × context, and over half a build's cost falls after its first review**, when every step
