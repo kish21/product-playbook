@@ -15,7 +15,7 @@ A project's commit hooks and CI run a COMMITTED COPY of this file (kept at <tool
 wired by /foundation), because a clean clone has no plugin. The copy carries ENGINE_VERSION, and the
 installed engine says on every run when that copy is older, newer or edited - see engine_copy_notes().
 """
-import sys, os, re, math, glob, subprocess
+import sys, os, re, math, glob, subprocess, ast
 
 # The playbook release this engine shipped in. tools/check.py (check 5) holds it equal to the release,
 # so a project copy can say which checks it carries.
@@ -383,9 +383,29 @@ def version_tuple(v):
     return tuple(int(n) for n in re.findall(r"\d+", v or "")) or (0,)
 
 def _engine_code(text):
-    """The engine with its version line removed and line endings normalised - two releases whose checks
-    are identical compare equal, so a version bump alone never asks anyone to refresh a copy."""
-    return _VERSION_RE.sub("", text.replace("\r\n", "\n"))
+    """What the engine DOES, with its version line removed - two releases whose checks are identical compare
+    equal, so a version bump alone never asks anyone to refresh a copy. Compared as parsed code, not text:
+    a project's formatter rewrites its committed copy (split imports, quotes, spacing), and a text compare
+    then called a copy with the same checks OLDER on every release. Comments, docstrings and import order
+    do not count; code that does not parse falls back to the text."""
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return _VERSION_RE.sub("", text.replace("\r\n", "\n"))
+    imports, body = set(), []
+    for node in tree.body:
+        if isinstance(node, ast.Assign) and any(getattr(t, "id", None) == "ENGINE_VERSION" for t in node.targets):
+            continue
+        if isinstance(node, ast.Import):
+            imports |= {(a.name, a.asname) for a in node.names}
+            continue
+        body.append(node)
+    module = ast.Module(body=body, type_ignores=[])
+    for node in ast.walk(module):
+        if (isinstance(node, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and node.body
+                and isinstance(node.body[0], ast.Expr) and isinstance(getattr(node.body[0].value, "value", None), str)):
+            node.body = node.body[1:] or [ast.Pass()]
+    return sorted(imports), ast.dump(module)
 
 def engine_copy_notes():
     """Compare this engine with the copies committed in the current git project.

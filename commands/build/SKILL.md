@@ -63,7 +63,7 @@ description: >
 ## Step 2 — The build loop (per feature)
 1. **Declare the DoD** (incl. security + the exit criteria above). **Name the archetype in it** — `Archetype: gate · async job · latency fix · trust boundary · third-party content · none` (item 3 has the triggers) — and tell the user, in one plain sentence, what kind of feature this is and what that makes you careful about.
 2. **Reuse scan:** find existing helpers/contracts; don't reinvent.
-3. **Code** against the typed contracts; keep it modular and generic (no domain special-casing in shared infra).
+3. **Code** against the typed contracts; keep it modular and generic (no domain special-casing in shared infra). **Write code and tests with the edit tool, not with a patch script** — a script puts the code in the conversation twice and breaks on quoting; a cut-the-wire proof is the one exception.
    - **If the feature has a user-facing screen (UI products):** build to **`DESIGN.md`** — §5 layout, token look, `/new-component` parts (Law 15) — then run **`/frontend-audit`** — `python "${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py" DESIGN.md <ui-dir>`, the installed engine; **never search the plugin cache** (a `$` left in the path: `/frontend-audit` §Which engine runs) — fix every ERROR, and repeat its `engine copy:` line. *(No `DESIGN.md`? `/design-system` first.)*
    - **Some features carry rules that apply only to THEM. If this feature is one, open `references/feature-archetypes.md` and apply that cluster BEFORE you write:**
      - a **GATE** — a validator, quality check, policy engine, anything whose job is to say "no" → **§Gates** (10 rules)
