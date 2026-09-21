@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.68.0] - 2026-09-21
+
 ### Fixed — `#Build log` holds table rows and nothing else; Step 3c's result goes in the feature doc
 
 **A logged 1.67.0 build kept its Build-log row to one line and then wrote a 1,600-character Step 3c paragraph
