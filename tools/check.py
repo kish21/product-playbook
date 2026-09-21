@@ -1496,10 +1496,14 @@ REVIEW_FINDING_TOKENS = (
 # "row", and every build loaded it: each ticket cost more than the last. One build had a flake's cause in one
 # traceback and ran the suite ~10 more times to characterise it; its reviewer was killed by a usage limit and
 # the skill had no rule for that. Nothing here changes what a build checks - only what it carries.
+STEP3C_HOME = "**Step 3c's result goes in the feature doc**"
 BUILD_WEIGHT_TOKENS = (
     ("ONE table row", "the Build-log row being one line - rows of ~13k characters made a 53k log every build read"),
     ("never load the log", "appending without reading the log back - a log every build reads makes each ticket "
      "cost more than the last"),
+    ("`#Build log` holds table rows and nothing else", "the log holding rows only - a 1.67.0 build kept its row to "
+     "one line and still wrote a 1,600-character Step 3c paragraph under the table, copying the 15 the older "
+     "builds had left there; 'never in the row' did not forbid it"),
     ("**Attribution is one traceback, not an investigation**", "the bound on attributing a flake - one build ran "
      "the suite ~10 more times after the traceback had already named a file it never changed"),
     ("**A review that never returns has found nothing**", "the dead-reviewer rule - a reviewer killed by a usage "
@@ -1551,6 +1555,11 @@ def check_build_loop_overhead(files: dict[str, Path]) -> None:
                         + REVIEW_VISIBLE_TOKENS + BUILD_GUIDE_TOKENS + BUILD_WEIGHT_TOKENS + GATE_SCOPE_TOKENS):
         if token not in text:
             fail(f"build lost {what} (expected {token!r})")
+    # Step 3c said what to check but never where its result goes, so a run followed the log's old paragraphs.
+    step3c = re.search(r"## Step 3c\b(.*?)(?=\n## |\Z)", files["build"].read_text(encoding="utf-8"), re.S)
+    if not step3c or STEP3C_HOME not in " ".join(step3c.group(1).split()):
+        fail(f"/build's Step 3c section never says {STEP3C_HOME!r} - it named what to check and not where the "
+             f"result goes, and a logged build wrote it as a paragraph in #Build log")
     for p in sorted((ROOT / "commands").rglob("*.md")):
         flat_p = " ".join(p.read_text(encoding="utf-8").split())
         if LOOSE_RERUN in flat_p:

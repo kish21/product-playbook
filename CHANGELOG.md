@@ -5,6 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — `#Build log` holds table rows and nothing else; Step 3c's result goes in the feature doc
+
+**A logged 1.67.0 build kept its Build-log row to one line and then wrote a 1,600-character Step 3c paragraph
+under the table.** The log already held 15 such paragraphs from builds before 1.64.0, and five of them carried the
+same "Step 3c, checked against what was already recorded" heading. The run followed that pattern. The rule said
+Step 3c notes live "never in the row", and a paragraph under the row is not in it. `/build`'s Step 3c section
+said what to check, never where its result goes.
+
+- **The row rule now says `#Build log` holds table rows and nothing else**, apart from the dated one-line
+  `Override` / `_Not run_` records §Declined runs puts at its top. Step 3c's result goes in the feature doc.
+- **The Step 3c section says the same**, so the rule is in front of the run at the step that writes the note.
+- check 30 holds both sentences, and the Step 3c one inside that section. Both were proven red against the
+  previous text, and the section check was also proven red on its own, with the row rule left in place.
+
 ## [1.67.0] - 2026-09-21
 
 ### Fixed — the patch-script rule is where /build writes code, and a reformatted audit copy is not called OLDER
