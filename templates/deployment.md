@@ -19,16 +19,21 @@ the user's own machine` · **chosen in** `#Architecture` (`<user-chosen | defaul
 
 ## 2. Environment variables the host needs
 
-**Generated from `.env.example`** — every variable the config loader's boot guard requires. Do not retype
-this list by hand; read the file, or it drifts from the guard and the first deploy fails closed.
+**Generated from what the code reads** — the config loader and every build-time read — with `.env.example`
+checked against it. Do not retype this list by hand, or it drifts from the code.
 
-| Variable | Secret? | How to get the value |
-|---|---|---|
-| `<VAR>` | yes/no | `<where it comes from, or the command that generates it>` |
+| Variable | Secret? | Read at | How to get the value |
+|---|---|---|---|
+| `<VAR>` | yes/no | build/boot | `<where it comes from, or the command that generates it>` |
+
+**`.env.example` differences:** `<variables the code reads that it lacks · variables it lists that nothing
+reads — or "none">`
 
 **Paste these into the host yourself.** They are never committed, never written here, and never asked for
-in chat. A variable left unset does not fail quietly: the boot guard rejects it **by name** — that is the
-guard working, and it is the single most likely first-deploy failure.
+in chat. **Read at boot:** a variable left unset does not fail quietly — the boot guard rejects it **by
+name**; that is the guard working, and it is the single most likely first-deploy failure. **Read at build:**
+an unset one fails **open, silently** — the page falls back to a mock or a dead button — so each one is
+checked in the built output: `<the search and what it found>`.
 
 ## 3. Migrations on deploy
 
@@ -47,7 +52,18 @@ means here, because an assertion with no command behind it is a plan, not a depl
 1. `<step>`
 2. `<step>`
 
-## 5. Proof it works
+## 5. Who can get in
+
+Checked **before** the URL was public.
+
+- **Credentials in the built output:** `<the search run over the build folder — password strings, sign-in
+  calls with typed-in values, real account emails> → <what it found>`
+- **Every way a stranger can get signed in:** `<sign-up · demo or quick-login buttons · magic links · guest
+  mode>` — each **closed**, or **open because the user said so**
+- **What a stranger can reach and spend** (asked when `#Dev-complete` was empty): `<the paid actions a
+  signed-in stranger can trigger, and what was closed>`
+
+## 6. Proof it works
 
 Not "the build went green" — a request that was answered.
 
@@ -56,7 +72,7 @@ Not "the build went green" — a request that was answered.
 
 `evidence: <command> → <result> · docs/deployment.md · <YYYY-MM-DD>`
 
-## 6. Rollback
+## 7. Rollback
 
 The path you **actually have**, not the one you would like. `/ship` attaches its rollout-safety checks to
 this section on every release.
@@ -66,7 +82,7 @@ this section on every release.
 - **Flag off:** `<the flag, if the risky change is behind one>`
 - **Signal to watch after deploy:** `<the one metric or log line that says it went wrong>`
 
-## 7. Known gaps
+## 8. Known gaps
 
 Anything that blocked and was not fixable today — a quota, DNS propagation, a paid tier, an account that
 has to be created by someone else. A recorded gap with a date beats a green tick that is not true.

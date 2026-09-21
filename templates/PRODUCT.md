@@ -141,6 +141,7 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Live URL:**
 - **Env vars set on the host (names only — values are the user's to paste):**
 - **Migrations on deploy (the command, where it runs, what happens on failure):**
+- **Who can get in (credentials in the built output · every way to a session · what a stranger can spend):**
 - **Proof it answers:** `evidence: <command> -> <result> - <artefact> - <YYYY-MM-DD>`
 - **Rollback path:**
 - **Known gaps:**

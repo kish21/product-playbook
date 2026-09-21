@@ -25,7 +25,8 @@ description: >
 - **Purpose:** the product is reachable at a URL by someone who is not you, and the steps are written
   down so the next deploy is not a rediscovery.
 - **Reads:** `PRODUCT.md#Architecture` (**the runtime target, data custody and migrations approach** —
-  copied, never re-decided), `#Foundation`, `#Plan` (which milestone needs reachability), `.env.example`.
+  copied, never re-decided), `#Foundation`, `#Plan` (which milestone needs reachability), `#Dev-complete`,
+  the config the code actually reads, and `.env.example`.
 - **Writes:** `docs/deployment.md` (the companion document) + `PRODUCT.md#Deployment` (a short record
   and a pointer to it).
 - **Gate type:** `verification` — pass/fail on a live URL; the preference was settled in `#Architecture`.
@@ -39,15 +40,23 @@ description: >
   - [ ] **`docs/deployment.md` exists** and carries: host · build and start commands · the exact env-var
     list · how migrations run on deploy · first-deploy steps · the one command or URL that proves it
     worked · the rollback path. → `docs/deployment.md`
-  - [ ] **The env-var list is GENERATED from `.env.example`**, not retyped — so it cannot drift from the
-    loader's own guard. Every variable the boot guard requires appears in it. → `Env vars set on the host`
+  - [ ] **The env-var list is GENERATED from what the code reads, and `.env.example` is checked against
+    it** — the config loader's reads and every build-time read, not retyped. A variable the code reads that
+    `.env.example` lacks, or one it lists that nothing reads, is named. Every variable the boot guard
+    requires appears in it. → `Env vars set on the host`
   - [ ] **Migrations on deploy are defined, not asserted.** `#Architecture` typically says *"applied on
     deploy"*; name the command, where it runs, and what happens when it fails. → `Migrations on deploy`
   - [ ] **A real request succeeded** against the deployed URL — the health path *and* one real user path.
     A build that went green is not a product that answers. → `Proof it answers`
   - [ ] **`/foundation`'s placeholder guard was considered before the first deploy**, not discovered by
     it: the guard is working as designed when it refuses to boot on an unset host variable, and that is
-    the single most likely first-deploy failure. → `Env vars set on the host`
+    the single most likely first-deploy failure **for a value read at boot**. → `Env vars set on the host`
+  - [ ] **Every value read at BUILD time was checked in the built output.** Nothing rejects an unset one:
+    the page falls back to a mock or a dead button, and the site looks live while it is not. → `Env vars set on the host`
+  - [ ] **The built output carries no credential of any kind, and every way a stranger can get signed in
+    is listed** — each one closed, or open because the user said so. → `Who can get in`
+  - [ ] **With `#Dev-complete` empty, what a stranger can reach and spend was asked before the URL went
+    public**, and the answer is recorded. → `Who can get in`
   - [ ] **No secret was written by this skill, or asked for in chat.** The document says *which* variables
     the host needs and how to generate each value; **the user pastes them into the host themselves**. → `Env vars set on the host`
 
@@ -58,7 +67,10 @@ description: >
   deploying to a host nobody chose is how a project acquires infrastructure it cannot justify later.
 - **If `#Dev-complete` is empty**, say so: deploying an unfinished product is legitimate (a milestone may
   need a URL before the product is done — that is usually *why* this phase runs early) but it should be a
-  choice, not an accident.
+  choice, not an accident. **Then ask what a stranger can reach and spend once the URL is public** — can
+  anyone sign up, and what does each action cost (a paid model call, a GPU job, an email sent)? Security
+  work deferred "until outside users" is due the day the URL is public. Record the answer and what was
+  closed. (case file: Public sign-up where every click spends money)
 - **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate, ask
   for the **reason in the user's own words**, and write `Override <date>: <reason> — bypassed <gate>` at
   the top of `#Deployment` before continuing.
@@ -91,11 +103,23 @@ supported-vendor list** (same rule as `/foundation`'s test-datastore recipes).
 4. **The user's own machine** → the "deploy" is an install and a run command; say plainly what other
    people can and cannot reach, because a milestone criterion may quietly assume they can.
 
-Fill every section of the template. **Generate the env-var list from `.env.example`** — read the file,
-list the variable names, and mark which are secret. **Do not invent one variable of it.**
+Fill every section of the template. **Generate the env-var list from what the code reads** — the config
+loader and every build-time read (`import.meta.env.*`, `process.env.NEXT_PUBLIC_*` and the like) — then
+**check `.env.example` against it**: name each variable it lacks and each one nothing reads. Mark each
+variable secret or not, and **read at build or at boot**. **Do not invent one variable of it.** (case file:
+The env list that had drifted to half)
 
 ## Step 3 — Deploy once, for real, and write down what it took
 Do the first deploy *with* the user — they hold the credentials. Then:
+- **Before the URL is public, scan the BUILT output for credentials of every kind, and list every way a
+  stranger can get signed in.** Search the build folder for password strings, sign-in calls with typed-in
+  values and real account emails — a key-format secret scan misses all three. List sign-up, demo or
+  quick-login buttons, magic links and guest modes; each is closed, or open because the user said so.
+  (case file: The demo buttons that shipped two passwords)
+- **A value read at build time is not boot-time config: an unset one fails OPEN, silently — check each one in
+  the built output.** Search the built files for each value the page needs (the API base, the auth
+  project URL); these ship to every visitor, so reading them handles no secret. (case file: The site that
+  looked live)
 - **Prove it answers.** Hit the health path and **one real user path** on the deployed URL, and record the
   command and the response. A green build is not a working product; `/build` already learned that lesson
   on localhost and it is more true here.

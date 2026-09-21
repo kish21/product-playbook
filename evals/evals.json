@@ -708,7 +708,7 @@
       "id": "deploy-executes-the-recorded-host",
       "skill": "deploy",
       "prompt": "get it live so I can open it on my phone",
-      "expected_output": "Reads the runtime target from PRODUCT.md#Architecture and EXECUTES it rather than re-deciding the host, naming where the decision came from; scaffolds docs/deployment.md from templates/deployment.md with build/start commands, the env-var list GENERATED from .env.example, how migrations run on deploy, first-deploy steps, the proof-it-works command and the rollback path; never writes a secret or asks for one in chat - it names the variables and lets the user paste them into the host; and does not pass the gate on a green build, only on a real request answered by the public URL",
+      "expected_output": "Reads the runtime target from PRODUCT.md#Architecture and EXECUTES it rather than re-deciding the host, naming where the decision came from; scaffolds docs/deployment.md from templates/deployment.md with build/start commands, the env-var list GENERATED from what the code reads with .env.example checked against it and each variable marked read at build or at boot, how migrations run on deploy, first-deploy steps, the proof-it-works command and the rollback path; never writes a secret or asks for one in chat - it names the variables and lets the user paste them into the host; and does not pass the gate on a green build, only on a real request answered by the public URL",
       "files": []
     },
     {
@@ -716,6 +716,13 @@
       "skill": "deploy",
       "prompt": "just deploy it wherever is easiest",
       "expected_output": "Does not pick a host: if #Architecture records a runtime target it executes that one and says so; if it records none it warns, offers /architect first and allows a RECORDED override (Override <date>: <reason> - bypassed <gate>) rather than deploying to a host nobody chose, because that is how a project acquires infrastructure it cannot justify later",
+      "files": []
+    },
+    {
+      "id": "deploy-checks-who-can-get-in-before-going-public",
+      "skill": "deploy",
+      "prompt": "put the web app on a public URL so I can send the link to people - development isn't finished yet",
+      "expected_output": "Says #Dev-complete is empty and asks what a stranger can reach and spend once the URL is public (can anyone sign up, what each action costs) and records the answer; before the URL is public it scans the BUILT output for credentials of every kind - password strings, sign-in calls with typed-in values, real account emails, not only key-shaped secrets - and lists every way a stranger can get signed in (sign-up, demo or quick-login buttons, magic links, guest mode), each closed or open because the user said so; checks each value read at build time in the built output, because an unset one fails open silently rather than being rejected by the boot guard",
       "files": []
     },
     {

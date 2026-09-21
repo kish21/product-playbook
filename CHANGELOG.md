@@ -5,6 +5,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — /deploy checks who can get in before the URL is public, and checks build-time values in the built site
+
+**A logged `/deploy` run put a site live with two real accounts' passwords in its sign-in page.** The secret
+checks had passed: they look for things shaped like keys, and a password behind a "try a demo" button is not
+one. The owner found it about fifteen minutes after go-live. The same run showed two rules the skill stated
+wrongly: that an unset variable always fails loudly by name (a value baked in when the site is built fails
+silently, and the site looks live while it is not), and that the env list comes from `.env.example` (which
+listed 15 of the 32 variables the code read).
+
+- **Before the URL is public:** the built output is searched for credentials of every kind, and every way a
+  stranger can get signed in is listed, each closed or open because the user said so.
+- **When development is not finished:** `/deploy` asks what a stranger can reach and spend once the URL is
+  public, and records the answer.
+- **Build-time values** are checked in the built output. The boot-guard rule is unchanged for values read at boot.
+- **The env list** is generated from what the code reads, and `.env.example` is checked against it.
+- `docs/deployment.md` gains a *Who can get in* section and a *Read at* column; the spine's `#Deployment`
+  gains a *Who can get in* line. War stories in the new `references/case-files-deploy.md`.
+
 ## [1.70.0] - 2026-09-21
 
 ### Changed — low findings are grouped into one issue per run; medium and above keep their own
