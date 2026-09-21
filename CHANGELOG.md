@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.70.0] - 2026-09-21
+
 ### Changed — low findings are grouped into one issue per run; medium and above keep their own
 
 **A logged project reached 42 open issues and its owner called the board "exploded."** A checkpoint had filed
