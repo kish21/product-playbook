@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — /dev-check files what it finds in the run, and reopens an issue whose fix never landed
+
+**A logged checkpoint found four MEDIUM security findings and an issue closed as "completed" whose fix was
+never in the code.** It then handed all of them back: "reopen issue #N", "decide how to handle the four". A
+finding that lives only in a findings table is filed by nobody, and the issue closed without its fix shows how
+that goes. `/build` has filed its own findings in the run since 1.63.0. The checkpoint reviews everything built,
+and it had no such rule.
+
+- **Each finding is filed in the run**, `/tickets "<finding>"`, one each, after searching the open issues so
+  nothing is filed twice. None is handed to the user as a list to file or a decision to make.
+- **A finding a closed issue claims to have fixed reopens that issue**, with the evidence as a comment.
+- **On a public repo a security finding is never filed publicly.** It goes into no issue and no committed file,
+  and that includes the checkpoint's own `docs/dev-check.md` and `PRODUCT.md`. It goes to the user in the close.
+- check 25 holds all five rules, proven red against the previous text.
+
 ## [1.68.0] - 2026-09-21
 
 ### Fixed — `#Build log` holds table rows and nothing else; Step 3c's result goes in the feature doc
