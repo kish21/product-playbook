@@ -1024,6 +1024,11 @@ def check_context_hygiene(files: dict[str, Path]) -> None:
         fail(f"MECHANISMS-ON-DEMAND.md {HYGIENE_POINTER} never says to change files with the edit tool, "
              f"{PATCH_SCRIPT_RULE!r} - on a logged build, patch scripts cost 10-14% of the run: the code enters "
              f"the conversation twice, and the script broke on quoting four times")
+    # The on-demand file alone did not bind: a logged 1.66.0 build never opened it and wrote 12 patch scripts.
+    build_text = " ".join(files["build"].read_text(encoding="utf-8").split())
+    if PATCH_SCRIPT_RULE not in build_text:
+        fail(f"/build SKILL.md never says {PATCH_SCRIPT_RULE!r} where code is written - the rule only in "
+             f"MECHANISMS-ON-DEMAND.md was never read: a logged build that did not open it wrote 12 patch scripts")
     for name in sorted(HYGIENE_DECLARING):
         text = files[name].read_text(encoding="utf-8")
         if HYGIENE_POINTER not in text:
@@ -1687,17 +1692,38 @@ def check_audit_engine_behaviour() -> None:
         if r.returncode == 0:
             fail("audit engine: a planted raw hex colour (ERROR) exits 0 - a hook or CI would let it through")
 
+        # The copy is compared as parsed code, so a difference must be CODE: a comment is not a check.
         cases = (
-            (older, "\n# an older engine\n", f"is {older}, OLDER than this engine {current}"),
-            ("999.0.0", "\n# a newer engine\n", "NEWER than this engine"),
-            (current, "\n# edited in place\n", "edited in place"),
+            (older, "\nAN_OLDER_ENGINE = 1\n", f"is {older}, OLDER than this engine {current}"),
+            ("999.0.0", "\nA_NEWER_ENGINE = 1\n", "NEWER than this engine"),
+            (current, "\nEDITED_IN_PLACE = 1\n", "edited in place"),
             ("0.0.1", "", "has the same checks as this engine"),
+            (older, "\n# only a comment added\n", "has the same checks as this engine"),
         )
         for version, extra, expected in cases:
             put_copy(version, extra)
             r = run(AUDIT_ENGINE, "ui")
             if expected not in r.stdout:
-                fail(f"audit engine: a project copy at {version!r} should report {expected!r} - it did not")
+                fail(f"audit engine: a project copy at {version!r} with {extra.strip()!r} should report "
+                     f"{expected!r} - it did not")
+
+        # A project's formatter rewrites its committed copy - one import per line, sorted, blank lines added.
+        # Same checks, so it must not be called OLDER: a logged build was told to refresh a copy that
+        # differed from the installed engine in its version line and its formatting only.
+        dest = put_copy(older, "")
+        text = dest.read_text(encoding="utf-8")
+        imp = re.search(r"^import (\w+(?:, \w+)+)\n", text, re.MULTILINE)
+        if not imp:
+            fail("check 31: audit.py has no one-line multi-import left to reformat - update this reformat case")
+        else:
+            split = "".join(f"import {n}\n" for n in sorted(imp.group(1).split(", ")))
+            dest.write_text(text.replace(imp.group(0), "\n" + split + "\n", 1).replace("\n", "\r\n"),
+                            encoding="utf-8", newline="")
+            subprocess.run(["git", "-C", tmp, "add", "-A"], check=True, capture_output=True)
+            r = run(AUDIT_ENGINE, "ui")
+            if "has the same checks as this engine" not in r.stdout:
+                fail("audit engine: a copy the project's formatter reformatted (same checks, split imports, "
+                     "CRLF) is reported as different - every release would tell the user to refresh it")
 
         copy = put_copy(current, "")
         r = run(copy, "ui")
@@ -1710,7 +1736,7 @@ def check_audit_engine_behaviour() -> None:
         skill_engine = t / ".claude" / "commands" / "frontend-audit" / "audit.py"
         skill_engine.parent.mkdir(parents=True, exist_ok=True)
         skill_engine.write_text(engine, encoding="utf-8")
-        put_copy(older, "\n# an older engine\n")
+        put_copy(older, "\nAN_OLDER_ENGINE = 1\n")
         r = run(skill_engine, "ui")
         if f"is {older}, OLDER" not in r.stdout:
             fail("audit engine: an engine committed by a project-level copy install (.claude/commands/) took "

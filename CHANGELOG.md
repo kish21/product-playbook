@@ -5,6 +5,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — the patch-script rule is where /build writes code, and a reformatted audit copy is not called OLDER
+
+**A logged 1.66.0 build wrote 12 patch scripts**, several for code and tests. 1.66.0 put the rule only in
+`MECHANISMS-ON-DEMAND.md` §Context hygiene, and the build never opened that file, so it never read the rule.
+**The same build told the user to refresh the project's audit-engine copy** because it was "OLDER". The two
+engines differed in their version line and nothing else in their checks. The project's formatter had rewritten the
+committed copy (one import per line, double quotes, spacing), so the text compare missed the match and fell back
+to comparing version numbers. Every release would have raised the same false alarm.
+
+- **`/build` Step 2 item 3 says it where code is written:** write code and tests with the edit tool, not with a
+  patch script; a cut-the-wire proof is the one exception. The on-demand file keeps its fuller version.
+- **The audit engine compares copies as parsed code**, not text. Comments, docstrings, import order and
+  formatting do not count; any change to what the code does still does. A copy that does not parse falls back
+  to the text compare.
+- check 23 now holds the rule in `/build` itself. check 31 adds a reformatted copy and a comment-only edit
+  (both "same checks") and makes its older, newer and edited cases real code changes. Both were proven red
+  against the previous text first.
+
 ## [1.66.0] - 2026-09-20
 
 ### Fixed — /build names what kind of feature it is, opens its companions where skipping would show, and edits files directly
