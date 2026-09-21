@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Changed — low findings are grouped into one issue per run; medium and above keep their own
+
+**A logged project reached 42 open issues and its owner called the board "exploded."** A checkpoint had filed
+11 findings in one run, one issue each, on top of 13 the builds had filed before it. About half were LOW. A
+board of one-line tickets buries the few that matter, and a user facing it gives up on all of them. The owner
+chose to group the low findings: none dropped, and no code fixed outside the ticket.
+
+- **`/build` and `/dev-check`:** a MEDIUM-or-above finding gets its own issue. LOW and unrated findings go into
+  one issue for the run, every finding on its own line with its file and what goes wrong.
+- **`/dev-check` never edits code.** It files what it finds and fixes nothing, so what it verified is what was
+  built.
+- `/build` still never fixes a finding outside its ticket, and the public-repo rule for security findings is
+  unchanged.
+- check 25 and check 30 hold the rules in both skills, proven red against the previous text.
+
 ## [1.69.0] - 2026-09-21
 
 ### Fixed — /dev-check files what it finds in the run, and reopens an issue whose fix never landed

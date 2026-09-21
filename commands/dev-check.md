@@ -59,8 +59,9 @@ Score (0–100%)** with one line each on solid / risky-untested / to-raise-it (p
 **If any box can't be ticked with evidence, the gate FAILS — STOP and report exactly what's missing;
 do not hand off to Testing.** A failing checkpoint is the point of this skill.
 
-**File what the checkpoint finds, IN THIS RUN** — each finding from the review or the checks via
-`/tickets "<finding>"`, one each, never handed to the user as a list to file or a decision to make. Search the
+**File what the checkpoint finds, IN THIS RUN** — never handed to the user as a list to file or a decision
+to make. **MEDIUM or above: one issue each** (`/tickets "<finding>"`); **LOW and unrated: ONE issue for the
+run**, every finding on its own line with its file and what goes wrong. The checkpoint never edits code. Search the
 open issues first so nothing is filed twice; **a finding a CLOSED issue claims to have fixed reopens that
 issue** (`gh issue reopen`, with the evidence as a comment). Name every issue filed or reopened in the close.
 **A security finding on a PUBLIC repo is never filed publicly** — never into an issue or a committed file,

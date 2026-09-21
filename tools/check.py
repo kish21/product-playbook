@@ -1152,6 +1152,8 @@ DEV_CHECK_FILING_TOKENS = (
      "they are filed by nobody"),
     ("never handed to the user as a list to file or a decision to make", "the ban on handing findings back"),
     ("reopens that issue", "reopening an issue closed as fixed when the finding is still in the code"),
+    ("The checkpoint never edits code", "the checkpoint staying a checkpoint - it files what it finds and fixes "
+     "nothing, so what it verified is what was built"),
     ("**A security finding on a PUBLIC repo is never filed publicly**", "keeping a public repo's security "
      "findings out of issues and committed files - filing one there is a disclosure"),
     ("`docs/dev-check.md` and `PRODUCT.md` included", "naming the checkpoint's own committed files as public "
@@ -1204,7 +1206,7 @@ def check_close_is_last(files: dict[str, Path]) -> None:
     # whose fix never landed - and handed both to the user to file, reopen or "decide". /build files its own
     # findings since 1.63.0; the checkpoint, which reviews everything built, had no such rule.
     dev = " ".join(files["dev-check"].read_text(encoding="utf-8").split())
-    for token, what in DEV_CHECK_FILING_TOKENS:
+    for token, what in DEV_CHECK_FILING_TOKENS + FINDING_GROUP_TOKENS:
         if token not in dev:
             fail(f"dev-check lost {what} (expected {token!r})")
 
@@ -1507,6 +1509,15 @@ REVIEW_FINDING_TOKENS = (
     ("**A security finding on a PUBLIC repo is never filed publicly**", "keeping a security finding out of a "
      "public issue - filing it there is a disclosure"),
 )
+# One issue per finding filled a logged project's board: a checkpoint filed 11 in one run, the builds 13 before
+# it, and the owner saw 42 open issues. Severity decides the shape: MEDIUM+ alone, LOW and unrated grouped per run
+# - every finding still on its own line, none lost. Held in /build and /dev-check alike.
+FINDING_GROUP_TOKENS = (
+    ("**MEDIUM or above: one issue each**", "a finding that matters keeping its own issue"),
+    ("**LOW and unrated: ONE issue for the run**", "grouping the low findings - one issue each buried the ones "
+     "that matter under a board the owner called exploded"),
+    ("every finding on its own line with its file and what goes wrong", "grouping without losing a finding"),
+)
 # What a build carries (#306). Cost is steps x context, and over half a build's cost falls after its first
 # review, when every step re-reads 250-350k tokens - so what is carried in early is paid for ~100 times. On a
 # logged test run (2026-09-20) the Build log was 36 lines and 53,610 characters after four builds, ~13k per
@@ -1569,7 +1580,8 @@ def check_build_loop_overhead(files: dict[str, Path]) -> None:
     """
     text = " ".join(files["build"].read_text(encoding="utf-8").split())
     for token, what in (BUILD_OVERHEAD_TOKENS + RERUN_TOKENS + REVIEW_RERUN_TOKENS + REVIEW_FINDING_TOKENS
-                        + REVIEW_VISIBLE_TOKENS + BUILD_GUIDE_TOKENS + BUILD_WEIGHT_TOKENS + GATE_SCOPE_TOKENS):
+                        + REVIEW_VISIBLE_TOKENS + BUILD_GUIDE_TOKENS + BUILD_WEIGHT_TOKENS + GATE_SCOPE_TOKENS
+                        + FINDING_GROUP_TOKENS):
         if token not in text:
             fail(f"build lost {what} (expected {token!r})")
     # Step 3c said what to check but never where its result goes, so a run followed the log's old paragraphs.
