@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.69.0] - 2026-09-21
+
 ### Fixed — /dev-check files what it finds in the run, and reopens an issue whose fix never landed
 
 **A logged checkpoint found four MEDIUM security findings and an issue closed as "completed" whose fix was
