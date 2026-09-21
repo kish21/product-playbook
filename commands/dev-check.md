@@ -59,6 +59,15 @@ Score (0–100%)** with one line each on solid / risky-untested / to-raise-it (p
 **If any box can't be ticked with evidence, the gate FAILS — STOP and report exactly what's missing;
 do not hand off to Testing.** A failing checkpoint is the point of this skill.
 
+**File what the checkpoint finds, IN THIS RUN** — each finding from the review or the checks via
+`/tickets "<finding>"`, one each, never handed to the user as a list to file or a decision to make. Search the
+open issues first so nothing is filed twice; **a finding a CLOSED issue claims to have fixed reopens that
+issue** (`gh issue reopen`, with the evidence as a comment). Name every issue filed or reopened in the close.
+**A security finding on a PUBLIC repo is never filed publicly** — never into an issue or a committed file,
+`docs/dev-check.md` and `PRODUCT.md` included: put it to the user in the close. (case file: The findings
+handed back, in `case-files-build.md` — a logged checkpoint then told the user to reopen an issue closed as
+"completed" whose fix never landed)
+
 **Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done". **The close is the run's last message** — a composed skill's report is input to it, never the close itself.
 
 ## Step 3c — Contradiction check (before the gate closes)

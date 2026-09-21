@@ -1147,6 +1147,16 @@ COMPOSING_REVIEWERS = {"build", "ship", "test", "eval", "dev-check"}
 # its report comes back as a result - a subagent - and the skill must say so where it invokes it (#212).
 SECURITY_REVIEW_INVOKERS = {"build", "ship", "dev-check"}
 SUBAGENT = "inside a subagent"
+DEV_CHECK_FILING_TOKENS = (
+    ("**File what the checkpoint finds, IN THIS RUN**", "filing its findings in the run - handed back as a list, "
+     "they are filed by nobody"),
+    ("never handed to the user as a list to file or a decision to make", "the ban on handing findings back"),
+    ("reopens that issue", "reopening an issue closed as fixed when the finding is still in the code"),
+    ("**A security finding on a PUBLIC repo is never filed publicly**", "keeping a public repo's security "
+     "findings out of issues and committed files - filing one there is a disclosure"),
+    ("`docs/dev-check.md` and `PRODUCT.md` included", "naming the checkpoint's own committed files as public "
+     "on a public repo - the findings table it writes is one of them"),
+)
 CLOSE_LAST = "The close is the run's last message"
 
 
@@ -1190,6 +1200,13 @@ def check_close_is_last(files: dict[str, Path]) -> None:
             fail(f"{name} runs /security-review but never says, where it invokes it, to run it {SUBAGENT!r} - "
                  f"invoked inline its report takes over the turn and ends the run before the commit, the "
                  f"record and the close")
+    # A logged /dev-check (2026-09-21) found 4 MEDIUM security findings and an issue closed as "completed"
+    # whose fix never landed - and handed both to the user to file, reopen or "decide". /build files its own
+    # findings since 1.63.0; the checkpoint, which reviews everything built, had no such rule.
+    dev = " ".join(files["dev-check"].read_text(encoding="utf-8").split())
+    for token, what in DEV_CHECK_FILING_TOKENS:
+        if token not in dev:
+            fail(f"dev-check lost {what} (expected {token!r})")
 
 
 # The obligations that make a module folder a complete lane (#215). Each token names a rule the shape
