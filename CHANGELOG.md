@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.67.0] - 2026-09-21
+
 ### Fixed — the patch-script rule is where /build writes code, and a reformatted audit copy is not called OLDER
 
 **A logged 1.66.0 build wrote 12 patch scripts**, several for code and tests. 1.66.0 put the rule only in
