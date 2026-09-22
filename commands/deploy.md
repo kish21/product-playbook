@@ -38,8 +38,8 @@ description: >
   - [ ] **Every deployable unit's host is the one `#Architecture` recorded** — copied verbatim, with its
     provenance. A different host here is a contradiction, not a detail (`MECHANISMS.md` §Step 3c). → `Host (copied from #Architecture`
   - [ ] **`docs/deployment.md` exists** and carries: host · build and start commands · the exact env-var
-    list · how migrations run on deploy · first-deploy steps · the one command or URL that proves it
-    worked · the rollback path. → `docs/deployment.md`
+    list · how migrations run on deploy · first-deploy steps · **the deploy order across units** · the one
+    command or URL that proves it worked · the rollback path. → `docs/deployment.md`
   - [ ] **The env-var list is GENERATED from what the code reads, and `.env.example` is checked against
     it** — the config loader's reads and every build-time read, not retyped. A variable the code reads that
     `.env.example` lacks, or one it lists that nothing reads, is named. Every variable the boot guard
@@ -56,6 +56,9 @@ description: >
     the page falls back to a mock or a dead button, and the site looks live while it is not. → `Env vars set on the host`
   - [ ] **The built output carries no credential of any kind, and every way a stranger can get signed in
     is listed** — each one closed, or open because the user said so. → `Who can get in`
+  - [ ] **What a visitor can see was checked before the URL went public** — vendor hostnames, account
+    names and internal URLs in the built output and its network calls, each fine or hidden because the
+    user said so. → `Who can get in`
   - [ ] **Preview deployments are off, or run against their own backend and data** — unmerged code never
     reaches production data. → `Who can get in`
   - [ ] **With `#Dev-complete` empty, what a stranger can reach and spend was asked before the URL went
@@ -73,6 +76,12 @@ description: >
 - **If `#Architecture` records no runtime target for a unit**, warn and offer `/architect` for that unit
   first (allow override) — deploying to a host nobody chose is how a project acquires infrastructure it
   cannot justify later.
+- **Say why the URL is needed now** — the `#Plan` milestone, or the user's own reason (a demo, a first
+  user) — and record it in `#Deployment`'s *Why now* line.
+- **Before any host question, explain build and deploy in one plain line, with an analogy** — *building
+  turns your code into the files a server runs, like printing a book from the manuscript; deploying puts
+  them where anyone can reach them, like putting the book in a shop* — then ask. (case file: What is
+  building?)
 - **If `#Dev-complete` is empty**, say so: deploying an unfinished product is legitimate (a milestone may
   need a URL before the product is done — that is usually *why* this phase runs early) but it should be a
   choice, not an accident. **Then ask what a stranger can reach and spend once the URL is public** — can
@@ -95,6 +104,9 @@ description: >
   the file the build reads (`.env.production` or its equivalent, not swallowed by `.gitignore`). **A secret
   found in a build-time value is already public:** stop, tell the user to move it behind the server and
   rotate it — never commit it. (case file: Thirty-four public values typed into a dashboard)
+- **When the host builds on merge, merging IS deploying.** Take the deploy through the repo's PR flow,
+  and merge only on the user's explicit word — an ambiguous "ok" is not a merge. (case file: Merging was
+  the deploy)
 - **No-hardcoding still applies on the host.** The host's env vars are the same config layer as `.env`,
   read through the same loader. A value that only exists in a dashboard is dead config with a bill.
 - **Fail-closed reaches production too.** The boot guard that rejects placeholders does not get an
@@ -119,7 +131,21 @@ supported-vendor list** (same rule as `/foundation`'s test-datastore recipes).
    path — write `none — static` in both rows. A single-page app needs the host's fallback to `index.html`,
    or every deep link returns 404. (case file: The static site with no start command)
 
-**Several units:** each gets its own category and its own column in the template.
+**Several units:** each gets its own category and its own column in the template. **Name the deploy
+ORDER** — which units deploy on merge and which by hand — and deploy a backend and its migrations BEFORE
+merging a frontend change that needs them. (case file: The site deployed before its backend)
+
+**Before the first deploy, per unit:**
+- **Look up the host's CURRENT recommended product for this category, not from memory.** The host is
+  decided; which of its products to use is checked today. A different product at the same host is a
+  dated note in `#Deployment`, not a new host. (case file: The product the host had retired)
+- **Check toolchain parity: the host's build image against the repo's pinned runtime AND package
+  manager** (`engines`, `packageManager`, the lockfile's version). A mismatch is fixed in the build command
+  and recorded. (case file: npm 10 on the host, npm 11 in the repo)
+- **Use the repo's real deploy entrypoint** — a wrapper script or task the repo documents, not a vendor
+  command quoted in a changelog. (case file: The command from the changelog)
+- **In a monorepo, point each host project at its own folder**, with the name its config file expects;
+  read the first build log's working directory and command. (case file: The build that ran at the root)
 
 Fill every section of the template. **Generate the env-var list from what the code reads** — the config
 loader and every build-time read (`import.meta.env.*`, `process.env.NEXT_PUBLIC_*` and the like) — then
@@ -135,6 +161,18 @@ Do the first deploy *with* the user — they hold the credentials. Then:
   values and real account emails — a key-format secret scan misses all three. List sign-up, demo or
   quick-login buttons, magic links and guest modes; each is closed, or open because the user said so.
   (case file: The demo buttons that shipped two passwords)
+- **Before the URL is public, ask what a visitor can see.** Search the built output and its network calls
+  for vendor hostnames, account or workspace names and internal URLs. A dashboard does not hide them
+  (build-time values ship either way); a domain and a forwarder in front of the backend does. Record what
+  the user chose. (case file: The vendor's name in every request)
+- **A proxy, CDN or forwarder in front of the backend changes who the backend thinks is calling** — ask
+  whether it keys anything on caller IP, origin or host. Never raise a trusted-hop count while the origin
+  is reachable directly (a direct caller forges the hop): the forwarder vouches for the visitor with a
+  shared secret the origin checks. (case file: Every visitor in one rate-limit bucket)
+- **A secret that must exist on two sides rolls out so either side missing means the old behaviour** —
+  never an outage window, never a bypass window. (case file: Every visitor in one rate-limit bucket)
+- **Attaching the custom domain and DNS is the user's step at the dashboard** — say so up front, and never
+  write a DNS route into committed config. (case file: The domain step the agent could not take)
 - **Preview deployments are off, unless they have their own backend and data.** A host that builds every
   branch or PR gives unmerged code a URL that talks to the production backend and data. Turn them off, or
   point them at a separate backend, and record which. (case file: Previews on production data)
@@ -155,7 +193,9 @@ Do the first deploy *with* the user — they hold the credentials. Then:
   rollout-safety lines (revert · migration-down · flag-off · the post-deploy signal) finally attach to
   something real, and until now they presupposed an environment nothing created.
 - **Anything that blocked and was not fixable today** (a quota, a DNS propagation, a paid tier) puts the
-  section in the **`running`** state with a due date, rather than a green tick.
+  section in the **`running`** state with a due date, rather than a green tick. **The user sets the date**
+  — ask; never invent one.
+- **Stop every local emulator you started, and check no child process is left** holding files open.
 
 ## Step 3b — Principle-gate: it is deployed, or it is not (evidence)
 Walk the exit criteria and prove each with a command, not a claim. The load-bearing one: **a real request

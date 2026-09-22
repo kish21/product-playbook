@@ -11,7 +11,8 @@ forwarder in front of a vendor). Each unit's host is copied from `#Architecture`
 |---|---|---|---|---|
 | `<unit>` | `<runtime target>` | `PaaS · container-anywhere · VPS · the user's own machine · static site / CDN` | `<user-chosen · default taken>` | `<url>` |
 
-**Last deployed:** `<YYYY-MM-DD>`
+**Last deployed:** `<YYYY-MM-DD>` · **Why now:** `<the #Plan milestone, or the user's reason>`
+**Host product:** `<the product the host recommends today for this category — checked <YYYY-MM-DD>>`
 
 ## 1. Build and start
 
@@ -23,6 +24,9 @@ One column per unit. A static site has no start command: write `none — static`
 | Build | `<command>` | `<command>` |
 | Start | `<command · none — static>` | `<command>` |
 | Node/Python/runtime version | `<pinned version — the same one CI uses>` | `<version>` |
+| Package manager + version | `<pinned in the repo · what the host's build image ships · how a mismatch is fixed>` | `<…>` |
+| Folder the host builds from | `<the unit's own folder, not the repo root>` | `<folder>` |
+| Deploy entrypoint | `<the repo's documented script or task>` | `<…>` |
 
 ## 2. Environment variables the host needs
 
@@ -58,6 +62,12 @@ means here, because an assertion with no command behind it is a plan, not a depl
 
 ## 4. First deploy — the steps that were actually taken
 
+**Deploy order:** `<which units deploy on merge and which by hand · a backend and its migrations go live
+BEFORE a frontend change that needs them is merged>`. **When the host builds on merge, merging is
+deploying:** it goes through the PR flow, on the user's explicit word.
+
+**Custom domain / DNS:** attached by the user at the host's dashboard — never a route in committed config.
+
 1. `<step>`
 2. `<step>`
 
@@ -69,6 +79,11 @@ Checked **before** the URL was public.
   calls with typed-in values, real account emails> → <what it found>`
 - **Every way a stranger can get signed in:** `<sign-up · demo or quick-login buttons · magic links · guest
   mode>` — each **closed**, or **open because the user said so**
+- **What a visitor can see:** `<vendor hostnames · account or workspace names · internal URLs found in the
+  built output and its network calls>` — each fine, or hidden behind `<the domain and forwarder>` because
+  the user said so
+- **Behind a proxy or forwarder:** `<what the backend keys on caller IP, origin or host, and how the
+  visitor's address reaches it>` — or `no proxy`
 - **Preview deployments:** `<off · on, against their own backend and data: which>` — never unmerged code
   on production data
 - **What a stranger can reach and spend** (asked when `#Dev-complete` was empty): `<the paid actions a

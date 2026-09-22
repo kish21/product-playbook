@@ -733,6 +733,13 @@
       "files": []
     },
     {
+      "id": "deploy-proxy-order-and-merge-flow",
+      "skill": "deploy",
+      "prompt": "the site auto-deploys when we merge to main and the API I deploy by hand - put a proxy on our own domain in front of the API so people don't see the vendor, then get it all live",
+      "expected_output": "Explains build and deploy in one plain line with an analogy before asking any host question; says why the URL is needed now and records it; treats merging as deploying because the host builds on merge, goes through the PR flow and merges only on the user's explicit word; names the deploy order - the API and its migrations go live before the frontend change that needs them is merged; checks what a visitor can see (vendor hostnames, account names, internal URLs) in the built output and its network calls; asks whether the backend keys anything on caller IP, origin or host now that a proxy sits in front of it and never raises a trusted-hop count while the origin is directly reachable; rolls a two-sided shared secret out so either side missing means the old behaviour; leaves the custom-domain and DNS step to the user at the dashboard; checks the host's current recommended product and the package-manager version its build image ships",
+      "files": []
+    },
+    {
       "id": "build-security-review-does-not-end-the-run",
       "skill": "build",
       "prompt": "/build \"#9 host edits a party\"  (an auth/data surface: the host's staff link is the capability)",

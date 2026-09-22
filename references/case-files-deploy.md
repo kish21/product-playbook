@@ -89,3 +89,74 @@ The agent could make every public request itself. The real user path was behind 
 must not hold a real account's password. The owner walked it, and it was recorded as owner-verified
 (manual), not as an `evidence:` line, because no command anyone can re-run stands behind it. The skill
 did not say this, which left the gate either impossible to meet or a temptation to use credentials.
+
+## What is building?
+
+The run asked the owner whether the host should build on merge or take an upload from their machine. The
+owner could not answer, and asked what "building" is. A choice put to someone who does not know the words
+in it is not a choice, and freshers are who the playbook is for. One plain line with an analogy, before
+the question, is enough to make it answerable.
+
+## Merging was the deploy
+
+The repo's rule was never to merge until the owner said so. The host built from `main`, so the committed
+config had to be merged before anything could deploy: merging and deploying had become the same act. The
+skill assumed unmerged work could be deployed and never mentioned PRs. After go-live the owner replied
+"ok" to something else. The agent rightly did not read that as permission to merge.
+
+## The site deployed before its backend
+
+The site deployed on its own about two minutes after each merge. The backend and the database migrations
+were deployed by hand. Merging a frontend change before the backend or migration it needs is live ships a
+broken site, and nothing in the skill said which part goes first. The run wrote its own rule: backend and
+migrations first, then merge the frontend.
+
+## The product the host had retired
+
+The agent recommended the host's classic static-site product from memory. At the dashboard the owner found
+it labelled legacy: the host now steers new sites to a different product of its own, with the same free
+static serving. It was the same host and the same decision, so it was recorded as a dated note, not a new
+host. Which product a host recommends changes faster than any memory of it.
+
+## npm 10 on the host, npm 11 in the repo
+
+The repo pinned `npm >=11` with `engine-strict`. The host's build image shipped npm 10 with no setting to
+change it, so the host's automatic install failed on the first build. The fix was to skip the automatic
+install and install the right package manager in the build command. The template's runtime-version row
+covered the runtime and not the package manager.
+
+## The command from the changelog
+
+The agent gave the owner a raw vendor CLI command it had found quoted in the changelog. That command was
+known to fail on the owner's machine. The repo had a wrapper script, documented as the one supported way
+to deploy, that handled exactly those failures.
+
+## The build that ran at the root
+
+In a monorepo the host pointed the new project at the repo root and ran the root build script, which only
+delegates to the others, so the first build failed. The host also refused a deploy while the project's name
+on the dashboard differed from the `name` in the folder's config file. Reading the first build log's
+working directory and command shows both at once.
+
+## The vendor's name in every request
+
+The owner's real requirement came up only after the plan was written: customers must not see which
+backend vendor the product uses. Every backend URL showed in the browser's network panel, with the
+vendor's domain and the owner's personal workspace name in it. Moving the URLs from a committed file into
+a dashboard would not have hidden them, because build-time values ship in the site either way. The run
+bought a domain and put a small forwarder (`api.<domain>/<service>`) in front of the vendor.
+
+## Every visitor in one rate-limit bucket
+
+The backend's per-IP rate limits read the last `X-Forwarded-For` hop. Behind the new forwarder that hop
+was the edge provider's own address, so every visitor fell into one bucket. Trusting one more hop was
+unsafe while the origin could still be reached directly, because a direct caller can write that header
+itself. The fix: the forwarder puts the visitor's address in its own header, with a shared secret the
+origin checks in constant time. Missing on either side means the old behaviour, so the two sides could be
+rolled out in any order, with no outage window and no bypass window.
+
+## The domain step the agent could not take
+
+The agent's own safety layer blocked it from writing a config line that would attach a DNS route. That is
+correct: attaching a domain is the owner's act at the dashboard. The host's add-domain dialog also looked
+up the ZONE (`example.com`); typing the full subdomain offered to onboard a brand-new domain instead.
