@@ -5,6 +5,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — /deploy covers the rest of what a logged run hit: proxies, deploy order, merge flow, toolchain, plain words
+
+**The last findings from the same logged `/deploy` run, fixed in /deploy (#324, #325, #327, #328, #329, #330,
+#333, and the /deploy items of #335).** None broke anything alone. Each cost the run time or nearly shipped a
+fault. The worst: a forwarder put in front of the backend made every visitor look like one caller to the
+backend's rate limits, and a site that deploys on merge could have gone live before the backend it needs.
+
+- **Before the URL is public:** what a visitor can see (vendor hostnames, account names, internal URLs) is
+  checked and recorded. A proxy in front of the backend triggers the question of what the backend keys on
+  caller IP, origin or host. A two-sided secret rolls out so either side missing means the old behaviour.
+- **Order and merging:** with several units, `docs/deployment.md` names the deploy order, and the backend and
+  its migrations go first. When the host builds on merge, the deploy goes through the PR flow, on the user's
+  explicit word.
+- **Before the first deploy:** the host's current recommended product is looked up, not recalled. The build
+  image's package manager is checked against the repo's pin. The repo's own deploy entrypoint is used. In a
+  monorepo, each host project points at its own folder.
+- **Plain words:** build and deploy are explained in one line with an analogy before any host question. *Why
+  now* gets its own line.
+- **Smaller:** the user sets a `running` due date, domain and DNS are the user's step, and local emulators are
+  stopped.
+
 ## [1.72.0] - 2026-09-22
 
 ### Fixed — /deploy handles a product with several parts, a static site, previews and a signed-in path
