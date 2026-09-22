@@ -830,3 +830,26 @@ walked: …`.
 tool: 10–14% of the run, the code in the conversation twice, and the script broke on quoting four times. And the
 review step had grown into thirty lines of unbroken prose in one day; it is one rule per bullet again, every
 bolded rule accounted for before and after.
+
+## The review that read an empty diff
+
+`/build` said to run `/code-review` and `/security-review` "both BEFORE the commit". `/security-review` builds
+its prompt from the branch's COMMITTED changes: the files modified, the commits and the diff against the
+remote. On a logged build the work was uncommitted, so all three sections came back empty. The subagent
+reviewed by hand instead, which is the weaker pass the playbook itself warns about. The reviews still have to
+land before the push, the PR and the close. A local commit on the ticket branch gives them something to read.
+
+## Eighty-seven errors, none of them new
+
+A logged build changed about thirty lines across two existing pages. The audit scores whole files, so it
+reported 87 errors: raw hex values and `transition-all` that were there before the ticket began. The build
+proved it had added none by running the audit before and after its change and comparing by hand. A ticket
+cannot fix a page's whole history, and it should not have to prove its innocence by hand. `--baseline` makes
+the comparison: only what the change adds counts, and the old count is printed so it is never hidden.
+
+## The token class that compiled to nothing
+
+The audit's fix for a raw hex value is "use a token". On a logged build the obvious token class was
+`bg-primary`. The project ran Tailwind v4 with no `@theme` entry mapping `--primary`, so `bg-primary` emitted
+no CSS at all. Following the audit's own advice would have shipped an element with no background: invisible,
+and passing every check. The class has to exist in the built CSS before the fix counts.

@@ -29,7 +29,7 @@ description: >
   - [ ] **Confidence score (0–100%)** reported (solid / risky-untested / to-raise-it). → `What shipped`
   - [ ] PR opened with **`Closes #N`** in the body where a tracked issue exists; a smooth **handoff** written; user told to start a fresh session. → `PR`
   - [ ] **Tracker reconciled after merge:** the linked issue is **Closed** and (if a project board exists) its card moved to **Done** — **if the project keeps a board**; the playbook does not create one, so audit what exists rather than a structure nothing here provisions — *verified against the tracker*, not assumed from "shipped" (Step 7 below). → `PR`
-  - [ ] A **CHANGELOG / release note** entry (+ a **semver** bump where versioned). → `CHANGELOG`
+  - [ ] **The release is recorded where this project records releases** — a **CHANGELOG** entry (+ a **semver** bump where versioned), or `n/a — releases recorded in <X>` when the CHANGELOG is retired or absent, or `#Project policy` names another record. An explicit line either way, never silence. → `CHANGELOG`
   - [ ] Security checklist cleared: dependency-vuln scan, CORS prod domain, cookie-based auth (not localStorage), and data-deletion/GDPR for data products. → `/security-review`
   - [ ] **No placeholder can boot this build** — `.env.example`'s values are still rejected by name at startup (the `/foundation` guard and its test are intact, with no production override). A release that boots on a committed secret is a live incident, not a finding. → `/security-review`
   - [ ] **Rollout safety:** a stated **rollback path** (revert PR / migration-down / flag-off); risky changes behind a **flag / staged rollout**; the **post-deploy signal to watch** named. → `Rollback / flag`
@@ -40,6 +40,7 @@ description: >
   standalone use is first-class — but **an override here is recorded on the release, not implied by an empty
   section**: write the skipped phases into the Ship log's *Skipped* column with the reason.
 - **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Ship log` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
+- **Read `#Project policy` first, when the spine has one** (`MECHANISMS-ON-DEMAND.md` §Project policy): a project that wraps `/ship` in its own command declares its rules there once — never merge, no deploy, where releases are recorded, reviews already run in `/build` — and they apply here without the wrapper restating them.
 - **The exception is bounded, not vague.** A change may skip `/eval` only when it touches no product
   behaviour — a docs/typo/comment change, or a revert. **Anything that changes what the product does needs
   its tests recorded**; "small" is not a judgement the shipper makes about their own change. (case file: The last gate that never asked about tests)
@@ -72,14 +73,16 @@ description: >
    - **Post-deploy live verification must never mutate a record sitting in a human's review/approval state — dry-run the same code path on the real data with persistence off.** A no-persist harness proves the deployed logic on production inputs while the human's pending decision stays untouched (case file: Dry-run live verify).
    - **A DATA migration (one that rewrites rows rather than schema) usually has no automatic down-path — "migration-down" is not the rollback, a hand-written re-flip is.** Say so in the rollback line instead of implying reversibility, and take the backup BEFORE applying: with no failing test to catch a bad data write, the only evidence you will have afterwards is a before/after diff proving exactly the intended rows moved.
 5. **Confidence score:** report 0–100% with solid / risky-untested / to-raise-it.
-6. **PR + handoff:** open the PR — **`Closes #N`** goes in the **body**, not the title (a title keyword closes nothing) + a **CHANGELOG** entry; write a short handoff (done / next / how to resume / blockers).
+6. **PR + handoff:** open the PR — **`Closes #N`** goes in the **body**, not the title (a title keyword closes nothing) + the **release record**; write a short handoff (done / next / how to resume / blockers).
+   - **The release record is a CHANGELOG entry — unless the project records releases elsewhere.** Read the CHANGELOG's top lines: retired ("do not add entries"), absent, or another record named in `#Project policy` → write `n/a — releases recorded in <X>` in the Ship log, naming X. Absent with nothing declared → ask the user where releases are recorded and record the answer; never recreate a CHANGELOG the project retired. (case file: The retired changelog)
+   - **`merge: never` in `#Project policy`** → open the PR and stop; Step 7's post-merge checks become the commands in the close for the user to run after they merge.
    - **A blocker you hand the user must be a PROVEN blocker — re-run with your workaround actually in effect and confirm it took, before calling it environmental.** An unverified diagnosis costs a round-trip and is often your own bug wearing the environment's clothes (case file: The environment blocker that was my own typo).
 7. **Reconcile the tracker (post-merge):** a merge closes nothing on its own — `gh issue view <N> --json state -q .state` must read `CLOSED`, and a board card only moves if the project's set-Done workflow is on. **Both fail silently**, so the work reads as shipped while the tracker still says open. Close or move by hand where it did not fire (`gh issue close <N> --comment "Shipped in #<PR> (<sha>)."`), then sweep the board for any card whose column disagrees with its issue's state. A "shipped" note is not proof; check the tracker.
 
 ## Step 3 — Write back to `PRODUCT.md`
 Append a `#Ship log` row: date · what shipped · review+security · **skipped phases** (write `none` when the
 full chain ran; otherwise name them, e.g. `/test, /eval — <reason>`) · docs reconciled? · CHANGELOG ·
-rollback/flag · PR link. **A release whose test phase was skipped must say so on the release record** — an
+rollback/flag · PR link. The CHANGELOG cell is the entry, or `n/a — releases recorded in <X>`. **A release whose test phase was skipped must say so on the release record** — an
 empty `#Tests` section is not a disclosure, it is an absence, and absence reads as "not applicable".
 
 ## Step 3b — Self-verify (completeness gate)
@@ -89,7 +92,7 @@ code, STOP — do not open the PR.** Shipping a false claim is the exact failure
 **Close the loop (`MECHANISMS.md` §Step 3b):** update the `Stage:`/`Last updated:` header, reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or "Nothing — you're done". **The close is the run's last message** — a composed review's report is input to it, never the close itself.
 
 ## Step 3c — Contradiction check (before the gate closes)
-Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: the whole spine against what actually shipped — docs claiming a capability the code lacks, and the version in the CHANGELOG against every manifest surface. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
+Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: the whole spine against what actually shipped — docs claiming a capability the code lacks, and the version in the release record against every manifest surface. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
 
 ## Step 4 — Handoff
 "Shipped: reviewed, security-checked, docs reconciled, PR open, confidence recorded, **issue closed +

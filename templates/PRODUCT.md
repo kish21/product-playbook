@@ -32,6 +32,13 @@ Rules:
 _Last updated: <date> · Stage: <phase> · AI product? <yes/no>_
 _Playbook: <phase order followed — or a dated override line if the canonical order was deliberately departed from>_
 
+## Project policy    <!-- the project's own rules, not a phase: blank = playbook default; /playbook never routes here (MECHANISMS-ON-DEMAND.md §Project policy) -->
+- **merge:** <blank = the user merges when they say so · never>
+- **deploy:** <blank = as the phase says · never>
+- **release record:** <blank = CHANGELOG.md · where this project records releases>
+- **reviews run in:** <blank = /ship checks what /build recorded · /build>
+- **per-ticket record:** <blank = docs/features/<feature>.md · the one file each ticket writes>
+
 ## Vision            <!-- /vision --> (the record; see docs/vision.md for the reasoning)
 - **Vision (ONE sentence — the world this product creates, not what it does):**
 - **Who it's for:**
@@ -165,7 +172,7 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Read (file · date · verbatim quote):**
 
 ## Ship log          <!-- /ship -->
-| Date | What shipped | Review + /security-review | Skipped phases (none = full chain ran) | Docs reconciled | CHANGELOG | Rollback / flag | PR |
+| Date | What shipped | Review + /security-review | Skipped phases (none = full chain ran) | Docs reconciled | CHANGELOG (or n/a — releases recorded in <X>) | Rollback / flag | PR |
 |---|---|---|---|---|---|---|---|
 
 ## Learnings         <!-- /learn --> (the record; see docs/learnings.md for the retro detail)

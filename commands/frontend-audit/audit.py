@@ -7,8 +7,9 @@ mechanically-checkable laws. Judgment laws (archetype fit, hierarchy) are out of
 scope here — this is the floor a machine can guarantee.
 
 Usage:  python audit.py <file-or-dir> [more files...]
+        python audit.py --baseline <git-ref> <file-or-dir> [more...]   (only findings NEW since <git-ref>)
         python audit.py --version
-Exit:   non-zero if any ERROR-level law fails.
+Exit:   non-zero if any ERROR-level law fails (with --baseline: any NEW error; 2 if git cannot answer).
 Portable: stdlib only.
 
 A project's commit hooks and CI run a COMMITTED COPY of this file (kept at <tooling>/frontend-audit/audit.py,
@@ -16,6 +17,7 @@ wired by /foundation), because a clean clone has no plugin. The copy carries ENG
 installed engine says on every run when that copy is older, newer or edited - see engine_copy_notes().
 """
 import sys, os, re, math, glob, subprocess, ast
+from collections import Counter
 
 # The playbook release this engine shipped in. tools/check.py (check 5) holds it equal to the release,
 # so a project copy can say which checks it carries.
@@ -208,7 +210,7 @@ def audit_text(path, text, findings):
         if "theme-color" in ctx:   # T1-a: <meta theme-color> is an HTML attr — can't use a token
             findings.append(("WARN", "Law14-theme-color", path, f"theme-color {m.group(0)} OK (HTML attr) - keep it mirroring --primary"))
             continue
-        findings.append(("ERROR", "Law14-raw-hex", path, f"raw hex {m.group(0)} in component code (use a token)"))
+        findings.append(("ERROR", "Law14-raw-hex", path, f"raw hex {m.group(0)} in component code (use a token - and check its class exists in the built CSS)"))
 
     # Law 12 — no transition: all
     for m in re.finditer(r"transition:\s*all|transition-all", text):
@@ -455,19 +457,11 @@ def engine_copy_notes():
                          f"in place, so hooks and CI do not run the released checks. Refresh: copy {here} over it.")
     return notes
 
-def main(argv):
-    if argv[:1] == ["--version"]:
-        print(f"frontend-audit engine {ENGINE_VERSION}"); return 0
-    paths = list(iter_files(argv or ["."]))
-    if not paths:
-        print("frontend-audit: no files to scan"); return 0
+def scan(texts):
+    """{path: text} -> findings. One function for the live tree and for its --baseline copy."""
     findings = []
     defined, refs = set(), {}
-    for p in paths:
-        try:
-            text = open(p, encoding="utf-8", errors="ignore").read()
-        except OSError:
-            continue
+    for p, text in texts.items():
         audit_text(p, text, findings)
         a11y_findings(p, text, findings)
         # Law 14b is cross-file by nature: `audit.py DESIGN.md frontend/` must resolve a component's
@@ -477,6 +471,72 @@ def main(argv):
         if r:
             refs[p] = r
     check_token_refs(defined, refs, findings)
+    return findings
+
+def baseline_texts(ref, paths):
+    """The same files as they were at `ref`. A file new since then has no baseline, so all of it is new.
+    Raises RuntimeError when git cannot answer - a baseline run never degrades to a whole-file pass."""
+    def git(*args):
+        return subprocess.run(["git", *args], capture_output=True)
+    if git("rev-parse", "--verify", "--quiet", ref + "^{commit}").returncode != 0:
+        raise RuntimeError(f"--baseline {ref}: not a commit in this git repository")
+    out = {}
+    for p in paths:
+        rel = os.path.relpath(p).replace(os.sep, "/")
+        r = git("show", f"{ref}:./{rel}")
+        if r.returncode == 0:
+            out[p] = r.stdout.decode("utf-8", errors="ignore")
+    return out
+
+def parse_args(argv):
+    """-> (baseline ref or None, the remaining path arguments)."""
+    ref, rest, i = None, [], 0
+    while i < len(argv):
+        a = argv[i]
+        if a == "--baseline":
+            if i + 1 >= len(argv):
+                raise RuntimeError("--baseline needs a git ref (e.g. --baseline main)")
+            ref = argv[i + 1]; i += 2; continue
+        if a.startswith("--baseline="):
+            ref = a.split("=", 1)[1]; i += 1; continue
+        rest.append(a); i += 1
+    return ref, rest
+
+def main(argv):
+    if argv[:1] == ["--version"]:
+        print(f"frontend-audit engine {ENGINE_VERSION}"); return 0
+    try:
+        ref, argv = parse_args(argv)
+    except RuntimeError as e:
+        print(f"frontend-audit: {e}"); return 2
+    paths = list(iter_files(argv or ["."]))
+    if not paths:
+        print("frontend-audit: no files to scan"); return 0
+    texts = {}
+    for p in paths:
+        try:
+            texts[p] = open(p, encoding="utf-8", errors="ignore").read()
+        except OSError:
+            continue
+    findings = scan(texts)
+    already = None
+    if ref:
+        # Diff-scoped: a finding counts only if the same file had fewer of it at `ref`. Matched as a multiset
+        # on (level, law, file, message) - messages carry no line numbers, so an edit above a finding does not
+        # make it "new", while a second copy of the same raw hex does.
+        try:
+            old = scan(baseline_texts(ref, list(texts)))
+        except (RuntimeError, OSError) as e:
+            print(f"frontend-audit: {e} - run without --baseline for the whole-file audit"); return 2
+        budget = Counter(old)
+        kept = []
+        for f in findings:
+            if budget[f] > 0:
+                budget[f] -= 1
+            else:
+                kept.append(f)
+        already = Counter(f[0] for f in findings) - Counter(f[0] for f in kept)
+        findings = kept
 
     order = {"ERROR": 0, "WARN": 1, "PASS": 2}
     findings.sort(key=lambda f: order.get(f[0], 3))
@@ -487,6 +547,9 @@ def main(argv):
     # ASCII-only output — portable across OSes / terminals (no PYTHONUTF8 needed).
     title = f"=== frontend-audit engine {ENGINE_VERSION} "
     print(title + "=" * max(3, 60 - len(title)))
+    if already is not None:
+        print(f"  baseline {ref}: only findings NEW since then are listed and counted.")
+        print(f"  already present at {ref} (not listed): {already['ERROR']} error | {already['WARN']} warn")
     for level, law, path, msg in findings:
         tag = {"ERROR": "[FAIL]", "WARN": "[WARN]", "PASS": "[PASS]"}[level]
         print(f"  {tag}  [{law}]  {os.path.basename(path)} - {msg}")

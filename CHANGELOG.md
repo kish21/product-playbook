@@ -5,6 +5,30 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — /build and /ship fit how a real project works: commit before the security review, a diff-scoped audit, the project's own release record, and rules declared once
+
+**Two logged tickets run end to end through `/build` and `/ship` hit four frictions.** `/build` ordered
+`/security-review` before the commit, and that command reads only committed changes: its diff came back empty
+and the review was done by hand. The audit reported 87 errors on a thirty-line change, none of them new. `/ship`
+required a CHANGELOG entry from a project that had retired its CHANGELOG. And the project's own ticket command
+had to restate "do not merge, do not deploy" every time.
+
+- **`/build` commits the ticket's work locally before round 1** (on the ticket branch, never pushed, the undo
+  named), and commits the fixes before any round 2. The reviews still land before the push, the PR and the close.
+- **`audit.py --baseline <git-ref>`** lists and counts only the findings a change adds, and prints the
+  pre-existing count on its own line. A bad ref fails the run (exit 2). `/build` uses it on existing UI files and
+  files one issue for the pre-existing errors if none tracks them. A new screen and `/dev-check` keep the
+  whole-file run.
+- **A "use a token" fix counts only when the token's class exists in the built CSS.** A class with no mapping
+  emits nothing, and the element ships invisible. The audit's raw-hex message now says so.
+- **`/ship` records the release where the project does:** a CHANGELOG entry, or `n/a — releases recorded in <X>`
+  for a retired or absent CHANGELOG, never silence. It never recreates a CHANGELOG the project retired.
+- **`## Project policy` in the spine** (merge · deploy · release record · reviews run in · per-ticket record):
+  a project that wraps `/build` and `/ship` declares its rules once, and both read them. A policy narrows what a
+  phase does, never what it proves. A per-ticket record replaces the feature doc, and the one-line `#Build log`
+  row stays.
+- check 44 runs the baseline mode for real, check 45 holds the rules in the skill text. Both proven red.
+
 ### Fixed — every skill can find the state model, on every install route
 
 **All 21 skills cited `docs/state-model.md`, a path that points into the user's project, where the file never

@@ -747,6 +747,20 @@
       "files": []
     },
     {
+      "id": "build-commits-locally-before-security-review",
+      "skill": "build",
+      "prompt": "build the ticket that locks down the unauthenticated export endpoint and restyles its two existing settings pages",
+      "expected_output": "Reads #Project policy first when the spine has one; commits the ticket's work LOCALLY on the ticket branch before round 1 (never pushed, no PR, the undo named) because /security-review reads only committed changes, then runs /code-review and /security-review before the push, the PR and the close, and commits the fixes locally before any round 2; runs /frontend-audit with --baseline <the ticket's base commit> on the existing pages, fixes every NEW error, quotes the pre-existing count and files one issue for it if none tracks it; counts a use-a-token fix only after finding the token's class in the built CSS",
+      "files": []
+    },
+    {
+      "id": "ship-follows-the-projects-release-record-and-policy",
+      "skill": "ship",
+      "prompt": "ship it - note our CHANGELOG.md says it's retired, and our project policy says never merge",
+      "expected_output": "Reads #Project policy first and follows it without the user restating it: opens the PR and stops, never merging, and gives the post-merge tracker checks as commands in the close; reads the CHANGELOG's top lines, sees it is retired, and records n/a - releases recorded in <X> in the Ship log naming where, instead of adding an entry or recreating the file; never lets a policy skip a review of code no review has seen",
+      "files": []
+    },
+    {
       "id": "build-security-review-does-not-end-the-run",
       "skill": "build",
       "prompt": "/build \"#9 host edits a party\"  (an auth/data surface: the host's staff link is the capability)",
