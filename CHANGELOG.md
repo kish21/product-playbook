@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.72.0] - 2026-09-22
+
 ### Fixed — /deploy handles a product with several parts, a static site, previews and a signed-in path
 
 **The same logged `/deploy` run hit five more places where the skill's picture of a deploy was too narrow.**
