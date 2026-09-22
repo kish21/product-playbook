@@ -10,7 +10,7 @@ description: >
 # `/scope` — Phase 1 · Product · run as a **product manager**
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing here: **scope discipline**, **vision-alignment**,
 > **defer until a real trigger**, **plain-language one-recommendation**.
 
@@ -18,8 +18,8 @@ description: >
 - **Purpose:** force a single core feature and an explicit, defended OUT-OF-SCOPE list.
 - **Reads:** `PRODUCT.md#Vision`.
 - **Writes:** `PRODUCT.md#Scope` — fields: THE core feature · in-scope (now) · Deferred (+trigger) · Non-goals (never).
-- **Gate type:** `input` — what gets cut is a preference no prior section encodes. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
-- **State model** (`docs/state-model.md` §2c): writes `#Scope` · `declined` ✓ · `override` ✓ · `superseded` ✓
+- **Gate type:** `input` — what gets cut is a preference no prior section encodes. **Never batched** - skipping it fabricates the product's premise. (`STATE-MODEL.md` §2d)
+- **State model** (`STATE-MODEL.md` §2c): writes `#Scope` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Companion:** `docs/scope.md` — the reasoning, workings and raw notes. `PRODUCT.md#Scope` stays a
   RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay.
 - **Exit criteria:**
@@ -37,7 +37,7 @@ description: >
 - Read `PRODUCT.md#Vision`. If it is missing/empty, warn: "`/vision` looks incomplete — scope without
   a vision drifts." Offer to run `/vision` first, but allow override (standalone use).
 - **`#Validation` is `running`?** (a timeboxed experiment, due-dated, result `PENDING` —
-  `docs/state-model.md` §2a.) This phase treats that as **advisory, not blocking**: proceed
+  `STATE-MODEL.md` §2a.) This phase treats that as **advisory, not blocking**: proceed
   **provisionally**, mark every scope decision that depends on the pending result, and say the mark
   clears when the result lands. `/scope` produces a document, not code — blocking it for a fortnight buys
   little, and the wait-or-override menu is why the override always won. It **blocks from `/architect`

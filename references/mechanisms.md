@@ -3,7 +3,8 @@
 > The mechanisms every skill references by name (`§Declined runs`, `§Step 3c`, …). The rule sits inline
 > with at most a sentence of mechanism; situational mechanism lives in `MECHANISMS-ON-DEMAND.md`, which
 > installs beside it: `mechanisms-on-demand.md` in the plugin or a clone, `MECHANISMS-ON-DEMAND.md` in a
-> copy install.
+> copy install. `STATE-MODEL.md`, cited below, is `../docs/state-model.md` in the plugin or a clone and
+> `STATE-MODEL.md` beside this file in a copy install.
 
 ## §Step 3b — closing the loop (every phase that writes)
 
@@ -31,15 +32,15 @@ is the only part the user reads:
    - **Re-run this phase's own evidence.** For each exit criterion this run just wrote with an `evidence:`
      line, execute the command it names and check the artefact it names — `/drift-check`'s Step 0b
      §Claim-to-evidence pass, run at the transition over this phase's own claims. **No second format**:
-     `docs/state-model.md` §2f's one line, here as everywhere.
-   - **An untracked command or artefact is `UNVERIFIED`, not `PASS`** (`docs/state-model.md` §2f). The
+     `STATE-MODEL.md` §2f's one line, here as everywhere.
+   - **An untracked command or artefact is `UNVERIFIED`, not `PASS`** (`STATE-MODEL.md` §2f). The
      guard runs in the session that wrote the line, where a throwaway script still resolves; commit the
      script, or report the criterion as judged rather than measured.
-   - **Classify each with `docs/state-model.md` §2g's four verdicts** and say which. **`UNVERIFIED` never
+   - **Classify each with `STATE-MODEL.md` §2g's four verdicts** and say which. **`UNVERIFIED` never
      blocks a phase** — no evidence line, or a command that cannot run *here* (absent tooling, credentials,
      a live service), and the phase still completes. Never call that CONTRADICTED, which means a
      measurement was taken and disagreed: the two send people to different places.
-   - **Check the transition is legal** against `docs/state-model.md` §2b — the state the section was in,
+   - **Check the transition is legal** against `STATE-MODEL.md` §2b — the state the section was in,
      and the one this run leaves it in. (The illegal one, `filled ──▶ declined`, comes from a *declining*
      run, which never reaches Step 3b; it is refused where it happens, in §Declined runs.)
    - **Report, never silently pass.** Every criterion gets a verdict, the unevidenced ones included: green

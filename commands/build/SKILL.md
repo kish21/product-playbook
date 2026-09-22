@@ -11,7 +11,7 @@ description: >
 # `/build` — Phase 2 · Development ⑤ · run as an **engineer**
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > **This skill's OWN reference files are a DIFFERENT folder** — they live in `references/` **beside this SKILL.md** (`commands/build/references/`), not in the plugin-root `references/` named above. Both install routes put them there. Below, `feature-archetypes.md` · `live-path-checks.md` each mean that folder: open them by that path, and never look for them next to MECHANISMS.md.
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing: **per-feature contract (security in the DoD)**,
 > **secure-by-construction**, **prompts→`prompts/` YAML**, **doc↔code reconciled**, **measure before
@@ -24,8 +24,8 @@ description: >
 - **Purpose:** implement one feature to a verified, secure, documented definition-of-done.
 - **Reads:** `PRODUCT.md#Scope`, `#Plan`, `#Contracts`, `#Structure` — **plus `DESIGN.md` + `#Design` for any feature with a user-facing screen** (UI products).
 - **Writes:** a row in `PRODUCT.md#Build log` + `docs/features/<feature>.md`.
-- **Gate type:** `derivation` — computable from the ticket + `#Contracts`. Batchable - a `derivation` run may chain with its neighbours and end in ONE review. (`docs/state-model.md` §2d)
-- **State model** (`docs/state-model.md` §2c): writes `#Build log` · `declined` ✓ · `override` ✓ · `superseded` n/a — append-only log: one row per feature
+- **Gate type:** `derivation` — computable from the ticket + `#Contracts`. Batchable - a `derivation` run may chain with its neighbours and end in ONE review. (`STATE-MODEL.md` §2d)
+- **State model** (`STATE-MODEL.md` §2c): writes `#Build log` · `declined` ✓ · `override` ✓ · `superseded` n/a — append-only log: one row per feature
 - **Exit criteria (per feature):**
   - [ ] A written **definition-of-done that includes security** (input validation, authz/tenant-isolation; for AI: prompt-injection defence).
   - [ ] Reused existing helpers where possible (no reinvented utilities).

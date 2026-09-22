@@ -16,7 +16,7 @@ description: >
 
 > Part of **product-playbook**. Reads the spine (`PRODUCT.md`, or the project's existing docs — resolve
 > per `MECHANISMS.md` §Spine resolution); writes `DESIGN.md` + `PRODUCT.md#Design`.
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > **This skill's OWN reference files are a DIFFERENT folder** — they live in `references/` **beside this SKILL.md** (`commands/design-system/references/`), not in the plugin-root `references/` named above. Both install routes put them there. Below, `archetypes.md` · `build-loop.md` · `craft.md` · `design-md-template.md` · `page-patterns.md` · `palettes.md` · `theme-studio.md` · `universal-laws.md` each mean that folder: open them by that path, and never look for them next to MECHANISMS.md.
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them.
 > **Always enforces the quality floor** — load `references/universal-laws.md` (the 26 fixed UI laws) and
@@ -44,8 +44,8 @@ description: >
 - **Writes:** `DESIGN.md` (9-section standard, shadcn CSS-variable tokens) · **the token stylesheet the
   app actually loads** (`src/app/globals.css` or where `STRUCTURE.md` puts it) · one approved **sample page**
   · `PRODUCT.md#Design` (principles + archetype + token summary + paths).
-- **Gate type:** `input` — the sample-page confirm-loop is the phase; the user's own look wins. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
-- **State model** (`docs/state-model.md` §2c): writes `#Design` · `declined` ✓ · `override` ✓ · `superseded` ✓
+- **Gate type:** `input` — the sample-page confirm-loop is the phase; the user's own look wins. **Never batched** - skipping it fabricates the product's premise. (`STATE-MODEL.md` §2d)
+- **State model** (`STATE-MODEL.md` §2c): writes `#Design` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria (the gate):**
   - [ ] The vision was located (spine) or discovered (standalone), and the **UI gate** was applied — if the
     product has no user-facing UI, **nothing is written** and the skill stops with the reason.

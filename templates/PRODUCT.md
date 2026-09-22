@@ -126,7 +126,7 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 |---|---|---|---|
 
 ## Dev-complete      <!-- /dev-check -->
-<!-- Evidence format (the ONE form - docs/state-model.md §2f). Append to any criterion you can re-run:
+<!-- Evidence format (the ONE form - the playbook's STATE-MODEL.md §2f). Append to any criterion you can re-run:
      - [x] Authentication works - `evidence: pnpm test:e2e -> 18 passed - tests/e2e/auth.spec.ts - 2026-09-10`
      command -> result - artefact - date. A criterion with no evidence line is honest and is reported
      UNVERIFIED by /drift-check; a line that names no command or no date fails CI. Never invent a second

@@ -11,7 +11,7 @@ description: >
 # `/ship` — Phase 5 · Ship · run as a **release reviewer**
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing: **reviews are DEEP not skims**, **fresh-eyes caller/cross-file
 > tracing (works-in-tests-dead-in-prod)**, **security/fail-closed on auth/data**, **docs match
 > reality**, **one-subtask→PR+handoff**, **confidence score**, **verify findings against real code**.
@@ -20,8 +20,8 @@ description: >
 - **Purpose:** release one subtask safely, with review + security + honest docs, and hand off cleanly.
 - **Reads:** `PRODUCT.md` (all relevant sections), the diff.
 - **Writes:** `PRODUCT.md#Ship log` — what shipped · review/security · docs reconciled · PR.
-- **Gate type:** `verification` — review, security and doc gates pass or they do not. Batchable, and **stops on red** - a failing check ends the batch there. (`docs/state-model.md` §2d)
-- **State model** (`docs/state-model.md` §2c): writes `#Ship log` · `declined` ✓ · `override` ✓ · `superseded` n/a — append-only log: one entry per release
+- **Gate type:** `verification` — review, security and doc gates pass or they do not. Batchable, and **stops on red** - a failing check ends the batch there. (`STATE-MODEL.md` §2d)
+- **State model** (`STATE-MODEL.md` §2c): writes `#Ship log` · `declined` ✓ · `override` ✓ · `superseded` n/a — append-only log: one entry per release
 - **Exit criteria:**
   - [ ] **Deep review** done (`/code-review`, or the equivalent your harness has) — findings traced to real callers/cross-file impact, not a skim. → `/security-review`
   - [ ] **Security review** on auth/data changes (`/security-review`, or equivalent — and say which); for AI, the OWASP LLM Top 10 checklist (esp. prompt injection). → `/security-review`

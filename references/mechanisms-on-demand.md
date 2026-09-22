@@ -1,6 +1,7 @@
 # MECHANISMS-ON-DEMAND.md — the mechanism you open only when its trigger fires
 
-> Companion to `MECHANISMS.md`. Everything in that file is read by **every** phase, every run, so its
+> Companion to `MECHANISMS.md`. `STATE-MODEL.md`, cited below, is `../docs/state-model.md` in the plugin
+> or a clone and `STATE-MODEL.md` beside this file in a copy install. Everything in that file is read by **every** phase, every run, so its
 > size is the per-session attention cost of the whole system. The mechanism below is **situational** —
 > each section states the condition that makes it apply, and outside that condition it is dead weight in
 > the context window. `MECHANISMS.md` keeps the trigger and the default inline and points here for the
@@ -75,7 +76,7 @@ section, in this form, with nothing else in the section touched:
   invocation is noise, and noise trains people to skip the line that mattered.
 - **Only a *declined* run writes it.** A phase that runs to completion writes its section normally; a
   phase nobody invoked writes nothing. This line means exactly *"attempted, and stopped for a reason"*.
-- **Only an *unfilled* section can take it — `filled ──▶ declined` is refused** (`docs/state-model.md`
+- **Only an *unfilled* section can take it — `filled ──▶ declined` is refused** (`STATE-MODEL.md`
   §2b: a phase that ran does not un-run). A stop over an **already filled** section leaves it exactly as
   it is and says so; a filled section that needs redoing goes `filled ──▶ filled` through §Re-run
   semantics. The Not-run line over real content would destroy the phase's output *and* route `/playbook`
@@ -142,7 +143,7 @@ fields make its old 25KB total unreachable by construction. The instrument is th
 
 ## §Batch mode — consecutive derivation phases, one review at the end; chain = input → its derivation
 
-**Trigger:** the next unfilled phase and the one after it are both `derivation` (`docs/state-model.md`
+**Trigger:** the next unfilled phase and the one after it are both `derivation` (`STATE-MODEL.md`
 §2d) with no `input` phase between: `foundation → contracts → tickets` (a UI product runs `structure`, then
 `design-system`, then the batch). `/playbook` and the `/structure` + `/design-system` handoffs **offer**
 it; the user chooses; one phase per session stays the default.

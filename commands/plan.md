@@ -10,7 +10,7 @@ description: >
 # `/plan` — Phase 1 · Product · run as a **product planner**
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing here: **per-feature contract (testable "done")**,
 > **defer until a real trigger**, **docs-driven**.
 
@@ -18,8 +18,8 @@ description: >
 - **Purpose:** sequence the work core-first, each milestone with a testable exit criterion.
 - **Reads:** `PRODUCT.md#Vision`, `#Scope`.
 - **Writes:** `PRODUCT.md#Plan` — fields: phases/milestones (core first) · timeline · exit criteria per milestone.
-- **Gate type:** `input` — the timeline and the ordering are the user's constraints. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
-- **State model** (`docs/state-model.md` §2c): writes `#Plan` · `declined` ✓ · `override` ✓ · `superseded` ✓
+- **Gate type:** `input` — the timeline and the ordering are the user's constraints. **Never batched** - skipping it fabricates the product's premise. (`STATE-MODEL.md` §2d)
+- **State model** (`STATE-MODEL.md` §2c): writes `#Plan` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Companion:** `docs/plan.md` — the reasoning, workings and raw notes. `PRODUCT.md#Plan` stays a
   RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay.
 - **Exit criteria:**
@@ -40,7 +40,7 @@ description: >
 
 ## Step 0 — Context + prior-gate check
 - Read `#Vision` and `#Scope`. If `#Scope` is missing/empty, warn and offer `/scope` first (allow
-  override). **A `running` gate upstream is advisory here** (`docs/state-model.md` §2a) — plan
+  override). **A `running` gate upstream is advisory here** (`STATE-MODEL.md` §2a) — plan
   provisionally, mark the milestones that depend on the pending result, and note that it blocks from
   `/architect` on.
 - **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Plan` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.

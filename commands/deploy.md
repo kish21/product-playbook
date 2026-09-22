@@ -12,7 +12,7 @@ description: >
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's
 > existing docs — resolve per `MECHANISMS.md` §Spine resolution); writes `docs/deployment.md`.
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing: **secrets are the user's to paste, never yours to write**,
 > **no-hardcoding**, **fail-closed**, **docs match reality**, **honest gap surfacing**.
 
@@ -31,8 +31,8 @@ description: >
   and a pointer to it).
 - **Gate type:** `verification` — pass/fail on a live URL; the preference was settled in `#Architecture`.
   **Not batchable:** it creates a real environment and the first run needs the user at the host's
-  dashboard. (`docs/state-model.md` §2d)
-- **State model** (`docs/state-model.md` §2c): writes `#Deployment` · `declined` ✓ · `override` ✓ ·
+  dashboard. (`STATE-MODEL.md` §2d)
+- **State model** (`STATE-MODEL.md` §2c): writes `#Deployment` · `declined` ✓ · `override` ✓ ·
   `running` ✓ (a first deploy waiting on an account, a DNS record or a quota) · `superseded` ✓
 - **Exit criteria:**
   - [ ] **Every deployable unit's host is the one `#Architecture` recorded** — copied verbatim, with its
@@ -201,7 +201,7 @@ Do the first deploy *with* the user — they hold the credentials. Then:
 
 ## Step 3b — Principle-gate: it is deployed, or it is not (evidence)
 Walk the exit criteria and prove each with a command, not a claim. The load-bearing one: **a real request
-to the public URL, recorded in the one settled evidence form** (`docs/state-model.md` §2f) —
+to the public URL, recorded in the one settled evidence form** (`STATE-MODEL.md` §2f) —
 `` `evidence: curl -s https://<url>/health → 200 ok · docs/deployment.md · 2026-09-11` ``. **No URL
 that answered means this gate did not pass**, regardless of how well the build went. An owner-verified
 path passes the user-path half; the transition guard reports it `UNVERIFIED — owner-verified`, never `PASS`.

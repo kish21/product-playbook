@@ -11,7 +11,7 @@ description: >
 # `/test` — Phase 3 · Testing · run as a **tester**
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · LESSONS.md = `${CLAUDE_PLUGIN_ROOT}/references/lessons.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · LESSONS.md = `${CLAUDE_PLUGIN_ROOT}/references/lessons.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing: **independent test plan**, **unit=isolated/mocked,
 > integration=real contracts**, **testable-by-construction**, **tests passing ≠ it works (verify the
 > live path)**, **OWASP LLM Top 10 cases for AI**, **multi-tenant isolation tests**.
@@ -20,8 +20,8 @@ description: >
 - **Purpose:** prove the product works on the path it actually runs, including adversarial inputs.
 - **Reads:** `PRODUCT.md#Scope`, `#Contracts`, `#Build log`, `#Dev-complete`.
 - **Writes:** `PRODUCT.md#Tests` — coverage (unit/integration/regression) · security cases · live-path verified.
-- **Gate type:** `verification` — pass/fail on repo evidence; no preference involved. Batchable, and **stops on red** - a failing check ends the batch there. (`docs/state-model.md` §2d)
-- **State model** (`docs/state-model.md` §2c): writes `#Tests` · `declined` ✓ · `override` ✓ · `superseded` ✓
+- **Gate type:** `verification` — pass/fail on repo evidence; no preference involved. Batchable, and **stops on red** - a failing check ends the batch there. (`STATE-MODEL.md` §2d)
+- **State model** (`STATE-MODEL.md` §2c): writes `#Tests` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Companion:** `docs/tests.md` — the reasoning, workings and raw notes. `PRODUCT.md#Tests` stays a
   RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay.
 - **Exit criteria:**

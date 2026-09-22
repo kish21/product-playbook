@@ -11,16 +11,16 @@ description: >
 # `/dev-check` — Phase 2 · Development ⑥ · run as an **engineer/tester**
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing: **exit-criteria are testable AND verified (not assumed)**,
 > **security-in-DoD checked**, **honest gap surfacing**, **scope re-check**, **measure not assume**.
 
 ## Contract
 - **Purpose:** prove development is actually complete before Testing — a real gate, not a vibe.
 - **Reads:** `PRODUCT.md#Scope`, `#Plan`, `#Build log`, `#Foundation`, `#Contracts`.
-- **Writes:** `PRODUCT.md#Dev-complete` — the checklist, each item checked **with re-runnable evidence** in the one settled form (`docs/state-model.md` §2f): `` `evidence: <command> → <result> · <artefact> · <YYYY-MM-DD>` ``. Transcribe what you actually ran; a criterion you judged rather than measured carries **no** evidence line and is reported `UNVERIFIED` by `/drift-check`, which is an honest state — inventing a command you did not run is not.
-- **Gate type:** `verification` — pass/fail on repo evidence; no preference involved. Batchable, and **stops on red** - a failing check ends the batch there. (`docs/state-model.md` §2d)
-- **State model** (`docs/state-model.md` §2c): writes `#Dev-complete` · `declined` ✓ · `override` ✓ · `superseded` ✓
+- **Writes:** `PRODUCT.md#Dev-complete` — the checklist, each item checked **with re-runnable evidence** in the one settled form (`STATE-MODEL.md` §2f): `` `evidence: <command> → <result> · <artefact> · <YYYY-MM-DD>` ``. Transcribe what you actually ran; a criterion you judged rather than measured carries **no** evidence line and is reported `UNVERIFIED` by `/drift-check`, which is an honest state — inventing a command you did not run is not.
+- **Gate type:** `verification` — pass/fail on repo evidence; no preference involved. Batchable, and **stops on red** - a failing check ends the batch there. (`STATE-MODEL.md` §2d)
+- **State model** (`STATE-MODEL.md` §2c): writes `#Dev-complete` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria:**
   - [ ] Every **core-scope** feature has a `#Build log` row, **runs**, and met its DoD (incl. security) — verified. → `Every core-scope feature built & runs`
   - [ ] No hardcoding · prompts externalized · contracts typed · schema↔code consistent · builds/CI green. → `No hardcoding`

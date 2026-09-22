@@ -11,7 +11,7 @@ description: >
 # `/architect` — Phase 2 · Development ① · run as an **architect**
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > **This skill's OWN reference files are a DIFFERENT folder** — they live in `references/` **beside this SKILL.md** (`commands/architect/references/`), not in the plugin-root `references/` named above. Both install routes put them there. Below, `decisions.md` each mean that folder: open them by that path, and never look for them next to MECHANISMS.md.
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing this phase:
 > **benchmark 2026 then optimise for constraints (incl. lock-in)**, **patterns & anti-patterns**, **provider/adapter for externals**,
@@ -23,8 +23,8 @@ description: >
 - **Purpose:** choose the stack/tools/decisions before any folders exist, aligned to the product.
 - **Reads:** `PRODUCT.md#Vision`, `#Scope`, `#Plan`.
 - **Writes:** `PRODUCT.md#Architecture` — stack+tools+why · **dev tooling** · ADRs · externals behind adapters · resilience · perf/cost budget · (AI) prompt-versioning/eval.
-- **Gate type:** `input` — the choice is made against the project's constraints - team size, operational appetite, budget, tolerable lock-in - and those live in the human. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
-- **State model** (`docs/state-model.md` §2c): writes `#Architecture` · `declined` ✓ · `override` ✓ · `superseded` ✓
+- **Gate type:** `input` — the choice is made against the project's constraints - team size, operational appetite, budget, tolerable lock-in - and those live in the human. **Never batched** - skipping it fabricates the product's premise. (`STATE-MODEL.md` §2d)
+- **State model** (`STATE-MODEL.md` §2c): writes `#Architecture` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria (the gate — small: is the section complete?):**
   - [ ] `#Architecture` is complete and **traces to scope/plan** (no gold-plating): stack+tools+why **with
     a provenance flag on every row** and **the constraint set each choice was optimised against**
@@ -39,7 +39,7 @@ description: >
 
 ## Step 0 — Context + prior-gate check
 - Read `#Vision/#Scope/#Plan`. If `#Scope`/`#Plan` are empty, warn and offer to run them first (allow
-  override). **A `running` upstream gate BLOCKS from here on** (`docs/state-model.md` §2a): it was
+  override). **A `running` upstream gate BLOCKS from here on** (`STATE-MODEL.md` §2a): it was
   advisory for `/scope` and `/plan`, which produce documents — from here the product is being built, so a
   pending result needs the result, or a recorded override.
 - **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Architecture` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.

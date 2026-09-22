@@ -12,7 +12,7 @@ description: >
 # `/validate` — Phase 1 · Product · run as a **sceptical founder**
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing here: **verify-don't-assume**,
 > **measure before fixing**, **evidence-based "done"**, **plain-language one-recommendation**.
 
@@ -24,8 +24,8 @@ description: >
 - **Purpose:** falsify (or survive) the riskiest assumption with the cheapest experiment that can, and decide from the measured result.
 - **Reads:** `PRODUCT.md#Vision` — riskiest assumption · north-star metric · job-to-be-done · target user · business model.
 - **Writes:** `PRODUCT.md#Validation` — fields: assumption under test · experiment (type, who, time box) · pass/fail threshold (set before) · measured result · verdict (proceed / pivot / kill) · override (if any).
-- **Gate type:** `input` — the assumption, the threshold and the verdict are the user's, not derivable. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
-- **State model** (`docs/state-model.md` §2c): writes `#Validation` · `declined` ✓ · `override` ✓ · `running` ✓ (the timeboxed experiment — this phase is where that state comes from) · `superseded` n/a — append-only log: a new dated entry per run, so a second run cannot erase the first
+- **Gate type:** `input` — the assumption, the threshold and the verdict are the user's, not derivable. **Never batched** - skipping it fabricates the product's premise. (`STATE-MODEL.md` §2d)
+- **State model** (`STATE-MODEL.md` §2c): writes `#Validation` · `declined` ✓ · `override` ✓ · `running` ✓ (the timeboxed experiment — this phase is where that state comes from) · `superseded` n/a — append-only log: a new dated entry per run, so a second run cannot erase the first
 - **Companion:** `docs/validation.md` — the reasoning, workings and raw notes. `PRODUCT.md#Validation` stays a
   RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay.
 - **Exit criteria:**
@@ -88,7 +88,7 @@ Give **one recommendation** (experiment + threshold + time box); get a yes/no.
 
 ## Step 3 — Run it, then record the measured result
 - **Run or schedule it.** Small desk checks run now. Interviews / landing pages / concierge runs take
-  days: put the section into the **`running` state** (`docs/state-model.md` §2a) — one dated line
+  days: put the section into the **`running` state** (`STATE-MODEL.md` §2a) — one dated line
   `_Running <date>, due <date>: <what is being measured>._`, the fields filled, and `PENDING` where the
   result goes. **Say plainly that the gate is NOT closed**, and offer to re-measure later (compose
   `/loop` or `/schedule` for a count that changes over time).

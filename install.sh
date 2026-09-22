@@ -185,10 +185,11 @@ cp "${ROOT}/references/mechanisms.md" "${SUPPORT}/MECHANISMS.md"
 cp "${ROOT}/references/mechanisms-on-demand.md" "${SUPPORT}/MECHANISMS-ON-DEMAND.md"
 cp "${ROOT}/references/lessons.md"    "${SUPPORT}/LESSONS.md"
 cp "${ROOT}/references/case-files-build.md" "${SUPPORT}/CASE-FILES-BUILD.md"
+cp "${ROOT}/docs/state-model.md"   "${SUPPORT}/STATE-MODEL.md"
 cp "${ROOT}/VISION.md"            "${SUPPORT}/VISION.md"
 cp "${ROOT}/templates/PRODUCT.md" "${SUPPORT}/PRODUCT.md"
 cp "${ROOT}/tools/session_cost.py" "${SUPPORT}/session_cost.py"
-echo "  ✓ companions → ${SUPPORT} (PRINCIPLES.md · MECHANISMS.md · MECHANISMS-ON-DEMAND.md · LESSONS.md · CASE-FILES-BUILD.md · VISION.md · PRODUCT.md · session_cost.py)"
+echo "  ✓ companions → ${SUPPORT} (PRINCIPLES.md · MECHANISMS.md · MECHANISMS-ON-DEMAND.md · LESSONS.md · CASE-FILES-BUILD.md · STATE-MODEL.md · VISION.md · PRODUCT.md · session_cost.py)"
 
 # 3) Point the rule-file paths at the companions just installed.
 #    Skills name the plugin's paths (`${CLAUDE_PLUGIN_ROOT}/…`), which Claude Code fills in only for a plugin.
@@ -213,6 +214,7 @@ point_rule_paths() {
     -e "s|${PLUGIN_ROOT}references/mechanisms\.md|${RULES_ESC}/MECHANISMS.md|g" \
     -e "s|${PLUGIN_ROOT}references/lessons\.md|${RULES_ESC}/LESSONS.md|g" \
     -e "s|${PLUGIN_ROOT}references/case-files-build\.md|${RULES_ESC}/CASE-FILES-BUILD.md|g" \
+    -e "s|${PLUGIN_ROOT}docs/state-model\.md|${RULES_ESC}/STATE-MODEL.md|g" \
     -e "s|${PLUGIN_ROOT}tools/session_cost\.py|${RULES_ESC}/session_cost.py|g" \
     -e "s|${PLUGIN_ROOT}templates/PRODUCT\.md|${RULES_ESC}/PRODUCT.md|g" \
     ${FALLBACK_NOTE[@]+"${FALLBACK_NOTE[@]}"} \

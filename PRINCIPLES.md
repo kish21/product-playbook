@@ -7,8 +7,9 @@
 > **The mechanisms live next door, in `MECHANISMS.md`** — §Step 3b · §Step 3c · §Re-run semantics ·
 > §Declined runs · §Seam · §Spine resolution. **The harvested lessons live in `LESSONS.md`** — §Lessons
 > baked in. **Where, from this file's folder:** plugin or clone → `references/mechanisms.md`,
-> `references/mechanisms-on-demand.md`, `references/lessons.md`; copy install → `MECHANISMS.md`,
-> `MECHANISMS-ON-DEMAND.md`, `LESSONS.md` beside this file. Open them by that path; never search.
+> `references/mechanisms-on-demand.md`, `references/lessons.md`, `docs/state-model.md`; copy install →
+> `MECHANISMS.md`, `MECHANISMS-ON-DEMAND.md`, `LESSONS.md`, `STATE-MODEL.md` beside this file. Open them by
+> that path; never search.
 > This file is loaded by every skill, so its size is the per-session attention cost of the whole
 > system; a rule that is followed has to be short enough to read.
 
@@ -24,7 +25,7 @@
 
 ## Per-feature contract (agree BEFORE building a feature)
 
-- **Exit criteria** — explicit, *testable* definition of done. Not done until every criterion is met **and verified**. Where the verification can be re-run, record it in the one settled form (`docs/state-model.md` §2f) — `` `evidence: <command> → <result> · <artefact> · <date>` `` — so a later session, a reviewer or CI can **re-execute it and compare** rather than take the claim on trust. A criterion that was judged rather than measured carries no evidence line and is reported as unverified; that is honest. No vague "done".
+- **Exit criteria** — explicit, *testable* definition of done. Not done until every criterion is met **and verified**. Where the verification can be re-run, record it in the one settled form (`STATE-MODEL.md` §2f) — `` `evidence: <command> → <result> · <artefact> · <date>` `` — so a later session, a reviewer or CI can **re-execute it and compare** rather than take the claim on trust. A criterion that was judged rather than measured carries no evidence line and is reported as unverified; that is honest. No vague "done".
 - **Module-interaction map** — which modules/services it touches, the **typed contract in/out** of each boundary, dependencies.
 - **Independent test plan** — **unit** (isolated via injection/mocks), **integration** (real contracts with neighbours), plus E2E/regression as needed. If a feature can't be tested independently, fix the seams first.
 
@@ -140,14 +141,14 @@ Exit criteria:
 - **Authoring:** the skill is not "done" until it satisfies its own exit criteria.
 - **Runtime self-check (before handoff):** verify every required `PRODUCT.md` field is present, non-empty, and evidenced. **If anything is missing, STOP and report it — do not hand off.**
 - **Gates are classified by where the answer lives, not by how experienced the user is**
-  (`docs/state-model.md` §2d). **input** — the answer exists only in the human, so it can **never** be
+  (`STATE-MODEL.md` §2d). **input** — the answer exists only in the human, so it can **never** be
   batched or auto-answered; **derivation** — computable from prior sections, so a run may batch and end
   in one review; **verification** — pass/fail on repo evidence, batchable and **stops on red**. Declared
   per skill; a global auto-mode is rejected, with reasons, in
-  `docs/state-model.md` §3. **An input gate is a question, not an approval** — do not call it a
+  `STATE-MODEL.md` §3. **An input gate is a question, not an approval** — do not call it a
   confirmation.
 - **A `PRODUCT.md` section is in one of five declared states** — empty · declined · filled · overridden ·
-  superseded (`docs/state-model.md` §2a). Every section-writing skill declares which markers it
+  superseded (`STATE-MODEL.md` §2a). Every section-writing skill declares which markers it
   implements, and any exemption carries a reason; an omission and a decision must never look the same.
 - **Prior-gate check (Step 0):** confirm the previous phase's exit criteria were met. If they were not,
   **warn, name the missing phase and offer it first** — standalone/jump-in is first-class, so a gate is a
