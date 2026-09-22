@@ -85,3 +85,15 @@ the edits have had no reviewer. Re-run the review on the fixed tree before the P
 On a real run this gate read the evaluation section alone and shipped a product whose `#Dev-complete`,
 `#Tests` and `#Evaluation` were all empty — the last gate before release never asked whether anything was
 tested. The gate was green because it was reading the one section that happened to be filled.
+
+## The retired changelog
+
+A logged `/ship` run met a project that had deliberately retired its CHANGELOG: the file's first lines said
+not to add entries, and releases were recorded somewhere else. `/ship`'s exit criteria required a CHANGELOG
+entry and a semver bump, with no path for a project that records releases elsewhere. The choice was to break
+the project's own rule or leave an exit criterion unmet. The release record now follows the project, and the
+Ship log says where it went, in words.
+
+The same run went through a wrapper: the project's own ticket command, which called `/build` and `/ship`. It
+had to restate "do not merge, do not deploy, do not re-run the deep review" every time, because nothing in
+the playbook let a project say so once. `#Project policy` is that place.

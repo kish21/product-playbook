@@ -80,7 +80,14 @@ what it appears to certify — and a check like that stops anyone from looking.
 
 1. After `/design-system` emits `DESIGN.md` and you've built screens (via `/new-component`), run the
    audit over the UI dir + `DESIGN.md`.
-2. Fix every **ERROR** (the floor is non-negotiable); triage **WARN**.
+2. Fix every **ERROR** (the floor is non-negotiable); triage **WARN**. **A "use a token" fix is a fix only
+   when the token's class exists in the built CSS** — search the build output for it. A utility class with
+   no mapping to the token (Tailwind v4 without an `@theme` entry) emits no CSS, and the element ships
+   invisible.
+   - **On a change to existing files, add `--baseline <git-ref>`** (`audit.py --baseline <ref> DESIGN.md <ui-dir>`):
+     only the findings this change ADDS are listed and counted toward the exit code; the findings already
+     present at `<ref>` are printed as one count. A bad ref or no git repository fails the run (exit 2),
+     never a silent full pass. The whole-file run stays the gate for a new screen and for `/dev-check`.
 3. It is a gate only where it runs without being remembered: `/foundation` wires the project copy into
    the commit hooks and CI (`exit 1` on an ERROR blocks both; a WARN only reports). A project past
    `/foundation` with no copy (the `engine copy:` line says so) → wire it the same way.

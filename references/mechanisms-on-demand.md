@@ -188,3 +188,15 @@ what a phase checks, writes or verifies — reporting and context only.** (case 
    — or the line reads *"not measured"*.
    Never an estimate: live closes guessed "$1.50–2.50" for a $20 run and "not visible" for a $75 one.
 
+## §Project policy — a project's own rules, declared once
+
+**Trigger:** the spine's `## Project policy` has a key filled. A project that wraps `/build` and `/ship` in
+its own command declares its rules there once, and the wrapper stops restating them.
+- `merge: never` — open the PR and stop. Post-merge steps (tracker, card to Done) become commands in the close.
+- `deploy: never` — run no deploy. The rollback path and the signal to watch are still named.
+- `release record: <X>` — `/ship` writes `n/a — releases recorded in <X>` instead of a CHANGELOG entry.
+- `reviews run in: /build` — `/ship` cites `/build`'s recorded reviews for an unchanged diff (its Step 2 item 0).
+- `per-ticket record: <path>` — `/build` writes the feature doc's content there, once. The `#Build log` row stays.
+
+**A policy narrows what a phase does, never what it proves:** no key skips a review of code no review has
+seen, a gate, the evidence or the close. A key not listed here is ignored, and the run says so.

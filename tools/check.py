@@ -85,6 +85,13 @@ Checks:
  43. The state model is cited as `STATE-MODEL.md`, never as a bare `docs/state-model.md`, and every file that
      cites it says where it is: a skill in its rule-files line, a Read companion in its route sentence. A bare
      path resolves to the PROJECT's docs/, where the file never is, and install.sh did not ship it (#331).
+ 44. `audit.py --baseline <ref>` lists and counts only findings NEW since <ref>, prints the pre-existing count,
+     and exits 2 when git cannot answer. A 30-line change to two pages drew 87 old errors, and the build had to
+     prove by hand that it added none.
+ 45. /build commits locally before /security-review (which reads only committed changes); /build uses the
+     audit's --baseline and checks a token class exists in the built CSS; /ship records a release elsewhere
+     as `n/a — releases recorded in <X>`; both read `#Project policy`, which the template and
+     MECHANISMS-ON-DEMAND define.
  23. The long derivation phases (foundation, contracts, tickets, build) carry the CONTEXT-HYGIENE rule -
      bulky command output goes to a file, one progress line per named step, close metrics measured or
      "not measured". Four phases in a row ignored /build's "bulky output to files" sentence and cost
@@ -313,6 +320,10 @@ def main() -> int:
     check_rule_files_are_opened(files)
     # 43. the state model is cited by a name every install route resolves, never the project's docs/
     check_state_model_path(files)
+    # 44. the audit's --baseline mode counts only what a change adds, and never degrades to a whole-file pass
+    check_audit_baseline()
+    # 45. /build commits before /security-review, /ship follows the project's release record, #Project policy
+    check_build_ship_frictions(files)
 
     return done(len(cmds))
 
@@ -2865,6 +2876,110 @@ def check_state_model_path(files: dict[str, Path]) -> None:
             if token not in flat:
                 fail(f"{where} cites {STATE_MODEL} but no longer says {token!r} - the path to it on that route")
 
+
+
+
+def check_audit_baseline() -> None:
+    """44. `--baseline <ref>` counts only what a change adds, and fails closed when git cannot answer.
+
+    A logged build changed about thirty lines on two existing pages; the whole-file audit reported 87 errors
+    that were all there before, and the build proved by before/after runs that it added none. A ticket must
+    fix what it adds, not a page's history - but the old count is printed, never hidden, and a bad ref must
+    never turn into a silent whole-file pass or a silent zero.
+    """
+    import subprocess
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmp:
+        t = Path(tmp)
+
+        def git(*args: str) -> None:
+            subprocess.run(["git", "-C", tmp, *args], check=True, capture_output=True)
+
+        def run(*args: str) -> subprocess.CompletedProcess:
+            return subprocess.run([sys.executable, str(AUDIT_ENGINE), *args], cwd=tmp, capture_output=True,
+                                  text=True, encoding="utf-8", errors="replace", timeout=120)
+
+        try:
+            git("init", "-q")
+        except (OSError, subprocess.CalledProcessError):
+            fail("check 44 needs git on PATH to exercise the audit's --baseline mode")
+            return
+        git("config", "user.email", "check@example.invalid")
+        git("config", "user.name", "check")
+        (t / "ui").mkdir()
+        page = t / "ui" / "page.css"
+        page.write_text(".a { color: #123456; }\n.b { transition: all 1s; }\n", encoding="utf-8")
+        git("add", "-A")
+        git("commit", "-qm", "base")
+
+        page.write_text(page.read_text(encoding="utf-8") + "\n/* a comment-only change */\n", encoding="utf-8")
+        whole, scoped = run("ui"), run("--baseline", "HEAD", "ui")
+        if whole.returncode == 0:
+            fail("check 44: the whole-file audit passed a page with two ERRORs - the fixture is wrong")
+        if scoped.returncode != 0:
+            fail(f"check 44: --baseline failed a change that added no error (exit {scoped.returncode}) - "
+                 f"the pre-existing errors are still being counted against it")
+        if "already present at HEAD (not listed): 2 error" not in scoped.stdout:
+            fail("check 44: --baseline does not print the pre-existing error count - the old errors are hidden")
+
+        page.write_text(page.read_text(encoding="utf-8") + ".c { color: #abcdef; }\n", encoding="utf-8")
+        scoped = run("--baseline", "HEAD", "ui")
+        if scoped.returncode != 1 or "#abcdef" not in scoped.stdout or "#123456" in scoped.stdout:
+            fail("check 44: --baseline must list the ONE raw hex the change added, not the one already there, "
+                 f"and exit 1 - got exit {scoped.returncode}")
+
+        bad = run("--baseline", "no-such-ref", "ui")
+        if bad.returncode != 2:
+            fail(f"check 44: --baseline with a ref git does not know exited {bad.returncode}, not 2 - a baseline "
+                 f"run must never degrade to a whole-file pass or a silent zero")
+
+
+# The four rules from two logged tickets run through /build and /ship, as the text that carries each.
+FRICTION_RULES = (
+    ("build", "**Commit the ticket's work LOCALLY before round 1**",
+     "/security-review reads only committed changes; on an uncommitted tree its diff comes back empty"),
+    ("build", "**`/security-review` reads only COMMITTED changes:**", "the reason for the local commit"),
+    ("build", "--baseline <the ticket's base commit>", "the audit is scoped to what the ticket adds"),
+    ("build", "exists in the built CSS", "a token class with no mapping emits no CSS"),
+    ("build", "`#Project policy`", "a wrapper declares its rules once"),
+    ("ship", "`n/a — releases recorded in <X>`", "a project that retired its CHANGELOG"),
+    ("ship", "never recreate a CHANGELOG the project retired", "the retired-changelog path"),
+    ("ship", "`#Project policy`", "a wrapper declares its rules once"),
+    ("ship", "**`merge: never` in `#Project policy`**", "never merge, declared once"),
+    ("frontend-audit", "--baseline <git-ref>", "the diff-scoped mode is documented"),
+    ("frontend-audit", "exists in the built CSS", "a token class with no mapping emits no CSS"),
+)
+FRICTION_FORBIDDEN = (("build", "both BEFORE the commit",
+                       "/security-review reads only committed changes, so it cannot run before the commit"),)
+
+
+def check_build_ship_frictions(files: dict[str, Path]) -> None:
+    """45. The fixes for four frictions from two logged tickets run end to end through /build and /ship.
+
+    /build ordered /security-review "BEFORE the commit", and that command builds its prompt from committed
+    changes only: on an uncommitted tree its files, commits and diff came back empty and the review was done
+    by hand. /ship demanded a CHANGELOG entry from a project that had retired its CHANGELOG. The audit scored
+    whole files. And a project wrapping /build and /ship had to restate never-merge and no-deploy each time.
+    Checked as literal text: each is one sentence a later edit could drop, and nothing else would notice.
+    """
+    for skill, token, why in FRICTION_RULES:
+        flat = " ".join(files[skill].read_text(encoding="utf-8").split())
+        if token not in flat:
+            fail(f"{skill} no longer says {token!r} - {why}")
+    for skill, token, why in FRICTION_FORBIDDEN:
+        if token in files[skill].read_text(encoding="utf-8"):
+            fail(f"{skill} says {token!r} again - {why}")
+    tpl = (ROOT / "templates" / "PRODUCT.md").read_text(encoding="utf-8")
+    if "## Project policy" not in tpl:
+        fail("templates/PRODUCT.md has no `## Project policy` section - /build and /ship read one")
+    for key in ("**merge:**", "**deploy:**", "**release record:**", "**reviews run in:**", "**per-ticket record:**"):
+        if key not in tpl:
+            fail(f"templates/PRODUCT.md's Project policy has no {key} key")
+    mod = (ROOT / "references" / "mechanisms-on-demand.md").read_text(encoding="utf-8")
+    if "## §Project policy" not in mod or "never what it proves" not in mod:
+        fail("MECHANISMS-ON-DEMAND.md does not define §Project policy with its limit - a policy narrows what a "
+             "phase does, never what it proves")
 
 if __name__ == "__main__":
     sys.exit(main())
