@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.71.0] - 2026-09-22
+
 ### Fixed — /deploy checks who can get in before the URL is public, and checks build-time values in the built site
 
 **A logged `/deploy` run put a site live with two real accounts' passwords in its sign-in page.** The secret
