@@ -5,6 +5,26 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — /deploy handles a product with several parts, a static site, previews and a signed-in path
+
+**The same logged `/deploy` run hit five more places where the skill's picture of a deploy was too narrow.**
+The product had three parts to deploy and the skill had one Host slot. The site was static, and the skill
+demanded a start command and a health path it could not have. Every browser value was public, and the skill
+told the user to paste all of them into a dashboard as if they were secrets. Preview deployments were never
+mentioned, though they run unmerged code against production data. And the real user path was behind a
+sign-in the agent must not use, with nothing saying how to record it.
+
+- **Each deployable unit** (the site, the API, a worker, a forwarder) has its own recorded host, category
+  and column in `docs/deployment.md`. A unit with no recorded host gets `/architect` for that unit only.
+- **A static site / CDN category:** no start command, no health path. Proof is the root and a deep link
+  answering 200, the production API base in the served JavaScript, and one call reaching the real backend.
+- **Public build-time values are committed; only secrets are pasted.** A secret found in a build-time value
+  is already public: the run stops and the user moves it behind the server and rotates it.
+- **Preview deployments are off**, or run against their own backend and data, and the choice is recorded.
+- **A signed-in path is walked by the owner** and recorded as `owner-verified (manual)`, never as an
+  `evidence:` line. The agent never signs in with a real account or asks for a password. The transition
+  guard reports it `UNVERIFIED — owner-verified`, never `PASS`.
+
 ## [1.71.0] - 2026-09-22
 
 ### Fixed — /deploy checks who can get in before the URL is public, and checks build-time values in the built site

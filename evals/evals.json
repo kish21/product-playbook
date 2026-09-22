@@ -726,6 +726,13 @@
       "files": []
     },
     {
+      "id": "deploy-site-and-backend-as-separate-units",
+      "skill": "deploy",
+      "prompt": "deploy it - the React site goes on a static host and the API is already running on its own server; the dashboard is behind a login",
+      "expected_output": "Lists each deployable unit (the static site, the API) and reads the runtime target for EACH from #Architecture, offering /architect only for a unit with none recorded; treats the site as the static site / CDN category with no start command and no health path, and proves it with the root and a deep link answering 200, the served JavaScript containing the production API base, and one call reaching the real backend; commits the public build-time values in the file the build reads and has the user paste only the secrets, stopping if a secret sits in a build-time value; turns preview deployments off unless they have their own backend and data; never signs in with a real account's credentials or asks for a password - the owner walks the signed-in path and it is recorded as owner-verified (manual), not as an evidence line",
+      "files": []
+    },
+    {
       "id": "build-security-review-does-not-end-the-run",
       "skill": "build",
       "prompt": "/build \"#9 host edits a party\"  (an auth/data surface: the host's staff link is the capability)",
