@@ -14,7 +14,7 @@ description: >
 > Part of **product-playbook**. Reads the project spine — `PRODUCT.md`, or (for existing/brownfield
 > projects) the project's own docs, or an inferred-from-code picture — and the codebase/docs.
 > Resolve the spine per `MECHANISMS.md` §Spine resolution.
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · LESSONS.md = `${CLAUDE_PLUGIN_ROOT}/references/lessons.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · LESSONS.md = `${CLAUDE_PLUGIN_ROOT}/references/lessons.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing: **vision-alignment (top priority)**, **scope discipline**,
 > **no-drift / no-assumptions**, **docs match reality**, **verify against real code**.
 
@@ -25,13 +25,13 @@ description: >
 - **Purpose:** detect and surface scope creep, vision drift, and code↔docs drift — early.
 - **Reads:** the resolved spine's Vision, Scope (Deferred + Non-goals), Plan (concern-area checklist), Build log; the codebase + docs. (`PRODUCT.md#…` when it exists; otherwise the equivalent sections of the resolved doc, per MECHANISMS.md §Spine resolution.)
 - **Writes:** a drift report to the user + a dated row in `PRODUCT.md#Drift log` on any confirmed drift (its OWN section — never `/learn`'s `#Learnings`); does NOT advance the chain. **If there is no `PRODUCT.md`, do not create one** — report to the user and, if the project keeps a log/CHANGELOG, offer to append the drift note there.
-- **State model** (`docs/state-model.md` §2c): writes `#Drift log` · `declined` ✓ · `override` n/a — cross-cutting, it gates on nothing · `superseded` n/a — append-only log: one entry per run
+- **State model** (`STATE-MODEL.md` §2c): writes `#Drift log` · `declined` ✓ · `override` n/a — cross-cutting, it gates on nothing · `superseded` n/a — append-only log: one entry per run
 - **Exit criteria:**
   - [ ] Built features cross-checked against `#Scope` — any OUT-OF-SCOPE item that got built is flagged as creep. → `Drift found (scope/vision/plan/docs)`
   - [ ] Current direction cross-checked against `#Vision` — misalignment surfaced. → `Drift found (scope/vision/plan/docs)`
   - [ ] Code↔docs drift checked — every stated capability / security control / supported path traced to the code that backs it. → `Drift found (scope/vision/plan/docs)`
   - [ ] **Claim-to-evidence pass:** every exit criterion recorded as met in the spine is given one of four
-    verdicts — `VERIFIED` · `PARTIALLY VERIFIED` · `UNVERIFIED` · `CONTRADICTED` (`docs/state-model.md` §2g).
+    verdicts — `VERIFIED` · `PARTIALLY VERIFIED` · `UNVERIFIED` · `CONTRADICTED` (`STATE-MODEL.md` §2g).
     A claim with no evidence is **reported, never silently passed**. → `Drift found (scope/vision/plan/docs)`
   - [ ] A clear verdict: on-track, or a specific list of drifts + a recommended cut/correction. → `Recommendation (cut / re-scope+trigger / fix)`
 
@@ -45,7 +45,7 @@ Every `- [x]` in the spine is a claim. **A checked box and a checked box with fa
 indistinguishable to any later reader, human or agent** — unless the claim points at something re-runnable.
 So for each one:
 
-1. **Find its evidence line** — the single form settled in `docs/state-model.md` §2f:
+1. **Find its evidence line** — the single form settled in `STATE-MODEL.md` §2f:
    `` `evidence: <command> → <result> · <artefact> · <YYYY-MM-DD>` ``. There is exactly one format; **do
    not invent a second one**, and do not "upgrade" prose evidence you find into that shape without
    re-running it — transcribing a claim into evidence-looking text is the failure this pass exists to catch.
@@ -106,7 +106,7 @@ and nobody else will ever run it.
    finding. A real spine reached **73KB with five sections still empty** because it held reasoning; at
    that size nobody reads it, they grep it, and a phase that greps instead of reading is the mechanism
    behind several findings in this list.
-3. **A stalled `running` gate.** A section in the `running` state (`docs/state-model.md` §2a) **past its
+3. **A stalled `running` gate.** A section in the `running` state (`STATE-MODEL.md` §2a) **past its
    due date with no result** is a finding nobody was emitting: the experiment was scheduled, the chain
    moved on provisionally, and the result never landed. Report it with the date it was due and what
    downstream work is still marked provisional.

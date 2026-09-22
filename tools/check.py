@@ -82,6 +82,9 @@ Checks:
      first step - the two files that state they are read on every run - and does NOT pull the situational
      companions into that set. Naming a file is not reading it: with #287's paths in place, one run opened
      PRINCIPLES.md and not MECHANISMS.md, another the reverse (#290).
+ 43. The state model is cited as `STATE-MODEL.md`, never as a bare `docs/state-model.md`, and every file that
+     cites it says where it is: a skill in its rule-files line, a Read companion in its route sentence. A bare
+     path resolves to the PROJECT's docs/, where the file never is, and install.sh did not ship it (#331).
  23. The long derivation phases (foundation, contracts, tickets, build) carry the CONTEXT-HYGIENE rule -
      bulky command output goes to a file, one progress line per named step, close metrics measured or
      "not measured". Four phases in a row ignored /build's "bulky output to files" sentence and cost
@@ -308,6 +311,8 @@ def main() -> int:
     check_skill_local_references(files)
     # 42. the run is told to OPEN the two rule files that are read on every run
     check_rule_files_are_opened(files)
+    # 43. the state model is cited by a name every install route resolves, never the project's docs/
+    check_state_model_path(files)
 
     return done(len(cmds))
 
@@ -2810,6 +2815,55 @@ def check_rule_files_are_opened(files: dict[str, Path]) -> None:
         if m:
             fail(f"{where} orders a situational companion open every run ({m.group(0)!r}) - that file exists to "
                  f"be opened when its trigger fires; always-open is the context cost it was split out to avoid")
+
+
+
+# The state model's one name in shipped text, and where each route finds it. Its home is docs/, which a bare
+# `docs/state-model.md` reads as the PROJECT's docs/ - where it never is.
+STATE_MODEL = "STATE-MODEL.md"
+STATE_MODEL_ENTRY = "STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md`"
+BARE_STATE_MODEL = re.compile(r"(?<![\w./}-])docs/state-model\.md")
+STATE_MODEL_ROUTES = {"PRINCIPLES.md": ("`docs/state-model.md`", "`STATE-MODEL.md` beside this file"),
+                      "references/mechanisms.md": ("`../docs/state-model.md` in the plugin or a clone",
+                                                   "`STATE-MODEL.md` beside this file in a copy install"),
+                      "references/mechanisms-on-demand.md": ("`../docs/state-model.md` in the plugin or a clone",
+                                                             "`STATE-MODEL.md` beside this file in a copy install")}
+
+
+def check_state_model_path(files: dict[str, Path]) -> None:
+    """43. The state model is cited by a name every install route resolves (#331).
+
+    All 21 skills cited it as `docs/state-model.md` - the transition guard's verdicts, the legal transitions and
+    the gate types all live there - and a skill's relative path is read against the PROJECT, whose docs/ never
+    holds it. install.sh did not copy it either, so a copy install had it nowhere. A logged /deploy run reported
+    it. Skills now cite `STATE-MODEL.md` and give its path on the rule-files line (check 41b runs install.sh and
+    proves the copy route); the Read companions give it from their own folder, as they do for each other.
+    """
+    shipped = dict((p.relative_to(ROOT).as_posix(), p) for p in files.values())
+    for rel in list(STATE_MODEL_ROUTES) + ["templates/PRODUCT.md"]:
+        shipped[rel] = ROOT / rel
+    for p in sorted((ROOT / "commands").glob("*/references/*.md")):
+        shipped[p.relative_to(ROOT).as_posix()] = p
+    for where, path in sorted(shipped.items()):
+        text = path.read_text(encoding="utf-8")
+        routes = STATE_MODEL_ROUTES.get(where, ())
+        flat = " ".join(re.sub(r"^\s*>\s?", "", text, flags=re.MULTILINE).split())
+        scrubbed = flat.replace(STATE_MODEL_ENTRY, "")
+        for token in routes:
+            scrubbed = scrubbed.replace(token, "")
+        for m in BARE_STATE_MODEL.finditer(scrubbed):
+            fail(f"{where} cites a bare docs/state-model.md - it resolves to the project's docs/, where the state "
+                 f"model never is; cite {STATE_MODEL} ...{scrubbed[max(0, m.start() - 40):m.end() + 10]!r}")
+            break
+        if STATE_MODEL not in text:
+            continue
+        if path in files.values():
+            line = next((ln for ln in text.splitlines() if RULES_LINE in ln), "")
+            if STATE_MODEL_ENTRY not in line:
+                fail(f"{where} cites {STATE_MODEL} but its rule-files line does not give {STATE_MODEL_ENTRY}")
+        for token in routes:
+            if token not in flat:
+                fail(f"{where} cites {STATE_MODEL} but no longer says {token!r} - the path to it on that route")
 
 
 if __name__ == "__main__":

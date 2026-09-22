@@ -12,7 +12,7 @@ description: >
 # `/structure` — Phase 2 · Development ② · run as a **senior engineer**
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution); writes `STRUCTURE.md`.
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > **This skill's OWN reference files are a DIFFERENT folder** — they live in `references/` **beside this SKILL.md** (`commands/structure/references/`), not in the plugin-root `references/` named above. Both install routes put them there. Below, `choosing-the-shape.md` · `layered-shapes.md` · `root-scaffolding.md` each mean that folder: open them by that path, and never look for them next to MECHANISMS.md.
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing:
 > **modular/single-responsibility**, **layered sub-packages**, **intention-revealing naming**,
@@ -28,8 +28,8 @@ description: >
 - **Reads:** `PRODUCT.md#Architecture` — the **stack** *and* the **Dev tooling** line (which decides the
   tool in every scaffolding slot); `#Scope` (the concerns that become modules); `#Vision` (AI product?).
 - **Writes:** `STRUCTURE.md` (folder→purpose map) + `PRODUCT.md#Structure` (summary); re-run after `/tickets`: moved paths in `docs/issues/`, `TICKETS.md`, open issues.
-- **Gate type:** `derivation` — computable from `#Architecture` + the stack. Batchable - a `derivation` run may chain with its neighbours and end in ONE review. (`docs/state-model.md` §2d)
-- **State model** (`docs/state-model.md` §2c): writes `#Structure` · `declined` ✓ · `override` ✓ · `superseded` ✓
+- **Gate type:** `derivation` — computable from `#Architecture` + the stack. Batchable - a `derivation` run may chain with its neighbours and end in ONE review. (`STATE-MODEL.md` §2d)
+- **State model** (`STATE-MODEL.md` §2c): writes `#Structure` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria:**
   - [ ] **The project's agent instructions exist** (`CLAUDE.md` / `AGENTS.md` — one may point at the
     other), from `templates/AGENTS.md`: a **pointer** to the spine plus the rules an agent breaks first,

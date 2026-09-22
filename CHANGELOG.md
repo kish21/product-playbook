@@ -5,6 +5,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — every skill can find the state model, on every install route
+
+**All 21 skills cited `docs/state-model.md`, a path that points into the user's project, where the file never
+is (#331).** The state model holds the transition guard's four verdicts, the legal transitions and the gate
+types, so a skill that needed them had nowhere to look. `install.sh` did not copy it at all.
+
+- **Skills cite `STATE-MODEL.md`** and give `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` on their rule-files
+  line. `install.sh` installs it as `STATE-MODEL.md` and rewrites the path, like the other rule files.
+- **`PRINCIPLES.md` and both MECHANISMS files** give its path from their own folder, for each install route.
+- **Nothing new is opened on every run.** The state model is still opened only when a rule points into it.
+- **check 43** fails a bare `docs/state-model.md` citation, a skill whose rule-files line lacks the path, and
+  a companion that drops its route. Proven red all three ways. check 41b already runs `install.sh` and failed
+  until the copy and the rewrite were in.
+
 ### Fixed — /architect records a host for each part, runs narrow when another phase asks, and explains a host the user chose
 
 **The /architect half of the logged `/deploy` run's findings (#326, #332, #334, and E2 and E4 of #335).**

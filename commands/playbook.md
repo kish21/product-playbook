@@ -11,7 +11,7 @@ description: >
 # `/playbook` — guided orchestrator · run as a **calm guide**
 
 > Part of **product-playbook**. Reads the project spine (`PRODUCT.md`, or existing project docs — see MECHANISMS.md §Spine resolution); orchestrates the phase skills.
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them —
 > load-bearing here: **plain-language communication**, **one recommendation + confirm**, **never
 > bypass a gate**.
@@ -88,7 +88,7 @@ questions and ends with a check before moving on — you stay in control.
      it with room left on your plan: a run a usage limit cuts off mid-review loses review steps."* No prices —
      what a run costs depends on the user's plan.
    - **Offer a batch when it is legal — and only then** (`MECHANISMS-ON-DEMAND.md` §Batch mode): the next
-     phase and the one after it are both `derivation` (`docs/state-model.md` §2d) with no `input` phase
+     phase and the one after it are both `derivation` (`STATE-MODEL.md` §2d) with no `input` phase
      between. *"Run `/foundation` alone, or `/foundation` + `/contracts` + `/tickets` as one batch? The batch
      still stops where a phase asks you to confirm; one commit per phase, one review at the end."* An
      `input` phase splits the batch (UI product: `structure` alone → `design-system` → batch the three).

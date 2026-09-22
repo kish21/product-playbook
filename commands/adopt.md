@@ -14,7 +14,7 @@ description: >
 > Part of **product-playbook**. This is an **entry** skill, like `/playbook` — not a phase in the
 > vision→learn chain. It **creates** the spine that `MECHANISMS.md` §Spine resolution otherwise only
 > knows how to *read*.
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing: **no assumptions / verify against the real code**, **honesty
 > (label what is inferred; never fabricate)**, **docs must match reality**, **plain-language
 > communication**, **one clear recommendation + yes/no**.
@@ -32,7 +32,7 @@ description: >
   metadata (`package.json`, `pyproject.toml`, …) · entry points · routes · tests · CI config.
 - **Writes:** `PRODUCT.md` (only after the owner confirms), header `Stage: adopted <date>` + a one-line
   provenance note naming which files it was drawn from.
-- **Gate type:** `input` — every inferred line is confirmed by the owner section by section. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
+- **Gate type:** `input` — every inferred line is confirmed by the owner section by section. **Never batched** - skipping it fabricates the product's premise. (`STATE-MODEL.md` §2d)
 - **Exit criteria:**
   - [ ] **Every inferred line is tagged `(inferred — confirm)`** until the owner confirms it. A finished
         `PRODUCT.md` contains **no un-tagged claim that was not confirmed**.

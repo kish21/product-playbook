@@ -11,7 +11,7 @@ description: >
 # `/vision` — Phase 1 · Product · run as a **product developer**
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing here: **vision-alignment**, **verify-don't-assume**,
 > **benchmark-to-current-year**, **plain-language communication**.
 
@@ -20,8 +20,8 @@ description: >
 - **Reads:** nothing required (this is the first phase) — or an existing `PRODUCT.md`/codebase if present.
 - **Writes:** `PRODUCT.md#Vision` — fields: the one-sentence vision · who it's for · problem (why now) · value proposition ·
   current-year market/competitor read.
-- **Gate type:** `input` — who it is for, the job, the north star - the answers exist only in the user's head. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
-- **State model** (`docs/state-model.md` §2c): writes `#Vision` · `declined` ✓ · `override` n/a — `/vision` opens the chain; there is no prior section to bypass · `superseded` ✓
+- **Gate type:** `input` — who it is for, the job, the north star - the answers exist only in the user's head. **Never batched** - skipping it fabricates the product's premise. (`STATE-MODEL.md` §2d)
+- **State model** (`STATE-MODEL.md` §2c): writes `#Vision` · `declined` ✓ · `override` n/a — `/vision` opens the chain; there is no prior section to bypass · `superseded` ✓
 - **Companion:** `docs/vision.md` — the reasoning, workings, raw notes and the search list. `PRODUCT.md#Vision` stays a
   RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay.
 - **Exit criteria:**

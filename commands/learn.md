@@ -11,7 +11,7 @@ description: >
 # `/learn` — Phase 6 · Learn · run as a **product analyst**
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing: **honesty**, **measure-first**, **vision-alignment re-check**,
 > **defer until a real trigger**, **decide from evidence**.
 
@@ -19,8 +19,8 @@ description: >
 - **Purpose:** learn whether what shipped worked, and decide the next move from evidence — not gut.
 - **Reads:** `PRODUCT.md#Vision`, `#Scope`, `#Evaluation`, `#Ship log`.
 - **Writes:** `PRODUCT.md#Learnings` — success metric + result · retro · decided next (from evidence).
-- **Gate type:** `input` — the metric is evidence, but iterate-or-kill is the user's call and is the phase's output. **Never batched** - skipping it fabricates the product's premise. (`docs/state-model.md` §2d)
-- **State model** (`docs/state-model.md` §2c): writes `#Learnings` · `declined` ✓ · `override` ✓ · `superseded` n/a — append-only log: one entry per cycle
+- **Gate type:** `input` — the metric is evidence, but iterate-or-kill is the user's call and is the phase's output. **Never batched** - skipping it fabricates the product's premise. (`STATE-MODEL.md` §2d)
+- **State model** (`STATE-MODEL.md` §2c): writes `#Learnings` · `declined` ✓ · `override` ✓ · `superseded` n/a — append-only log: one entry per cycle
 - **Companion:** `docs/learnings.md` — the reasoning, workings and raw notes. `PRODUCT.md#Learnings` stays a
   RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay.
 - **Exit criteria:**

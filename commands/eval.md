@@ -11,7 +11,7 @@ description: >
 # `/eval` — Phase 4 · Evaluation · run as an **evaluator**
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing: **measure-first**, **evidence-based**, **eval/benchmark
 > integrity (separate operational-failure from quality)**, **honest confidence score**, **surface gaps**.
 
@@ -19,8 +19,8 @@ description: >
 - **Purpose:** measure whether the product meets its goal, honestly — quality, not just "it runs".
 - **Reads:** `PRODUCT.md#Vision`, `#Scope`, `#Plan` (the goal), `#Tests`.
 - **Writes:** `PRODUCT.md#Evaluation` — measured result · metrics + confidence · separated failures.
-- **Gate type:** `verification` — measured against a recorded baseline. Batchable, and **stops on red** - a failing check ends the batch there. (`docs/state-model.md` §2d)
-- **State model** (`docs/state-model.md` §2c): writes `#Evaluation` · `declined` ✓ · `override` ✓ · `superseded` ✓
+- **Gate type:** `verification` — measured against a recorded baseline. Batchable, and **stops on red** - a failing check ends the batch there. (`STATE-MODEL.md` §2d)
+- **State model** (`STATE-MODEL.md` §2c): writes `#Evaluation` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Companion:** `docs/evaluation.md` — the reasoning, workings and raw notes. `PRODUCT.md#Evaluation` stays a
   RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay.
 - **Exit criteria:**

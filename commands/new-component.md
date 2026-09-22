@@ -11,7 +11,7 @@ $ARGUMENTS
 
 > Part of **product-playbook**. Reads `DESIGN.md` (+ `PRODUCT.md#Design`) — resolve per
 > `MECHANISMS.md` §Spine resolution; writes one component file.
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing: **no-hardcoding (tokens/fonts come from `DESIGN.md`, never
 > baked into the component)**, **accessibility (keyboard · focus · contrast · semantic markup) is part
 > of the definition-of-done**, **intention-revealing naming**, **docs match reality**.
@@ -20,7 +20,7 @@ $ARGUMENTS
 - **Purpose:** one React component, written in **the token vocabulary this project actually uses**.
 - **Reads:** `DESIGN.md` (tokens · type scale · motion · depth ladder) and `PRODUCT.md#Design`; `STRUCTURE.md` for where components live.
 - **Writes:** one component file (path confirmed with the user).
-- **Gate type:** `derivation` — the component is computable from `DESIGN.md`'s tokens plus the chosen ticket; the only preference in it (the file path) is confirmed, not invented. Batchable - several components may be built and reviewed together. Writes no spine section, so it declares no state model. (`docs/state-model.md` §2d)
+- **Gate type:** `derivation` — the component is computable from `DESIGN.md`'s tokens plus the chosen ticket; the only preference in it (the file path) is confirmed, not invented. Batchable - several components may be built and reviewed together. Writes no spine section, so it declares no state model. (`STATE-MODEL.md` §2d)
 - **Exit criteria:**
   - [ ] Invoked bare, the **pending components for the active milestone are offered** (built vs pending) and exactly **one** is chosen; with no tickets, it falls back to a description and says why.
   - [ ] **Every `var(--token)` the component references resolves IN THE APP** — checked mechanically against
