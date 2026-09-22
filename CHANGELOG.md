@@ -5,6 +5,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [1.73.0] - 2026-09-22
+
 ### Fixed — /build and /ship fit how a real project works: commit before the security review, a diff-scoped audit, the project's own release record, and rules declared once
 
 **Two logged tickets run end to end through `/build` and `/ship` hit four frictions.** `/build` ordered
