@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+### Fixed — /architect records a host for each part, runs narrow when another phase asks, and explains a host the user chose
+
+**The /architect half of the logged `/deploy` run's findings (#326, #332, #334, and E2 and E4 of #335).**
+`/architect` asked "where does this run?" as if a product were one thing, so `/deploy` found the site with
+no host. When `/deploy` sent it back for that one row, the whole of `/architect` ran inside `/deploy`, two
+closes in one run. And a host the user had picked skipped the benchmark, so nobody said what it cost.
+
+- **A runtime target per deployable unit** (the site, the API, a worker, a forwarder), with a static site /
+  CDN option. The spine's line says so.
+- **A narrow run:** one decision called from another phase, with its benchmark and provenance, and no chain
+  offer, commit offer, close or `Stage:` change of its own. `/deploy` now offers this.
+- **A host the user chose still gets its facts in plain words:** cost, the free-tier limits and what
+  happens at each, and 2–3 alternatives. `/deploy` copies the limits into `docs/deployment.md`.
+- **Inline legacy ADRs** keep their numbers. The first ADR file takes the next one.
+- **`MECHANISMS.md` §Step 3b:** a spine with no `Stage:`/`Last updated:` header gets one.
+
 ### Fixed — /deploy covers the rest of what a logged run hit: proxies, deploy order, merge flow, toolchain, plain words
 
 **The last findings from the same logged `/deploy` run, fixed in /deploy (#324, #325, #327, #328, #329, #330,

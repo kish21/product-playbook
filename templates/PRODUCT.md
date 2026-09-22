@@ -83,7 +83,7 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 ## Architecture      <!-- /architect --> (one line per decision; see docs/adr/* for the ADRs themselves)
 - **Stack + tools (and why, 2026 OSS-first):**
 - **Data custody (local/self-hosted · managed-serverless · embedded) + why (privacy/cost/portability/lock-in):**
-- **Runtime target (container-anywhere · PaaS · VPS · user's machine) — decides what `/structure` scaffolds:**
+- **Runtime target per deployable unit (container-anywhere · PaaS · VPS · user's machine · static site / CDN) + cost and free-tier limits — decides what `/structure` scaffolds:**
 - **Identity custody (self-hosted auth · vendor auth + RLS) — or N/A:**
   _Mark any of the three "default taken, not user-chosen" if it was decided without the user._
 - **Dev tooling (hook runner · secret scanner · task runner · formatter/linter · dependency manifest — `/structure` scaffolds exactly these):**
