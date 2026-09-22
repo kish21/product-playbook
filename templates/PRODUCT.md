@@ -137,12 +137,12 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - [ ] Scope re-check — nothing crept in
 
 ## Deployment        <!-- /deploy --> (see docs/deployment.md for the full runbook)
-- **Host (copied from #Architecture, never re-decided) · category:**
+- **Host (copied from #Architecture, never re-decided) · category — one per deployable unit:**
 - **Live URL:**
 - **Env vars set on the host (names only — values are the user's to paste):**
 - **Migrations on deploy (the command, where it runs, what happens on failure):**
-- **Who can get in (credentials in the built output · every way to a session · what a stranger can spend):**
-- **Proof it answers:** `evidence: <command> -> <result> - <artefact> - <YYYY-MM-DD>`
+- **Who can get in (credentials in the built output · every way to a session · previews · what a stranger can spend):**
+- **Proof it answers:** `evidence: <command> -> <result> - <artefact> - <YYYY-MM-DD>` (a signed-in path the owner walked: `owner-verified (manual) <YYYY-MM-DD>: ...`)
 - **Rollback path:**
 - **Known gaps:**
 
