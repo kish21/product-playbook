@@ -13,7 +13,9 @@ defined here rather than repeated (and forgotten) fifteen times. None is optiona
 bookkeeping the skill can do and the user should not have to, the fourth is the gate itself, and the fifth
 is the only part the user reads:
 
-1. **Update the `Stage:` header** to the phase just completed, and `Last updated:` to today. A spine whose
+1. **Update the `Stage:` header** to the phase just completed, and `Last updated:` to today. **A spine with
+   no such header gets one** (the two lines at the top, as `templates/PRODUCT.md` has them), and the close
+   says it was added. A spine whose
    header names an earlier phase than its filled sections is lying about where the product is — and
    `/playbook` orients from it.
 2. **Reconcile every number you just introduced against `#Vision`.** Counts, dates, thresholds and budgets

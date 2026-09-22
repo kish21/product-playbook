@@ -10,9 +10,11 @@
    scaffolded, and it is expensive to reverse once `/structure` and `/foundation` have built on it:
    - **Where does the data live?** Local/self-hosted · managed-serverless · embedded. One line of trade-off
      each, and name the **vision-driven** consideration (privacy · cost · portability · lock-in).
-   - **Where does this run?** Container-anywhere · a specific PaaS · a VPS · the user's own machine.
-     **This is what tells `/structure` and `/foundation` what to scaffold — and it is what `/deploy`
-     later EXECUTES**, so record the category, not just a brand name. For a long time this decision was
+   - **Where does each part run?** Container-anywhere · a specific PaaS · a VPS · the user's own machine
+     · a static site / CDN. **Ask it per deployable unit** — the site, the API, a worker, a forwarder in
+     front of a vendor: a logged run recorded the backend's host and nothing for the site, and `/deploy`
+     had to send it back. **This is what tells `/structure` and `/foundation` what to scaffold — and it is
+     what `/deploy` later EXECUTES**, so record the category, not just a brand name. For a long time this decision was
      recorded and never carried out by anything: `/ship` then assumed a deployed environment nothing had
      created.
    - **Who holds identity?** Self-hosted auth vs the datastore vendor's auth + row-level security. If the
@@ -24,6 +26,10 @@
    **it must be a stated default the user can decline, not an unvoiced one.** If the user has no opinion,
    recommend one with a reason and **record it as "default taken, not user-chosen"**. Get the same yes/no
    the rest of the stack recommendation gets.
+   **A host the user chose still gets its facts:** cost, the free-tier limits and what happens at each
+   (throttled, blocked or billed), and 2–3 alternatives with why they lost. A logged run skipped the
+   benchmark because the host was pre-chosen, and the owner's first three questions were "is it free?",
+   "alternatives?" and "when would I be charged?".
 
 ## §AI runtime config
 

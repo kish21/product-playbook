@@ -13,6 +13,7 @@ forwarder in front of a vendor). Each unit's host is copied from `#Architecture`
 
 **Last deployed:** `<YYYY-MM-DD>` · **Why now:** `<the #Plan milestone, or the user's reason>`
 **Host product:** `<the product the host recommends today for this category — checked <YYYY-MM-DD>>`
+**Cost and free-tier limits:** `<per unit: each limit · what happens at it (throttled, blocked, billed) · what each dashboard usage counter counts and when it resets>`
 
 ## 1. Build and start
 

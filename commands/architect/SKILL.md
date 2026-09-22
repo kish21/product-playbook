@@ -30,9 +30,9 @@ description: >
     a provenance flag on every row** and **the constraint set each choice was optimised against**
     (reliability · operational burden · team size · cost · compatibility · maturity · lock-in/exit cost);
     every external behind an adapter; key ADRs (patterns applied / anti-patterns avoided); the migrations
-    approach; a **custody + runtime target** line (data custody · runtime target · identity custody, each
-    an ADR or an explicit N/A); a **Dev tooling** line naming hook runner · secret scanner · task runner ·
-    formatter/linter · dependency manifest (leave one unnamed and `/structure` picks it blind); and the
+    approach; a **custody + runtime target** line (data custody · **a runtime target for each deployable
+    unit** · identity custody, each an ADR or an explicit N/A); a **Dev tooling** line naming hook runner ·
+    secret scanner · task runner · formatter/linter · dependency manifest (leave one unnamed and `/structure` picks it blind); and the
     **decisions for the concern areas this product needs** — resilience · perf/cost budget ·
     security/no-secret-in-code · observability **+ (AI) prompt-versioning · eval · tracing · model runtime
     config** — each recorded or marked **N/A**.
@@ -44,6 +44,11 @@ description: >
   pending result needs the result, or a recorded override.
 - **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then write `Override <date>: <reason> — bypassed <gate>` at the top of `#Architecture` before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.
 - Brownfield: detect the existing stack from the repo and record it as the starting point.
+- **A NARROW run — one decision, called from another phase** (`/deploy` finds a unit with no runtime
+  target): decide that row only — its benchmark search, its provenance, one line in `#Architecture` (an ADR
+  if it is load-bearing) — then hand back. No chain offer, no commit offer, no close of its own, no
+  `Stage:` change, and the full-section exit criterion does not apply; the calling phase's close reports
+  it. (case file: Two closes in one run)
 - **Offer the chain, never default to it** (`MECHANISMS-ON-DEMAND.md` §Batch mode, *chain*): *"Stop after
   the architecture (default), or continue straight into `/structure` in this session — every question
   still asked, two records, two commits, one close at the end?"* A red gate here never reaches `/structure`.
@@ -81,12 +86,17 @@ description: >
      single TypeScript app that no later phase could question — `/structure` derives shape from this row,
      so a collapsed row collapses the tree.
 3. **Custody + runtime target — three questions that are NOT stack trivia.** *Where does the data live?*
-   (local/self-hosted · managed-serverless · embedded) · *Where does this run?* (container-anywhere · a
-   PaaS · a VPS · the user's machine) · *Who holds identity?* (self-hosted auth vs the vendor's auth +
-   RLS). They are expensive to reverse once `/structure` and `/foundation` have built on them, the
+   (local/self-hosted · managed-serverless · embedded) · *Where does each part run?* — **list the
+   deployable units first** (the site, the API, a worker, a forwarder) and record a runtime target for EACH
+   (container-anywhere · a PaaS · a VPS · the user's machine · a static site / CDN) · *Who holds identity?*
+   (self-hosted auth vs the vendor's auth + RLS). Before the hosting question, explain in one plain line
+   what running it somewhere means for this product. They are expensive to reverse once `/structure` and `/foundation` have built on them, the
    runtime target is what **`/deploy` later executes**, and the custody answer selects `/foundation`'s
    test-datastore recipe. **Open `references/decisions.md` §Custody, runtime and identity** for the
    trade-offs and the recorded-default rule: a default is fine, an **unvoiced** default is not.
+   **A host the user already chose still gets, in plain words:** what it costs, the free-tier limits and
+   what happens AT each one (throttled, blocked or billed), and 2–3 alternatives with why they lost. The
+   choice stands; the information is not skipped. (case file: "Is it free?")
 4. **List every external** and the **adapter interface** it hides behind (`LLMProvider`, `Storage`) — *and*
    its **failure/resilience strategy** (timeouts · retry-transient-only · fallback/circuit-breaker). That
    is what keeps it swappable, testable and resilient.
@@ -112,12 +122,14 @@ description: >
    paragraphs. An ADR's value is being individually addressable and individually **supersedable**; as a
    buried paragraph it is neither, and the playbook has a `superseded` state with nothing per-decision to
    attach it to. A real spine cited `ADR-1…ADR-5` **18 times** across four sections with no `docs/adr/`
-   anywhere — the vocabulary without the mechanism.
+   anywhere — the vocabulary without the mechanism. **A spine with inline legacy ADRs** keeps their
+   numbers: the first file takes the next one (`docs/adr/0011-…`), a legacy ADR moves to a file only when
+   it is edited or superseded, and `#Architecture` says where the file ADRs start.
 - Give **one recommendation** for the stack; get a yes/no. Keep it plain — explain *why* for a newcomer.
 
 ## Step 3 — Write back to `PRODUCT.md`
 **The section is a RECORD, not a container** (`PRINCIPLES.md`): one line per decision plus the pointer
-to `docs/adr/*`. Fill `#Architecture`: stack+tools+why **with a provenance flag on every row** · **data custody · runtime target · identity custody** · (AI) **model runtime config** · **dev tooling** (hook runner · secret scanner · task runner · formatter/linter · dependency manifest) · ADRs (patterns/anti-patterns) · externals behind adapters + resilience · perf/cost budget · migrations approach · (AI) prompt-versioning/eval/tracing.
+to `docs/adr/*`. Fill `#Architecture`: stack+tools+why **with a provenance flag on every row** · **data custody · runtime target per deployable unit · identity custody** · (AI) **model runtime config** · **dev tooling** (hook runner · secret scanner · task runner · formatter/linter · dependency manifest) · ADRs (patterns/anti-patterns) · externals behind adapters + resilience · perf/cost budget · migrations approach · (AI) prompt-versioning/eval/tracing.
 
 ## Step 3b — Principle-gate: verify the decisions are real, not vague
 Walk this phase's load-bearing principles (Step 1) and confirm each is **concretely decided**, not hand-waved:

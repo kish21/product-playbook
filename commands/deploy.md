@@ -73,8 +73,8 @@ description: >
 - **List every deployable unit, and read the runtime target for EACH — not "the" runtime target.** A unit
   is anything built, run or served on its own: the site, the API, a worker, a forwarder in front of a
   vendor. (case file: Three things to deploy and one Host slot)
-- **If `#Architecture` records no runtime target for a unit**, warn and offer `/architect` for that unit
-  first (allow override) — deploying to a host nobody chose is how a project acquires infrastructure it
+- **If `#Architecture` records no runtime target for a unit**, warn and offer a **narrow** `/architect`
+  run for that unit first (allow override) — deploying to a host nobody chose is how a project acquires infrastructure it
   cannot justify later.
 - **Say why the URL is needed now** — the `#Plan` milestone, or the user's own reason (a demo, a first
   user) — and record it in `#Deployment`'s *Why now* line.
@@ -142,6 +142,8 @@ merging a frontend change that needs them. (case file: The site deployed before 
 - **Check toolchain parity: the host's build image against the repo's pinned runtime AND package
   manager** (`engines`, `packageManager`, the lockfile's version). A mismatch is fixed in the build command
   and recorded. (case file: npm 10 on the host, npm 11 in the repo)
+- **Copy the host's cost and free-tier limits, and what happens at each, from `#Architecture`** (look them
+  up if it has none), and say what each usage counter on the dashboard counts and when it resets.
 - **Use the repo's real deploy entrypoint** — a wrapper script or task the repo documents, not a vendor
   command quoted in a changelog. (case file: The command from the changelog)
 - **In a monorepo, point each host project at its own folder**, with the name its config file expects;

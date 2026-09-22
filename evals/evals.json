@@ -740,6 +740,13 @@
       "files": []
     },
     {
+      "id": "architect-narrow-run-from-deploy",
+      "skill": "architect",
+      "prompt": "/deploy says the site has no runtime target recorded - the API already runs on the host I picked. Decide where the site runs.",
+      "expected_output": "Runs NARROW: decides only the site's runtime target - its benchmark search, its provenance flag, one line in #Architecture - and hands back to /deploy, with no chain offer into /structure, no commit offer, no close of its own and no Stage change; records the runtime target per deployable unit (the site and the API each have one); for the host the user already picked it still states in plain words what it costs, the free-tier limits and what happens at each one, and 2-3 alternatives with why they lost",
+      "files": []
+    },
+    {
       "id": "build-security-review-does-not-end-the-run",
       "skill": "build",
       "prompt": "/build \"#9 host edits a party\"  (an auth/data surface: the host's staff link is the capability)",
