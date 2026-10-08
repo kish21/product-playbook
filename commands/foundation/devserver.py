@@ -57,9 +57,41 @@ def listeners(port: int) -> set[int]:
                                  text=True).stdout
             pids = {int(p) for p in out.split() if p.isdigit()}
         except FileNotFoundError:  # a minimal Linux without lsof: ss prints users:(("name",pid=123,fd=4))
-            out = subprocess.run(["ss", "-ltnpH", f"sport = :{port}"], capture_output=True, text=True).stdout
-            pids = {int(p) for p in re.findall(r"pid=(\d+)", out)}
+            try:
+                out = subprocess.run(["ss", "-ltnpH", f"sport = :{port}"], capture_output=True, text=True).stdout
+                pids = {int(p) for p in re.findall(r"pid=(\d+)", out)}
+            except FileNotFoundError:  # neither lsof nor ss (a slim container): read /proc directly
+                pids = proc_listeners(port)
     return pids - {0}
+
+
+def proc_listeners(port: int) -> set[int]:
+    """Linux without lsof or ss: listening sockets from /proc/net/tcp{,6}, mapped to PIDs through /proc/<pid>/fd."""
+    inodes: set[str] = set()
+    for table in ("/proc/net/tcp", "/proc/net/tcp6"):
+        try:
+            lines = Path(table).read_text().splitlines()[1:]
+        except OSError:
+            continue
+        for line in lines:
+            f = line.split()
+            if len(f) > 9 and f[3] == "0A" and int(f[1].rsplit(":", 1)[1], 16) == port:  # 0A = LISTEN
+                inodes.add(f[9])
+    pids: set[int] = set()
+    if not inodes:
+        return pids
+    for proc in Path("/proc").iterdir():
+        if not proc.name.isdigit():
+            continue
+        try:
+            for fd in (proc / "fd").iterdir():
+                link = os.readlink(fd)
+                if link.startswith("socket:[") and link[8:-1] in inodes:
+                    pids.add(int(proc.name))
+                    break
+        except OSError:
+            continue
+    return pids
 
 
 def kill_tree(pid: int) -> None:

@@ -136,6 +136,7 @@ def main() -> int:
                        "v = os.environ.get('SECRET_KEY', '')\n"
                        "if os.environ.get('GUARD') == 'on' and 'CHANGE_ME' in v:\n"
                        "    print('Refusing to start: SECRET_KEY is still the .env.example placeholder'); sys.exit(2)\n"
+                       "socketserver.TCPServer.allow_reuse_address = True  # Linux: the last check left TIME_WAIT\n"
                        "socketserver.TCPServer(('127.0.0.1', int(sys.argv[1])), "
                        "http.server.SimpleHTTPRequestHandler).serve_forever()\n", encoding="utf-8")
         (d / ".env.example").write_text("# how to get it: openssl rand -base64 32\n"

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import contextlib
 import io
+import os
 import subprocess
 import sys
 import tempfile
@@ -23,6 +24,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
 import status  # noqa: E402
+
+# A machine with no git identity (a fresh CI runner) cannot commit; the saves under test commit through status.py.
+for _k, _v in (("GIT_AUTHOR_NAME", "t"), ("GIT_AUTHOR_EMAIL", "t@t"), ("GIT_COMMITTER_NAME", "t"), ("GIT_COMMITTER_EMAIL", "t@t")):
+    os.environ.setdefault(_k, _v)
 
 TODAY = "2026-10-06"
 

@@ -34,6 +34,9 @@ sys.path.insert(0, str(ROOT / "tools"))
 import status  # noqa: E402
 
 TODAY = "2026-10-03"
+# A machine with no git identity (a fresh CI runner) cannot commit; the saves under test commit through status.py.
+for _k, _v in (("GIT_AUTHOR_NAME", "t"), ("GIT_AUTHOR_EMAIL", "t@t"), ("GIT_COMMITTER_NAME", "t"), ("GIT_COMMITTER_EMAIL", "t@t")):
+    os.environ.setdefault(_k, _v)
 GIT = ["git", "-c", "user.email=t@t", "-c", "user.name=t", "-c", "commit.gpgsign=false"]
 
 ARCHITECTURE = """\
@@ -248,6 +251,7 @@ def build(d: Path, files: dict[str, str] | None = None) -> Path:
     subprocess.run([*GIT, "add", "-A"], cwd=d, capture_output=True)
     subprocess.run([*GIT, "commit", "-qm", "before /foundation", "--no-verify"], cwd=d, capture_output=True)
     (d / ".git" / "hooks" / "pre-commit").write_text(SCAN_HOOK, encoding="utf-8")
+    os.chmod(d / ".git" / "hooks" / "pre-commit", 0o755)  # Linux ignores a hook that is not executable
     rec = d.parent / f"{d.name}-foundation.md"
     rec.write_text(RECORD, encoding="utf-8")
     log_proofs(d, RECORD)
