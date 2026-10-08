@@ -16,10 +16,10 @@ It is just as fast at building the wrong thing. You start with one idea and end 
 Product Playbook adds a product-development workflow around your coding agent.
 
 ```
-idea → vision → validate → scope → plan → build → test → ship → learn
+idea → vision → scope → plan → build → test → ship → learn
 ```
 
-*(The short version. The table below has all 18 steps. The other four of the 22 skills are helpers, not steps: `/playbook` guides you through the steps, `/adopt` brings in a project that already has code, and `/new-component` and `/frontend-audit` help build and check screens.)*
+*(The short version. `/validate` is optional: it runs only when you ask, to test your riskiest assumption before you scope. The table below has all 18 steps. The other four of the 22 skills are helpers, not steps: `/playbook` guides you through the steps, `/adopt` brings in a project that already has code, and `/new-component` and `/frontend-audit` help build and check screens.)*
 
 Each step checks the one before it. Each step writes its decision into one file, `PRODUCT.md`, next to your code. No step is skipped silently — a step that can't show its evidence stops and says so.
 
@@ -69,7 +69,7 @@ Take the waitlist idea. This is what each step gives you. (You type each command
 | | Step | You type | You get |
 |---|---|---|---|
 | 💡 | **Vision** | `/vision I want to build a walk-in waitlist …` | Who it's for, the problem, one number that says it worked — and who already does this. |
-| 🔎 | **Validate** | `/validate` | The cheapest real-world test of your riskiest assumption, with a pass mark set *before* you run it. Proceed, pivot or kill. |
+| 🔎 | **Validate** *(optional)* | `/validate` | Only when you ask: the cheapest real-world test of your riskiest assumption, with a pass mark set *before* you run it. Proceed, pivot or kill. |
 | ✂️ | **Scope** | `/scope` | ONE core feature. A list of what you will *not* build. |
 | 🗺️ | **Plan** | `/plan` | Milestones, core first, each with a clear "done". |
 | 🏗️ | **Architect** | `/architect` | The stack, chosen against *your* budget and constraints, decisions written down. |

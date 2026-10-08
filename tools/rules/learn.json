@@ -1,0 +1,185 @@
+{
+  "skill": "learn",
+  "base": "7244338",
+  "rules": [
+    {
+      "id": "LN01",
+      "what": "the rules: was 'open PRINCIPLES.md and MECHANISMS.md whole'; planned home: `next --phase learn` prints this phase's sections (PHASE_RULES['learn'], with §Production safeguards for 'Measure for real'), the close's print at `set learn filled`",
+      "old": [
+        "> **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing: **honesty**, **measure-first**, **vision-alignment re-check**,",
+        "> **defer until a real trigger**, **decide from evidence**."
+      ],
+      "new": [
+        "> **`status.py next --phase learn` prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** — apply them; never open the whole files (a situational companion only when a rule points into it); the close's sections print at `set learn filled`. Load-bearing: **honesty**, **measure-first**, **vision-alignment re-check**,",
+        "> **defer until a real trigger**, **decide from evidence**."
+      ]
+    },
+    {
+      "id": "LN02",
+      "what": "reads #Vision, #Scope, #Evaluation and the release rows - planned: as `next` prints them (+ #Deployment's URL and rollback)",
+      "old": [
+        "- **Reads:** `PRODUCT.md#Vision`, `#Scope`, `#Evaluation`; the `STATUS.md` release rows (`status.py show`)."
+      ],
+      "new": [
+        "- **Reads:** `PRODUCT.md#Vision`, `#Scope`, `#Evaluation`; the `STATUS.md` release rows — as `next` prints them."
+      ]
+    },
+    {
+      "id": "LN03",
+      "what": "description: 'for recurring metric checks' written twice - planned: once",
+      "old": [
+        "Writes the Learnings section of PRODUCT.md. Composes /loop or /schedule for recurring metric checks",
+        "for recurring metric checks. Loops back to /scope or /plan for the next cycle."
+      ],
+      "new": [
+        "Writes the Learnings section of PRODUCT.md. Composes /loop or /schedule for recurring metric checks. Loops back to /scope or /plan for the next cycle."
+      ]
+    },
+    {
+      "id": "LN04",
+      "what": "one first message: `next --phase learn` + read three files whole; read #Vision/#Scope/#Evaluation + release rows; nothing shipped -> premature - planned: ONE first command prints them; nothing shipped is printed with the bypass command",
+      "old": [
+        "- **One first message: run `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase learn` and read all of `PRINCIPLES.md`, `MECHANISMS.md`, `PRODUCT.md`.** Show its first line; close by its checklist.",
+        "- Read `#Vision/#Scope/#Evaluation` and the `STATUS.md` release rows. If nothing has shipped yet, this is premature — say so."
+      ],
+      "new": [
+        "- **One first command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase learn`** — it prints the spine lines, the release rows, the `#Learnings` fields and the rules; never open `PRODUCT.md` whole. Show its first line. Nothing shipped yet: premature — say so."
+      ]
+    },
+    {
+      "id": "LN05",
+      "what": "#Evaluation empty -> say so, label the basis honestly - planned: kept; the start prints #Evaluation's state",
+      "old": [
+        "- **If `#Evaluation` is empty, say so before drawing conclusions:** a retro written with no measured result",
+        "is opinion, and the \"decided next\" line it produces carries that weight. Continue if the user wants, but",
+        "label the basis honestly."
+      ],
+      "new": [
+        "- **If `#Evaluation` is empty, say so before drawing conclusions:** a retro written with no measured result is opinion, and the \"decided next\" line it produces carries that weight. Continue if the user wants, but label the basis honestly."
+      ]
+    },
+    {
+      "id": "LN06",
+      "what": "stopping at an unmet gate records declined, PRODUCT.md untouched - planned: kept, shortened",
+      "old": [
+        "- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** record it — `status.py set learn declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`."
+      ],
+      "new": [
+        "- **The gate is unmet and the run stops here (`MECHANISMS.md` §Declined runs):** `status.py set learn declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` — and change nothing in `PRODUCT.md`."
+      ]
+    },
+    {
+      "id": "LN07",
+      "what": "metric instrumented, compose /loop or /schedule for cadence - planned: kept + the fallback on tools without them in the same line (P35)",
+      "old": [
+        "1. **Metric (instrumented, not guessed):** confirm the north-star metric is actually measured (events/analytics/dashboard); report what it did. For ongoing tracking, compose **`/loop`** or **`/schedule`** to re-measure on a cadence."
+      ],
+      "new": [
+        "1. **Metric (instrumented, not guessed):** confirm the north-star metric is actually measured (events/analytics/dashboard); report what it did. For ongoing tracking, compose **`/loop`** or **`/schedule`** to re-measure on a cadence (other tools: the start's fallback)."
+      ]
+    },
+    {
+      "id": "LN08",
+      "what": "fill #Learnings - planned: section file + `set learn filled --section-from <file> --commit`, refused in code (learn_gaps); append-only: an earlier cycle moves to docs/learnings.md, checked",
+      "old": [
+        "Fill `#Learnings`: metric + result (instrumented) · user signal · retro · decided-next (build/iterate/kill, with evidence + triggers) · observability+cost watch."
+      ],
+      "new": [
+        "`docs/learnings.md` (an earlier cycle under `## Cycle <date>`, word for word) and `#Learnings` — metric + result (instrumented) · user signal · retro · decided-next (build/iterate/kill, with evidence + triggers) · observability+cost watch — in a scratch file; then `status.py set learn filled --section-from <file> --commit \"<one line>\"` (no `--commit` on a no)."
+      ]
+    },
+    {
+      "id": "LN09",
+      "what": "self-verify: next step not backed by evidence or pulls in an OUT-OF-SCOPE item -> STOP - planned: kept; the countable half (a decision word, a trigger per deferred item) refused in code",
+      "old": [
+        "Check the boxes. **If the next step isn't backed by evidence, or it quietly pulls in an OUT-OF-SCOPE"
+      ],
+      "new": [
+        "**If the next step isn't backed by evidence, or it quietly pulls in an OUT-OF-SCOPE item without a trigger, STOP and reconsider** — that's how the next cycle starts drifting.",
+        "`set learn filled` refuses what a file shows, every problem in one list (`--dry-run` lists them): fix what it names."
+      ]
+    },
+    {
+      "id": "LN10",
+      "what": "report size, record test, Read: line per companion - planned: `set` writes size + Read: default",
+      "old": [
+        "**Measure what you wrote and receipt what you read** (`MECHANISMS-ON-DEMAND.md §Section is a record`, `MECHANISMS-ON-DEMAND.md §Read receipt`): report the section and file size in one line, then apply the record test to every field — reasoning moves into the companion, a tight answer stays whatever it weighs, never trim to a number; write one `Read:` line per companion opened, each quoting a fragment that occurs verbatim in that file. A pointer nobody can prove was followed is how a phase invents what the artefact would have said."
+      ],
+      "new": [
+        "**Receipts and size** (`MECHANISMS-ON-DEMAND.md §Section is a record`, `MECHANISMS-ON-DEMAND.md §Read receipt`): `set` writes both lines; a file you opened yourself gets a quote. Reasoning moves into the companion, never trim to a number."
+      ]
+    },
+    {
+      "id": "LN11",
+      "what": "close the loop - planned: decide + save in ONE message with two options; `set ... --commit` saves, prints the rest of the close and the next-cycle handoff (/scope) - #284 learn.md:72",
+      "old": [
+        "**Close the loop (`MECHANISMS.md` §Step 3b):** record the phase's state — `status.py set learn filled` (`MECHANISMS.md` §Status) — reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work — this project's repo, name the branch, commit on a yes, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff)."
+      ],
+      "new": [
+        "reconcile any number against `#Vision` (surface a contradiction, never write over it); the save was round 2's yes (`MECHANISMS.md` §Commit the work); **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not;",
+        "*\"Anything to change? If not: Save this version of your project? (yes / no)\"* as \"Keep as proposed - save (Recommended)\" · \"Change something\" — the decision is the owner's.",
+        "**What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next**, ending with its `Open a NEW conversation` line word for word."
+      ]
+    },
+    {
+      "id": "LN12",
+      "what": "contradiction check heading - planned: in round 2, before the yes",
+      "old": [
+        "## Step 3c — Contradiction check (before the gate closes)"
+      ],
+      "new": [
+        "## Step 3c — Contradiction check (in round 2, before the yes)"
+      ]
+    },
+    {
+      "id": "LN13",
+      "what": "an override is recorded with the user's own reason via status.py bypass - kept word for word",
+      "old": [
+        "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from learn --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
+      ],
+      "new": [
+        "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from learn --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
+      ]
+    },
+    {
+      "id": "LN14",
+      "what": "the companion holds the reasoning; #Learnings stays a RECORD - kept, shortened (record test + no byte cap: the exit criterion and §Section is a record, printed at the close)",
+      "old": [
+        "- **Companion:** `docs/learnings.md` — the reasoning, workings and raw notes. `PRODUCT.md#Learnings` stays a",
+        "RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay."
+      ],
+      "new": [
+        "- **Companion:** `docs/learnings.md` — the reasoning, workings and raw notes; `#Learnings` stays a RECORD."
+      ]
+    },
+    {
+      "id": "LN15",
+      "what": "next.69b new (P43 P44): two rounds - round 1 the owner's facts, round 2 the proposed decision the owner picks; what /learn must NOT do",
+      "old": [],
+      "new": [
+        "**Round 1, before drafting:** the start's numbered questions (the metric's number and source · the user signal · what the owner already wants next).",
+        "- **What this phase must NOT do:** build or change code — it decides; the next cycle builds, from `/scope`."
+      ]
+    },
+    {
+      "id": "LN16",
+      "what": "the countable gaps refused in code; the next cycle's first command printed by the close (#284 learn.md:72)",
+      "old": [],
+      "new": [
+        "def learn_gaps(base: Path, st: \"Status\") -> list[str]:",
+        "if n[\"phase\"] is None and after == \"learn\":"
+      ],
+      "home": "tools/status.py"
+    }
+  ],
+  "dropped": [
+    {
+      "old": "Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.",
+      "why": "the reason, not a rule - the rule (record it with the user's own reason) is kept word for word (LN13)"
+    },
+    {
+      "old": "Check the boxes.",
+      "why": "no rule: the transition guard (a verdict per exit criterion) is the close's step, printed by `set learn filled`"
+    }
+  ]
+}

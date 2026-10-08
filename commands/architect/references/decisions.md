@@ -5,7 +5,8 @@
 
 ## §Custody, runtime and identity
 
-3. **Custody + runtime target — three questions that are NOT stack trivia.** The deployment target decides
+3. **Custody + runtime target — three decisions that are NOT stack trivia**, made from round 1's answers 5 (where
+   the data and the AI calls may be processed) and 6 (which login), never asked again. The deployment target decides
    whether a compose file is even the right artifact, whether connection strings or a local service get
    scaffolded, and it is expensive to reverse once `/structure` and `/foundation` have built on it:
    - **Where does the data live?** Local/self-hosted · managed-serverless · embedded. One line of trade-off
@@ -17,11 +18,16 @@
      what `/deploy` later EXECUTES**, so record the category, not just a brand name. For a long time this decision was
      recorded and never carried out by anything: `/ship` then assumed a deployed environment nothing had
      created.
-   - **Who holds identity?** Self-hosted auth vs the datastore vendor's auth + row-level security. If the
+   - **Who holds identity?** People who log in with the company's login (answer 6): that provider holds it, via
+     OIDC or SAML, and the record says how the app checks it - a stable user id, a role, fail closed. N/A only
+     when nobody logs in: a logged run wrote "N/A" and identified the user by a header the browser set, so anyone
+     could be anyone. Otherwise: self-hosted auth vs the datastore vendor's auth + row-level security. If the
      user already pays for a platform, the "free" self-hosted option may not be the cheaper one. Record
      which, because the **test-isolation recipe follows from it** — `/foundation`'s
      `references/test-datastore.md` branches on exactly this line, and a custody choice made without that
      downstream cost in view is the one that makes the test datastore unaffordable later.
+   **Open source vs self-hosting:** open source often wins on lock-in, not automatically: self-hosting can cost a
+   solo builder more than the licence it saves.
    PRINCIPLES' *defer paid infra until a real need* biases all three toward local — a sensible default, but
    **it must be a stated default the user can decline, not an unvoiced one.** If the user has no opinion,
    recommend one with a reason and **record it as "default taken, not user-chosen"**. Get the same yes/no
@@ -53,3 +59,9 @@
   code, not compliance — and an aggregator renting out its approvals may beat both. Benchmark all three
   routes on **time-to-first-working-result including review wait**, not code effort. Unapproved apps tend
   to fail *silently* (a shipped video product hit this: YouTube force-privates uploads).
+
+## §Legacy ADRs — a spine that already has inline ADRs
+
+**A spine with inline legacy ADRs** keeps their
+numbers: the first file takes the next one (`docs/adr/0011-…`), a legacy ADR moves to a file only when
+it is edited or superseded, and `#Architecture` says where the file ADRs start.

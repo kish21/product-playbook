@@ -32,9 +32,9 @@ Ask the user — plain language, one recommended answer each:
    consumers, mobile, marketing → warmth + bold + bigger type.
 3. **Calm authority or bold energy?** Trust/compliance/finance/health → calm. Fun/creator/growth → bold.
 
-Map the answers to a family below, **propose ONE as the default with the why**, then ask: *"Do you
-already have a look in mind — a product you admire, or bold vs minimal?"* The user's reference/idea
-wins; otherwise the proposal stands.
+Their own look (*"Do you have a look in mind — a product you admire, or bold vs minimal?"*) is asked in
+the same message as these three, never after a proposal. Then map the answers to a family below and
+**propose ONE as the default with the why**. The user's reference/idea wins; otherwise the proposal stands.
 
 ---
 

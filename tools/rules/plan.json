@@ -1,0 +1,161 @@
+{
+ "skill": "plan",
+ "base": "3f6ab06",
+ "rules": [
+  {
+   "id": "PL01",
+   "what": "reads #Vision and #Scope (now as `next` prints them, #Validation added)",
+   "old": ["- **Reads:** `PRODUCT.md#Vision`, `#Scope`.", "Read `#Vision` and `#Scope`."],
+   "new": ["- **Reads:** `PRODUCT.md#Vision`, `#Scope`, `#Validation` — as `next` prints them."]
+  },
+  {
+   "id": "PL02",
+   "what": "writes #Plan: every field, not three of them; the companion holds the answers",
+   "old": ["- **Writes:** `PRODUCT.md#Plan` — fields: phases/milestones (core first) · timeline · exit criteria per milestone."],
+   "new": ["- **Writes:** `PRODUCT.md#Plan` — every field `next` prints · `docs/plan.md` (the user's answers word for word + the reasoning)."]
+  },
+  {
+   "id": "PL03",
+   "what": "a rough timeline, relative is fine",
+   "old": ["- [ ] A rough timeline (relative is fine: M1, M2… or weeks). → `Timeline`"],
+   "new": ["- [ ] A rough timeline (relative is fine: M1, M2… or weeks) built on the user's capacity and start date. → `Timeline`"]
+  },
+  {
+   "id": "PL04",
+   "what": "a retired risk cites its evidence instead of repeating the work",
+   "old": ["- [ ] A risk already retired **cites its evidence** (a `#Validation` entry, a prior milestone) instead of repeating the work. → `Four-risks row per milestone`"],
+   "new": ["- [ ] A risk already retired **cites its evidence** (a `#Validation` result, a prior milestone) instead of repeating the work; `#Validation` empty → a milestone retires value. → `Four-risks row per milestone`"]
+  },
+  {
+   "id": "PL05",
+   "what": "#Plan is a record, reasoning in docs/plan.md",
+   "old": ["- [ ] `#Plan` is a **RECORD** — every field is a decision, evidence line or pointer; the reasoning is"],
+   "new": ["- [ ] `#Plan` is a **RECORD** — every field is a decision, evidence line or pointer; the reasoning and the user's answers word for word are"]
+  },
+  {
+   "id": "PL06",
+   "what": "every companion opened is receipted",
+   "old": ["occurs verbatim in it. → `Read (file · date · verbatim quote)`"],
+   "new": ["occurs verbatim in it; only `PRODUCT.md` read → `Read: none - only PRODUCT.md sections`. → `Read (file · date · verbatim quote)`"]
+  },
+  {
+   "id": "PL07",
+   "what": "first message runs `next --phase plan` and shows its first line (the rules now come from it, not the files)",
+   "old": ["- **One first message: run `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase plan`", "Show its first line;"],
+   "new": ["- **One first command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase plan`**", "Show its first line."]
+  },
+  {
+   "id": "PL08",
+   "what": "rules applied from the rule files (now printed by `next`)",
+   "old": ["and read all of `PRINCIPLES.md`, `MECHANISMS.md`, `PRODUCT.md`.**", "(paths above; a situational companion only when a rule points into it), then apply them"],
+   "new": ["**`status.py next --phase plan` prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** — apply them; never open the whole files (a situational companion only when a rule points into it)"]
+  },
+  {
+   "id": "PL09",
+   "what": "#Scope missing: warn and offer /scope first",
+   "old": ["If `#Scope` is missing/empty, warn and offer `/scope` first (allow"],
+   "new": ["- `#Scope` missing/empty → warn and offer `/scope` first (allow"]
+  },
+  {
+   "id": "PL10",
+   "what": "an override is recorded with the user's own words",
+   "old": ["- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from plan --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."],
+   "new": ["- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from plan --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."]
+  },
+  {
+   "id": "PL11",
+   "what": "a stopped run is recorded as declined, PRODUCT.md unchanged",
+   "old": ["- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** record it —", "`status.py set plan declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`."],
+   "new": ["- **The gate is unmet and the run stops here (`MECHANISMS.md` §Declined runs):**", "`status.py set plan declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`."]
+  },
+  {
+   "id": "PL12",
+   "what": "the questions in two rounds, before any draft: 1-3 together, then question 4 (the north-star date) with the draft (next.65)",
+   "old": ["**First ask these four, one per message; draft no milestone or date before the answers:** **1.** who builds it, and how many hours a week · **2.** the start date (a running experiment: after its due date) · **3.** what follows the core, in order (propose one) · **4.** a north-star date the plan cannot meet: keep it and flag it, move it, or lower the interim bar."],
+   "new": ["**Round 1: these three together; draft no milestone or date before the answers**", "**1.** who builds it, and how many hours a week", "**4.** if the plan ends after the north-star date `next` printed — keep it and flag it, move it, or lower the interim bar"]
+  },
+  {
+   "id": "PL13",
+   "what": "sequence the rest core-first, short",
+   "old": ["2. **Sequence the rest core-first:** what must exist for M1; what builds on it (M2, M3…). Keep it short."],
+   "new": ["2. **Sequence the rest core-first:** what must exist for M1; what builds on it (M2, M3…). Keep it short."]
+  },
+  {
+   "id": "PL14",
+   "what": "name each prerequisite a criterion implies and the milestone that delivers it",
+   "old": ["reachable asks *does anything in this plan produce what verifying it requires*. Name each", "prerequisite the criterion implies — **a deployed URL, credentials, seeded or real data, a physical", "artefact, a second device, another person** — and point at the milestone that delivers it. **A public"],
+   "new": ["reachable asks *does anything in this plan produce what verifying it requires*. Write", "`Needs: <prerequisite> (<the milestone or person that delivers it>)` for each one the criterion implies — **a deployed URL, credentials, seeded or real data, a physical", "artefact, a second device, another person**. **A public"]
+  },
+  {
+   "id": "PL15",
+   "what": "a passing #Validation result retires value; don't re-run it",
+   "old": ["evidence — a passing `#Validation` entry retires value; don't re-run it. **Put a usability checkpoint"],
+   "new": ["evidence — a passing `#Validation` result retires value; don't re-run it.", "**Put a usability checkpoint"]
+  },
+  {
+   "id": "PL16",
+   "what": "a rough timeline from answers 1 and 2; paid infra flagged with its trigger",
+   "old": ["5. Add a **rough timeline** from answers 1 and 2. Flag any milestone that needs paid infra and record the trigger."],
+   "new": ["5. Add a **rough timeline** from answers 1 and 2;", "Flag any milestone that needs paid infra and record the trigger."]
+  },
+  {
+   "id": "PL17",
+   "what": "concern-area coverage over the production-readiness areas (now printed by `next`)",
+   "old": ["6. **Concern-area coverage:** walk the production-readiness areas in `PRINCIPLES.md` (security, ai-specific, observability, DX, testing, infra, documentation, product) and mark each now / next / later / N-A with a trigger."],
+   "new": ["6. **Concern-area coverage:** walk the production-readiness areas `next` printed (security, ai-specific, observability, DX, testing, infra, documentation, product) and mark each now / next / later / N-A with a trigger."]
+  },
+  {
+   "id": "PL18",
+   "what": "fill #Plan: milestones, timeline, exit criteria, four-risks row",
+   "old": ["Fill `#Plan`: phases/milestones (core-first) · timeline · exit criteria per milestone · **the four-risks row", "per milestone** (value/usability/feasibility/viability + how you'll know, or the evidence that retired it)."],
+   "new": ["every `#Plan` field `next` printed, labels as written, each milestone's line starting M1, M2…"]
+  },
+  {
+   "id": "PL19",
+   "what": "STOP when a milestone lacks a testable exit criterion; an unreachable criterion fails later",
+   "old": ["**If any milestone lacks a testable exit criterion, STOP and add one**", "**And for each criterion,", "name what it depends on and which milestone delivers that** — an unreachable criterion fails later, far", "from here, and reads as the milestone having failed rather than the plan."],
+   "new": ["**STOP and fix it with the user** when a milestone lacks a testable exit criterion, or a `Needs:` line names", "nothing that delivers it — an unreachable criterion reads later as the milestone having failed rather than the plan."]
+  },
+  {
+   "id": "PL20",
+   "what": "the size line and the Read line written by set; a quote for a file opened beyond next (next.65)",
+   "old": ["**Measure what you wrote and receipt what you read** (`MECHANISMS-ON-DEMAND.md §Section is a record`, `MECHANISMS-ON-DEMAND.md §Read receipt`): report the section and file size in one line, then apply the record test to every field — reasoning moves into the companion, a tight answer stays whatever it weighs, never trim to a number; write one `Read:` line per companion opened, each quoting a fragment that occurs verbatim in that file."],
+   "new": ["(`MECHANISMS-ON-DEMAND.md §Section is a record`, `MECHANISMS-ON-DEMAND.md §Read receipt`)", "an input file you opened yourself gets a\nquote, never `docs/plan.md`"]
+  },
+  {
+   "id": "PL21",
+   "what": "the close: set filled (+ --commit on the confirm message's yes), transition guard, plain-language close; reconcile + save question moved into round 2 and set's printed checklist (next.65)",
+   "old": ["**Close the loop (`MECHANISMS.md` §Step 3b):** record the phase's state — `status.py set plan filled` (`MECHANISMS.md` §Status) — reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work", "Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4):", "report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not", "**Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff)."],
+   "new": ["set plan filled --section-from <file> --commit", "**run the transition guard**", "**close in\nplain language**", "\"Anything to change? If not: Save this version of your project? (yes / no)\""]
+  },
+  {
+   "id": "PL22",
+   "what": "commit: this project's repo, name the branch, commit on a yes, push only on a remote + the user's say (printed at the close)",
+   "old": ["— this project's repo, name the branch, commit on a yes, push only if a remote exists and the user says so)."],
+   "new": ["**Check the repo is THIS project's — not merely that a repo exists.**", "**Name the branch AND the repository root you are on.**", "**Offer, then do it on a yes.**", "**Push only if a remote exists and the user says so.**"],
+   "home": "references/mechanisms.md"
+  },
+  {
+   "id": "PL23",
+   "what": "the guard re-runs the phase's own evidence lines and checks the transition is legal (printed at the close)",
+   "old": ["re-run this phase's own `evidence:` lines and", "— and check the transition is legal."],
+   "new": ["**Re-run this phase's own evidence.**", "**Check the transition is legal**"],
+   "home": "references/mechanisms.md"
+  },
+  {
+   "id": "PL24",
+   "what": "Step 3c runs before the yes, in round 2 (next.65); set's step 3 confirms it",
+   "old": ["## Step 3c — Contradiction check (before the gate closes)"],
+   "new": ["## Step 3c — Contradiction check (in round 2, before the yes; the close's step 3 confirms it)", "any clash with `#Scope`\n(Step 3c: name both sides, ask which wins)"]
+  }
+ ],
+ "dropped": [
+  {"old": "close by its checklist.", "why": "the numbered close list in Step 3b is that checklist, in the same order"},
+  {"old": "Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.", "why": "the why of PL10 - history, not a rule; MECHANISMS §Declined runs (printed by `next`) carries it"},
+  {"old": "Check the boxes.", "why": "the transition guard (PL21) gives a verdict for every exit criterion"},
+  {"old": "— a milestone", "why": "the why of PL19"},
+  {"old": "without a verifiable \"done\" is where \"is it finished?\" arguments come from.", "why": "the why of PL19"},
+  {"old": "A pointer nobody can prove was followed is how a phase invents what the artefact would have said.", "why": "the why of PL20; MECHANISMS-ON-DEMAND §Read receipt, printed at the close, carries it"},
+  {"old": "record the phase's state —", "why": "wording of PL21"}
+ ]
+}

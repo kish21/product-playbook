@@ -9,6 +9,10 @@
 > Emit colours in **OKLCH** (Law 8) and **verify every foreground/surface pair at WCAG AA** (Law 7)
 > before writing.
 >
+> **`DESIGN.md` holds only the current tokens.** On a re-run a replaced palette, type pairing or archetype is
+> overwritten here; its dated `superseded <date>: <why>` line goes in `PRODUCT.md#Design`. Two values for one
+> token is two answers for every later build step.
+>
 > Fill the skeleton with the **concrete** values chosen in Steps 2–3 (archetype presets). Two worked
 > examples follow — one **enterprise** (Data-Dense Pro), one **consumer** (Playful) — so the contrast is
 > visible. **Replace every `<…>`; ship no placeholders.**
@@ -21,15 +25,24 @@
 # DESIGN.md — <Product> design system
 _Archetype: <family> · derived by /design-system on <date> · approved sample: <path>_
 
+## In short
+<3–5 plain sentences a newcomer reads first: who uses the screens, where, what the look must make easy, and the
+owner's decisions (their own reference, the interface languages, self-hosted fonts). Screenshots: <shots folder>.>
+
+**Principles** — each traced to the line it comes from:
+1. <principle> — <why, in plain words> (#Vision: "<the words>")
+2. … (4–6 in all; #Scope lines count too)
+
 ## 1. Visual Theme
 - **Principles (from Step 1):** <4–6 short statements, e.g. "Calm authority · Density without clutter · Evidence first · Accessible by default">
 - **Archetype:** <family> — <one line why it fits the product/audience>
 - **Feel in one line:** <e.g. "A calm, dense, trustworthy compliance workspace.">
-- **Reference brands:** <2–3 real products this should feel adjacent to>
+- **Reference brands:** <only products the owner named, else delete this line>
 
 ## 2. Color & Roles  (shadcn CSS-variable tokens, OKLCH, WCAG-AA verified)
-- **Brand decision:** <dominant + ONE accent — Law 5>
-- **Contrast check:** <every text/surface pair ≥ AA — list the computed ratios>
+- **Brand decision:** <dominant + ONE accent, its hue chosen for this product and why — Law 5>
+- **Contrast check:** <every text/surface pair ≥ AA — list the computed ratios; no pass counts: `set` writes the
+  audit's own counts under this heading>
 :root {
   --background: <oklch>;        --foreground: <oklch>;
   --card: <oklch>;              --card-foreground: <oklch>;
@@ -50,17 +63,21 @@ _Archetype: <family> · derived by /design-system on <date> · approved sample: 
 
 ## 3. Typography
 - **Fonts:** display `--font-display: <face>` · body `--font-sans: <face>` · data `--font-mono: <face>`
-  (Law 1 — no Inter/Roboto/Arial-only). How to load: <next/font | @font-face | CDN>.
+  (Law 1 — no Inter/Roboto/Arial-only). How to load: <self-hosted @font-face, the files + licence in <folder> |
+  next/font | a font service only when the owner chose it>.
 - **Base body size:** <px — meets archetype minimum, Law 3> · **Scale ratio:** <1.2 | 1.25 | 1.333>
 - **Type scale (the steps):**
   | token | size | line-height | weight | use |
   |---|---|---|---|---|
-  | display | <px> | <lh> | <800> | hero / page title |
-  | h1 | <px> | <lh> | <700> | section title |
-  | h2 | <px> | <lh> | <600> | subsection |
-  | body | <px> | <1.6> | <400–500> | paragraphs / UI |
-  | small | <px> | <lh> | <500> | metadata |
+  | display `--text-display` | <px> | <lh> | <800> | hero / page title |
+  | h1 `--text-2xl` | <px> | <lh> | <700> | section title |
+  | h2 `--text-xl` | <px> | <lh> | <600> | subsection |
+  | body `--text-base` | <px> | <1.6> | <400–500> | paragraphs / UI |
+  | small `--text-sm` · `--text-xs` (≥ 12px) | <px> | <lh> | <500> | metadata |
   | mono | <px> | <lh> | <400–500> | IDs / numbers / code |
+- **Every step is a token declared in `:root`** of the token stylesheet AND here (a name the table uses that nothing
+  defines fails the audit): `--text-xs: <rem>; --text-sm: <rem>; --text-base: <rem>; --text-xl: <rem>;
+  --text-2xl: <rem>; --text-display: <rem>;` — components use `var(--text-…)`, never a raw rem or px size.
 - **Hierarchy rule:** heading vs body differ by ≥200 weight or a clear size step (Law 4).
 
 ## 4. Components  (reuse — never hand-roll, Law 15)
@@ -70,6 +87,8 @@ _Archetype: <family> · derived by /design-system on <date> · approved sample: 
 - **Table/DataGrid (Law 20):** header alignment matches cells; **numbers right-aligned + tabular-nums**;
   **dates/text left**; **status = coloured dot + label, not a filled pastel pill.**
 - **States (Law 13):** every interactive element defines hover · focus-visible (visible ring) · active · disabled.
+- **App states + actions:** every page type shows empty · loading · error (inline for a form); buttons say Verb + Noun;
+  a destructive action has a confirm or an undo.
 
 ## 5. Layout  (archetype pattern, Law 11)
 - **Pattern:** <sidebar+content | top-nav app | single editorial column | bottom-tab mobile>

@@ -1,0 +1,17 @@
+# Copied to .gitattributes by /structure (or /foundation when it is missing). Pins LF for every text file, so a
+# Windows checkout builds the same image as CI: a Dockerfile, justfile or shell script with CRLF fails inside a
+# Linux container. A logged run spent calls converting line endings by hand because this file was missing.
+* text=auto eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+*.zip binary

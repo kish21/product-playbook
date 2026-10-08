@@ -5,13 +5,12 @@
 > them, so they can never drift.
 >
 > **The mechanisms live next door, in `MECHANISMS.md`** — §Step 3b · §Step 3c · §Re-run semantics ·
-> §Declined runs · §Seam · §Spine resolution. **The harvested lessons live in `LESSONS.md`** — §Lessons
+> §Declined runs · §Status · §Spine resolution. **The harvested lessons live in `LESSONS.md`** — §Lessons
 > baked in. **Where, from this file's folder:** plugin or clone → `references/mechanisms.md`,
 > `references/mechanisms-on-demand.md`, `references/lessons.md`, `docs/state-model.md`; copy install →
 > `MECHANISMS.md`, `MECHANISMS-ON-DEMAND.md`, `LESSONS.md`, `STATE-MODEL.md` beside this file. Open them by
 > that path; never search.
-> This file is loaded by every skill, so its size is the per-session attention cost of the whole
-> system; a rule that is followed has to be short enough to read.
+> Every skill loads this file: keep it short.
 
 ---
 
@@ -71,8 +70,7 @@
   field: *decision, or the reasoning behind it?* Reasoning moves into a companion (`STRUCTURE.md`,
   `DESIGN.md`, `docs/adr/*`, `docs/runbook.md`, `docs/features/*`, `docs/<phase>.md`) and the pointer
   stays; a required field answered tightly stays whatever it weighs. Size is *reported*, never
-  *enforced*: a cap trims answers instead of relocating reasoning. A spine full of reasoning gets
-  grepped instead of read, and a phase that greps is how a standing open decision gets dropped.
+  *enforced*: a cap trims answers instead of relocating reasoning.
 - **Then the pointer is binding** (`MECHANISMS.md` §Follow the pointer): every companion added is a new
   place a phase can find a signpost where it needed a definition. Splitting without that rule is worse
   than not splitting.
@@ -82,13 +80,16 @@
 - Explain in **plain, non-technical language**; wait for confirmation before changing things.
 - Prefer **one clear recommendation + yes/no** over a jargon matrix.
 - **Honesty always** — surface gaps, failures, uncertainty plainly.
+- **Readable documents** — Markdown structure: a heading per topic, paragraphs of 4 sentences at most, sub-bullets
+  for a field over 2 lines, a table for 3+ alike items. Labels, `evidence:`, `Read:` stay verbatim; no raw HTML, no LaTeX
+  (write ≤, not `$\le$`). `status.py` warns on a `PRODUCT.md` line over 300 characters, and on LaTeX.
 - **`.env` / secret files are the user's to edit** — hand the user the exact lines; never script-overwrite a secret file.
 
 ## Reviews, vision & confidence
 
 - **Reviews are DEEP, not skims** — read the real code paths; end with a **confidence rating + evidence**.
 - **Vision alignment is the top priority** — continually ask *"does this serve the product's vision?"* and surface misalignment instead of drifting.
-- On completion, report a **Confidence Score (0–100%)** against the exit criteria: one line each on **solid** (verified), **risky/untested** (gaps), and **to raise it** (next check).
+- On completion, report a **Confidence Score (0–100%)** against the exit criteria: one line each on **solid** (verified), **risky/untested** (gaps), and **to raise it** (next check). Never 100%. No criterion `VERIFIED` by a command: at most 80%.
 - **Generic, not domain-specific** — prefer the generic mechanism; a domain/special-case branch baked into shared infra is a smell.
 - **Quality is never traded for speed or cost.** A change to how a phase or pipeline runs is adopted only when the same exit criteria return the same verdicts on a real run; a cheaper or faster run that lowers a verdict is the degraded one. Trim what a run *carries* (`MECHANISMS-ON-DEMAND.md` §Context hygiene), never what it *checks*.
 
@@ -147,14 +148,15 @@ Exit criteria:
   per skill; a global auto-mode is rejected, with reasons, in
   `STATE-MODEL.md` §3. **An input gate is a question, not an approval** — do not call it a
   confirmation.
-- **A `PRODUCT.md` section is in one of five declared states** — empty · declined · filled · overridden ·
-  superseded (`STATE-MODEL.md` §2a). Every section-writing skill declares which markers it
+- **Each phase is in one of five declared states** — empty · declined · filled · running · overridden —
+  recorded in `STATUS.md` by `status.py` only; `superseded` marks an entry inside a section
+  (`STATE-MODEL.md` §2a, §2h). Every section-writing skill declares which markers it
   implements, and any exemption carries a reason; an omission and a decision must never look the same.
 - **Prior-gate check (Step 0):** confirm the previous phase's exit criteria were met. If they were not,
   **warn, name the missing phase and offer it first** — standalone/jump-in is first-class, so a gate is a
   gate and never a wall. Proceeding anyway is an **override, and an override is recorded, never verbal**:
-  it names the gate being bypassed, captures **the reason in the user's own words**, and is written as an
-  `Override <date>: <reason> — bypassed <gate>` line in this phase's own section. A *warning* is
+  it names the gate being bypassed, captures **the reason in the user's own words**, and is recorded with
+  `status.py bypass` (`MECHANISMS.md` §Status). A *warning* is
   informational and needs no ceremony; an *override* advances the project on unmet criteria — the more
   consequential of the two — so it is the one that must leave a trace. **One rule, one home:** the form and
   the reading of it are defined in §Declined runs; this is the pointer, not a second copy.

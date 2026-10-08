@@ -1,0 +1,336 @@
+{
+ "skill": "build",
+ "base": "cebd7d7",
+ "note": "LEAN rewrite (2026-09-27): the start prints 26 KB instead of 80 KB; checks moved into status.py ticket (R3-1..R3-5, review ran, entry point, unexplained files). The previous rewrite's inventory (base eea859b) is in git history at 6dc0804.",
+ "rules": [
+  {
+   "id": "spine-never-written",
+   "what": "/build reads the ticket and never writes the spine (was: reads + updates PRODUCT.md); status.py ticket refuses a branch that changed PRODUCT.md",
+   "old": [
+    "> Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution)."
+   ],
+   "new": [
+    "> Part of **product-playbook**. **Reads the ticket; never writes the spine** (`PRODUCT.md`, or the project's docs — MECHANISMS.md §Spine resolution)."
+   ]
+  },
+  {
+   "id": "rules-by-section",
+   "what": "the phase's rule sections are printed, never the whole files (the start prints them); the load-bearing list stays",
+   "old": [
+    "> **`status.py rules build` prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** — apply them; never open the whole files (a situational companion only when a rule points into it). Load-bearing: **per-feature contract (security in the DoD)**,"
+   ],
+   "new": [
+    "> **The start command (Step 0) prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** — apply them; never open the whole files (a situational companion only when a rule points into it). Load-bearing: **per-feature contract (security in the DoD)**,"
+   ]
+  },
+  {
+   "id": "companions-terms",
+   "what": "the war-stories file; the terms defined once (ticket's base, close gate, seat, observable result); the companions, one read by the section a step names",
+   "old": [
+    "> War stories: `${CLAUDE_PLUGIN_ROOT}/references/case-files-build.md`",
+    "> **Companions:** `references/feature-archetypes.md` (the rules that apply only to gates · async jobs · latency fixes · trust boundaries) · `references/live-path-checks.md` (proving a change is wired in) · `references/review-stretch.md` (Step 5's helper) — `status.py refs build` prints them; read a big one by the `§` a step names: `status.py section <path> \"<§>\"`."
+   ],
+   "new": [
+    "> War stories: `${CLAUDE_PLUGIN_ROOT}/references/case-files-build.md`.",
+    "> **Terms:** *ticket's base* = `git merge-base HEAD <default branch>` · *close gate* = `gate.py --ticket <id> --close` over the final committed code · *seat* = the lane or role the user gave this session · *observable result* = what a user or caller sees (the response, the row, the page), never an exit code.",
+    "> **Companions:** `references/feature-archetypes.md` (the rules that apply only to gates · async jobs · latency fixes · trust boundaries) · `references/live-path-checks.md` (proving a change is wired in) · `references/review-stretch.md` (Step 5's helper) — read one by the `§` a step names: `status.py section <path> \"<§>\"`."
+   ]
+  },
+  {
+   "id": "reads-writes",
+   "what": "reads the ticket, its files and what the start prints (#Contracts rules among them); #Structure only for an unnamed file; DESIGN.md for a screen; writes the ticket row + feature doc, never PRODUCT.md",
+   "old": [
+    "- **Reads:** `PRODUCT.md#Scope`, `#Plan`, `#Contracts`, `#Structure` — **plus `DESIGN.md` + `#Design` for any feature with a user-facing screen** (UI products).",
+    "- **Writes:** a ticket row in `STATUS.md` (`status.py ticket`) + `docs/features/<feature>.md` — or, in its place, the one per-ticket record `#Project policy` names."
+   ],
+   "new": [
+    "- **Reads:** the ticket, its files and what the start prints (`#Contracts`' rules among them); `#Structure` only for a file the ticket does not name; **`DESIGN.md` + `#Design` for a feature with a screen** (UI products).",
+    "- **Writes:** a ticket row in `STATUS.md` (`status.py ticket`) + `docs/features/<feature>.md` — or, in its place, the one per-ticket record `#Project policy` names. Never `PRODUCT.md` (`status.py ticket` refuses it)."
+   ]
+  },
+  {
+   "id": "step0-first-turn",
+   "what": "Step 0 is ONE start command, read nothing else up front; the time to expect; unattended runs stop on scope/override/contradiction/DoD-failing finding; a missing tool is UNVERIFIED, never passed; the ticket is the accepted brief (revisit a plan decision only when the code shows it changed, is missing or conflicts); confirm scope",
+   "old": [
+    "- **First turn, four commands at once (none needs another's output): `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase build` · `status.py rules build` · `status.py refs build` · `status.py section PRODUCT.md \"Project policy\" Scope Plan Contracts Structure`.** Show its first line; close by its checklist.",
+    "- **The first message says what to expect:** ~25–40 min; one mid-run question (round 2), none with `one round`; a note per step.",
+    "- Read `#Scope/#Plan/#Contracts`. **Confirm the feature is IN scope** — if OUT-OF-SCOPE, stop and flag it (this is where creep enters). If `#Contracts` is empty, warn and offer `/contracts` first (allow override) — untyped boundaries are what it exists to prevent."
+   ],
+   "new": [
+    "- **First turn, ONE command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase build` with `--ticket <the ticket id>`** — it prints the gate, the ticket, its files, `#Project policy`, the commands and the coding rules; **read nothing else up front** (each line read is re-sent on every call). Show its first line.",
+    "- **The first message says what to expect:** ~15–25 min; one mid-run question (round 2), none with `one round`; a note per step.",
+    "- **Nobody to answer** (headless, a batch): take the recommended option only where this skill offers one (round 2); **STOP and report** on a scope doubt, an override, a contradiction or a finding that fails the DoD.",
+    "- **A tool a step names is missing:** `CAPABILITIES.md` names its equivalent; none → that check is recorded UNVERIFIED with why, never as passed.",
+    "- **The ticket is the accepted brief:** build it; revisit a plan decision only when the code shows it changed, is missing or conflicts. **Confirm the feature is IN scope** — the start flags a ticket missing from `TICKETS.md`; then ask, and if OUT-OF-SCOPE, stop and flag it (this is where creep enters). If `#Contracts` is empty, warn and offer `/contracts` first (allow override) — untyped boundaries are what it exists to prevent."
+   ]
+  },
+  {
+   "id": "project-policy",
+   "what": "#Project policy applies to every ticket (the start prints it)",
+   "old": [
+    "- **Read `#Project policy` first, when the spine has one** (`MECHANISMS-ON-DEMAND.md` §Project policy): a project that wraps `/build` in its own command declares its rules there once — the per-ticket record, never merge, no deploy — and they apply here without the wrapper restating them."
+   ],
+   "new": [
+    "- **`#Project policy`, when the spine has one** (the start prints it; `MECHANISMS-ON-DEMAND.md` §Project policy): a project that wraps `/build` in its own command declares its rules there once — they apply here."
+   ]
+  },
+  {
+   "id": "read-slice",
+   "what": "read the ticket's slice, not the repo; the start prints it; anything more by line range",
+   "old": [
+    "- **Read the ticket's slice, not the repo.** Up front: its Target Files and a grep for each contract name it",
+    "uses. Anything else when a step needs it, a line range rather than a file — never paste whole modules into",
+    "the conversation; every later call re-reads them. (case file: Two builds, the same forty minutes)"
+   ],
+   "new": [
+    "- **Read the ticket's slice, not the repo** — the start prints it; anything more when a step needs it, a line range, never a whole module: every later call re-reads it. (case file: Two builds, the same forty minutes)"
+   ]
+  },
+  {
+   "id": "fix-wrong-docs",
+   "what": "a wrong project doc or skill is fixed in this session; a PRODUCT.md section through an open item for its phase",
+   "old": [
+    "- **When a project doc or skill is wrong, FIX IT IN THIS SESSION**",
+    "; record the corrected premises where the wrong ones lived."
+   ],
+   "new": [
+    "- **When a project doc or skill is wrong, FIX IT IN THIS SESSION**; record the corrected premises where the wrong ones lived — a `PRODUCT.md` section: an open item for its phase."
+   ]
+  },
+  {
+   "id": "dod-is-the-tickets",
+   "what": "the ticket's DoD is the DoD (was: declare the DoD): add only an exit criterion it lacks, never rewrite it; name the archetype in it and tell the user what kind of feature it is",
+   "old": [
+    "1. **Declare the DoD** (incl. security + the exit criteria above). **Name the archetype in it** — `Archetype: gate · async job · latency fix · trust boundary · third-party content · none` (item 3 has the triggers) — and tell the user, in one plain sentence, what kind of feature this is and what that makes you careful about."
+   ],
+   "new": [
+    "1. **The ticket's DoD is the DoD** — add only an exit criterion above it lacks, never rewrite it. **Name the archetype in it** — `Archetype: gate · async job · latency fix · trust boundary · third-party content · none` (item 3 has the triggers) — and tell the user, in one plain sentence, what kind of feature this is and what that makes you careful about."
+   ]
+  },
+  {
+   "id": "code-writes",
+   "what": "whole-file writes, one message of edits per file (a file too big: the fewest writes, the reason recorded); gate.py --ticket runs the project's recipe + the ticket's command, named commands added, --only replaces; wire cuts in one call, also inline; a missing table: check the migrations first; tests while coding = the files importing a changed module, the full suite at the gate and the close only (the close reuses the gate's run when code is unchanged)",
+   "old": [
+    "3. **Code** against the typed contracts; keep it modular and generic (no domain special-casing in shared infra). **Write a new file whole, in one write; put every edit to one file in ONE message** — each call re-sends the whole conversation (`run_report` flags a file edited in more than 3 calls); not with a patch script — a script puts the code in the conversation twice and breaks on quoting.",
+    "- **Checks: `gate.py`, all in ONE call** — `python \"${CLAUDE_PLUGIN_ROOT}/commands/build/gate.py\" \"<lint>\" \"<the ticket's tests>\" \"<structure check>\"`; **wire cuts: `wirecut.py <cuts.json>`**, all in one call, each file restored.",
+    "- **A missing table or column before any test runs:** the test database is another checkout's — ask the user once to point `.env` at `<project>_test`; never wrap every command.",
+    "- **Tests while coding: the test files that import a module you changed** — a search for `<module name>` in test folders — then only the failing tests until they pass (`pytest --lf`, `vitest --changed`, or the test ids; keep the runner's cache on, it is what remembers the failures). **The full suite runs at the gate and at the close, nowhere else** — never after a single fix, never after round 1's fixes (the close gate covers them); a gate that fails is fixed with its failing tests, then run once more. **Count the full-suite runs and pass the count as `--runs` on the ticket row** (`--runs 2`). (case file: The suite that ran for every edit)"
+   ],
+   "new": [
+    "3. **Code** against the typed contracts; keep it modular and generic (no domain special-casing in shared infra). **Write a new file whole, in one write; put every edit to one file in ONE message** (a file too big for one write: the fewest writes, the reason in the feature doc) — each call re-sends the whole conversation (`run_report` flags a file edited in more than 3 calls); not with a patch script — a script puts the code in the conversation twice and breaks on quoting.",
+    "- **Checks: `gate.py`, all in ONE call** — `python \"${CLAUDE_PLUGIN_ROOT}/commands/build/gate.py\" --ticket <id>` (it runs the project's check recipe and the ticket's Verification Command; commands named after it are added, `--only` replaces); **wire cuts: `wirecut.py <cuts.json>`** (or `--cut \"<file>::<text>::<replacement>::<test>\"`), all in one call, each file restored.",
+    "- **A missing table or column before any test runs:** first check the test database's migrations (one command); not migrated → migrate it; migrated → likely another checkout: ask the user once to point `.env` at `<project>_test`; never wrap every command.",
+    "- **Tests while coding: the test files that import a module you changed** — a search for `<module name>` in test folders — then only the failing tests until they pass (`pytest --lf`, `vitest --changed`, or the test ids; keep the runner's cache on, it is what remembers the failures). **The full suite runs at the gate and at the close, nowhere else** (the close reuses it if code is unchanged) — never after a single fix, never after round 1's fixes (the close gate covers them); a gate that fails is fixed with its failing tests, then run once more. **Count the full-suite runs and pass the count as `--runs` on the ticket row** (`--runs 2`). (case file: The suite that ran for every edit)"
+   ]
+  },
+  {
+   "id": "live-path",
+   "what": "the live path is exercised and its observable result checked in the fewest calls; the start prints every live-path trigger, a matching one read by section",
+   "old": [
+    "4. **Run + verify the LIVE path** — compose `/run` to exercise the path the product actually runs, **then check the observable result yourself** (the response, the row, the rendered page — not the exit code), then **trace your change to its real callers** (green unit tests ≠ wired in).",
+    "- **Walk the checks in `references/live-path-checks.md` whose trigger matches this feature** — the ones that separate *the code exists* from *the product runs it*. **Open the file on EVERY build** — a trigger you have not read cannot match — and list the ones that matched, by name, in the feature doc: `Live-path checks walked: …`. (case file: The companions nobody opened)"
+   ],
+   "new": [
+    "4. **Run + verify the LIVE path** — compose `/run` to exercise the path the product actually runs, **then check the observable result yourself** (the response, the row, the rendered page — not the exit code), then **trace your change to its real callers** (green unit tests ≠ wired in). **Fewest calls:** a test through the Demo's entry point (its route or `python -m` command) and ONE `devserver.py check` call, printed ready to run by the start, — never one started and stopped by hand.",
+    "- **Walk the checks in `references/live-path-checks.md` whose trigger matches this feature** — the ones that separate *the code exists* from *the product runs it*. **The start prints every check's trigger** (the *[always]* ones whole) — a trigger you have not read cannot match; read a matching one by section, and list the ones that matched, by name, in the feature doc: `Live-path checks walked: …`.",
+    "A cluster applied from memory is a cluster not applied. (case file: The companions nobody opened)"
+   ]
+  },
+  {
+   "id": "flaky-attribution",
+   "what": "a flaky test is recorded and filed; attribution is one traceback, not an investigation: the cause is uncertain until ONE run of the failing test with the change stashed (fails the same -> outside; passes -> this ticket); never re-run the suite to characterise it",
+   "old": [
+    "- **A test that fails, then passes with no change, is FLAKY — record it (name · error · N of M runs failed) and file it with `/tickets \"<bug>\"` in the lane that owns it.** Outside what you changed → carry on and name the issue in the close; inside it and small → fix it with a proof. **Never re-run until green.** **Attribution is one traceback, not an investigation** — it fails in a file this ticket did not change, or before any test runs → it is OUTSIDE; at most ONE re-run with your change stashed when the traceback cannot say. Never run the suite again to characterise it. (case file: The flake nobody wrote down)"
+   ],
+   "new": [
+    "- **A test that fails, then passes with no change, is FLAKY — record it (name · error · N of M runs failed) and file it with `/tickets \"<bug>\"` in the lane that owns it.** Outside what you changed → carry on and name the issue in the close; inside it and small → fix it with a proof. **Never re-run until green.** **Attribution is one traceback, not an investigation** — it is **uncertain** until ONE run of the failing test with your change stashed: fails the same → OUTSIDE; passes → yours. Never re-run the suite to characterise it. (case file: The flake nobody wrote down)"
+   ]
+  },
+  {
+   "id": "round1-helper",
+   "what": "round 1: the code review directly + ONE helper for the security review when the start marks it REQUIRED, both at once; the helper reports, the build conversation fixes",
+   "old": [
+    "- **Round 1 runs in ONE helper agent with a fresh context**",
+    ": give it `references/review-stretch.md` §Helper prompt, filled in — it reviews, fixes the ticket's files, commits, writes the feature doc's `## Review`, returns only the findings table. Round 2: a second helper, its files only. **A tool with no helper agent** (`CAPABILITIES.md`): §In the helper here, recorded as `self-review`."
+   ],
+   "new": [
+    "- **Round 1, both at once:** run the code review directly here (`CAPABILITIES.md` §Code review) AND, when the start marks security REQUIRED, ONE helper with `references/review-stretch.md` §Helper prompt runs it (no code review tool: it does both). Neither waits; the helper reports; you fix what both found, commit, write `## Review` (§Findings there). Round 2: same, its files only. **A tool with no helper agent** (`CAPABILITIES.md`): §In the helper here, recorded as `self-review`."
+   ]
+  },
+  {
+   "id": "round2-user",
+   "what": "round 2 is the user's call; one question with a recommendation",
+   "old": [
+    "- **Round 2 is the user's call, never automatic.** **The reviews are checks too** — a review fix is code no review has seen — so ask ONE question: review again, over **the files round 1's fixes touched, only** (`/security-review` too when they touch an auth/data surface)? Give your recommendation AND its reason: **recommend YES when the fixes touched an auth/data surface**, when round 1 found a HIGH or MEDIUM, or when the fixes were more than small edits; otherwise recommend NO",
+    "The user chose up front (*\"one round\"*, *\"two rounds\"*) → do not ask; nobody can answer (headless, a batch) → follow your own recommendation and say so.",
+    "**A skipped round 2 is RECORDED** in the ticket row's `--review` with its reason — never silent."
+   ],
+   "new": [
+    "- **Round 2 is the user's call, never automatic.** **The reviews are checks too** — a review fix is code no review has seen — so ask ONE question: review again, over **the files round 1's fixes touched, only** (`/security-review` too when they touch an auth/data surface)? Give your recommendation AND its reason: **recommend YES when the fixes touched an auth/data surface**, when round 1 found a HIGH or MEDIUM, or when the fixes were more than small edits; otherwise recommend NO. The user chose up front (*\"one round\"*, *\"two rounds\"*) → do not ask; nobody can answer (headless, a batch) → follow your own recommendation and say so. **A skipped round 2 is RECORDED** in the ticket row's `--review` with its reason — never silent."
+   ]
+  },
+  {
+   "id": "document-once-close-order",
+   "what": "the feature doc is written once at the close's step 3; the close runs in one order: close gate, Step 3c, feature doc, commit, ticket row, close the loop (the save question commits only the record)",
+   "old": [
+    "6. **Document** — once, after Step 5's last round — write/update `docs/features/<feature>.md`; reconcile it with the code. **`#Project policy` names a per-ticket record** → write that content THERE, once, and nothing into `docs/features/`; the `status.py ticket` row stays, the one-line index `/ship` and `/dev-check` read. **Copy every `evidence:` number from the command's captured output, never ahead of it** — a figure pencilled in while CI runs reads exactly like a measured one. (case file: The pencilled bundle size)"
+   ],
+   "new": [
+    "6. **Document** — once, at the close's step 3 (Step 3) — write/update `docs/features/<feature>.md` in ONE write; reconcile it with the code; name each changed file the ticket did not list, with why. **`#Project policy` names a per-ticket record** → write that content THERE, once, and nothing into `docs/features/`; the `status.py ticket` row stays, the one-line index `/ship` and `/dev-check` read. **Copy every `evidence:` number from the command's captured output, never ahead of it** — a figure pencilled in while CI runs reads exactly like a measured one. (case file: The pencilled bundle size)",
+    "## Step 3 — Record the ticket",
+    "**The close, in this order, each once:** (1) the close gate — it prints the close's rules; (2) Step 3c; (3) the feature doc, ONE write (item 6: the review table, the gate's numbers, Step 3c's result); (4) commit it; (5) the ticket row, below; (6) Step 3b's close the loop — the save question there commits only the record (the code was committed before round 1)."
+   ]
+  },
+  {
+   "id": "step3-records-ticket",
+   "what": "Step 3 records the ticket (was: write back to PRODUCT.md)",
+   "old": [
+    "## Step 3 — Write back to `PRODUCT.md`"
+   ],
+   "new": [
+    "## Step 3 — Record the ticket"
+   ]
+  },
+  {
+   "id": "evidence-per-principle",
+   "what": "evidence per principle, one line: the security review that ran (or the start's not-required), secret-scan, the live path with its observable result, the code review, the UI audit",
+   "old": [
+    "- security-in-DoD → **`/security-review`** (or the equivalent pass) passed — name which.",
+    "- no secret in code / no-hardcoding → secret-scan clean.",
+    "- live-path-works → **`/run`** exercised the real path **and the observable result was checked** — name the command **and what you saw**. An exit code is not the observable result.",
+    "- reuse · no-swallowed-errors · single-responsibility → confirmed in the diff's **`/code-review`**.",
+    "- (UI features) built-to-the-design → **`/frontend-audit`** 0 errors against `DESIGN.md` — or 0 new with `--baseline`, the pre-existing count quoted."
+   ],
+   "new": [
+    "**Evidence, per principle:** security-in-DoD → the security review that ran, named (or the start's \"not required\") · no secret in code → secret-scan clean · live-path-works → `/run` on the real path **and the observable result seen**, named · reuse · no-swallowed-errors · single-responsibility → the code review · (UI) built-to-the-design → `/frontend-audit` 0 errors against `DESIGN.md`, or 0 new with `--baseline`, the old count quoted."
+   ]
+  },
+  {
+   "id": "claimed-not-evidenced",
+   "what": "a principle only claimed, not evidenced, stops the feature",
+   "old": [
+    "**If any named principle is only claimed, not evidenced, STOP — the feature is not done.** Record the *how-verified* per principle in the feature doc, and the one-line result in the ticket row's `--verified` (evidence, not \"done\")."
+   ],
+   "new": [
+    "**If any named principle is only claimed, not evidenced, STOP — the feature is not done.** Record the *how-verified* per principle in the feature doc, and the one-line result in the ticket row's `--verified` (evidence, not \"done\")."
+   ]
+  },
+  {
+   "id": "v2-dry-run",
+   "what": "v2 (2026-10-06): the cite-or-re-run rule kept whole; for the gate one `ticket --dry-run` call names the files changed since its passing run (code: cmd_ticket + final_gate_gap) - instead of a 2-minute gate re-run to find out",
+   "old": ["- **Cite, or re-run?** **re-run a check when any code, config or test file it reads changed after its evidence was captured; a review fix counts, a doc-only change does not.** Uncommitted and scripted edits count. A file a check reads is never doc-only for that check (`DESIGN.md` for `/frontend-audit`), and **when unsure whether anything changed or whether a change is doc-only, re-run** — a stale citation passes a broken feature."],
+   "new": ["and, outside the gate, **when unsure whether anything changed or whether a change is doc-only, re-run** — a stale citation passes a broken feature. **The gate is never re-run to be safe:** `ticket --dry-run` names each file changed since it; re-run only for those."]
+  },
+  {
+   "id": "v2-never-merges",
+   "what": "/build never merges; ticket refuses a row on the default branch - 'the branch waits for /ship' now printed by every start's must-NOT line (P41 one source, P44)",
+   "old": ["- **/build never merges** — the branch waits for `/ship`; `status.py ticket` refuses a row on the default branch."],
+   "home": "tools/status.py",
+   "new": ["record the ticket on its ticket branch, before any merge - /build never ", "This ticket must NOT: merge (the branch waits for /ship)"]
+  },
+  {
+   "id": "v2-lean-round2",
+   "what": "owner 2026-10-06: the lean path asks the round-2 question too (one round, then the user decides; a no skips it; no round 3) and records R2 or its skip in --review",
+   "old": [],
+   "new": ["Then ONE question: review again, over the fixes' files only (recommended after a HIGH/MEDIUM)? No skips it; no round 3.", "(or `· R2 skipped by the user: <reason>`)"]
+  },
+  {
+   "id": "v2-3b-walk",
+   "what": "Step 3b walks the load-bearing principles citing Step 2's evidence; its duplicate case-file pointer dropped (Step 5's 'No round 3' carries it)",
+   "old": ["Walk **this phase's load-bearing principles (Step 1)** and confirm each is real, **citing the evidence Step 2 already captured** (command · result · commit). (case file: The audit the review fix outran)"],
+   "new": ["Walk **this phase's load-bearing principles (Step 1)** and confirm each is real, **citing the evidence Step 2 already captured** (command · result · commit).", "never a silent third round. (case file: The audit the review fix outran)"]
+  },
+  {
+   "id": "v2-must-not",
+   "what": "P44: the ticket's boundary printed by every /build start (lean and full)",
+   "old": [],
+   "home": "tools/status.py",
+   "new": ["This ticket must NOT: merge (the branch waits for /ship) · write PRODUCT.md · change another ticket's "]
+  },
+  {
+   "id": "v2-seat",
+   "what": "the seat gate - the parenthesis defining a seat dropped: the Terms line defines it (*seat* = the lane or role the user gave this session)",
+   "old": ["`lane:` / `owner:` labels). If this session sits in a seat (a seat or role the user named)"],
+   "new": ["`lane:` / `owner:` labels). If this session sits in a seat", "*seat* = the lane or role the user gave this session"]
+  },
+  {
+   "id": "close-the-loop",
+   "what": "close the loop: set build filled, #Vision numbers reconciled, the save question, the transition guard (cites the close gate's record, re-runs only what changed), the four-block plain close",
+   "old": [
+    "**Close the loop (`MECHANISMS.md` §Step 3b):** record the phase's state — `status.py set build filled` (`MECHANISMS.md` §Status) — reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work",
+    "). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff). **The close is the run's last message** — a composed skill's report is input to it, never the close itself. (case file: The report that became the close) After the PR merges, set the card to **Done** and read it back; merged later → the close gives the user that command."
+   ],
+   "new": [
+    "**Close the loop (`MECHANISMS.md` §Step 3b):** record the phase's state — `status.py set build filled` (`MECHANISMS.md` §Status) — reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): cite the close gate's record (`status.py ticket` checked it) and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff). **The close is the run's last message** — a composed skill's report is input to it, never the close itself. (case file: The report that became the close) After the PR merges, set the card to **Done** and read it back; merged later → the close gives the user that command."
+   ]
+  },
+  {
+   "id": "step3c",
+   "what": "Step 3c (the close's step 2) checks the code against recorded decisions, names both sides and asks which wins; a losing recorded decision becomes an open item for its phase, never a PRODUCT.md edit",
+   "old": [
+    "## Step 3c — Contradiction check (before the gate closes)",
+    "Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Contracts` (types crossing boundaries), `#Architecture` (adapters — no vendor SDK in logic), `#Scope` (non-goals) and `DESIGN.md` (UI tokens)",
+    ". On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction. **Step 3c's result goes in the feature doc** — never a paragraph in the ticket row, which `status.py` limits to a record."
+   ],
+   "new": [
+    "## Step 3c — Contradiction check (the close's step 2)",
+    "Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Contracts` (types crossing boundaries), `#Architecture` (adapters — no vendor SDK in logic), `#Scope` (non-goals) and `DESIGN.md` (UI tokens). On a conflict, **name both sides, ask which wins, and update the loser** — the code: fix it; a recorded decision: an open item for the phase that owns it (`status.py open`, naming the section and the change), never a `PRODUCT.md` edit here. Adding detail to an earlier decision is not a contradiction. **Step 3c's result goes in the feature doc** — never a paragraph in the ticket row, which `status.py` limits to a record."
+   ]
+  },
+  {
+   "id": "rules-read-refusal",
+   "what": "a ticket row is refused unless the start (the rules) ran today",
+   "home": "tools/status.py",
+   "old": [],
+   "new": [
+    "today in this checkout - run it and apply its rules"
+   ]
+  }
+ ],
+ "dropped": [
+  {
+   "old": "(plugin root, beside MECHANISMS.md — not this skill's `references/`)",
+   "why": "the line above already says this skill's own references are a different folder"
+  },
+  {
+   "old": "**`status.py ticket` refuses a row when `rules build` did not run today.**",
+   "why": "moved into code: `status.py ticket` still refuses a row without today's start mark (the start writes it)"
+  },
+  {
+   "old": "— a PR-description correction dies there",
+   "why": "the why, not a rule; 'fix it in this session' stays"
+  },
+  {
+   "old": "(A `$` left in the path: `build/` in the installed skills folder.)",
+   "why": "the start now prints every command with its absolute path; nothing is left to resolve"
+  },
+  {
+   "old": "(this conversation is ~200k tokens by now)",
+   "why": "a stale size claim (the lean start keeps the conversation smaller); the rule - a fresh-context helper - stays"
+  },
+  {
+   "old": "— each fix carries its own proof and the close gate runs over the final tree",
+   "why": "the why of recommending NO; the close gate over the final code is now enforced by status.py ticket"
+  },
+  {
+   "old": "On yes: run it, fix what it finds.",
+   "why": "implied by the question; how findings are fixed is review-stretch.md §Findings"
+  },
+  {
+   "old": "It is the one question a build asks mid-run — it depends on what round 1 found — and the tree is green and reviewed once, so it is a safe place to wait.",
+   "why": "the why of the round-2 question, not a rule; the question and its recommendation stay"
+  },
+  {
+   "old": "(Deterministic checks also run via the commit hooks + CI from `/foundation`; this gate is the judgment layer.)",
+   "why": "an explanation, not a rule; the close gate is now also enforced by `status.py ticket` (a passing gate run over the final code)"
+  },
+  {
+   "old": "— this project's repo, name the branch, commit on a yes, push only if a remote exists and the user says so",
+   "why": "a restatement of MECHANISMS.md §Commit the work, which the start prints"
+  },
+  {
+   "old": "— the richest surface for contradiction, because this is the phase that writes real code",
+   "why": "the why of Step 3c, not a rule"
+  }
+ ]
+}

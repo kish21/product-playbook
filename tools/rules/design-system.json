@@ -1,0 +1,1462 @@
+{
+ "skill": "design-system",
+ "base": "ff74447",
+ "rules": [
+  {
+   "id": "reads",
+   "what": "the spine sections read, or vision discovery; references opened at the step that names them",
+   "old": [
+    "spine `#Vision`/`#Scope`/`#Architecture` (or discovers the vision if there's none)",
+    "the references above, each at the step that names it"
+   ],
+   "new": [
+    "spine `#Vision`/`#Scope`/`#Architecture` (or discovers the vision if there's none)",
+    "the references above, each at the step that names it"
+   ],
+   "was": [
+    "- **Reads:** spine `#Vision`/`#Scope`/`#Architecture` (or discovers the vision if there's none);",
+    "every file in `references/` — universal-laws · archetypes · design-md-template · page-patterns ·",
+    "palettes · craft · theme-studio · build-loop."
+   ]
+  },
+  {
+   "id": "ask-first",
+   "what": "asking before proposing is the gate; the user's idea wins",
+   "old": [
+    "second **fails this gate**. The user's own idea wins over your proposal."
+   ],
+   "new": [
+    "second **fails this gate**. The user's own idea wins over your proposal."
+   ],
+   "was": [
+    "second **fails this gate** — it anchors the answer. The user's own idea then wins over your proposal."
+   ]
+  },
+  {
+   "id": "tokens-in-app",
+   "what": "the stylesheet path is recorded in DESIGN.md §2; the why moves to a case file",
+   "old": [
+    "is recorded in `DESIGN.md` §2 (case file: The spec that styled nothing)"
+   ],
+   "new": [
+    "is recorded in `DESIGN.md` §2 (case file: The spec that styled nothing)"
+   ],
+   "was": [
+    "is recorded in `DESIGN.md` §2. `DESIGN.md` is a specification; **a specification is not a stylesheet**,",
+    "and a component written against tokens the app never defines renders unstyled while typecheck, lint",
+    "and the audit all stay green."
+   ]
+  },
+  {
+   "id": "tokens-in-app-why",
+   "what": "the why of tokens in the app",
+   "old": [],
+   "new": [
+    "a specification is not a stylesheet",
+    "renders unstyled while typecheck, lint and the audit all stay green"
+   ],
+   "home": "references/case-files-design-system.md",
+   "was": []
+  },
+  {
+   "id": "scope",
+   "what": "this version: greenfield + brand re-skin; existing UI → new screens greenfield; follow-ups named (moved to build-loop §Scope of this version; Step 0 item 2 points there - L1-L3 budget)",
+   "old": [],
+   "new": [
+    "Lightweight brand-input (re-skin to given colours/reference)",
+    "is in; **deep** image/code token-extraction, full retrofit (rewrite existing pages),",
+    "and the component-gallery page are documented follow-ups",
+    "If an existing UI is detected, say so and proceed greenfield for new screens."
+   ],
+   "home": "commands/design-system/references/build-loop.md",
+   "was": [
+    "> **Scope of this version: greenfield core loop** — brand re-skin is in; deep token-extraction, full",
+    "> retrofit and the gallery are follow-ups (`references/build-loop.md` §Scope of this version). An",
+    "> existing UI: say so, proceed greenfield for new screens."
+   ]
+  },
+  {
+   "id": "discover",
+   "what": "no spine → three-question discovery, wait",
+   "old": [
+    "for the answers."
+   ],
+   "new": [
+    "for the answers."
+   ],
+   "was": [
+    "for the answers; it is the minimum design can be derived from."
+   ]
+  },
+  {
+   "id": "mode",
+   "what": "UI code exists → retrofit territory, new screens greenfield; none → greenfield",
+   "old": [
+    "**Detect mode:** UI code already exists",
+    "say *retrofit",
+    "territory* and design new screens greenfield (`references/build-loop.md` §Scope of this version).",
+    "No UI yet → greenfield."
+   ],
+   "new": [
+    "**Detect mode** (the start says): UI code exists → say *retrofit territory*, design new screens greenfield",
+    "(`references/build-loop.md` §Scope of this version); none → greenfield."
+   ],
+   "was": [
+    "2. **Detect mode (informational this version):** is there a `frontend/` / UI code already? If **yes** →",
+    "note *retrofit territory* but proceed **greenfield for new screens** (full retrofit is a follow-up).",
+    "No UI yet → clean **greenfield**."
+   ]
+  },
+  {
+   "id": "ui-gate",
+   "what": "UI gate: decide from the spine or ask; no UI → explain, write nothing, stop, hand to /foundation",
+   "old": [
+    "**UI gate:** decide from the spine when it says; else ask *\"does this product have or need a user-facing UI?\"*",
+    "**No** (backend, API, CLI,",
+    "library) → **explain why a design system doesn't apply, write nothing, and stop.** Hand back to `/foundation`."
+   ],
+   "new": [
+    "**UI gate:** the start applies the UI flag; unknown → ask *\"does this product have or need a user-facing UI?\"*",
+    "**No** (backend, API, CLI, library) → **explain why a design system doesn't apply, write nothing, and stop.** Hand back to `/foundation`."
+   ],
+   "was": [
+    "3. **UI gate (mirror the existing AI-product conditional):** ask/decide — *\"does this product have or need",
+    "a user-facing UI?\"* If the answer is **no** (pure backend/API/CLI/library) → **explain why a design",
+    "system doesn't apply, write nothing, and stop.** Hand back to `/foundation`."
+   ]
+  },
+  {
+   "id": "stopping",
+   "what": "declined-runs applies except at the UI gate: no UI writes nothing, not a declined record",
+   "old": [
+    "**Stopping — `MECHANISMS.md` §Declined runs, in full**, except at the UI gate (3): a product with no UI",
+    "writes nothing at all — not a `declined` record."
+   ],
+   "new": [
+    "**Stopping — `MECHANISMS.md` §Declined runs, in full**, except at the UI gate (3): a product with no UI",
+    "writes nothing at all — not a `declined` record."
+   ],
+   "was": [
+    "5. **Stopping — `MECHANISMS.md` §Declined runs, in full.** One local rule: it does **not** apply to the UI",
+    "gate at (3). A backend product is not *owed* a design system, so it writes nothing at all — declining",
+    "and being inapplicable are different states."
+   ]
+  },
+  {
+   "id": "principles",
+   "what": "4–6 principles from purpose + audience, each with a why, before colour/font; user adjusts; → DESIGN.md §1 + #Design",
+   "old": [
+    "## Step 1 — Design principles FIRST",
+    "Write **4–6 short principle statements** from the product's **purpose + audience**, each with its *why*",
+    "in plain language — before any colour or font. Levers and a worked example: `references/build-loop.md`",
+    "§Design principles. Show them; **let the user adjust**. They become `DESIGN.md` §1 and `PRODUCT.md#Design`."
+   ],
+   "new": [
+    "## Step 1 — Design principles FIRST",
+    "Write **4–6 short principle statements** from the product's **purpose + audience**, each with its *why*",
+    "in plain language — before any colour or font. Levers and a worked example: `references/build-loop.md`",
+    "§Design principles. Show them; **let the user adjust**. They become `DESIGN.md` §1 and `PRODUCT.md#Design`."
+   ],
+   "was": [
+    "## Step 1 — Design principles FIRST (think like a 2026 senior designer)",
+    "Before any colour or font, reason the way an experienced designer does *today*, grounded in the",
+    "product's **purpose + audience**. Write **4–6 short principle statements**, each with its",
+    "*why* in plain language (teach-mode). The levers, a worked example, and what a principle looks like when it is doing work:",
+    "`references/build-loop.md` §Design principles. Show them; **let the user adjust**. They constrain every",
+    "later token, and become `DESIGN.md` §1 and `PRODUCT.md#Design`."
+   ]
+  },
+  {
+   "id": "ask-before-propose-why",
+   "what": "why ask before propose (opposite of /architect)",
+   "old": [],
+   "new": [
+    "the opposite order to `/architect`'s (`references/build-loop.md` §Why ask before proposing)"
+   ],
+   "home": "references/case-files-design-system.md",
+   "was": [
+    "**Opposite order to `/architect`'s** — for aesthetics the user's taste is the primary input, so you ask",
+    "before you propose (`references/build-loop.md` §Why ask before proposing)."
+   ]
+  },
+  {
+   "id": "own-reference",
+   "what": "ask for their own reference and wait",
+   "old": [
+    "admire, or bold vs minimal?\"* Ask it plainly and wait (case file: The answer we anchored)."
+   ],
+   "new": [
+    "admire, or bold vs minimal?\"* Ask it plainly and wait (case file: The answer we anchored)."
+   ],
+   "was": [
+    "admire, or bold vs minimal?\"* Ask it plainly and wait. A named reference is the strongest signal you",
+    "will get all session."
+   ]
+  },
+  {
+   "id": "picker",
+   "what": "the user answers the 3-question picker, a recommended answer each",
+   "old": [
+    "it and where · calm authority vs bold energy. They answer; **offer a recommended answer to each**."
+   ],
+   "new": [
+    "They answer; **offer a recommended answer to each**."
+   ],
+   "was": [
+    "it and where · calm authority vs bold energy. They are questions about **their** product, so they",
+    "answer them; **offer a recommended answer to each** so it stays one short exchange."
+   ]
+  },
+  {
+   "id": "thirteen",
+   "what": "name that there are 13 families and where",
+   "old": [
+    "references what they just told you. **Say that there are 13 and where they are** (`references/archetypes.md`):",
+    "a shortlist must name the full set, or \"Other\" asks a non-designer to invent a family nobody showed them."
+   ],
+   "new": [
+    "references what they just told you. **Say that there are 13 and where they are** (`references/archetypes.md`):",
+    "a shortlist must name the full set, or \"Other\" asks a non-designer to invent a family nobody showed them."
+   ],
+   "was": [
+    "references what they just told you. **Say that there are 13 and where they are** — a picker that can",
+    "only show a shortlist must name the full set (`references/archetypes.md`), or \"Other\" asks a",
+    "non-designer to invent a family nobody showed them."
+   ]
+  },
+  {
+   "id": "foundations",
+   "what": "concrete values from the preset per build-loop §Concrete foundations, default + why, user tweaks",
+   "old": [
+    "From the chosen family's preset (`archetypes.md` §<the family> §How Step 3, plus `--own \"The families\"`), decide",
+    "each value in `references/build-loop.md` §Concrete foundations",
+    "type pairing and scale, colour roles in OKLCH, density, depth, layout, motion tier,",
+    "**light AND dark now** (Law 22) — as a **decided default + one-line why**; let the user tweak."
+   ],
+   "new": [
+    "From the chosen family's preset (`archetypes.md` §<the family> §How Step 3), decide",
+    "each value in `references/build-loop.md` §Concrete foundations",
+    "type pairing and scale, colour roles in OKLCH, density, depth, layout, motion tier,",
+    "**light AND dark now** (Law 22)"
+   ],
+   "was": [
+    "From the chosen family's preset (in `archetypes.md`), decide the **concrete** values — the part the",
+    "popular skills omit, and the fix for \"fonts too small / artsy-but-wrong\". **The full list, each decided",
+    "value and its why, is in `references/build-loop.md` §Concrete foundations** — type pairing and scale,",
+    "colour roles in OKLCH, density, depth, layout, motion tier, **light AND dark now** (Law 22). Give each as",
+    "a **decided default + one-line why**; let the user tweak."
+   ],
+   "was68": [
+    "read in round 2's turn -> printed by `--step foundations` (one call per turn)"
+   ]
+  },
+  {
+   "id": "sample",
+   "what": "one representative screen, in the stack or a standalone preview; follow build-loop, a preview included",
+   "old": [
+    "Build **one representative screen of THIS product** from the Step-3 foundations — in the project's stack,",
+    "or a **standalone preview HTML** when there is no stack. **Follow `references/build-loop.md` §Build the",
+    "sample page** (Theme Studio: `python ${CLAUDE_PLUGIN_ROOT}/commands/design-system/theme_studio.py`)."
+   ],
+   "new": [
+    "Build **one representative screen of THIS product** from the Step-3 foundations — in the project's stack,",
+    "or a **standalone preview HTML** when there is no stack. **Follow `references/build-loop.md` §Build the",
+    "sample page**."
+   ],
+   "was": [
+    "Generate **a single, representative screen of THIS product** using the Step-3 foundations — in the",
+    "project's stack if one exists, otherwise a **standalone preview HTML** the user can open in a browser.",
+    "**Load `references/build-loop.md` §Build the sample page and follow it** — page inventory, the craft",
+    "layer, mobile-first, the accessibility floor a preview does *not* escape, and the Theme Studio wiring."
+   ]
+  },
+  {
+   "id": "look-not-logic",
+   "what": "label illustrative numbers, say so, never copy sample logic",
+   "old": [
+    "**The sample proves the LOOK, never the LOGIC.** Label any numbers in the page \"illustrative figures — not",
+    "the product's rules\", say so when you present it, and **do not copy sample logic into the product** — the",
+    "real rules arrive with `/contracts` and `/build` (case file: The sample that set a price)."
+   ],
+   "new": [
+    "**The sample proves the LOOK, never the LOGIC.** Label any numbers in the page \"illustrative figures — not",
+    "the product's rules\", say so when you present it, and **do not copy sample logic into the product** — the",
+    "real rules arrive with `/contracts` and `/build` (case file: The sample that set a price)."
+   ],
+   "was": [
+    "**The sample proves the LOOK, never the LOGIC.** Any numbers in it are illustrative: label them in the",
+    "page (\"illustrative figures — not the product's rules\") and say so when you present it. This phase does",
+    "not read `#Plan`, so its arithmetic has been checked against nothing — **do not copy sample logic into",
+    "the product**; the real rules arrive with `/contracts` and `/build`."
+   ]
+  },
+  {
+   "id": "loop",
+   "what": "not liked → change, regenerate, loop; no DESIGN.md before approval",
+   "old": [
+    "(Law 21). Not liked → ask what to change, **generate another; loop until they approve**. **Do not emit",
+    "`DESIGN.md` until approved.** How to present it: `references/build-loop.md` §Confirm the sample."
+   ],
+   "new": [
+    "Not liked → ask what to change, **generate another; loop until they approve**. **Do not emit",
+    "`DESIGN.md` until approved** (`references/build-loop.md` §Confirm the sample)."
+   ],
+   "was": [
+    "(Law 21). If they don't like it, ask what to change and **generate another; loop until they approve**.",
+    "**Do not emit `DESIGN.md` until approved.** How to present it, what to compare, and what the Theme Studio",
+    "lets the user finalize without a regenerate: `references/build-loop.md` §Confirm the sample."
+   ]
+  },
+  {
+   "id": "twice",
+   "what": "emit the tokens twice, per build-loop §Emit the token stylesheet",
+   "old": [
+    "**Emit the tokens TWICE — as the spec and as the app's stylesheet**, following `references/build-loop.md`",
+    "§Emit the token stylesheet."
+   ],
+   "new": [
+    "**the tokens TWICE — as the spec and as the app's stylesheet**,",
+    "following `references/build-loop.md` §Emit the token stylesheet;"
+   ],
+   "was": [
+    "**Emit the tokens TWICE — as the spec and as the app's stylesheet.** `DESIGN.md` records the decision;",
+    "the stylesheet is what the running product loads. Write both in this step, and follow",
+    "`references/build-loop.md` §Emit the token stylesheet — where the file goes, the light/dark blocks, the",
+    "root import, and the two-way check that the spec and the stylesheet define the same set. A design system",
+    "that exists only as a document is a decision nothing executes."
+   ]
+  },
+  {
+   "id": "design-md",
+   "what": "fill all 9 sections, no placeholder; per-section rules in build-loop",
+   "old": [
+    "*concrete approved values* — replace every placeholder, ship nothing un-filled. Per-section rules:",
+    "`references/build-loop.md` §Emit `DESIGN.md`."
+   ],
+   "new": [
+    "*concrete approved values* — replace every placeholder, ship nothing un-filled. Per-section rules:",
+    "`references/build-loop.md` §Emit `DESIGN.md`."
+   ],
+   "was": [
+    "*concrete approved values* — replace every placeholder, ship nothing un-filled. The section list and the",
+    "per-section rules (OKLCH shadcn-compatible tokens, light **and** dark, the page inventory, the AA",
+    "re-check before writing) are in `references/build-loop.md` §Emit `DESIGN.md`."
+   ]
+  },
+  {
+   "id": "laws",
+   "what": "walk the 26 laws; a law fails → stop and fix",
+   "old": [
+    "**Walk `references/universal-laws.md` and confirm all 26 hold** for the sample + `DESIGN.md` (its",
+    "**§Self-check digest** lists the ones that fail most). **A law fails → STOP and fix it.**"
+   ],
+   "new": [
+    "**Walk `references/universal-laws.md` and confirm all 26 hold** for the sample + `DESIGN.md` (its",
+    "**§Self-check digest** lists the ones that fail most). **A law fails → STOP and fix it.**"
+   ],
+   "was": [
+    "**Before handing off, walk `references/universal-laws.md` and confirm all 26 hold** for the sample +",
+    "`DESIGN.md` — its **§Self-check digest** names the ones that fail most often and what \"holds\" means for",
+    "each. **If any law fails, STOP and fix it** — the floor is non-negotiable."
+   ]
+  },
+  {
+   "id": "save",
+   "what": "reconcile numbers; the save question; commit detail behind §Commit the work",
+   "old": [
+    "a contradiction); **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work)."
+   ],
+   "new": [
+    "The save question *\"Save this version of your project? (yes / no)\"* rode on the confirm's *\"Looks good - save\"* (`MECHANISMS.md` §Commit the work), never again."
+   ],
+   "was": [
+    "a contradiction, not a detail); and **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work — this project's repo, name the branch, commit on a yes, push only if a remote exists and the user says so). Then **run the transition"
+   ],
+   "was68": [
+    "the merged yes/no save question -> the confirm's first option (a logged run read 'no' as 'don't save')"
+   ]
+  },
+  {
+   "id": "step3c",
+   "what": "compare with Vision/Scope/Architecture; name both sides, ask, update the loser; detail is no contradiction",
+   "old": [
+    "Compare the result with `#Vision` (who it is for, the tone that implies), `#Scope` (a non-goal the design",
+    "assumes) and `#Architecture` (the UI framework and component registry the tokens must work in). **On a",
+    "conflict, name both sides, ask which wins, and update the loser** (`MECHANISMS.md` §Step 3c). Adding detail to",
+    "an earlier decision is not a contradiction."
+   ],
+   "new": [
+    "Compare the result with what `set` names (`#Vision` · `#Scope` · `#Architecture`).",
+    "**On a conflict, name both sides, ask which wins, and update the loser** (`MECHANISMS.md` §Step 3c)"
+   ],
+   "was": [
+    "Compare what this phase just produced against decisions already recorded — `#Vision` (who it is for, and the",
+    "tone that implies), `#Scope` (a non-goal the design quietly assumes), `#Architecture` (the UI framework and",
+    "component registry the tokens must work in). **On a conflict, name both sides, ask which wins, and",
+    "update the loser** — fix the artefact, or add a dated `superseded by <phase>, <date> — <reason>` line to the",
+    "earlier section. Never leave it standing in two places. Adding detail to an earlier decision is not a",
+    "contradiction."
+   ]
+  },
+  {
+   "id": "step3c-home",
+   "what": "the superseded line and never-two-places rule live in MECHANISMS §Step 3c",
+   "old": [],
+   "new": [
+    "`superseded by <phase>, <date> — <reason>` line. A contradiction is **never left standing in two"
+   ],
+   "home": "references/mechanisms.md",
+   "was": []
+  },
+  {
+   "id": "handoff",
+   "what": "hand off to /foundation, alone or in a batch; /new-component and /frontend-audit named",
+   "old": [
+    "> \"Design system agreed and captured in **`DESIGN.md`**, proven on an approved sample page. Next run",
+    "> **`/foundation`** — alone, or as a **batch** `/foundation` + `/contracts` + `/tickets` with one review at",
+    "> the end (`MECHANISMS-ON-DEMAND.md` §Batch mode). Screens are built with `/new-component` against these",
+    "> tokens, and `/frontend-audit` checks them against `DESIGN.md` + the universal laws.\""
+   ],
+   "new": [
+    "> \"Design system agreed and captured in **`DESIGN.md`**, proven on an approved sample page. Next run",
+    "> **`/foundation`** — alone, or as a **batch** `/foundation` + `/contracts` + `/tickets` with one review at",
+    "> the end (`MECHANISMS-ON-DEMAND.md` §Batch mode). Screens are built with `/new-component` against these",
+    "> tokens, and `/frontend-audit` checks them against `DESIGN.md` + the universal laws.\""
+   ],
+   "was": [
+    "> \"Design system agreed and captured in **`DESIGN.md`** (your build harness), proven on an approved",
+    "> sample page. Next run **`/foundation`** to stand up the walking skeleton — alone, or as a **batch**",
+    "> `/foundation` + `/contracts` + `/tickets` with one review at the end (`MECHANISMS-ON-DEMAND.md`",
+    "> §Batch mode); the batch still stops wherever a phase asks you to confirm. When you build screens,",
+    "> `/new-component` builds against these tokens (reusing shadcn/ui + 21st.dev), and a future",
+    "> `/frontend-audit` will enforce `DESIGN.md` + the universal laws across the app.\""
+   ]
+  },
+  {
+   "id": "batch-stops",
+   "what": "a batch still stops at a confirm: MECHANISMS-ON-DEMAND §Batch mode",
+   "old": [],
+   "new": [
+    "a confirm still stops"
+   ],
+   "home": "references/mechanisms-on-demand.md",
+   "was": []
+  },
+  {
+   "id": "commit-home",
+   "what": "commit details live in MECHANISMS §Commit the work",
+   "old": [],
+   "new": [
+    "Check the repo is THIS project's"
+   ],
+   "home": "references/mechanisms.md",
+   "was": []
+  },
+  {
+   "id": "sample-contents",
+   "what": "what the sample carries (page inventory, craft, mobile-first, the floor a preview does not escape, Theme Studio) - build-loop §Build the sample page, printed at Step 4",
+   "home": "commands/design-system/references/build-loop.md",
+   "old": [],
+   "new": [
+    "**Note the page inventory first**",
+    "**Apply the craft layer",
+    "**Build it mobile-first and responsive (Law 21):**",
+    "This does NOT exempt it from Law 15",
+    "**Ship it as an INTERACTIVE sample (the visualization moat):**"
+   ],
+   "was": [],
+   "next68": "next.68: build-loop's 'load the font via <link> in the preview (T5-7)' and theme-studio.md T5-7 are replaced by self-hosted fonts (no third-party request) unless the owner chose a font service (recorded); the Theme Studio is removed from the approved sample (theme_studio.py --remove)"
+  },
+  {
+   "id": "step0-reads",
+   "what": "Step 0 reads: next prints the phase's rule sections (L3); PRODUCT.md by section (L1)",
+   "old": [
+    "**One first message: run `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase design-system`, then `status.py section PRODUCT.md \"Project policy\" Vision Scope Architecture Design`.**",
+    "Show its first line; close by its checklist.",
+    "**`status.py rules design-system` prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`**"
+   ],
+   "new": [
+    "**First turn, ONE command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase design-system`**",
+    "never `PRODUCT.md` or a rule file whole. Show its first line.",
+    "**`status.py next --phase design-system` prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`**"
+   ],
+   "was": [
+    "**One first message: run `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase design-system` and read all of `PRINCIPLES.md`, `MECHANISMS.md`, `PRODUCT.md`.** Show its first line; close by its checklist."
+   ]
+  },
+  {
+   "id": "picker-ref",
+   "what": "the picker is read by section; --headings lists the 13 families (L2)",
+   "old": [
+    "2. **Run the 3-question picker WITH them** (`references/archetypes.md` §The 3-question picker;",
+    "`--headings` lists the 13) — read- vs scan-heavy"
+   ],
+   "new": [
+    "2. **Run the 3-question picker WITH them** (`references/archetypes.md` §The 3-question picker, printed by the"
+   ],
+   "was": [
+    "2. **Run the 3-question picker WITH them** (`references/archetypes.md`) — read- vs scan-heavy · who uses"
+   ]
+  },
+  {
+   "id": "template-ref",
+   "what": "the DESIGN.md template read by section: the skeleton, not the worked examples (L2)",
+   "old": [
+    "Load `references/design-md-template.md` §intro §The skeleton and write **`DESIGN.md`**, filling all **9 sections** with the"
+   ],
+   "new": [
+    "**`DESIGN.md`**",
+    "from `references/design-md-template.md` §intro §The skeleton",
+    "then all **9 sections** with the"
+   ],
+   "was": [
+    "Load `references/design-md-template.md` and write **`DESIGN.md`**, filling all **9 sections** with the"
+   ]
+  },
+  {
+   "id": "D01",
+   "what": "- Purpose: principles → confirmed sample page → a concrete, archetype-correct DESIGN.md ha",
+   "old": [
+    "- **Purpose:** principles → confirmed sample page → a concrete, archetype-correct `DESIGN.md` harness."
+   ],
+   "new": [
+    "- **Purpose:** principles → confirmed sample page → a concrete, archetype-correct `DESIGN.md` harness."
+   ]
+  },
+  {
+   "id": "D02",
+   "what": "references above, each at the step that names it.",
+   "old": [
+    "references above, each at the step that names it."
+   ],
+   "new": [
+    "references above, each at the step that names it."
+   ]
+  },
+  {
+   "id": "D03",
+   "what": "- Writes: DESIGN.md (9-section standard, shadcn CSS-variable tokens) · the token styleshee",
+   "old": [
+    "- **Writes:** `DESIGN.md` (9-section standard, shadcn CSS-variable tokens) · **the token stylesheet the"
+   ],
+   "new": [
+    "- **Writes:** `DESIGN.md` (9-section standard, shadcn CSS-variable tokens) · **the token stylesheet the"
+   ]
+  },
+  {
+   "id": "D04",
+   "what": "app loads (src/app/globals.css or where STRUCTURE.md puts it) · one approved sample page",
+   "old": [
+    "app loads** (`src/app/globals.css` or where `STRUCTURE.md` puts it) · one approved **sample page**"
+   ],
+   "new": [
+    "app loads** (`src/app/globals.css` or where `STRUCTURE.md` puts it) · one approved **sample page**"
+   ]
+  },
+  {
+   "id": "D05",
+   "what": "· PRODUCT.md#Design (principles + archetype + token summary + paths).",
+   "old": [
+    "· `PRODUCT.md#Design` (principles + archetype + token summary + paths)."
+   ],
+   "new": [
+    "· `PRODUCT.md#Design` (principles + archetype + token summary + paths)."
+   ]
+  },
+  {
+   "id": "D06",
+   "what": "- Gate type: input — the sample-page confirm-loop is the phase; the user's own look wins. ",
+   "old": [
+    "- **Gate type:** `input` — the sample-page confirm-loop is the phase; the user's own look wins. **Never batched** - skipping it fabricates the product's premise. (`STATE-MODEL.md` §2d)"
+   ],
+   "new": [
+    "- **Gate type:** `input` — the sample-page confirm-loop is the phase; the user's own look wins. **Never batched** - skipping it fabricates the product's premise. (`STATE-MODEL.md` §2d)"
+   ]
+  },
+  {
+   "id": "D07",
+   "what": "- State model (STATE-MODEL.md §2c): writes #Design · declined ✓ · override ✓ · superseded ",
+   "old": [
+    "- **State model** (`STATE-MODEL.md` §2c): writes `#Design` · `declined` ✓ · `override` ✓ · `superseded` ✓"
+   ],
+   "new": [
+    "- **State model** (`STATE-MODEL.md` §2c): writes `#Design` · `declined` ✓ · `override` ✓ · `superseded` ✓"
+   ]
+  },
+  {
+   "id": "D08",
+   "what": "- Exit criteria (the gate):",
+   "old": [
+    "- **Exit criteria (the gate):**"
+   ],
+   "new": [
+    "- **Exit criteria (the gate):**"
+   ]
+  },
+  {
+   "id": "D09",
+   "what": "- [ ] The vision was located (spine) or discovered (standalone), and the UI gate was appli",
+   "old": [
+    "- [ ] The vision was located (spine) or discovered (standalone), and the **UI gate** was applied — if the"
+   ],
+   "new": [
+    "- [ ] The vision was located (spine) or discovered (standalone), and the **UI gate** was applied — if the"
+   ]
+  },
+  {
+   "id": "D10",
+   "what": "product has no user-facing UI, nothing is written and the skill stops with the reason.",
+   "old": [
+    "product has no user-facing UI, **nothing is written** and the skill stops with the reason."
+   ],
+   "new": [
+    "product has no user-facing UI, **nothing is written** and the skill stops with the reason."
+   ]
+  },
+  {
+   "id": "D11",
+   "what": "- [ ] 4–6 design principles derived from the product's purpose + audience, each with a pla",
+   "old": [
+    "- [ ] **4–6 design principles** derived from the product's purpose + audience, each with a plain-language *why*."
+   ],
+   "new": [
+    "- [ ] **4–6 design principles** derived from the product's purpose + audience, each with a plain-language *why*."
+   ]
+  },
+  {
+   "id": "D12",
+   "what": "- [ ] The user was asked for their own reference BEFORE any archetype family was named, an",
+   "old": [
+    "- [ ] **The user was asked for their own reference BEFORE any archetype family was named**, and answered"
+   ],
+   "new": [
+    "- [ ] **The user was asked for their own reference BEFORE any archetype family was named**, and answered"
+   ]
+  },
+  {
+   "id": "D13",
+   "what": "the 3-question picker themselves (a recommended answer offered for each). Proposing first ",
+   "old": [
+    "the 3-question picker themselves (a recommended answer offered for each). Proposing first and asking"
+   ],
+   "new": [
+    "the 3-question picker themselves (a recommended answer offered for each). Proposing first and asking"
+   ]
+  },
+  {
+   "id": "D14",
+   "what": "- [ ] Concrete foundations chosen: font pairing (no default-only face), a real type scale ",
+   "old": [
+    "- [ ] **Concrete foundations** chosen: font pairing (no default-only face), a real type scale with an"
+   ],
+   "new": [
+    "- [ ] **Concrete foundations** chosen: font pairing (no default-only face), a real type scale with an"
+   ]
+  },
+  {
+   "id": "D15",
+   "what": "archetype-correct base size, colour roles, spacing/density, depth — all from archetypes.md",
+   "old": [
+    "archetype-correct base size, colour roles, spacing/density, depth — all from `archetypes.md`."
+   ],
+   "new": [
+    "archetype-correct base size, colour roles, spacing/density, depth — all from `archetypes.md`."
+   ]
+  },
+  {
+   "id": "D16",
+   "what": "- [ ] ONE real sample page built in the project's stack (or a standalone preview), real co",
+   "old": [
+    "- [ ] **ONE real sample page** built in the project's stack (or a standalone preview), **real content not"
+   ],
+   "new": [
+    "- [ ] **ONE real sample page** built in the project's stack (or a standalone preview), **real content not"
+   ]
+  },
+  {
+   "id": "D17",
+   "what": "lorem, reusing a shadcn/21st.dev primitive or two — then STOP + confirm + iterate until ap",
+   "old": [
+    "lorem**, reusing a shadcn/21st.dev primitive or two — then **STOP + confirm + iterate until approved.**"
+   ],
+   "new": [
+    "lorem**, with its empty, loading and error states and what `#Scope` asks it to show",
+    "shadcn/21st.dev primitive or two — then **STOP + confirm + iterate until approved.**"
+   ]
+  },
+  {
+   "id": "D18",
+   "what": "- [ ] DESIGN.md emitted only after approval: 9 sections, shadcn-compatible OKLCH tokens in",
+   "old": [
+    "- [ ] `DESIGN.md` emitted **only after approval**: 9 sections, **shadcn-compatible OKLCH tokens** in **light AND"
+   ],
+   "new": [
+    "- [ ] `DESIGN.md` emitted **only after approval**: 9 sections, **shadcn-compatible OKLCH tokens** in **light AND"
+   ]
+  },
+  {
+   "id": "D19",
+   "what": "dark (Law 22), WCAG-AA verified in both modes, the app's page inventory recorded (§5), fix",
+   "old": [
+    "dark** (Law 22), **WCAG-AA verified in both modes**, the app's **page inventory** recorded (§5), fixing the three"
+   ],
+   "new": [
+    "dark** (Law 22), **WCAG-AA verified in both modes**, the app's **page inventory** recorded (§5), fixing the three"
+   ]
+  },
+  {
+   "id": "D20",
+   "what": "symptoms (a real type scale → no tiny fonts; a layout/density spec; an archetype + Do/Don'",
+   "old": [
+    "symptoms (a real type scale → no tiny fonts; a layout/density spec; an archetype + Do/Don't list → no generic AI look)."
+   ],
+   "new": [
+    "symptoms (a real type scale → no tiny fonts; a layout/density spec; an archetype + Do/Don't list → no generic AI look)."
+   ]
+  },
+  {
+   "id": "D21",
+   "what": "- [ ] The tokens EXIST IN THE APP, not only in the spec — every token DESIGN.md defines is",
+   "old": [
+    "- [ ] **The tokens EXIST IN THE APP, not only in the spec** — every token `DESIGN.md` defines is written"
+   ],
+   "new": [
+    "- [ ] **The tokens EXIST IN THE APP, not only in the spec** — every token `DESIGN.md` defines is written"
+   ]
+  },
+  {
+   "id": "D22",
+   "what": "into the project's real stylesheet, that stylesheet is imported by the app's root entry, a",
+   "old": [
+    "into the project's real stylesheet, that stylesheet is imported by the app's root entry, and its path"
+   ],
+   "new": [
+    "into the project's real stylesheet, that stylesheet is imported by the app's root entry, and its path"
+   ]
+  },
+  {
+   "id": "D23",
+   "what": "- [ ] All 26 universal laws satisfied (run the principle-gate, Step 6 self-check).",
+   "old": [
+    "- [ ] All **26 universal laws** satisfied (run the principle-gate, Step 6 self-check)."
+   ],
+   "new": [
+    "- [ ] All **26 universal laws** satisfied (run the principle-gate, Step 6 self-check)."
+   ]
+  },
+  {
+   "id": "D24",
+   "what": "## Step 0 — Find the vision (spine-optional) · detect mode · UI gate",
+   "old": [
+    "## Step 0 — Find the vision (spine-optional) · detect mode · UI gate"
+   ],
+   "new": [
+    "## Step 0 — Find the vision (spine-optional) · detect mode · UI gate"
+   ]
+  },
+  {
+   "id": "D25",
+   "what": "One first message: run python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase design-sy",
+   "old": [
+    "**One first message: run `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase design-system`, then `status.py section PRODUCT.md \"Project policy\" Vision Scope Architecture Design`.** Show its first line; close by its checklist. `STRUCTURE.md` by section, at Step 4-5."
+   ],
+   "new": [
+    "**First turn, ONE command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase design-system`**",
+    "never `PRODUCT.md` or a rule file whole. Show its first line."
+   ]
+  },
+  {
+   "id": "D26",
+   "what": "1. Locate the vision (spine-first — MECHANISMS.md §Spine resolution): PRODUCT.md exists → ",
+   "old": [
+    "1. **Locate the vision (spine-first — `MECHANISMS.md` §Spine resolution):** `PRODUCT.md` exists → read"
+   ],
+   "new": [
+    "1. **Locate the vision (spine-first — `MECHANISMS.md` §Spine resolution):** say you use the spine"
+   ]
+  },
+  {
+   "id": "D27",
+   "what": "#Vision / #Scope / #Architecture, and say you are using it. No spine at all → run the",
+   "old": [
+    "`#Vision` / `#Scope` / `#Architecture`, and say you are using it. **No spine at all → run the"
+   ],
+   "new": [
+    "lines the start prints. **No spine at all → run the"
+   ]
+  },
+  {
+   "id": "D28",
+   "what": "three-question vision-discovery in references/build-loop.md §Standalone vision discovery a",
+   "old": [
+    "three-question vision-discovery in `references/build-loop.md` §Standalone vision discovery** and wait"
+   ],
+   "new": [
+    "three-question vision-discovery in `references/build-loop.md` §Standalone vision discovery** and wait"
+   ]
+  },
+  {
+   "id": "D29",
+   "what": "2. Detect mode: UI code already exists (a frontend/ folder, components, pages) → say retro",
+   "old": [
+    "2. **Detect mode:** UI code already exists (a `frontend/` folder, components, pages) → say *retrofit"
+   ],
+   "new": [
+    "**Detect mode** (the start says): UI code exists → say *retrofit territory*, design new screens greenfield",
+    "(`references/build-loop.md` §Scope of this version); none → greenfield."
+   ]
+  },
+  {
+   "id": "D30",
+   "what": "4. Re-running — MECHANISMS.md §Re-run semantics, in full. The superseded archetype, palett",
+   "old": [
+    "4. **Re-running — `MECHANISMS.md` §Re-run semantics, in full.** The superseded archetype, palette or type"
+   ],
+   "new": [
+    "4. **Re-running — `MECHANISMS.md` §Re-run semantics, in full.** The superseded archetype, palette or type"
+   ]
+  },
+  {
+   "id": "D31",
+   "what": "pairing keeps its dated superseded <date: <why line; so does an archetype you recommended ",
+   "old": [
+    "pairing keeps its dated `superseded <date>: <why>` line; so does an archetype **you recommended and the"
+   ],
+   "new": [
+    "pairing keeps its dated `superseded <date>: <why>` line; so does an archetype **you recommended and the"
+   ]
+  },
+  {
+   "id": "D32",
+   "what": "user reversed inside this run, this phase's normal mode.",
+   "old": [
+    "user reversed inside this run**, this phase's normal mode."
+   ],
+   "new": [
+    "user reversed inside this run**."
+   ]
+  },
+  {
+   "id": "D33",
+   "what": "## Step 2 — Ask what they want, THEN propose",
+   "old": [
+    "## Step 2 — Ask what they want, THEN propose"
+   ],
+   "new": [
+    "## Step 2 — Ask what they want, THEN propose"
+   ]
+  },
+  {
+   "id": "D34",
+   "what": "1. Before naming any family, ask for their own reference: \"Do you have a look in mind — a ",
+   "old": [
+    "1. **Before naming any family, ask for their own reference:** *\"Do you have a look in mind — a product you"
+   ],
+   "new": [
+    "1. **Before naming any family, ask for their own reference:** *\"Do you have a look in mind — a product you"
+   ]
+  },
+  {
+   "id": "D35",
+   "what": "3. Now propose ONE of the 13 aesthetic families as the default, with a plain-language why ",
+   "old": [
+    "3. **Now propose ONE of the 13 aesthetic families** as the default, with a plain-language why that"
+   ],
+   "new": [
+    "3. **Now propose ONE of the 13 aesthetic families** as the default, with a plain-language why that"
+   ]
+  },
+  {
+   "id": "D36",
+   "what": "4. The user's idea/reference wins; otherwise your proposal stands. Confirm the archetype b",
+   "old": [
+    "4. **The user's idea/reference wins;** otherwise your proposal stands. Confirm the archetype before moving on."
+   ],
+   "new": [
+    "4. **The user's idea/reference wins;** otherwise your proposal stands. Confirm the archetype before moving on;"
+   ]
+  },
+  {
+   "id": "D37",
+   "what": "## Step 3 — Concrete foundations from the archetype",
+   "old": [
+    "## Step 3 — Concrete foundations from the archetype"
+   ],
+   "new": [
+    "## Step 3 — Concrete foundations from the archetype"
+   ]
+  },
+  {
+   "id": "D38",
+   "what": "## Step 4 — Build ONE sample page · STOP · iterate until liked (the non-negotiable loop)",
+   "old": [
+    "## Step 4 — Build ONE sample page · STOP · iterate until liked  *(the non-negotiable loop)*"
+   ],
+   "new": [
+    "## Step 4 — Build ONE sample page · STOP · iterate until liked  *(the non-negotiable loop)*"
+   ]
+  },
+  {
+   "id": "D39",
+   "what": "Then STOP. Show it and confirm — at three widths, ~375px · 768px · desktop, never desktop ",
+   "old": [
+    "Then **STOP. Show it and confirm** — at **three widths, ~375px · 768px · desktop**, never desktop alone"
+   ],
+   "new": [
+    "**STOP. Show it and confirm** — at **three widths, ~375px · 768px · desktop**, never desktop alone"
+   ]
+  },
+  {
+   "id": "D40",
+   "what": "## Step 5 — Emit DESIGN.md (only after approval)",
+   "old": [
+    "## Step 5 — Emit `DESIGN.md` (only after approval)"
+   ],
+   "new": [
+    "## Step 5 — Emit `DESIGN.md` (only after approval)"
+   ]
+  },
+  {
+   "id": "D41",
+   "what": "- Audit timing — RUN the engine, never just cite it: python \"${CLAUDE_PLUGIN_ROOT}/command",
+   "old": [
+    "- **Audit timing — RUN the engine, never just cite it:** `python \"${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py\"`"
+   ],
+   "new": [
+    "- **Audit — RUN the engine, never cite it:** `python \"${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py\"`"
+   ]
+  },
+  {
+   "id": "D42",
+   "what": "— the installed engine; never search the plugin cache (a $ left in the path: /frontend-aud",
+   "old": [
+    "— the installed engine; never search the plugin cache (a `$` left in the path: `/frontend-audit` §Which engine runs) — over"
+   ],
+   "new": [
+    "(never search the plugin cache) over the sample at confirm-time;"
+   ]
+  },
+  {
+   "id": "D43",
+   "what": "the approved sample at confirm-time and over DESIGN.md once emitted, never before approval",
+   "old": [
+    "the approved sample at confirm-time and over `DESIGN.md` once emitted, never before approval (Law 16);"
+   ],
+   "new": [
+    "`set` runs it over `DESIGN.md` and writes its",
+    "(never before approval, Law 16)"
+   ]
+  },
+  {
+   "id": "D44",
+   "what": "fix every [FAIL], triage every [WARN], and claim no \"passes the laws\" you did not run the ",
+   "old": [
+    "fix every `[FAIL]`, triage every `[WARN]`, and **claim no \"passes the laws\" you did not run the engine"
+   ],
+   "new": [
+    "fix every `[FAIL]`, triage every `[WARN]`."
+   ]
+  },
+  {
+   "id": "D45",
+   "what": "to back (references/build-loop.md §Audit timing).",
+   "old": [
+    "to back** (`references/build-loop.md` §Audit timing)."
+   ],
+   "new": [
+    "Do not emit a \"passes the laws\" claim you didn't run the engine to back."
+   ],
+   "was68": [
+    "'claim no passes the laws you did not run the engine to back' -> build-loop §Audit timing says it; set writes the counts"
+   ],
+   "home": "commands/design-system/references/build-loop.md"
+  },
+  {
+   "id": "D46",
+   "what": "## Step 6 — Principle-gate self-check, then handoff",
+   "old": [
+    "## Step 6 — Principle-gate self-check, then handoff"
+   ],
+   "new": [
+    "## Step 6 — Principle-gate self-check, then handoff"
+   ]
+  },
+  {
+   "id": "D47",
+   "what": "### Step 3b — close the loop (MECHANISMS.md §Step 3b)",
+   "old": [
+    "### Step 3b — close the loop (`MECHANISMS.md` §Step 3b)"
+   ],
+   "new": [
+    "### Step 3b — close the loop (`MECHANISMS.md` §Step 3b)"
+   ]
+  },
+  {
+   "id": "D48",
+   "what": "Record the phase's state — status.py set design-system filled (MECHANISMS.md §Status); rec",
+   "old": [
+    "Record the phase's state — `status.py set design-system filled` (`MECHANISMS.md` §Status); **reconcile every number this"
+   ],
+   "new": [
+    "`status.py set design-system filled --section-from <file> --commit \"<one line>\"` (`MECHANISMS.md` §Status; no",
+    "then records, saves and prints the rest of the close."
+   ]
+  },
+  {
+   "id": "D49",
+   "what": "phase introduced against #Vision (a type scale or density that cannot serve the audience t",
+   "old": [
+    "phase introduced against `#Vision`** (a type scale or density that cannot serve the audience the vision names is"
+   ],
+   "new": [
+    "**Reconcile every number against `#Vision`**."
+   ]
+  },
+  {
+   "id": "D50",
+   "what": "a contradiction); ask the save question \"Save this version of your project? (yes / no)\" (M",
+   "old": [
+    "a contradiction); **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work). Then **run the transition"
+   ],
+   "new": [
+    "The save question *\"Save this version of your project? (yes / no)\"* rode on the confirm's *\"Looks good - save\"* (`MECHANISMS.md` §Commit the work), never again."
+   ],
+   "was68": [
+    "the merged yes/no save question -> the confirm's first option (a logged run read 'no' as 'don't save')"
+   ]
+  },
+  {
+   "id": "D51",
+   "what": "guard (MECHANISMS.md §Step 3b, item 4): re-run this phase's own evidence: lines (here, the",
+   "old": [
+    "guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines (here, the"
+   ],
+   "new": [
+    "**The transition guard** (`MECHANISMS.md` §Step 3b, item 4): `set` re-ran this phase's own `evidence:` line (the rendered check) and the",
+    "a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not."
+   ]
+  },
+  {
+   "id": "D52",
+   "what": "/frontend-audit behind the sample) and report a verdict for every exit criterion — UNVERIF",
+   "old": [
+    "`/frontend-audit` behind the sample) and report a verdict for every exit criterion — `UNVERIFIED` is a"
+   ],
+   "new": [
+    "a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not."
+   ]
+  },
+  {
+   "id": "D53",
+   "what": "normal outcome, silence is not — and check the transition is legal. Close in plain languag",
+   "old": [
+    "normal outcome, silence is not — and check the transition is legal. **Close in plain language**"
+   ],
+   "new": [
+    "a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not.",
+    "**Close in plain language**"
+   ]
+  },
+  {
+   "id": "D54",
+   "what": "(MECHANISMS.md §Plain-language close): four blocks in order, each under its bolded name: W",
+   "old": [
+    "(`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff)."
+   ],
+   "new": [
+    "(`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff)."
+   ]
+  },
+  {
+   "id": "D55",
+   "what": "### Step 3c — contradiction check (MECHANISMS.md §Step 3c)",
+   "old": [
+    "### Step 3c — contradiction check (`MECHANISMS.md` §Step 3c)"
+   ],
+   "new": [
+    "### Step 3c — contradiction check (`MECHANISMS.md` §Step 3c)"
+   ]
+  },
+  {
+   "id": "D56",
+   "what": "Then write PRODUCT.md#Design (principles + archetype + token summary + DESIGN.md/sample pa",
+   "old": [
+    "Then write `PRODUCT.md#Design` (principles + archetype + token summary + `DESIGN.md`/sample paths) and hand off:"
+   ],
+   "new": [
+    "Then hand off:",
+    "`PRODUCT.md#Design` (principles + archetype + token summary + paths)"
+   ]
+  },
+  {
+   "id": "D57",
+   "what": "Report a short Confidence Score vs the exit criteria (solid / risky-untested / to-raise-it",
+   "old": [
+    "Report a short **Confidence Score** vs the exit criteria (solid / risky-untested / to-raise-it)."
+   ],
+   "new": [
+    "Report a short **Confidence Score** vs the exit criteria (solid / risky-untested / to-raise-it)."
+   ]
+  },
+  {
+   "id": "M01",
+   "what": "the picker's three questions: printed by the start from archetypes.md",
+   "old": [],
+   "new": [
+    "**Read-heavy or scan-heavy?**",
+    "**Who uses it, and where?**",
+    "**Calm authority or bold energy?**"
+   ],
+   "home": "commands/design-system/references/archetypes.md"
+  },
+  {
+   "id": "M02",
+   "what": "the 13 families listed by the start (was `--headings`); the Theme Studio command printed with its path",
+   "old": [],
+   "new": [
+    "The 13 families (archetypes.md; read the chosen one by its heading)",
+    "then `python {tool['theme_studio.py']} <page.html> --preset",
+    "(adds the Theme Studio)"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "M03",
+   "what": "Step 3c's three comparisons, printed by set at the close",
+   "old": [],
+   "new": [
+    "#Vision (who it is for, the tone that implies), #Scope (a non-goal the design assumes) and #Architecture (the UI"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "M04",
+   "what": "the reconcile example (type scale vs audience), printed by set at the close",
+   "old": [],
+   "new": [
+    "every number this phase introduced against #Vision: a base type size or density that cannot serve the audience "
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "M05",
+   "what": "check the transition is legal: status.py refuses an illegal one",
+   "old": [],
+   "new": [
+    "is not a legal transition"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "N01",
+   "what": "questions in two rounds, ONE message or form each (P37)",
+   "old": [],
+   "new": [
+    "**Two rounds, ONE message or form each:**"
+   ]
+  },
+  {
+   "id": "N02",
+   "what": "the save question inside the sample's confirm, word for word",
+   "old": [],
+   "new": [
+    "with two options: *\"Looks good - save (Recommended)\"* · *\"Change something\"*"
+   ],
+   "next68": "next.68 (a logged run read the owner's 'no' to the merged question as 'don't save'): the confirm offers two options, 'Looks good - save (Recommended)' / 'Change something'; every confirm offers 'Keep as proposed (Recommended)' first. Home: SKILL.md Step 4 + the start (tools/status.py)",
+   "was68": [
+    "*\"Anything to change? If not: Save this version of your project? (yes / no)\"* (misread in a logged run)"
+   ]
+  },
+  {
+   "id": "N03",
+   "what": "D3: a host platform's current design rules searched and linked; set refuses none",
+   "old": [],
+   "new": [
+    "Its CURRENT design rules",
+    "`Host platform: none - <why>`"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "N04",
+   "what": "the owner's answers recorded in #Design (own reference, picker answers); set refuses none",
+   "old": [],
+   "new": [
+    "a #Design line `Own reference: \\\"<their words>\\\"`",
+    "Picker answers (the owner's):"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "N05",
+   "what": "D4: the rendered check is recorded and set runs it again",
+   "old": [],
+   "new": [
+    "render_check fails on",
+    "(`set` ran it)"
+   ],
+   "home": "tools/status.py",
+   "next68": "next.68 (2 of 4 logged runs recorded NOT RUN): NOT RUN / unverified is refused unless an override line with the owner's reason; render_check --shots saves the three screenshots, their folder is recorded and set counts them; fallback = install the renderer or the tool's own browser. Home: tools/status.py + build-loop §Confirm the sample"
+  },
+  {
+   "id": "N06",
+   "what": "the rendered check and the audit over the sample in ONE turn",
+   "old": [],
+   "new": [
+    "Then ONE turn runs the rendered check and the audit over the sample (the start's commands); fix every",
+    "`NOT RUN` is no result (the start says how)"
+   ]
+  },
+  {
+   "id": "N07",
+   "what": "app states: the sample shows the main screen empty, loading and with an error (data-state); set refuses one missing",
+   "old": [],
+   "new": [
+    "**Its states, not only its happy path:**",
+    "each marked `data-state=\"empty\"` · `\"loading\"` · `\"error\"`. Buttons say Verb + Noun"
+   ],
+   "home": "commands/design-system/references/build-loop.md"
+  },
+  {
+   "id": "N08",
+   "what": "languages: the sample is shown in the longest language #Vision names; set refuses none (escape: Longest language)",
+   "old": [],
+   "new": [
+    "Which language(s) is the interface in, and does the user switch between them in the app?",
+    "def design_scope_languages(scope: str, vision: str)",
+    "the interface language(s) are not recorded"
+   ],
+   "home": "tools/status.py",
+   "next68": "next.68 (one logged sample came out in German from an old #Vision line): 'show it in the longest' is replaced - round 1 asks the interface language(s), pre-filled from #Scope's CURRENT language line, and whether they switch; the sample carries every chosen language when it switches; set checks the #Design `Interface languages:` line against the sample. Escape `Longest language` dropped (the owner's answer replaces it). Home: tools/status.py + build-loop §Build the sample page",
+   "was68": [
+    "'Languages #Vision names: ... show the sample in the longest' and the escape `Longest language: <lang> - <why>` -> round 1 asks the interface language(s) from #Scope's current line; the owner's answer replaces the escape"
+   ]
+  },
+  {
+   "id": "N09",
+   "what": "DESIGN.md §4 records app states, Verb + Noun buttons, confirm or undo for destructive actions",
+   "old": [],
+   "new": [
+    "**App states + actions:** every page type shows empty · loading · error (inline for a form); buttons say Verb + Noun;"
+   ],
+   "home": "commands/design-system/references/design-md-template.md"
+  },
+  {
+   "id": "N10",
+   "what": "fonts self-hosted by default; decided from #Architecture's EU custody or asked in round 1; set refuses a third-party font host the owner did not choose (recorded `Font delivery:`) and a missing self-hosted file",
+   "old": [],
+   "new": [
+    "**fonts self-hosted** (decided under EU custody, else asked)"
+   ]
+  },
+  {
+   "id": "N10-code",
+   "what": "the font check in code",
+   "old": [],
+   "new": [
+    "fonts load from a third-party host the owner did not choose",
+    "a self-hosted font file is not in the project"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "N10-ref",
+   "what": "theme-studio T5-7: self-host the face; no <link> to a font service unless the owner chose one",
+   "old": [],
+   "new": [
+    "No `<link>` to a font service (Google Fonts, a CDN) unless the owner chose one"
+   ],
+   "home": "commands/design-system/references/theme-studio.md"
+  },
+  {
+   "id": "N11",
+   "what": "interface language(s) + switch asked in round 1, pre-filled from #Scope; the sample carries each when they switch",
+   "old": [],
+   "new": [
+    "**interface language(s)**",
+    "(pre-filled from `#Scope`) and whether they switch"
+   ]
+  },
+  {
+   "id": "N11-code",
+   "what": "set checks the Interface languages line against the sample",
+   "old": [],
+   "new": [
+    "- the user switches, so the sample",
+    "not an interface language"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "N12",
+   "what": "#Scope's must-show items listed under the principles; the sample carries each (data-must); set refuses one unmarked (escape Must-show: <id> not shown - <why>)",
+   "old": [],
+   "new": [
+    "Under them, name what `#Scope` asks the screen to show; the sample carries each."
+   ]
+  },
+  {
+   "id": "N12-code",
+   "what": "the must-show check in code",
+   "old": [],
+   "new": [
+    "does not mark what #Scope asks it to show",
+    "`Must-show: <id> not shown - <why>`"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "N13",
+   "what": "the rendered check must really run: NOT RUN refused, 3 screenshots saved (render_check --shots or the tool's own browser), only the owner's override answers it",
+   "old": [],
+   "new": [
+    "the rendered check is recorded as NOT RUN",
+    "fewer than 3 screenshots of the sample"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "N13-ref",
+   "what": "build-loop: NOT RUN is not a result; install the renderer or the tool's own browser",
+   "old": [],
+   "new": [
+    "**`NOT RUN` is not a result:**"
+   ],
+   "home": "commands/design-system/references/build-loop.md"
+  },
+  {
+   "id": "N14",
+   "what": "every confirm offers Keep as proposed (Recommended) first",
+   "old": [],
+   "new": [
+    "every confirm offers *\"Keep as proposed (Recommended)\"* first."
+   ]
+  },
+  {
+   "id": "N15",
+   "what": "Reference brands only when the owner named one; set refuses them against an owner's 'no product'",
+   "old": [],
+   "new": [
+    "<only products the owner named, else delete this line>"
+   ],
+   "home": "commands/design-system/references/design-md-template.md"
+  },
+  {
+   "id": "N15-code",
+   "what": "the reference-brands check",
+   "old": [],
+   "new": [
+    "the owner never named"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "N16",
+   "what": "DESIGN.md opens with ## In short: plain words, each principle traced to its #Vision line",
+   "old": [],
+   "new": [
+    "**`## In short` first** (plain words; each principle",
+    "with its `#Vision` line)"
+   ]
+  },
+  {
+   "id": "N16-code",
+   "what": "set refuses a DESIGN.md with no reader summary",
+   "old": [],
+   "new": [
+    "DESIGN.md does not open for a reader"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "N17",
+   "what": "the audit counts are written by set, never typed",
+   "old": [],
+   "new": [
+    "counts there — never type one"
+   ]
+  },
+  {
+   "id": "N17-code",
+   "what": "set writes the counts and refuses a hand-typed one",
+   "old": [],
+   "new": [
+    "def design_write_audit(",
+    "states an audit count by hand"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "N18",
+   "what": "no Theme Studio in the approved sample",
+   "old": [],
+   "new": [
+    "ONE message removes the Theme Studio and writes"
+   ]
+  },
+  {
+   "id": "N18-code",
+   "what": "theme_studio.py --remove; set refuses a sample that still holds it",
+   "old": [],
+   "new": [
+    "still holds the Theme Studio"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "N19",
+   "what": "the palettes' status colours pass the playbook's own audit in both modes",
+   "old": [],
+   "new": [
+    "one value per mode, AA as text (4.5:1) on every base's background, card and muted"
+   ],
+   "home": "commands/design-system/references/palettes.md"
+  },
+  {
+   "id": "N20",
+   "what": "each turn's reference sections in ONE call (--step foundations|sample|write), never a section call per file",
+   "old": [],
+   "new": [
+    "**Each turn's sections come in ONE call the start prints**"
+   ]
+  },
+  {
+   "id": "N20-code",
+   "what": "the step printer",
+   "old": [],
+   "new": [
+    "def design_step_text(phase: str, step: str, family: str | None)"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "N21",
+   "what": "the sample path is accepted with or without backticks (a logged false refusal)",
+   "old": [],
+   "new": [
+    "the sample's path, in backticks or not"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "N22",
+   "what": "set runs in the foreground (a logged run backgrounded it and polled)",
+   "old": [],
+   "new": [
+    "in the foreground (~1 min: it re-renders the sample"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "N23",
+   "what": "the accent's hue chosen for this product, with its why (3 of 4 logged runs used the same preset accent)",
+   "old": [],
+   "new": [
+    "the accent's hue chosen for THIS product, with its why"
+   ],
+   "home": "tools/status.py"
+  }
+ ],
+ "dropped": [],
+ "was_base": "0a43d7e"
+}

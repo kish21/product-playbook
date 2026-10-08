@@ -8,12 +8,20 @@
 > writes one on every `next dev`), **write outside it and never rewrite it.** A naive overwrite is
 > silently reverted on the next run, which is worse than not writing at all.
 
-## Read before you touch anything
+## Read what the task needs — by section, never the whole file
 
-1. **`PRODUCT.md`** — the spine. Vision, locked scope, the plan, the architecture decisions, the build
-   log. A fresh read of the code alone re-litigates decisions that were already made and recorded.
-2. **`STRUCTURE.md`** — where things go and why. Do not invent a new home for a file.
-3. **`DESIGN.md`** — the token vocabulary, if this product has a UI. Tokens come from here, never hex.
+These three files grow to 100 KB together, and a whole-file read is re-sent on every later step of the
+conversation. List the headings first (your editor's outline, or a search for lines starting `## `), then read the
+sections that govern the change:
+
+1. **`PRODUCT.md`** — the spine: vision, locked scope, the plan, the architecture decisions, the build log.
+   **Before changing a decision, read the section that records it** (`## Architecture`, `## Scope`,
+   `## Contracts` …): a fresh read of the code alone re-litigates decisions already made and recorded.
+2. **`STRUCTURE.md`** — where things go and why: the module you are working in, and its import rules when
+   you add an import. Do not invent a new home for a file.
+3. **`DESIGN.md`** — the token vocabulary, only when you touch UI. Tokens come from here, never hex.
+
+A playbook phase reads what its own Step 0 names; this list is for every other task.
 
 ## The rules an agent breaks first
 

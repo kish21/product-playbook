@@ -5,6 +5,39 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-08
+
+### Changed — every skill rebuilt: one start, at most two question rounds, the record checked in code, and STATUS.md for teams
+
+**In short.** 2.0 changes how every skill runs. Each skill starts with **one command** that prints only what that
+step needs, asks its questions in **at most two rounds**, and **checks its own record in code** before it saves,
+naming every problem in one message. Every phase from /vision to /learn was run end to end on a real product idea.
+
+**What changed for you**
+- **Skills are folders** (`commands/<skill>/SKILL.md` + references + engines), installed as skills for Claude Code,
+  Codex, Cursor and Antigravity (`install.sh --tool <tool>`, or `--project <folder>`).
+- **STATUS.md is the one status file**, written only by `status.py`. Open items, built tickets, releases and drift are
+  one file each under `status/`, so 2–10 people or agents can work in parallel without merge conflicts.
+- **Every skill starts the same way** (`status.py next --phase <skill>`) and **closes the same way**
+  (`status.py set <skill> filled --section-from <file> --commit "<line>"`; `--dry-run` shows every gap first).
+- **Fixed document shapes:** `docs/architecture.md` and `STRUCTURE.md` follow one template on every tool, checked in code.
+- **/tickets plans for a team:** tickets grouped in module lanes with owners and seats, cross-lane waits and
+  "build against the contract" points, shared files listed, a lane diagram, a day-1 table, and GitHub issues with
+  epics, *blocked by* links and a Delivery Board.
+- **/build has a lean path** (one start, a branch per ticket, the full check only at the close) and `/build <id> full`
+  for the thorough path. Code is committed before the security review.
+- **/ship** opens the pull request with `Closes #<ticket>`, records the release and the rollback path.
+- **/validate is optional:** the chain is /vision → /scope.
+- **The playbook's install is never committed**; each teammate runs the installer.
+
+**Upgrading from 1.x.** Run the installer again. On first use, `/playbook` sees the old `Stage:` header in PRODUCT.md
+and offers `status.py migrate` (a dry run first, then `--write` on your yes). It creates STATUS.md and `status/` and
+moves long text to `docs/status-archive.md`. Tested on a copy of a project started on 1.46: nothing was lost, and
+the next phase was shown.
+
+**Coming in 2.x:** fewer questions per phase, faster planning phases, a "try to break it" step in /test and /deploy,
+and measured runs on Codex, Cursor and Antigravity.
+
 ## [1.73.0] - 2026-09-22
 
 ### Fixed — /build and /ship fit how a real project works: commit before the security review, a diff-scoped audit, the project's own release record, and rules declared once

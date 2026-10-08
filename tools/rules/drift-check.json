@@ -1,0 +1,1152 @@
+{
+ "skill": "drift-check",
+ "base": "7244338",
+ "rules": [
+  {
+   "id": "DC01",
+   "what": "Contract: Purpose: detect and surface scope creep, vision drift, and",
+   "old": [
+    "- **Purpose:** detect and surface scope creep, vision drift, and code↔docs drift — early."
+   ],
+   "new": [
+    "- **Purpose:** detect and surface scope creep, vision drift, and code↔docs drift — early."
+   ]
+  },
+  {
+   "id": "DC02",
+   "what": "Contract: Reads: the resolved spine's Vision, Scope (Deferred + Non",
+   "old": [
+    "- **Reads:** the resolved spine's Vision, Scope (Deferred + Non-goals), Plan (concern-area checklist), the `STATUS.md` ticket rows; the codebase + docs. (`PRODUCT.md#…` when it exists; otherwise the equivalent sections of the resolved doc, per MECHANISMS.md §Spine resolution.)"
+   ],
+   "new": [
+    "- **Reads:** the resolved spine's Vision, Scope (Deferred + Non-goals), Plan (concern-area checklist), the `STATUS.md` ticket rows; the codebase + docs. (`PRODUCT.md#…` when it exists; otherwise the equivalent sections of the resolved doc, per MECHANISMS.md §Spine resolution.)"
+   ]
+  },
+  {
+   "id": "DC03",
+   "what": "Contract: Writes: a drift report to the user + a",
+   "old": [
+    "- **Writes:** a drift report to the user + a `status.py drift` row in `STATUS.md` on any confirmed drift (never `/learn`'s `#Learnings`); does NOT advance the chain. **If there is no `PRODUCT.md`, do not create one** — report to the user and, if the project keeps a log/CHANGELOG, offer to append the drift note there."
+   ],
+   "new": [
+    "- **Writes:** a drift report to the user + a `status.py drift` row in `STATUS.md` on any confirmed drift (never `/learn`'s `#Learnings`); does NOT advance the chain. **If there is no `PRODUCT.md`, do not create one** — report to the user and, if the project keeps a log/CHANGELOG, offer to append the drift note there."
+   ]
+  },
+  {
+   "id": "DC04",
+   "what": "Contract: State model ( STATE MODEL.md §2c): writes a STATUS.md",
+   "old": [
+    "- **State model** (`STATE-MODEL.md` §2c): writes a `STATUS.md` drift row · `declined` ✓ · `override` n/a — cross-cutting, it gates on nothing · `superseded` n/a — append-only log: one entry per run"
+   ],
+   "new": [
+    "- **State model** (`STATE-MODEL.md` §2c): writes a `STATUS.md` drift row · `declined` ✓ · `override` n/a — cross-cutting, it gates on nothing · `superseded` n/a — append-only log: one entry per run"
+   ]
+  },
+  {
+   "id": "DC05",
+   "what": "Contract: Built features cross checked against #Scope — any OUT",
+   "old": [
+    "- [ ] Built features cross-checked against `#Scope` — any OUT-OF-SCOPE item that got built is flagged as creep. → `STATUS.md Drift: Drift found`"
+   ],
+   "new": [
+    "- [ ] Built features cross-checked against `#Scope` — any OUT-OF-SCOPE item that got built is flagged as creep. → `STATUS.md Drift: Drift found`"
+   ]
+  },
+  {
+   "id": "DC06",
+   "what": "Contract: Current direction cross checked against #Vision — misalignment surfaced.",
+   "old": [
+    "- [ ] Current direction cross-checked against `#Vision` — misalignment surfaced. → `STATUS.md Drift: Drift found`"
+   ],
+   "new": [
+    "- [ ] Current direction cross-checked against `#Vision` — misalignment surfaced. → `STATUS.md Drift: Drift found`"
+   ]
+  },
+  {
+   "id": "DC07",
+   "what": "Contract: Code↔docs drift checked — every stated capability / security",
+   "old": [
+    "- [ ] Code↔docs drift checked — every stated capability / security control / supported path traced to the code that backs it. → `STATUS.md Drift: Drift found`"
+   ],
+   "new": [
+    "- [ ] Code↔docs drift checked — every stated capability / security control / supported path traced to the code that backs it. → `STATUS.md Drift: Drift found`"
+   ]
+  },
+  {
+   "id": "DC08",
+   "what": "Contract: Claim to evidence pass: every exit criterion recorded as",
+   "old": [
+    "- [ ] **Claim-to-evidence pass:** every exit criterion recorded as met in the spine is given one of four"
+   ],
+   "new": [
+    "- [ ] **Claim-to-evidence pass:** every exit criterion recorded as met in the spine is given one of four"
+   ]
+  },
+  {
+   "id": "DC09",
+   "what": "Contract: verdicts — VERIFIED · PARTIALLY VERIFIED · UNVERIFIED ·",
+   "old": [
+    "verdicts — `VERIFIED` · `PARTIALLY VERIFIED` · `UNVERIFIED` · `CONTRADICTED` (`STATE-MODEL.md` §2g)."
+   ],
+   "new": [
+    "verdicts — `VERIFIED` · `PARTIALLY VERIFIED` · `UNVERIFIED` · `CONTRADICTED` (`STATE-MODEL.md` §2g)."
+   ]
+  },
+  {
+   "id": "DC10",
+   "what": "Contract: A claim with no evidence is reported, never silently",
+   "old": [
+    "A claim with no evidence is **reported, never silently passed**. → `STATUS.md Drift: Drift found`"
+   ],
+   "new": [
+    "A claim with no evidence is **reported, never silently passed**. → `STATUS.md Drift: Drift found`"
+   ]
+  },
+  {
+   "id": "DC11",
+   "what": "Contract: A clear verdict: on track, or a specific list",
+   "old": [
+    "- [ ] A clear verdict: on-track, or a specific list of drifts + a recommended cut/correction. → `STATUS.md Drift: Recommendation`"
+   ],
+   "new": [
+    "- [ ] A clear verdict: on-track, or a specific list of drifts + a recommended cut/correction. → `STATUS.md Drift: Recommendation`"
+   ]
+  },
+  {
+   "id": "DC12",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: ## Step 0b — Claim to evidence pass (re",
+   "old": [
+    "## Step 0b — Claim-to-evidence pass (re-verify, don't re-read)"
+   ],
+   "new": [
+    "## Step 0b — Claim-to-evidence pass (re-verify, don't re-read)"
+   ]
+  },
+  {
+   "id": "DC13",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: One pass, two moments. Every phase now runs this",
+   "old": [
+    "> **One pass, two moments.** Every phase now runs this same pass at its own transition, scoped to the"
+   ],
+   "new": [
+    "> **One pass, two moments.** Every phase now runs this same pass at its own transition, scoped to the"
+   ]
+  },
+  {
+   "id": "DC14",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: criteria it just wrote ( MECHANISMS.md §Step 3b, item",
+   "old": [
+    "> criteria it just wrote (`MECHANISMS.md` §Step 3b, item 4 — the transition guard). This sweep is the"
+   ],
+   "new": [
+    "> criteria it just wrote (`MECHANISMS.md` §Step 3b, item 4 — the transition guard). This sweep is the"
+   ]
+  },
+  {
+   "id": "DC15",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: cross cutting one: every claim in the spine, including",
+   "old": [
+    "> cross-cutting one: every claim in the spine, including the ones written before the guard existed."
+   ],
+   "new": [
+    "> cross-cutting one: every claim in the spine, including the ones written before the guard existed."
+   ]
+  },
+  {
+   "id": "DC16",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: Every x in the spine is a claim. A",
+   "old": [
+    "Every `- [x]` in the spine is a claim. **A checked box and a checked box with fabricated justification are"
+   ],
+   "new": [
+    "Every `- [x]` in the spine is a claim. **A checked box and a checked box with fabricated justification are"
+   ]
+  },
+  {
+   "id": "DC17",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: indistinguishable to any later reader, human or agent —",
+   "old": [
+    "indistinguishable to any later reader, human or agent** — unless the claim points at something re-runnable."
+   ],
+   "new": [
+    "indistinguishable to any later reader, human or agent** — unless the claim points at something re-runnable."
+   ]
+  },
+  {
+   "id": "DC18",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: So for each one:",
+   "old": [
+    "So for each one:"
+   ],
+   "new": [
+    "So for each one:"
+   ]
+  },
+  {
+   "id": "DC19",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: 1. Find its evidence line — the single form",
+   "old": [
+    "1. **Find its evidence line** — the single form settled in `STATE-MODEL.md` §2f:"
+   ],
+   "new": [
+    "1. **Find its evidence line** — the single form settled in `STATE-MODEL.md` §2f:"
+   ]
+  },
+  {
+   "id": "DC20",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: evidence: <command → <result · <artefact · <YYYY MM",
+   "old": [
+    "`` `evidence: <command> → <result> · <artefact> · <YYYY-MM-DD>` ``. There is exactly one format; **do"
+   ],
+   "new": [
+    "`` `evidence: <command> → <result> · <artefact> · <YYYY-MM-DD>` ``. There is exactly one format; **do"
+   ]
+  },
+  {
+   "id": "DC21",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: not invent a second one , and do not",
+   "old": [
+    "not invent a second one**, and do not \"upgrade\" prose evidence you find into that shape without"
+   ],
+   "new": [
+    "not invent a second one**, and do not \"upgrade\" prose evidence you find into that shape without"
+   ]
+  },
+  {
+   "id": "DC22",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: re running it — transcribing a claim into evidence",
+   "old": [
+    "re-running it — transcribing a claim into evidence-looking text is the failure this pass exists to catch."
+   ],
+   "new": [
+    "re-running it — transcribing a claim into evidence-looking text is the failure this pass exists to catch."
+   ]
+  },
+  {
+   "id": "DC23",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: 2. Re run it, don't re read it. Execute",
+   "old": [
+    "2. **Re-run it, don't re-read it.** Execute the command. Check the artefact exists."
+   ],
+   "new": [
+    "2. **Re-run it, don't re-read it.** Execute the command. Check the artefact exists."
+   ]
+  },
+  {
+   "id": "DC24",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: 3. Assign one of four verdicts ( §2g ),",
+   "old": [
+    "3. **Assign one of four verdicts** (`§2g`), and say which:"
+   ],
+   "new": [
+    "3. **Assign one of four verdicts** (`§2g`), and say which:"
+   ]
+  },
+  {
+   "id": "DC25",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: VERIFIED — re ran, result matches.",
+   "old": [
+    "- `VERIFIED` — re-ran, result matches."
+   ],
+   "new": [
+    "- `VERIFIED` — re-ran, result matches."
+   ]
+  },
+  {
+   "id": "DC26",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: PARTIALLY VERIFIED — re ran and the artefact is",
+   "old": [
+    "- `PARTIALLY VERIFIED` — re-ran and the artefact is there, but the result differs in degree not"
+   ],
+   "new": [
+    "- `PARTIALLY VERIFIED` — re-ran and the artefact is there, but the result differs in degree not"
+   ]
+  },
+  {
+   "id": "DC27",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: direction, or the evidence covers only part of the",
+   "old": [
+    "direction, or the evidence covers only part of the claim."
+   ],
+   "new": [
+    "direction, or the evidence covers only part of the claim."
+   ]
+  },
+  {
+   "id": "DC28",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: UNVERIFIED — no measurement was taken : no evidence",
+   "old": [
+    "- `UNVERIFIED` — **no measurement was taken**: no evidence line, or the command cannot run here"
+   ],
+   "new": [
+    "- `UNVERIFIED` — **no measurement was taken**: no evidence line, or the command cannot run here"
+   ]
+  },
+  {
+   "id": "DC29",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: (missing tooling, credentials, a live service). Say which ,",
+   "old": [
+    "(missing tooling, credentials, a live service). Say *which*, so the reader knows whether to be"
+   ],
+   "new": [
+    "(missing tooling, credentials, a live service). Say *which*, so the reader knows whether to be"
+   ]
+  },
+  {
+   "id": "DC30",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: worried or to install something.",
+   "old": [
+    "worried or to install something."
+   ],
+   "new": [
+    "worried or to install something."
+   ]
+  },
+  {
+   "id": "DC31",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: CONTRADICTED — a measurement was taken and it disagrees",
+   "old": [
+    "- `CONTRADICTED` — **a measurement was taken and it disagrees**: the command fails, or the named"
+   ],
+   "new": [
+    "- `CONTRADICTED` — **a measurement was taken and it disagrees**: the command fails, or the named"
+   ]
+  },
+  {
+   "id": "DC32",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: artefact does not exist.",
+   "old": [
+    "artefact does not exist."
+   ],
+   "new": [
+    "artefact does not exist."
+   ]
+  },
+  {
+   "id": "DC33",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: 4. Never merge the last two. UNVERIFIED is absence",
+   "old": [
+    "4. **Never merge the last two.** `UNVERIFIED` is absence of evidence; `CONTRADICTED` is evidence of"
+   ],
+   "new": [
+    "4. **Never merge the last two.** `UNVERIFIED` is absence of evidence; `CONTRADICTED` is evidence of"
+   ]
+  },
+  {
+   "id": "DC34",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: absence. Reporting a never attempted check as CONTRADICTED sends",
+   "old": [
+    "absence. Reporting a never-attempted check as CONTRADICTED sends someone chasing a phantom regression;"
+   ],
+   "new": [
+    "absence. Reporting a never-attempted check as CONTRADICTED sends someone chasing a phantom regression;"
+   ]
+  },
+  {
+   "id": "DC35",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: reporting a failed one as UNVERIFIED hides a real",
+   "old": [
+    "reporting a failed one as UNVERIFIED hides a real one behind \"we could not tell\"."
+   ],
+   "new": [
+    "reporting a failed one as UNVERIFIED hides a real one behind \"we could not tell\"."
+   ]
+  },
+  {
+   "id": "DC36",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: 5. Report every unevidenced claim. A criterion nobody measured",
+   "old": [
+    "5. **Report every unevidenced claim.** A criterion nobody measured is a normal, honest state — plenty of"
+   ],
+   "new": [
+    "5. **Report every unevidenced claim.** A criterion nobody measured is a normal, honest state — plenty of"
+   ]
+  },
+  {
+   "id": "DC37",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: things are judged rather than measured — but it",
+   "old": [
+    "things are judged rather than measured — but it is never silently counted as met."
+   ],
+   "new": [
+    "things are judged rather than measured — but it is never silently counted as met."
+   ]
+  },
+  {
+   "id": "DC38",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: An UNVERIFIED claim is a finding about the record",
+   "old": [
+    "An `UNVERIFIED` claim is a finding about the *record*, not necessarily about the code; a `CONTRADICTED`"
+   ],
+   "new": [
+    "An `UNVERIFIED` claim is a finding about the *record*, not necessarily about the code; a `CONTRADICTED`"
+   ]
+  },
+  {
+   "id": "DC39",
+   "what": "Step 0b — Claim-to-evidence pass (re-ver: one is a finding about both. Rank them accordingly",
+   "old": [
+    "one is a finding about both. Rank them accordingly in the report."
+   ],
+   "new": [
+    "one is a finding about both. Rank them accordingly in the report."
+   ]
+  },
+  {
+   "id": "DC40",
+   "what": "Step 0c — Check the project against its : ## Step 0c — Check the project against its",
+   "old": [
+    "## Step 0c — Check the project against its OWN rules"
+   ],
+   "new": [
+    "## Step 0c — Check the project against its OWN rules"
+   ]
+  },
+  {
+   "id": "DC41",
+   "what": "Step 0c — Check the project against its : Before comparing code to docs, compare the project to",
+   "old": [
+    "Before comparing code to docs, compare the project to the rules it publishes. **A rule the project does"
+   ],
+   "new": [
+    "Before comparing code to docs, compare the project to the rules it publishes. **A rule the project does"
+   ]
+  },
+  {
+   "id": "DC42",
+   "what": "Step 0c — Check the project against its : not apply to itself is the one most likely",
+   "old": [
+    "not apply to itself is the one most likely to be broken** — the author knows the reasoning, so the file"
+   ],
+   "new": [
+    "not apply to itself is the one most likely to be broken** — the author knows the reasoning, so the file"
+   ]
+  },
+  {
+   "id": "DC43",
+   "what": "Step 0c — Check the project against its : feels exempt ( LESSONS.md ). Read the spine's own",
+   "old": [
+    "feels exempt (`LESSONS.md`). Read the spine's own stated rules — thresholds, naming requirements, gates,"
+   ],
+   "new": [
+    "feels exempt (`LESSONS.md`). Read the spine's own stated rules — thresholds, naming requirements, gates,"
+   ]
+  },
+  {
+   "id": "DC44",
+   "what": "Step 0c — Check the project against its : counts — and ask of each: does this repository",
+   "old": [
+    "counts — and ask of each: *does this repository satisfy it?* That list is free, specific to this project,"
+   ],
+   "new": [
+    "counts — and ask of each: *does this repository satisfy it?* That list is free, specific to this project,"
+   ]
+  },
+  {
+   "id": "DC45",
+   "what": "Step 0c — Check the project against its : and nobody else will ever run it.",
+   "old": [
+    "and nobody else will ever run it."
+   ],
+   "new": [
+    "and nobody else will ever run it."
+   ]
+  },
+  {
+   "id": "DC46",
+   "what": "Step 0 — Resolve the spine, then build c: ## Step 0 — Resolve the spine, then build",
+   "old": [
+    "## Step 0 — Resolve the spine, then build context"
+   ],
+   "new": [
+    "## Step 0 — Resolve the spine, then build context"
+   ]
+  },
+  {
+   "id": "DC47",
+   "what": "one start command; no whole-file reads (P1, P2) - was: run next and read three files whole",
+   "old": [
+    "- **One first message: run `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next` and read all of `PRINCIPLES.md`, `MECHANISMS.md`, `PRODUCT.md`.** Show its first line; close by its checklist."
+   ],
+   "new": [
+    "**First turn, ONE command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase drift-check`**",
+    "never the rule files or `PRODUCT.md` whole. Show its first line."
+   ]
+  },
+  {
+   "id": "DC48",
+   "what": "Step 0 — Resolve the spine, then build c: Resolve the spine first (MECHANISMS.md §Spine resolution): PRODUCT.md if",
+   "old": [
+    "- **Resolve the spine first** (MECHANISMS.md §Spine resolution): `PRODUCT.md` if present; else the"
+   ],
+   "new": [
+    "- **Resolve the spine first** (MECHANISMS.md §Spine resolution): `PRODUCT.md` if present; else the"
+   ]
+  },
+  {
+   "id": "DC49",
+   "what": "Step 0 — Resolve the spine, then build c: project's own docs ( CLAUDE.md → README.md → docs/",
+   "old": [
+    "project's own docs (`CLAUDE.md` → `README.md` → `docs/` → `AGENTS.md`); else (code only) an"
+   ],
+   "new": [
+    "project's own docs (`CLAUDE.md` → `README.md` → `docs/` → `AGENTS.md`); else (code only) an"
+   ]
+  },
+  {
+   "id": "DC50",
+   "what": "say which spine was resolved - the start resolves it (L3)",
+   "old": [
+    "**INFERRED** picture from code + package metadata. **Say which you resolved.**"
+   ],
+   "new": [
+    "**INFERRED** picture from code + package metadata. **Say which the start resolved.**"
+   ]
+  },
+  {
+   "id": "DC51",
+   "what": "read what was supposed to be built - printed by the start, #Plan by `section`, never PRODUCT.md whole (P2)",
+   "old": [
+    "- Read the spine's Vision / Scope / Plan / Build-log equivalents. Build the picture of what was"
+   ],
+   "new": [
+    "- Tier 1: `#Plan` via `status.py section PRODUCT.md Plan` (the start printed `#Vision`/`#Scope`); Tier 2: the"
+   ]
+  },
+  {
+   "id": "DC52",
+   "what": "Step 0 — Resolve the spine, then build c: supposed to be built.",
+   "old": [
+    "*supposed* to be built."
+   ],
+   "new": [
+    "*supposed* to be built."
+   ]
+  },
+  {
+   "id": "DC53",
+   "what": "Step 0 — Resolve the spine, then build c: Verify against the real code/docs — don't assume the",
+   "old": [
+    "- **Verify against the real code/docs** — don't assume the spine is current; reconcile it with what's actually there."
+   ],
+   "new": [
+    "- **Verify against the real code/docs** — don't assume the spine is current; reconcile it with what's actually there."
+   ]
+  },
+  {
+   "id": "DC54",
+   "what": "Step 0 — Resolve the spine, then build c: Code only (Tier 3): there is no recorded intent,",
+   "old": [
+    "- **Code-only (Tier 3):** there is no recorded intent, so **true scope/vision drift cannot be"
+   ],
+   "new": [
+    "- **Code-only (Tier 3):** there is no recorded intent, so **true scope/vision drift cannot be"
+   ]
+  },
+  {
+   "id": "DC55",
+   "what": "Step 0 — Resolve the spine, then build c: judged — do not invent a baseline and grade",
+   "old": [
+    "judged** — do not invent a baseline and grade against it. You may still sanity-check the code's"
+   ],
+   "new": [
+    "judged** — do not invent a baseline and grade against it. You may still sanity-check the code's"
+   ]
+  },
+  {
+   "id": "DC56",
+   "what": "Step 0 — Resolve the spine, then build c: internal consistency; then jump to Step 3 and recommend",
+   "old": [
+    "internal consistency; then jump to Step 3 and recommend bootstrapping a spine."
+   ],
+   "new": [
+    "internal consistency; then jump to Step 3 and recommend bootstrapping a spine."
+   ]
+  },
+  {
+   "id": "DC57",
+   "what": "Step 1 — Apply principles: ## Step 1 — Apply principles",
+   "old": [
+    "## Step 1 — Apply principles"
+   ],
+   "new": [
+    "## Step 1 — Apply principles"
+   ]
+  },
+  {
+   "id": "DC58",
+   "what": "Step 1 — Apply principles: Vision alignment is top priority: the test for every",
+   "old": [
+    "- **Vision-alignment is top priority:** the test for every feature is \"does this serve the vision?\""
+   ],
+   "new": [
+    "- **Vision-alignment is top priority:** the test for every feature is \"does this serve the vision?\""
+   ]
+  },
+  {
+   "id": "DC59",
+   "what": "Step 1 — Apply principles: Scope discipline: anything built that's in OUT OF SCOPE",
+   "old": [
+    "- **Scope discipline:** anything built that's in OUT-OF-SCOPE (without its trigger having fired) is creep."
+   ],
+   "new": [
+    "- **Scope discipline:** anything built that's in OUT-OF-SCOPE (without its trigger having fired) is creep."
+   ]
+  },
+  {
+   "id": "DC60",
+   "what": "Step 1 — Apply principles: Docs match reality: a claim in the docs that",
+   "old": [
+    "- **Docs match reality:** a claim in the docs that the code doesn't support is drift too."
+   ],
+   "new": [
+    "- **Docs match reality:** a claim in the docs that the code doesn't support is drift too."
+   ]
+  },
+  {
+   "id": "DC61",
+   "what": "Step 2 — Check for drift: ## Step 2 — Check for drift",
+   "old": [
+    "## Step 2 — Check for drift"
+   ],
+   "new": [
+    "## Step 2 — Check for drift"
+   ]
+  },
+  {
+   "id": "DC62",
+   "what": "Step 2 — Check for drift: Each phase now runs its own Step 3c contradiction",
+   "old": [
+    "> Each phase now runs its own **Step 3c** contradiction check before its gate closes (`MECHANISMS.md` §Step 3c), so a contradiction *between* two spine sections should be rare and dated. This sweep is what catches the ones that escaped — and a conflict you find here that carries **no `superseded by` line** means a phase skipped its Step 3c: report that as drift in its own right."
+   ],
+   "new": [
+    "> Each phase now runs its own **Step 3c** contradiction check before its gate closes (`MECHANISMS.md` §Step 3c), so a contradiction *between* two spine sections should be rare and dated. This sweep is what catches the ones that escaped — and a conflict you find here that carries **no `superseded by` line** means a phase skipped its Step 3c: report that as drift in its own right."
+   ]
+  },
+  {
+   "id": "DC63",
+   "what": "Step 2 — Check for drift: 1. Scope creep: list features in the code/build log",
+   "old": [
+    "1. **Scope creep:** list features in the code/build log not justified by `#Scope`; flag anything built that's a **Non-goal** or a **Deferred** item whose trigger never fired. Also flag the inverse: a deliberate pivot the spine never recorded → recommend updating `#Scope`/`#Vision`, not cutting code."
+   ],
+   "new": [
+    "1. **Scope creep:** list features in the code/build log not justified by `#Scope`; flag anything built that's a **Non-goal** or a **Deferred** item whose trigger never fired. Also flag the inverse: a deliberate pivot the spine never recorded → recommend updating `#Scope`/`#Vision`, not cutting code."
+   ]
+  },
+  {
+   "id": "DC64",
+   "what": "Step 2 — Check for drift: 2. The spine's own size — a signal, not",
+   "old": [
+    "2. **The spine's own size — a signal, not a verdict.** There is **no byte cap** on `PRODUCT.md` or any"
+   ],
+   "new": [
+    "2. **The spine's own size — a signal, not a verdict.** There is **no byte cap** on `PRODUCT.md` or any"
+   ]
+  },
+  {
+   "id": "DC65",
+   "what": "Step 2 — Check for drift: section ( PRINCIPLES.md , MECHANISMS ON DEMAND.md §Section is",
+   "old": [
+    "section (`PRINCIPLES.md`, `MECHANISMS-ON-DEMAND.md §Section is a record`). Report the file size and"
+   ],
+   "new": [
+    "section (`PRINCIPLES.md`, `MECHANISMS-ON-DEMAND.md §Section is a record`). Report the file size and"
+   ]
+  },
+  {
+   "id": "DC66",
+   "what": "Step 2 — Check for drift: name the largest sections ( \" #Vision is the",
+   "old": [
+    "name the largest sections (*\"`#Vision` is the largest section at 5.1KB — worth a look\"*), then apply"
+   ],
+   "new": [
+    "name the largest sections (*\"`#Vision` is the largest section at 5.1KB — worth a look\"*), then apply"
+   ]
+  },
+  {
+   "id": "DC67",
+   "what": "Step 2 — Check for drift: the record test to the ones you name: a",
+   "old": [
+    "the **record test** to the ones you name: a field holding *reasoning* rather than a decision, evidence"
+   ],
+   "new": [
+    "the **record test** to the ones you name: a field holding *reasoning* rather than a decision, evidence"
+   ]
+  },
+  {
+   "id": "DC68",
+   "what": "Step 2 — Check for drift: line or pointer is the finding, and the fix",
+   "old": [
+    "line or pointer is the finding, and the fix is to move that reasoning into its companion"
+   ],
+   "new": [
+    "line or pointer is the finding, and the fix is to move that reasoning into its companion"
+   ]
+  },
+  {
+   "id": "DC69",
+   "what": "Step 2 — Check for drift: ( docs/<phase .md , docs/adr/ , docs/runbook.md , STRUCTURE.md",
+   "old": [
+    "(`docs/<phase>.md`, `docs/adr/*`, `docs/runbook.md`, `STRUCTURE.md`, `DESIGN.md`, `docs/features/*`,"
+   ],
+   "new": [
+    "(`docs/<phase>.md`, `docs/adr/*`, `docs/runbook.md`, `STRUCTURE.md`, `DESIGN.md`, `docs/features/*`,"
+   ]
+  },
+  {
+   "id": "DC70",
+   "what": "Step 2 — Check for drift: src/schemas/ ) — never to trim the answer. A",
+   "old": [
+    "`src/schemas/*`) — never to trim the answer. A big section made of tight required answers is not a"
+   ],
+   "new": [
+    "`src/schemas/*`) — never to trim the answer. A big section made of tight required answers is not a"
+   ]
+  },
+  {
+   "id": "DC71",
+   "what": "Step 2 — Check for drift: finding. A real spine reached 73KB with five sections",
+   "old": [
+    "finding. A real spine reached **73KB with five sections still empty** because it held reasoning; at"
+   ],
+   "new": [
+    "A big section made of tight required answers is not a"
+   ]
+  },
+  {
+   "id": "DC74",
+   "what": "Step 2 — Check for drift: 3. A stalled running gate. A section in the",
+   "old": [
+    "3. **A stalled `running` gate.** A section in the `running` state (`STATE-MODEL.md` §2a) **past its"
+   ],
+   "new": [
+    "3. **A stalled `running` gate.** A section in the `running` state (`STATE-MODEL.md` §2a) **past its"
+   ]
+  },
+  {
+   "id": "DC75",
+   "what": "Step 2 — Check for drift: due date with no result is a finding nobody",
+   "old": [
+    "due date with no result** is a finding nobody was emitting: the experiment was scheduled, the chain"
+   ],
+   "new": [
+    "due date with no result** is a finding nobody was emitting: the experiment was scheduled, the chain"
+   ]
+  },
+  {
+   "id": "DC76",
+   "what": "Step 2 — Check for drift: moved on provisionally, and the result never landed. Report",
+   "old": [
+    "moved on provisionally, and the result never landed. Report it with the date it was due and what"
+   ],
+   "new": [
+    "moved on provisionally, and the result never landed. Report it with the date it was due and what"
+   ]
+  },
+  {
+   "id": "DC77",
+   "what": "Step 2 — Check for drift: downstream work is still marked provisional.",
+   "old": [
+    "downstream work is still marked provisional."
+   ],
+   "new": [
+    "downstream work is still marked provisional."
+   ]
+  },
+  {
+   "id": "DC78",
+   "what": "Step 2 — Check for drift: 4. Vision drift: is the current direction still serving",
+   "old": [
+    "4. **Vision drift:** is the current direction still serving `#Vision` and its north-star metric? Surface any quiet pivot. While code exists and `#Vision`'s riskiest assumption has no `#Validation` result, name it once as an **untested risk** (not a finding): `/validate` is optional and can still test it cheaper than the next feature."
+   ],
+   "new": [
+    "4. **Vision drift:** is the current direction still serving `#Vision` and its north-star metric? Surface any quiet pivot. While code exists and `#Vision`'s riskiest assumption has no `#Validation` result, name it once as an **untested risk** (not a finding): `/validate` is optional and can still test it cheaper than the next feature."
+   ]
+  },
+  {
+   "id": "DC79",
+   "what": "Step 2 — Check for drift: 5. Table stakes drift: re read #Scope 's table",
+   "old": [
+    "5. **Table-stakes drift:** re-read `#Scope`'s table-stakes list. An item marked **in-scope now** that was"
+   ],
+   "new": [
+    "5. **Table-stakes drift:** re-read `#Scope`'s table-stakes list. An item marked **in-scope now** that was"
+   ]
+  },
+  {
+   "id": "DC80",
+   "what": "Step 2 — Check for drift: never built is drift of the most expensive kind",
+   "old": [
+    "never built is drift of the most expensive kind — it surfaces at ship time as \"we can't launch without"
+   ],
+   "new": [
+    "never built is drift of the most expensive kind — it surfaces at ship time as \"we can't launch without"
+   ]
+  },
+  {
+   "id": "DC81",
+   "what": "Step 2 — Check for drift: this\". An item marked Deferred whose trigger has now",
+   "old": [
+    "this\". An item marked **Deferred** whose **trigger has now fired** is the same finding with a date on it."
+   ],
+   "new": [
+    "this\". An item marked **Deferred** whose **trigger has now fired** is the same finding with a date on it."
+   ]
+  },
+  {
+   "id": "DC82",
+   "what": "Step 2 — Check for drift: 6. Plan / concern area drift: milestones skipped or",
+   "old": [
+    "6. **Plan / concern-area drift:** milestones skipped or reordered off core-first? Re-read `#Plan`'s concern-area checklist — any \"now\" still unbuilt, any \"next\" overdue?"
+   ],
+   "new": [
+    "6. **Plan / concern-area drift:** milestones skipped or reordered off core-first? Re-read `#Plan`'s concern-area checklist — any \"now\" still unbuilt, any \"next\" overdue?"
+   ]
+  },
+  {
+   "id": "DC83",
+   "what": "Step 2 — Check for drift: 7. Doc drift: grep the docs' concrete claims —",
+   "old": [
+    "7. **Doc drift:** grep the docs' **concrete** claims — paths, flags, model names, field names, stage lists — against the code, and flag each that no longer holds. Prose re-reading finds nothing; a stale instruction is worse than none because it gets followed. If the `STATUS.md` ticket rows are stale vs the code, flag that as drift too."
+   ],
+   "new": [
+    "7. **Doc drift:** grep the docs' **concrete** claims — paths, flags, model names, field names, stage lists — against the code, and flag each that no longer holds. Prose re-reading finds nothing; a stale instruction is worse than none because it gets followed. If the `STATUS.md` ticket rows are stale vs the code, flag that as drift too."
+   ]
+  },
+  {
+   "id": "DC84",
+   "what": "Step 2 — Check for drift: 8. Agent instructions that are ABSENT, before any check",
+   "old": [
+    "8. **Agent instructions that are ABSENT, before any check for rot.** A filled spine and **no**"
+   ],
+   "new": [
+    "8. **Agent instructions that are ABSENT, before any check for rot.** A filled spine and **no**"
+   ]
+  },
+  {
+   "id": "DC85",
+   "what": "Step 2 — Check for drift: CLAUDE.md / AGENTS.md at all is the emptiest possible",
+   "old": [
+    "`CLAUDE.md` / `AGENTS.md` at all is the emptiest possible case, and it passed silently: every"
+   ],
+   "new": [
+    "`CLAUDE.md` / `AGENTS.md` at all is the emptiest possible case, and it passed silently: every"
+   ]
+  },
+  {
+   "id": "DC86",
+   "what": "Step 2 — Check for drift: check below reads a file that has to exist.",
+   "old": [
+    "check below reads a file that has to exist. Report it — the next session is then told nothing"
+   ],
+   "new": [
+    "check below reads a file that has to exist. Report it — the next session is then told nothing"
+   ]
+  },
+  {
+   "id": "DC87",
+   "what": "Step 2 — Check for drift: of what every phase decided, which on a solo",
+   "old": [
+    "of what every phase decided, which on a solo-with-agents workflow *is* the workflow. A file the"
+   ],
+   "new": [
+    "of what every phase decided, which on a solo-with-agents workflow *is* the workflow. A file the"
+   ]
+  },
+  {
+   "id": "DC88",
+   "what": "Step 2 — Check for drift: project's framework generated (a <! BEGIN: block and nothing",
+   "old": [
+    "project's framework generated (a `<!-- BEGIN: -->` block and nothing else) counts as absent."
+   ],
+   "new": [
+    "project's framework generated (a `<!-- BEGIN: -->` block and nothing else) counts as absent."
+   ]
+  },
+  {
+   "id": "DC89",
+   "what": "Step 2 — Check for drift: /structure scaffolds it from templates/AGENTS.md .",
+   "old": [
+    "`/structure` scaffolds it from `templates/AGENTS.md`."
+   ],
+   "new": [
+    "`/structure` scaffolds it from `templates/AGENTS.md`."
+   ]
+  },
+  {
+   "id": "DC90",
+   "what": "Step 2 — Check for drift: 9. Agent instruction drift — the project's OWN skills/commands/",
+   "old": [
+    "9. **Agent-instruction drift — the project's OWN skills/commands/`CLAUDE.md`.** These rot exactly like docs, but they are far more dangerous, because they are **executed, not read**: a stale `docs/` page misleads a human who can sanity-check it, while a stale `.claude/skills/*` is picked up and *acted on*. Check each skill's concrete, falsifiable claims against the code — file paths and directory layout, storage/vendor, model + provider, contract field names, stage list and count, and any \"always/never do X\" rule. Flag three things: claims that are **false**, skills that contradict **each other**, and skills that contradict a **locked decision** in the spine."
+   ],
+   "new": [
+    "9. **Agent-instruction drift — the project's OWN skills/commands/`CLAUDE.md`.** These rot exactly like docs, but they are far more dangerous, because they are **executed, not read**: a stale `docs/` page misleads a human who can sanity-check it, while a stale `.claude/skills/*` is picked up and *acted on*. Check each skill's concrete, falsifiable claims against the code — file paths and directory layout, storage/vendor, model + provider, contract field names, stage list and count, and any \"always/never do X\" rule. Flag three things: claims that are **false**, skills that contradict **each other**, and skills that contradict a **locked decision** in the spine."
+   ]
+  },
+  {
+   "id": "DC91",
+   "what": "Step 2 — Check for drift: The structural fix, once you find the drift: make",
+   "old": [
+    "**The structural fix, once you find the drift: make docs POINT, don't RE-TYPE.** Audit the rotted"
+   ],
+   "new": [
+    "**The structural fix, once you find the drift: make docs POINT, don't RE-TYPE.** Audit the rotted"
+   ]
+  },
+  {
+   "id": "DC92",
+   "what": "Step 2 — Check for drift: set and you'll find nearly every false claim is",
+   "old": [
+    "set and you'll find nearly every false claim is a constant that already exists in config or a"
+   ],
+   "new": [
+    "set and you'll find nearly every false claim is a constant that already exists in config or a"
+   ]
+  },
+  {
+   "id": "DC93",
+   "what": "Step 2 — Check for drift: schema — a model name, a bucket, a threshold,",
+   "old": [
+    "schema — a model name, a bucket, a threshold, a field list — copied into prose where nothing can"
+   ],
+   "new": [
+    "schema — a model name, a bucket, a threshold, a field list — copied into prose where nothing can"
+   ]
+  },
+  {
+   "id": "DC94",
+   "what": "Step 2 — Check for drift: ever check it. This is the no hardcoding rule",
+   "old": [
+    "ever check it. This is the **no-hardcoding rule aimed at documentation**: a re-typed constant in a"
+   ],
+   "new": [
+    "ever check it. This is the **no-hardcoding rule aimed at documentation**: a re-typed constant in a"
+   ]
+  },
+  {
+   "id": "DC95",
+   "what": "Step 2 — Check for drift: doc is the same defect as a magic number",
+   "old": [
+    "doc is the same defect as a magic number in source, minus the compiler. So cite the source of"
+   ],
+   "new": [
+    "doc is the same defect as a magic number in source, minus the compiler. So cite the source of"
+   ]
+  },
+  {
+   "id": "DC96",
+   "what": "Step 2 — Check for drift: truth ( see platform.yaml llm. , see schemas/brief.py )",
+   "old": [
+    "truth (`see platform.yaml llm.*`, `see schemas/brief.py`) instead of restating its values, and"
+   ],
+   "new": [
+    "truth (`see platform.yaml llm.*`, `see schemas/brief.py`) instead of restating its values, and"
+   ]
+  },
+  {
+   "id": "DC97",
+   "what": "Step 2 — Check for drift: where a claim must be stated, pin it with",
+   "old": [
+    "where a claim must be stated, pin it with a **parity test** that reads both sides. *(Real"
+   ],
+   "new": [
+    "where a claim must be stated, pin it with a **parity test** that reads both sides. *(Real"
+   ]
+  },
+  {
+   "id": "DC98",
+   "what": "Step 2 — Check for drift: instance: in a 21 skill audit, 14 were stale",
+   "old": [
+    "instance: in a 21-skill audit, 14 were stale and **every** model/storage error was a re-typed"
+   ],
+   "new": [
+    "instance: in a 21-skill audit, 14 were stale and **every** model/storage error was a re-typed"
+   ]
+  },
+  {
+   "id": "DC99",
+   "what": "Step 2 — Check for drift: config value; the only two skills that survived were",
+   "old": [
+    "config value; the only two skills that survived were the two that pointed at a doc rather than"
+   ],
+   "new": [
+    "config value; the only two skills that survived were the two that pointed at a doc rather than"
+   ]
+  },
+  {
+   "id": "DC100",
+   "what": "Step 3 — Report + record: ## Step 3 — Report + record",
+   "old": [
+    "## Step 3 — Report + record"
+   ],
+   "new": [
+    "## Step 3 — Report + record"
+   ]
+  },
+  {
+   "id": "DC101",
+   "what": "Step 3 — Report + record: Give an honest verdict: on track , or a",
+   "old": [
+    "Give an honest verdict: **on-track**, or a specific list of drifts. For each, recommend a **cut**, a"
+   ],
+   "new": [
+    "Give an honest verdict: **on-track**, or a specific list of drifts. For each, recommend a **cut**, a"
+   ]
+  },
+  {
+   "id": "DC102",
+   "what": "Step 3 — Report + record: deliberate re scope (add to Scope with a trigger),",
+   "old": [
+    "**deliberate re-scope** (add to Scope with a trigger), or a **fix**. On any confirmed drift, write a"
+   ],
+   "new": [
+    "**deliberate re-scope** (add to Scope with a trigger), or a **fix**. On any confirmed drift, write a"
+   ]
+  },
+  {
+   "id": "DC103",
+   "what": "Step 3 — Report + record: status.py drift found \"<drift \" rec \"<cut / re",
+   "old": [
+    "`status.py drift --found \"<drift>\" --rec \"<cut / re-scope+trigger / fix>\"` row **when a `PRODUCT.md` exists**; otherwise report"
+   ],
+   "new": [
+    "`status.py drift --found \"<drift>\" --rec \"<cut / re-scope+trigger / fix>\"` row **when a `PRODUCT.md` exists**; otherwise report"
+   ]
+  },
+  {
+   "id": "DC104",
+   "what": "Step 3 — Report + record: to the user and offer to append to the",
+   "old": [
+    "to the user and offer to append to the project's log/CHANGELOG — never silently create a `PRODUCT.md`."
+   ],
+   "new": [
+    "to the user and offer to append to the project's log/CHANGELOG — never silently create a `PRODUCT.md`."
+   ]
+  },
+  {
+   "id": "DC105",
+   "what": "no phase write; confirm + record in one message; the printed last line",
+   "old": [
+    "(No phase write, no handoff — it's a check, not a stage.)"
+   ],
+   "new": [
+    "One message ends the report: *\"Record these drifts? Looks good - record (Recommended)\"* / *\"Change something\"*;",
+    "No phase write — it's a check, not a stage; the last line is the one the start (or `drift`) printed, word for word."
+   ]
+  },
+  {
+   "id": "DC106",
+   "what": "Step 3 — Report + record: Tier 3 (code only) verdict: say plainly \"no spine",
+   "old": [
+    "**Tier-3 (code-only) verdict:** say plainly *\"no spine doc exists, so I can't assess scope/vision"
+   ],
+   "new": [
+    "**Tier-3 (code-only) verdict:** say plainly *\"no spine doc exists, so I can't assess scope/vision"
+   ]
+  },
+  {
+   "id": "DC107",
+   "what": "Step 3 — Report + record: drift — there's no recorded intent to compare against.\"",
+   "old": [
+    "drift — there's no recorded intent to compare against.\"* Give the INFERRED summary, then recommend"
+   ],
+   "new": [
+    "drift — there's no recorded intent to compare against.\"* Give the INFERRED summary, then recommend"
+   ]
+  },
+  {
+   "id": "DC108",
+   "what": "Step 3 — Report + record: bootstrapping a spine ( /vision + /scope , or",
+   "old": [
+    "bootstrapping a spine (`/vision`+`/scope`, or a minimal `PRODUCT.md`/`CLAUDE.md`). Do **not** report"
+   ],
+   "new": [
+    "bootstrapping a spine (`/vision`+`/scope`, or a minimal `PRODUCT.md`/`CLAUDE.md`). Do **not** report"
+   ]
+  },
+  {
+   "id": "DC109",
+   "what": "Step 3 — Report + record: \"on track\" (there's nothing to be on track against",
+   "old": [
+    "\"on-track\" (there's nothing to be on-track *against*) and do **not** fabricate drift."
+   ],
+   "new": [
+    "\"on-track\" (there's nothing to be on-track *against*) and do **not** fabricate drift."
+   ]
+  },
+  {
+   "id": "DC110",
+   "what": "Step 3b — Self-verify: ## Step 3b — Self verify",
+   "old": [
+    "## Step 3b — Self-verify"
+   ],
+   "new": [
+    "## Step 3b — Self-verify"
+   ]
+  },
+  {
+   "id": "DC111",
+   "what": "Step 3b — Self-verify: If you reported \"on track\" without actually cross checking",
+   "old": [
+    "**If you reported \"on-track\" without actually cross-checking the build against OUT-OF-SCOPE, redo it** —"
+   ],
+   "new": [
+    "**If you reported \"on-track\" without actually cross-checking the build against OUT-OF-SCOPE, redo it** —"
+   ]
+  },
+  {
+   "id": "DC112",
+   "what": "Step 3b — Self-verify: a rubber stamp drift check is worse than none.",
+   "old": [
+    "a rubber-stamp drift check is worse than none."
+   ],
+   "new": [
+    "a rubber-stamp drift check is worse than none."
+   ]
+  },
+  {
+   "id": "DC-NOT",
+   "what": "what /drift-check must NOT do (P44)",
+   "old": [],
+   "new": [
+    "- **Must NOT:** change code, cut a feature, edit or create `PRODUCT.md`, or call a claim met without re-running its evidence."
+   ]
+  },
+  {
+   "id": "DC-EV",
+   "what": "an evidence artefact that is gone is CONTRADICTED before any run - checked by the script (L11)",
+   "old": [],
+   "new": [
+    "CONTRADICTED before any run (the script checked the artefact)"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "DC50b",
+   "what": "the start names the tier it resolved",
+   "old": [],
+   "new": [
+    "Spine: Tier 1 - PRODUCT.md (say so in the report)"
+   ],
+   "home": "tools/status.py"
+  }
+ ],
+ "dropped": [
+  {
+   "old": "*(Real instance: a project's three most task-relevant skills were each materially wrong — a stage documented as \"no LLM, schema check only\" that actually runs a vision judge; a contract listing fields deleted a session earlier plus a storage vendor the project had migrated off; and an \"X is blocking\" claim that inverted a locked blocking-vs-advisory split. Two also contradicted each other on whether a whole backend technology was permitted. Nobody had noticed, because sessions read the code directly and never opened the skills.)*",
+   "reason": "history: the anecdote behind item 9, no rule of its own; the three things to flag stay"
+  },
+  {
+   "old": "that size nobody reads it, they grep it, and a phase that greps instead of reading is the mechanism",
+   "reason": "the 73 KB anecdote behind the record test - history; the rule (report the size, apply the record test, never trim) stays"
+  },
+  {
+   "old": "behind several findings in this list.",
+   "reason": "the 73 KB anecdote behind the record test - history; the rule (report the size, apply the record test, never trim) stays"
+  },
+  {
+   "old": "A real spine reached **73KB with five sections still empty** because it held reasoning; at",
+   "reason": "same anecdote (DC72-73)"
+  }
+ ]
+}

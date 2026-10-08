@@ -1,0 +1,130 @@
+---
+name: new-component
+description: Create a new React frontend component in the token vocabulary DESIGN.md records. Use when building any UI component — buttons, cards, forms, modals, tables, or page sections. Reads DESIGN.md (falling back to shadcn defaults) so the component's tokens actually exist in the project, and enforces interactive states, motion and typography rules.
+---
+
+# `/new-component` — build one component against the recorded design system
+
+Create a new React component for your project's frontend.
+
+$ARGUMENTS
+
+> Part of **product-playbook**. Reads `DESIGN.md` (+ `PRODUCT.md#Design`) — resolve per
+> `MECHANISMS.md` §Spine resolution; writes one component file.
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **`status.py next --phase new-component` prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** — apply them; never open the whole files (a situational companion only when a rule points into it). Load-bearing: **no-hardcoding (tokens/fonts come from `DESIGN.md`, never
+> baked into the component)**, **accessibility (keyboard · focus · contrast · semantic markup) is part
+> of the definition-of-done**, **intention-revealing naming**, **docs match reality**.
+
+## Contract
+- **Purpose:** one React component, written in **the token vocabulary this project actually uses**.
+- **Reads:** `DESIGN.md` (tokens · type scale · motion · depth ladder) and `PRODUCT.md#Design`; `STRUCTURE.md` for where components live.
+- **Writes:** one component file (path confirmed with the user).
+- **Must NOT:** build more than one component, invent a token or a components folder, edit `DESIGN.md` or the stylesheet.
+- **Gate type:** `derivation` — the component is computable from `DESIGN.md`'s tokens plus the chosen ticket; the only preference in it (the file path) is confirmed, not invented. Batchable - several components may be built and reviewed together. Writes no spine section, so it declares no state model. (`STATE-MODEL.md` §2d)
+- **Exit criteria:**
+  - [ ] Invoked bare, the **pending components for the active milestone are offered** (built vs pending) and exactly **one** is chosen; with no tickets, it falls back to a description and says why.
+  - [ ] **Every `var(--token)` the component references resolves IN THE APP** — checked mechanically against
+    the project stylesheet `DESIGN.md` §2 names (`src/app/globals.css` or equivalent), **not against the
+    spec**. *Documented* and *resolves at runtime* are different claims and only the second one renders:
+    CSS drops a declaration whose `var()` is undefined, silently, so the component looks almost right and
+    the audit reports zero errors. No such stylesheet yet → say so and stop; that is `/design-system`
+    output that was never emitted, not something to improvise here.
+  - [ ] No raw hex, no literal font string, no invented token name. A token this component needs but `DESIGN.md` lacks is a **gap to raise**, not one to improvise.
+  - [ ] Every interactive element has **hover · focus-visible · active**; focus is never suppressed without a visible replacement.
+  - [ ] Motion animates `transform`/`opacity` only — never `transition: all`, never a layout/paint property.
+  - [ ] Typed props; no `font-size` below the floor `DESIGN.md` sets (12px absolute minimum).
+  - [ ] **`/frontend-audit` reports 0 errors** on the file — the gate `/build` runs. Necessary, not sufficient: it checks the tokens that *are* defined, not the ones you referenced.
+
+## Step 0 — Start
+**First turn, ONE command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase new-component`** — it lists
+the stylesheet's tokens, where components live, the pending components, the audit command and the rules; never
+read those files whole. End with its last line, word for word.
+
+## Step 0a — Scope discovery (only when invoked with NO arguments)
+The tickets already record every UI file a milestone needs (`/tickets` derives exact Target files from
+`STRUCTURE.md`): offer those instead of asking the user to retype a path:
+
+1-3. The start resolves the milestone from `docs/issues/`, takes each ticket's **Target files** with the
+   reading `/build` already does (no second parser), and marks what exists on disk.
+4. Show that menu and ask which one to build:
+
+```
+Current scope: [M1-DASH-03] Dashboard experience
+- [x] button.tsx            (built)
+- [ ] input.tsx             (pending)
+- [ ] dashboard-summary.tsx (pending)
+Which should we build next?
+```
+
+**Three constraints that keep this honest:**
+- **Discovery is a fallback, never a dependency.** The playbook is *sequential but standalone*: with no
+  `docs/issues/` or no active milestone, **say so in one line and continue from a plain description**. Never
+  an error, never a dead end.
+- **One component per invocation.** There is no "generate all pending" path, deliberately: `/build` builds
+  one thing against a definition-of-done, and a batch generator in a leaf skill routes around that gate and
+  emits N files nothing has reviewed.
+- **Directories come from `STRUCTURE.md`**, never a hardcoded `src/components/ui/` — the playbook does not
+  get to assume a layout it told the user to choose.
+
+**A ticket is a parsed document, and a parsed document is a boundary** (see
+`${CLAUDE_PLUGIN_ROOT}/references/case-files-contracts.md`). A malformed or hand-edited ticket **fails loudly, naming the file and
+what would not parse** — never a silently empty menu, which reads as "nothing pending" and is the worst
+possible answer.
+
+## Step 0b — Resolve the token vocabulary (do this BEFORE writing a line)
+The names below are **examples, not the contract**. Where `DESIGN.md` records a name, **that name wins**.
+
+1. **`DESIGN.md` exists** → read §Tokens and use those names verbatim. `/design-system` emits
+   **shadcn-compatible OKLCH tokens**, so expect `--background` · `--foreground` · `--card` ·
+   `--card-foreground` · `--primary` · `--primary-foreground` · `--muted` · `--muted-foreground` ·
+   `--destructive` · `--success` · `--warning` · `--border` · `--input` · `--ring` · `--radius` ·
+   `--shadow-sm` · `--shadow-lg`. Take the **type scale**, **motion durations** and the **depth
+   ladder** from there too.
+2. **No `DESIGN.md`** → say so plainly, recommend **`/design-system`**, and fall back to the **shadcn
+   defaults above** — the vocabulary `/design-system` emits and the ecosystem shares. **Never invent a
+   private one** (an undefined `var()` is dropped silently — the exit criteria say why).
+3. **A brownfield project with its own tokens** → use the project's names and record where you found them.
+
+## Rules — the intent is fixed, the token names come from Step 0
+1. **File location** — put it where `STRUCTURE.md` says components live (e.g. `components/<Name>.tsx`). Ask if unsure; never invent a new components root.
+2. **No raw hex** — every colour is a token from Step 0.
+3. **No raw fonts** — use the project's font variables/constants from `DESIGN.md`. Never write `'Inter'`, `system-ui`, or any literal font string.
+4. **Theme context** — use the project's own theme hook if `isDark`/theme state is needed. Don't import theme from an unrelated module.
+5. **Border rule** — never mix the `border` shorthand with `borderTop`/`borderLeft`/`borderRight`/`borderBottom` in one element's inline styles: React warns and the style breaks on re-render. All four sides explicitly, or the shorthand alone.
+6. **Interactive states** — hover + focus-visible + active on everything clickable, at a target ≥44px. Use the hover surface `DESIGN.md` names (shadcn default: `--muted` or `--accent`). Never suppress a focus outline without a visible replacement.
+7. **No `transition: all`** — animate `transform` and `opacity` only, at the duration `DESIGN.md` records, and honour `prefers-reduced-motion`.
+8. **Status colours are semantic** — the success/warning/destructive tokens from Step 0 (shadcn default: `--success` · `--warning` · `--destructive`). Never a raw colour for state.
+9. **Depth** — follow `DESIGN.md`'s layering ladder: base (`--background`) → raised (`--card` + `--shadow-sm`) → floating (`--shadow-lg` + border). Never everything on one z-plane.
+
+10. **Third-party DOM injection** — form and auth surfaces receive attributes and nodes from password
+    managers, autofill and accessibility extensions before the framework hydrates. Where your framework
+    offers a hydration-mismatch escape hatch, apply it **to the specific element that receives them, with a
+    comment naming why** — **never as a default across every input**. A blanket suppression silences genuine
+    mismatches (clock/random values, locale drift, branch divergence) that are real bugs. `/test`'s
+    real-user-environment class is what proves the surface actually survives it.
+
+## Output format
+- Full TypeScript component with correct prop types
+- Export at bottom (`export default` or named export)
+- No comments unless the WHY is non-obvious
+
+## Before you hand it back — verify, don't assert
+**Both in one run** — pass `DESIGN.md` alongside the component, or the token check cannot run:
+
+1. **Every token the component references resolves in the app.** Audit the component **together with the
+   project's token stylesheet** — the file `DESIGN.md` §2 records, not `DESIGN.md` itself — so the two
+   resolve against each other; Law 14b errors on any `var(--token)` nothing defines:
+   ```
+   python "${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py" src/app/globals.css <the new component>
+   ```
+   The installed engine — **never search the plugin cache for `audit.py`** (a `$` left in the path:
+   `/frontend-audit` §Which engine runs).
+   Auditing the component **alone** cannot check this and will say so (`tokens-defined: warn`,
+   "unverified"). Auditing it against `DESIGN.md` passes on a token the running app does not have —
+   the spec then does the job the stylesheet should, which is the failure this check exists to catch.
+2. **0 errors overall** on that same run.
+
+A token this component genuinely needs but `DESIGN.md` doesn't define is a **contradiction between the
+component and the recorded design system**: name both sides and take it back to `/design-system` to be
+added there — never invent it here (`MECHANISMS.md` §Step 3c).

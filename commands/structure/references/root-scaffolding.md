@@ -1,21 +1,25 @@
 # Root scaffolding — the files every shape needs
 
-> Opened by /structure at Step 2, after the shape is chosen. Each entry is a **capability**; the tool
-> that fills it is whichever one `#Architecture` recorded. Scaffolding a file by habit, rather than
-> from the recorded choice, is how a tool decision gets silently overridden one phase later.
+> Printed by `next --phase structure`. Each is a **capability**, filled by the tool `#Architecture` recorded:
+> a file scaffolded by habit silently overrides a tool decision one phase later.
 
-**Root (every shape) — the *capability*, filled by the tool `#Architecture` chose:** `README.md` ·
-ignore rules · `.env.example` (unmistakable `CHANGE_ME__<VAR>__CHANGE_ME` placeholders only) ·
-`CONTRIBUTING.md` · **secret-scan config** (e.g. `.gitleaks.toml`: `useDefault=true`, allowlist only
-documented dev fakes + `.env.example`) · **commit-hook runner** running lint + format + secret-scan
-(`.pre-commit-config.yaml` for Python · `lefthook.yml` · `.husky/` for Node — whichever the ADR names)
-· `SECURITY.md` (how to report a vuln —
-enables GitHub's "Report a vulnerability"; cheap on day one, annoying to retrofit) · `CHANGELOG.md`
-(Keep a Changelog format, start with an `[Unreleased]` section) · **task runner** (`Makefile` · npm
-scripts · `just` — whichever the ADR names) · dependency manifest with **dev/prod split** · `tests/` · `docs/` (will hold PRODUCT.md, STRUCTURE.md,
-docs/features/*) · `tools/`|`scripts/`. **When relevant:** `Dockerfile`+`docker-compose.yml`+
-`.dockerignore` · CI workflow · `.github/dependabot.yml` (or Renovate) · migrations config ·
-observability config · `benchmark/`|`evals/` (AI).
+**The bundle holds ONLY what the product's decisions shape:** `STRUCTURE.md` · the agent instructions (`CLAUDE.md`
+or `AGENTS.md`) · `README.md`: what it is, how to install, lint and run the smoke test (an existing one gets that
+section with the edit tool) · `.env.example` (every variable, `CHANGE_ME__<VAR>__CHANGE_ME`
+placeholders, a how-to comment each) · the **commit-hook runner** running lint + format + secret-scan · the **task
+runner** with generic targets a newcomer can just run (`dev` · `frontend` (full-stack) · `test` · `lint` · `check`
+(lint+test) · with a DB `seed` · `reset`) · the dependency manifest with a **dev/prod split** (the lockfile is the
+package manager's) · `platform.yaml` + `product.yaml` + ONE typed loader refusing a `CHANGE_ME` value · the entry
+point · `tests/test_smoke.py` (or the stack's equivalent: imports every module, a placeholder fails the boot).
 
-**`Makefile` generic targets** a newcomer can just run: `dev` · `frontend` (full-stack) · `test` ·
-`lint` · `check` (lint+test) · and, with a DB, `seed` · `reset`.
+**`scaffold` writes — never type these:** `CONTRIBUTING.md` · `SECURITY.md` (enables GitHub's "Report a
+vulnerability") · `CHANGELOG.md` (`[Unreleased]`) · the standard ignore lines (`.env` and its variants,
+`!.env.example`, `.venv/` / `node_modules/`, caches) added to the existing file · every folder `STRUCTURE.md`'s tables
+name, with its package file (`__init__.py`) or `README.md` from the table's line, and each module's `tests/` ·
+`.gitattributes` (LF) · the gitleaks config · `scripts/check_structure.py`. A file the bundle holds is kept.
+
+**When relevant:** `Dockerfile`+`docker-compose.yml`+`.dockerignore` · CI workflow · `.github/dependabot.yml` ·
+migrations config · observability config · `evals/` (AI) · `docs/` · `scripts/`.
+
+**Never:** a placeholder test · a README or `.gitkeep` in a folder that holds a file · empty route/service/schema
+stubs (`/build` writes them) · product logic.

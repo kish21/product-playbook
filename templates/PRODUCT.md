@@ -6,11 +6,10 @@ READS the sections it depends on and APPENDS/UPDATES its own. Read it top-to-bot
 to understand the whole product: what it is, why, what's built, and what's next.
 
 Rules:
+- This file holds the product's CONTENT. Where the product stands — each phase's state, the open items,
+  the built tickets, releases and drift findings — is STATUS.md, written only by status.py
+  (MECHANISMS.md §Status). Never write a state line here.
 - A section that is empty/missing = that phase's exit criteria are not yet met.
-- A section whose only content is a dated `_Not run <date>: <what was missing> — run <phase> first._`
-  line is STILL empty: that phase was attempted and correctly declined. One line, replaced on the next
-  attempt, scaffold untouched (MECHANISMS.md §Declined runs). An `Override <date>:` line is different —
-  it is a deliberate skip, and it DOES count as filled.
 - Keep entries short and honest. Record HOW something was verified, not just "done".
 - **A section is a RECORD, not a container** (PRINCIPLES.md): summary, the decision, the evidence line,
   and a pointer to where the detail lives — STRUCTURE.md, DESIGN.md, docs/adr/*, docs/runbook.md,
@@ -23,14 +22,11 @@ Rules:
   is a new place a phase could find a signpost where it needed a definition — which is exactly how one
   phase invented ten types that were already frozen in code.
 - Anything explicitly OUT OF SCOPE stays out until the recorded trigger fires.
-- Every skill, when it writes back, UPDATES the header line below — bump `Stage:` to its phase
-  and set `Last updated:` to today.
 -->
 
 # PRODUCT — <product name>
 
-_Last updated: <date> · Stage: <phase> · AI product? <yes/no>_
-_Playbook: <phase order followed — or a dated override line if the canonical order was deliberately departed from>_
+_Where this product stands: `STATUS.md` (written by `status.py`)._
 
 ## Project policy    <!-- the project's own rules, not a phase: blank = playbook default; /playbook never routes here (MECHANISMS-ON-DEMAND.md §Project policy) -->
 - **merge:** <blank = the user merges when they say so · never>
@@ -41,6 +37,8 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 
 ## Vision            <!-- /vision --> (the record; see docs/vision.md for the reasoning)
 - **Vision (ONE sentence — the world this product creates, not what it does):**
+- **In plain words (2–3 sentences anyone understands: the problem today, what the product does, what changes):**
+- **Worked example (one real-looking case, start to finish, with names and numbers):**
 - **Who it's for:**
 - **Problem (why now):**
 - **Value proposition:**
@@ -52,16 +50,19 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Job-to-be-done (when <situation>, I want to <motivation>, so I can <outcome>):**
 - **Riskiest assumption this depends on:**
 - **Business model (free / paid / internal):**
+- **Constraints (the rules that apply · languages · where the data comes from):**
+- **First users (how the first 10 find it, and why they switch from today's way):**
+- **AI (what it does · what a person decides · accuracy bar · cost per use; "n/a" when it uses no AI):**
 - **Detail:** `docs/vision.md` (reasoning + workings; this section stays a RECORD)
 - **Read (file · date · verbatim quote):**
 
-## Validation        <!-- /validate --> (the record; see docs/validation.md for the raw notes. Append a dated entry per run)
+## Validation        <!-- /validate, optional: empty is normal --> (the record; see docs/validation.md for the raw notes. Append a dated entry per run)
 - **Assumption under test (falsifiable: <user> will <behaviour> because <reason>):**
 - **Experiment (type · who it reaches · time box · due date):**
 - **Pass/fail threshold (written BEFORE the result):**
 - **Measured result (number / quoted evidence · date · raw notes in docs/validation/):**
 - **Verdict (proceed / pivot / kill) + one-line reason:**
-- **Override (only if skipped: date · reason · "assumption untested" · checked against #Vision):**
+- **If the user overrode this gate — what stays untested, checked against #Vision** (the state itself: `status.py set validate overridden`):
   _An override marks the fields above `— not run (override <date>)`; it never deletes them._
 - **Detail:** `docs/validation.md` (reasoning + workings; this section stays a RECORD)
 - **Read (file · date · verbatim quote):**
@@ -71,9 +72,7 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **In scope (now):**
 - **Deferred (out for now + the trigger that would bring it in):**
 - **Non-goals (deliberately never building):**
-- **Table stakes (each: in-scope now / Deferred + trigger / N-A + reason — none may be blank):**
-  - password reset · email verification · account deletion + data export · empty/loading/error states ·
-    privacy policy + terms · accessibility baseline · a way to report a problem
+- **Table stakes (the list `next` prints, one line each: `<item>: in now` · `<item>: deferred - when <trigger>` · `<item>: N/A - <reason>`):**
 - **Detail:** `docs/scope.md` (reasoning + workings; this section stays a RECORD)
 - **Read (file · date · verbatim quote):**
 
@@ -98,6 +97,7 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Externals behind provider/adapter interfaces (+ resilience strategy each):**
 - **Resilience · perf/cost budget · migrations approach:**
 - **(AI) prompt-versioning · eval harness · tracing:**
+- **(Agent) the ten AGENT.md §Architect rows (framework · action tiers · caps · untrusted input · hand-off · staged autonomy + kill switch · audit log · memory · agent evals · AI disclosure) — or N/A:**
 
 ## Structure         <!-- /structure --> (see STRUCTURE.md for the full folder map)
 - **Folder → purpose map (summary):**
@@ -125,17 +125,14 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Boundary units/scale agreed:**
 - **Contract versioning / back-compat approach:**
 - **PII/sensitive fields classified · tenant-owner key · idempotency/natural key:**
+- **(Agent) the AGENT.md §Contracts rows (tool schemas · action policy · model output · trace · hand-off · eval case) — or N/A:**
 - **Detail:** `docs/contracts.md` (reasoning + workings; this section stays a RECORD)
 - **Read (file · date · verbatim quote):**
 
-## Build log         <!-- /build --> (one entry per feature; see docs/features/*)
-| Feature | DoD (incl. security) met? | How verified | Doc |
-|---|---|---|---|
-
 ## Dev-complete      <!-- /dev-check -->
 <!-- Evidence format (the ONE form - the playbook's STATE-MODEL.md §2f). Append to any criterion you can re-run:
-     - [x] Authentication works - `evidence: pnpm test:e2e -> 18 passed - tests/e2e/auth.spec.ts - 2026-09-10`
-     command -> result - artefact - date. A criterion with no evidence line is honest and is reported
+     - [x] Authentication works - `evidence: pnpm test:e2e → 18 passed · tests/e2e/auth.spec.ts · 2026-09-10`
+     command → result · artefact · date. A criterion with no evidence line is honest and is reported
      UNVERIFIED by /drift-check; a line that names no command or no date fails CI. Never invent a second
      format. -->
 - [ ] Every core-scope feature built & runs
@@ -149,7 +146,7 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Env vars set on the host (names only — values are the user's to paste):**
 - **Migrations on deploy (the command, where it runs, what happens on failure):**
 - **Who can get in (credentials in the built output · every way to a session · what a visitor sees · previews · what a stranger can spend):**
-- **Proof it answers:** `evidence: <command> -> <result> - <artefact> - <YYYY-MM-DD>` (a signed-in path the owner walked: `owner-verified (manual) <YYYY-MM-DD>: ...`)
+- **Proof it answers:** `evidence: <command> → <result> · <artefact> · <YYYY-MM-DD>` (a signed-in path the owner walked: `owner-verified (manual) <YYYY-MM-DD>: ...`)
 - **Rollback path:**
 - **Known gaps:**
 
@@ -171,10 +168,6 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Detail:** `docs/evaluation.md` (reasoning + workings; this section stays a RECORD)
 - **Read (file · date · verbatim quote):**
 
-## Ship log          <!-- /ship -->
-| Date | What shipped | Review + /security-review | Skipped phases (none = full chain ran) | Docs reconciled | CHANGELOG (or n/a — releases recorded in <X>) | Rollback / flag | PR |
-|---|---|---|---|---|---|---|---|
-
 ## Learnings         <!-- /learn --> (the record; see docs/learnings.md for the retro detail)
 - **Success metric + result (instrumented, not guessed):**
 - **User/usage signal incorporated:**
@@ -183,7 +176,3 @@ _Playbook: <phase order followed — or a dated override line if the canonical o
 - **Observability + cost watch in place:**
 - **Detail:** `docs/learnings.md` (reasoning + workings; this section stays a RECORD)
 - **Read (file · date · verbatim quote):**
-
-## Drift log         <!-- /drift-check (run anytime) -->
-| Date | Drift found (scope/vision/plan/docs) | Recommendation (cut / re-scope+trigger / fix) |
-|---|---|---|

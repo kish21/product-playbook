@@ -16,6 +16,13 @@ description: >
 > mechanically-checkable subset** so a guaranteed floor holds regardless of who built the screen.
 > It does **not** judge taste/archetype fit — it checks what a machine can prove.
 
+## Step 0 — Start
+**First turn, ONE command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase frontend-audit`** — it
+names the installed engine, `DESIGN.md`, the UI folders and the one audit command. Run it as printed; end
+with the start's last line, word for word.
+**Must NOT:** change `DESIGN.md` or a design decision, judge taste or archetype fit, or call 0 errors an
+accessibility pass.
+
 ## What it does
 
 Runs `audit.py` (stdlib-only, portable, ASCII output — no `PYTHONUTF8` needed) over UI files and
@@ -31,7 +38,8 @@ Claude Code writes the loaded plugin's folder into that path, so it is **the ins
 **Never search the plugin cache for `audit.py`:** the cache keeps every old version, and a text sort
 picks `1.9.0` over `1.48.0` — a real build ran an engine missing five of today's checks that way. If
 the path above still starts with a `$`, this is a copy install: the engine is
-`.claude/commands/frontend-audit/audit.py` in the project, else under `~/.claude/`; neither there →
+`frontend-audit/audit.py` in the installed skills folder (`.claude/skills/` or `.agents/skills/` in the
+project, else your tool's user skills folder, `CAPABILITIES.md` §Where the skills are installed); neither there →
 stop and say so. **The scorecard's first line names the engine version — quote it in the evidence line.**
 
 **Hooks and CI run a project copy** (`/foundation` commits it as `<tooling>/frontend-audit/audit.py`,
@@ -78,8 +86,7 @@ what it appears to certify — and a check like that stops anyone from looking.
 
 ## How to use
 
-1. After `/design-system` emits `DESIGN.md` and you've built screens (via `/new-component`), run the
-   audit over the UI dir + `DESIGN.md`.
+1. Run the command the start printed (Step 0).
 2. Fix every **ERROR** (the floor is non-negotiable); triage **WARN**. **A "use a token" fix is a fix only
    when the token's class exists in the built CSS** — search the build output for it. A utility class with
    no mapping to the token (Tailwind v4 without an `@theme` entry) emits no CSS, and the element ships
@@ -92,8 +99,3 @@ what it appears to certify — and a check like that stops anyone from looking.
    the commit hooks and CI (`exit 1` on an ERROR blocks both; a WARN only reports). A project past
    `/foundation` with no copy (the `engine copy:` line says so) → wire it the same way.
 
-## Roadmap (v1 → v1.1)
-
-Config file for project-specific token pairs/ignore rules; table header/cell-alignment parsing
-(Law 20); caption-tier awareness (Law 3); generalise the existing `frontend_drift_detector.py` /
-`frontend_checkpoint_runner.py` patterns (RESPONSIVE/FORMS/SECURITY categories) into this one tool.

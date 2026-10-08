@@ -1,0 +1,426 @@
+{
+ "skill": "test",
+ "base": "4e5a1ab",
+ "note": "the /test rewrite (2026-09-28): one path for every tool; the start prints the facts (criteria vs tests, surfaces, database, applicability, CI, dataset, commands); set test filled checks the record",
+ "rules": [
+  {
+   "id": "purpose",
+   "what": "purpose: prove the product works on the path it runs, incl. adversarial inputs - now framed as independent coverage of what /build's tests missed",
+   "old": [
+    "**Purpose:** prove the product works on the path it actually runs, including adversarial inputs."
+   ],
+   "new": [
+    "independent coverage of what `/build`'s per-ticket tests missed",
+    "proven on the path the product actually runs"
+   ]
+  },
+  {
+   "id": "reads",
+   "what": "reads: #Scope #Contracts #Dev-complete + ticket rows - the start prints what the phase needs",
+   "old": [
+    "**Reads:** `PRODUCT.md#Scope`, `#Contracts`, `#Dev-complete`; the `STATUS.md` ticket rows (`status.py show`)."
+   ],
+   "new": [
+    "**Reads:** what the start prints (Step 0); more by `status.py section`."
+   ]
+  },
+  {
+   "id": "gate-type",
+   "what": "verification gate, batchable, stops on red - the chain waits, the run still does every check",
+   "old": [
+    "- **Gate type:** `verification` — pass/fail on repo evidence; no preference involved.",
+    "Batchable, and **stops on red** - a failing check ends the batch there.",
+    "(`STATE-MODEL.md` §2d)"
+   ],
+   "new": [
+    "- **Gate type:** `verification` — pass/fail on repo evidence; no preference involved.",
+    "Batchable, and **stops on red** - the chain waits; this run still does every check once.",
+    "(`STATE-MODEL.md` §2d)"
+   ]
+  },
+  {
+   "id": "rue-scope",
+   "what": "real-user-environment cases for a browser UI - where the start says they apply",
+   "old": [
+    "**Real-user-environment** cases (products with a browser UI) — the environments a clean headless run"
+   ],
+   "new": [
+    "**Real-user-environment** cases where the start says they apply (a built form/auth screen in a browser UI) — the environments a clean headless run"
+   ]
+  },
+  {
+   "id": "step0-reads",
+   "what": "step 0: next + the phase's rules, never the rule files or PRODUCT.md whole",
+   "old": [
+    "- **One first message: run `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase test` and read all of `PRINCIPLES.md`, `MECHANISMS.md`, `PRODUCT.md`.** Show its first line; close by its checklist."
+   ],
+   "new": [
+    "**First turn, ONE command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase test`** — the facts, this phase's rules and what it must NOT do; never the rule files or `PRODUCT.md` whole. Show its first line."
+   ]
+  },
+  {
+   "id": "v2-rules-in-start",
+   "what": "v2 (2026-10-06): the start prints the rule sections the suite needs (one call, not `next` + `rules test`); the close's sections print on request at `set` (PHASE_CLOSE_RULES), the close checklist always (CLOSE_STEPS); the must-NOT line (P44) is printed by every /test start",
+   "old": [],
+   "home": "tools/status.py",
+   "new": [
+    "print(fit_start(\"\\n\" + test_start_text(st) + \"\\n\\n\" + phase_rules_text(\"test\"), \"test\"))",
+    "PHASE_CLOSE_RULES[\"test\"] = PHASE_CLOSE_RULES[\"dev-check\"]",
+    "This phase must NOT: change product code (a test that exposes a bug stays, marked an expected failure naming the "
+   ]
+  },
+  {
+   "id": "v2-size-line",
+   "what": "moved to code: `set` prints the size line itself (record_sizes) - the skill no longer says so",
+   "old": [],
+   "home": "tools/status.py",
+   "new": ["msg += \"\\n  \" + record_sizes(text, prod.resolve().parent, sec)"]
+  },
+  {
+   "id": "v2-step3c",
+   "what": "Step 3c: #Contracts and #Architecture - a shape the contracts don't declare, a real-boundary test at the dev datastore; name both sides, ask, update the loser",
+   "old": [
+    "Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Contracts` and `#Architecture` — a suite that asserts a shape the contracts don't declare, or **points a real-boundary test at the datastore `#Foundation` recorded for development**. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction."
+   ],
+   "new": [
+    "Per `MECHANISMS.md` §Step 3c: `#Contracts` and `#Architecture` — a suite that asserts a shape the contracts don't declare, or **points a real-boundary test at the datastore `#Foundation` recorded for development**. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or a dated `superseded by` line in the earlier section)."
+   ]
+  },
+  {
+   "id": "v2-step3c-in-mechanisms",
+   "what": "moved: never left standing in two places; adding detail is not a contradiction; name the branch and root; check the transition is legal - MECHANISMS.md (printed by `rules test --close`; `set` enforces legal transitions in code)",
+   "old": [],
+   "home": "references/mechanisms.md",
+   "new": ["A contradiction is **never left standing in two", "a phase that merely *adds detail* to an earlier decision", "**Name the branch AND the repository root you are on.**", "**Check the transition is legal** against `STATE-MODEL.md` §2b"]
+  },
+  {
+   "id": "dev-check-warn",
+   "what": "dev checkpoint not passed: warn, allow override",
+   "old": [
+    "- Read `#Dev-complete`. If the dev checkpoint hasn't passed, warn (\"development isn't verified complete\")"
+   ],
+   "new": [
+    "If the dev checkpoint hasn't passed (`#Dev-complete`), warn (\"development isn't verified complete\")"
+   ]
+  },
+  {
+   "id": "override-recorded",
+   "what": "an override is recorded with the user's own words, before continuing",
+   "old": [
+    "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from test --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
+   ],
+   "new": [
+    "**An override is RECORDED, never a verbal \"yes\"**",
+    "`status.py bypass --from test --gate <gate> --reason \"<the user's own words>\"`"
+   ]
+  },
+  {
+   "id": "declined",
+   "what": "a declined run is recorded and changes nothing in PRODUCT.md",
+   "old": [
+    "record it — `status.py set test declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`."
+   ],
+   "new": [
+    "`status.py set test declined --reason \"<their words>\" --gate <the phase that fills it>`",
+    "and change nothing in `PRODUCT.md`."
+   ]
+  },
+  {
+   "id": "independent-plan",
+   "what": "independent test plan: unit isolated, integration real; untestable unit = wrong seams; judge by assertions",
+   "old": [
+    "- **Independent test plan:** unit = isolated/mocked; integration = real contracts with neighbours. If a unit can't be tested in isolation, the seams are wrong — fix them."
+   ],
+   "new": [
+    "**Independent test plan:** judge each criterion by the assertions that test it",
+    "Unit = isolated/mocked; integration = real contracts with neighbours. If a unit can't be tested in isolation, the seams are wrong — fix them."
+   ]
+  },
+  {
+   "id": "live-path-principle",
+   "what": "at least one live-path test asserting the observable result; trace the wiring",
+   "old": [
+    "- **Tests passing ≠ it works:** add at least one test on the **live path** the product runs (compose `/run`, then assert on the observable result), and trace that the feature is actually wired in (the \"green tests, dead feature\" trap)."
+   ],
+   "new": [
+    "**Tests passing ≠ it works:** at least one test on the **live path** the product runs (compose `/run`, then assert on the observable result), and trace that the feature is wired in (the \"green tests, dead feature\" trap)."
+   ]
+  },
+  {
+   "id": "isolation-first",
+   "what": "confirm the suite's target before a destructive hook, through the app's loader; prove the guard each run on a fake target",
+   "old": [
+    "- **Isolation before coverage:** confirm what the suite is pointed at *before* writing a destructive hook, and confirm the runner loads config through the app's own loader."
+   ],
+   "new": [
+    "**Isolation before coverage:** confirm what the suite points at *before* a destructive hook, through the app's own config loader; **prove the guard each run, safely**"
+   ]
+  },
+  {
+   "id": "headless",
+   "what": "a clean headless browser is not a user's browser: test the environment",
+   "old": [
+    "- **A clean headless browser is not a user's browser.**",
+    "**Test the environment, not",
+    "just the code.**"
+   ],
+   "new": [
+    "**A clean headless browser is not a user's browser**",
+    "test the environment, not just the code."
+   ]
+  },
+  {
+   "id": "security-testable",
+   "what": "security is testable: authz/tenant cases; AI injection/jailbreak",
+   "old": [
+    "- **Security is testable:** add authz/tenant-isolation cases; for AI, real injection/jailbreak inputs."
+   ],
+   "new": [
+    "**Security is testable:** authz/tenant-isolation cases; for AI, real injection/jailbreak inputs."
+   ]
+  },
+  {
+   "id": "step2-title",
+   "what": "step 2 builds the suite - the gaps only",
+   "old": [
+    "## Step 2 — Build the suite"
+   ],
+   "new": [
+    "## Step 2 — Build the suite (the gaps only)"
+   ]
+  },
+  {
+   "id": "unit",
+   "what": "unit tests per core-feature unit, deps injected, externals mocked",
+   "old": [
+    "1. **Unit** tests for each core-feature unit (inject deps; mock externals)."
+   ],
+   "new": [
+    "1. **Unit** tests for each core-feature unit the start shows uncovered (inject deps; mock externals)."
+   ]
+  },
+  {
+   "id": "integration",
+   "what": "integration against the isolated datastore, read back the resolved target",
+   "old": [
+    "2. **Integration** tests across real boundaries/contracts from `/contracts` — **against the isolated test datastore**, verified by reading back the target the bootstrap resolved, not by trusting the variable's name."
+   ],
+   "new": [
+    "2. **Integration** across real boundaries/contracts from `/contracts` — **against the isolated test datastore**, verified by reading back the target the bootstrap resolved, not by trusting the variable's name."
+   ]
+  },
+  {
+   "id": "live-path-test",
+   "what": "a live-path test asserting what the user sees; the feature reachable",
+   "old": [
+    "3. **Live-path** test: exercise the real end-to-end path (`/run`), asserting on what the user would actually see; confirm the feature is reachable in the running product."
+   ],
+   "new": [
+    "3. **Live-path** test through the real entry point",
+    "asserting on what the user would see; confirm the feature is reachable in the running product."
+   ]
+  },
+  {
+   "id": "adversarial",
+   "what": "cross- and within-tenant attempts; per-resource check on every endpoint incl. streaming; AI injection",
+   "old": [
+    "4. **Adversarial/security:** cross-tenant AND **within-tenant** access attempts (one user must not see another user's resources inside the same org — tenant-id/RLS only stops cross-tenant).",
+    "Assert the per-resource access check on **every resource-returning endpoint individually, including streaming ones**",
+    "For AI, prompt-injection/jailbreak prompts that must be refused/neutralised."
+   ],
+   "new": [
+    "cross-tenant AND **within-tenant** access attempts (one user must not see another user's resources inside the same org — tenant-id/RLS only stops cross-tenant)",
+    "the per-resource access check on **every resource-returning endpoint individually, including streaming ones**",
+    "for AI, prompt-injection/jailbreak prompts that must be refused."
+   ]
+  },
+  {
+   "id": "rue-steps",
+   "what": "real-user-environment: injected DOM on auth/form surfaces, then locale/tz, motion, colours, viewport, cold cache",
+   "old": [
+    "5. **Real-user-environment** (browser UI): drive the auth/form surfaces with **injected third-party DOM** and",
+    "assert first interactive paint survives; then vary locale/timezone, reduced motion and forced colours, a",
+    "small viewport, and a throttled cold-cache load."
+   ],
+   "new": [
+    "5. **Real-user-environment** (only where the start says APPLY): injected third-party DOM on the auth/form surfaces, then locale/timezone, reduced motion, forced colours, a small viewport, a throttled cold-cache load."
+   ]
+  },
+  {
+   "id": "hydration-hatch",
+   "what": "a hydration-mismatch escape hatch is scoped and justified, never a blanket default",
+   "old": [
+    "**On absorbing third-party injection:** where a framework offers a hydration-mismatch escape hatch, it is",
+    "**scoped and justified** — applied to the specific element known to receive third-party attributes, with a",
+    "comment naming why. **Never a blanket default across a component library:** mismatches also come from real"
+   ],
+   "new": [
+    "A hydration-mismatch escape hatch is **scoped and justified** — one element, a comment naming why — **never a blanket default**: mismatches also come from real bugs."
+   ]
+  },
+  {
+   "id": "regression",
+   "what": "lock in each fixed bug; a test exposing a real bug stays as an expected failure with its issue",
+   "old": [
+    "6. **Regression:** lock in any fixed bug with a test."
+   ],
+   "new": [
+    "6. **Regression:** lock in each fixed bug. **A test that exposes a real bug stays:**"
+   ]
+  },
+  {
+   "id": "write-back",
+   "what": "fill #Tests: coverage, security cases, live path",
+   "old": [
+    "Fill `#Tests`: coverage (unit/integration/regression) · security cases · note the live-path verification."
+   ],
+   "new": [
+    "Fill `#Tests` once: coverage (unit/integration/regression) · security cases · the live-path verification"
+   ]
+  },
+  {
+   "id": "ci-gate",
+   "what": "CI runs and a red run blocks merge - or say remote enforcement is missing/unverified",
+   "old": [
+    "Confirm with evidence: the suite **runs in CI and a red run blocks merge** (not just locally); there's at"
+   ],
+   "new": [
+    "CI (a red run blocks merge, or remote enforcement is missing/unverified and the local gate is the evidence)"
+   ]
+  },
+  {
+   "id": "integration-live",
+   "what": "at least one integration + live-path test, deterministic tests",
+   "old": [
+    "least one **integration + live-path** test (compose `/run`), not only isolated units; tests are",
+    "**deterministic** (seeded, no time/network races);"
+   ],
+   "new": [
+    "at least one **integration + live-path** test, not only isolated units; **deterministic** tests (seeded, no time/network races)"
+   ]
+  },
+  {
+   "id": "isolation-proof",
+   "what": "the suite provably points at the isolated datastore; the guard refuses a dev target - proven on a fake one",
+   "old": [
+    "**the suite is provably pointed at the isolated datastore** (print the resolved target; point it at the dev one and show it refusing to run);"
+   ],
+   "new": [
+    "aim it at a fake dev-looking target and show it refuses, never at real data"
+   ]
+  },
+  {
+   "id": "ai-cases",
+   "what": "an AI product has injection/jailbreak cases",
+   "old": [
+    "an AI product has injection/jailbreak cases; a"
+   ],
+   "new": [
+    "an AI product's injection/jailbreak cases"
+   ]
+  },
+  {
+   "id": "golden",
+   "what": "the golden dataset executed by something, else structure only, never proof",
+   "old": [
+    "**golden/eval dataset** exists **and something actually executes it** — if nothing runs it, gate its",
+    "structure and say so, never describe it as proof (`LESSONS.md` §Lessons baked in)."
+   ],
+   "new": [
+    "the **golden/eval dataset executed by something** — else gate its structure and say so, never describe it as proof (`LESSONS.md` §Lessons baked in)."
+   ]
+  },
+  {
+   "id": "only-units",
+   "what": "only isolated units: add integration + live path",
+   "old": [
+    "**If only isolated units exist, or the suite isn't a CI gate, STOP and",
+    "add them** — that's exactly the gap that ships broken-but-green code."
+   ],
+   "new": [
+    "**If only isolated units exist, add them** — that's exactly the gap that ships broken-but-green code."
+   ]
+  },
+  {
+   "id": "measure-receipt",
+   "what": "the record test on every field; one Read line per companion opened; the size line",
+   "old": [
+    "**Measure what you wrote and receipt what you read** (`MECHANISMS-ON-DEMAND.md §Section is a record`, `MECHANISMS-ON-DEMAND.md §Read receipt`): report the section and file size in one line, then apply the record test to every field — reasoning moves into the companion, a tight answer stays whatever it weighs, never trim to a number; write one `Read:` line per companion opened, each quoting a fragment that occurs verbatim in that file."
+   ],
+   "new": [
+    "(`MECHANISMS-ON-DEMAND.md §Section is a record`): reasoning moves into `docs/tests.md`, a tight answer stays whatever it weighs, never trim to a number; one `Read:` line per companion you opened, quoting a fragment verbatim (`MECHANISMS-ON-DEMAND.md §Read receipt`)."
+   ]
+  },
+  {
+   "id": "close-loop",
+   "what": "record the state (set checks the record), reconcile numbers, save question, transition guard citing this run's records",
+   "old": [
+    "**Close the loop (`MECHANISMS.md` §Step 3b):** record the phase's state — `status.py set test filled --verdict pass|fail` (`MECHANISMS.md` §Status) — reconcile any number this phase introduced against `#Vision`",
+    "(surface a contradiction, never write over it), and **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work — this project's repo, name the branch, commit on a yes, push only if a remote exists and the user says so).",
+    "Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion",
+    "— `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff). **The close is the run's last message** — a composed skill's report is input to it, never the close itself."
+   ],
+   "new": [
+    "**Close the loop (`MECHANISMS.md` §Step 3b):** record it in ONE call — `status.py set test filled --verdict pass|fail`",
+    "reconcile any number this phase introduced against `#Vision`",
+    "(surface a contradiction, never write over it), Step 3c, **no save question** — the record call saved (`MECHANISMS.md` §Commit the work; never ask *\"Save this version of your project? (yes / no)\"*; `--no-commit` only if the user said not to save; push only if the user says so),",
+    "then **the transition guard** (`MECHANISMS.md` §Step 3b, item 4): cite this run's `evidence:` records — never re-run one for its number — and report a verdict for every exit criterion;",
+    "`UNVERIFIED` is a normal outcome, silence is not. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (its last line the `Open a NEW conversation` line `set` printed). **The close is the run's last message** — a composed skill's report is input to it, never the close itself."
+   ]
+  }
+ ],
+ "dropped": [
+  {
+   "old": "Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.",
+   "why": "the reason, not a rule; MECHANISMS.md §Declined runs, printed by `status.py rules test`, carries it"
+  },
+  {
+   "old": "- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):**",
+   "why": "a checkpoint that stops unchecked is gone (every check runs once); the declined path is the user declining, kept as rule declined"
+  },
+  {
+   "old": "This is not tidiness — on a real run, an `afterAll` truncate against a shared URL left the developer stranded at `/login` with no accounts.",
+   "why": "the war story, not a rule; the rule (isolation before coverage, prove the guard) is kept"
+  },
+  {
+   "old": "\"The path the product actually runs\" has quietly",
+   "why": "the war story behind the headless rule; the rule is kept"
+  },
+  {
+   "old": "meant \"the path our runner runs\". On a real run every test was green while the login page threw for real",
+   "why": "the war story behind the headless rule"
+  },
+  {
+   "old": "users: a password-manager extension injected DOM nodes into the form before the framework hydrated. The",
+   "why": "the war story behind the headless rule"
+  },
+  {
+   "old": "suite ran headless, clean profile, zero extensions — it could not have seen it.",
+   "why": "the war story behind the headless rule"
+  },
+  {
+   "old": "(SSE/WebSocket/`StreamingResponse` handlers routinely skip the guard their REST siblings call).",
+   "why": "kept as the example list (SSE/WebSocket/`StreamingResponse`); 'routinely skip' is the reason"
+  },
+  {
+   "old": "bugs (clock/random values, locale drift, server-client branch divergence), and suppressing them wholesale",
+   "why": "the reason for the no-blanket-default rule, which is kept"
+  },
+  {
+   "old": "silences a correctness signal in a playbook whose principles are *fail-loud* and *no swallowed errors*. The",
+   "why": "the reason for the no-blanket-default rule"
+  },
+  {
+   "old": "capability wanted is **\"third-party DOM injection must not break first paint\"**; how a given framework",
+   "why": "restates the exit criterion 'first interactive paint survives injected DOM', which is kept"
+  },
+  {
+   "old": "absorbs that is the framework's business.",
+   "why": "the reason, not a rule"
+  },
+  {
+   "old": "A pointer nobody can prove was followed is how a phase invents what the artefact would have said.",
+   "why": "the reason, not a rule; MECHANISMS-ON-DEMAND.md §Read receipt carries it"
+  }
+ ]
+}

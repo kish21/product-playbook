@@ -134,7 +134,9 @@ OVERRIDE_PHRASES = ("allow override", "an override", "continue if the user wants
 # :110. 10 of 14 gates could be waved through leaving nothing behind, so a later reader could not tell a
 # gate that HELD from a gate that was bypassed. Each token below is required in the Step 0 body:
 # the recorded form, the rule it comes from, and the user's own reason.
-OVERRIDE_RECORD = ("Override <date>", "Declined runs")
+# Since the status switch the recorded form is the `status.py bypass` command (MECHANISMS.md §Status), which
+# stamps the date and refuses a missing reason - the same trace, now written by a script.
+OVERRIDE_RECORD = ("status.py bypass", "Declined runs")
 OVERRIDE_REASON = ("reason in the user's own words", "reason in the user's words")
 
 
@@ -293,16 +295,21 @@ def main() -> int:
     # 31. the audit runs the INSTALLED engine, and /foundation wires a project copy into hooks + CI
     check_audit_engine_resolution(files)
     check_audit_engine_behaviour()
+    check_audit_viewport_pages()
     # 32. /foundation proves the boot at the end of Step 2 item 1, and 3b cites a boot only under /build's condition
     check_foundation_boot_evidence(files)
     # 33. /vision records every search its market read ran, with no count, and 3b checks the comparables against it
     check_vision_search_record(files)
     # 34. no private project is named anywhere in the repo; the names come from the environment, never the repo
     check_no_private_names()
-    # 35. /playbook's offers state a measured, version-labelled sitting from one table and warn to start with room left
+    # 35. /playbook's offers state a phase's size (short/long, from status.py) and warn to start a long one with room
     check_sitting_lengths(files)
+    # 35b. /playbook starts with `status.py route`, asks before a phase, and runs one phase per conversation
+    check_playbook_run(files)
     # 36. /tickets groups milestone -> epic -> ticket and writes the plan, never the status, to a root TICKETS.md
     check_epic_plan(files)
+    # 36b. /tickets' one start command and its close in code: a realistic backlog closes, each check red alone
+    check_tickets_close()
     # 37. /tickets' verification runs over the local files before publishing and reads GitHub back after
     check_verification_publish_split(files)
     # 38. a shape-changing /structure re-run rewrites the moved paths in the tickets and TICKETS.md and syncs the issues
@@ -324,8 +331,68 @@ def main() -> int:
     check_audit_baseline()
     # 45. /build commits before /security-review, /ship follows the project's release record, #Project policy
     check_build_ship_frictions(files)
+    # 46. /ship bounds its own review rounds and runs the full gate once, after the last fix
+    check_ship_loop_bounds(files)
+    # 47. /build names HOW to pick the tests while coding, and counts the full-suite runs
+    check_build_test_method(files)
+    # 48. the tickets publish engine publishes, reads back, proves and re-runs clean against a fake GitHub
+    check_publish_engine_behaviour(files)
+    # 49-52. the clarity standard (docs/clarity-standard.md): vague words, pointers, one tool's commands, skill size,
+    #        each held against tools/clarity-baseline.json
+    check_clarity()
+    # 53. status.py - the one writer of STATUS.md - refuses what STATE-MODEL.md §2b forbids and migrates losslessly
+    check_status_engine()
+    check_structure_template()
+    check_run_report()
+    check_render_check()
+    check_design_close()
+    check_support_v2()
+    check_foundation_tools()
+    check_build_tools()
+    # 53h. every phase's start fits Claude Code's 30,000-char tool output with margin (P47)
+    check_start_sizes()
+    # 54. /validate says how every count in the bar is recorded, and a running experiment is never marked filled
+    check_validate_measurement(files)
+    # 55. a rewritten skill kept every rule of the version it rewrote (tools/rule_inventory.py, clarity standard C8)
+    check_rule_inventory()
+    # 56. the rules a four-tool test run (Claude, Cursor, Antigravity; three models) showed were model-dependent
+    check_cross_model_rules()
+    # 57. a skill carries its own first command (status.py next) and its own close (four blocks, the save question)
+    check_skill_carries_its_steps(files)
+    # 58. a printed command runs in PowerShell too: no &&, tail, grep, export
+    check_shell_neutral()
+    # 59. the checker fingerprints status.py compares against are current (a stale list refuses every project)
+    check_engine_hashes()
+    # 60. the next phase a skill's description names is one its handoff offers
+    check_description_next_matches_handoff(files)
+    # 61. the release phases (/eval /learn /ship /deploy): one start command, the close refused in code
+    check_releaseops_close()
 
     return done(len(cmds))
+
+
+DESCRIPTION_NEXT = re.compile(r"(?:Run|Loops back to) /([a-z-]+)")
+
+
+def check_description_next_matches_handoff(files: dict[str, Path]) -> None:
+    """60. The next phase a description names is offered by the skill's handoff.
+
+    /vision's description said "Run /scope next" while its handoff sent the user to /validate - the chain is
+    vision -> validate -> scope, so the description (what a tool shows when choosing a skill) was the wrong one.
+    A handoff may branch (/structure: /design-system for a UI, else /foundation); the description's phase must be
+    one of its branches.
+    """
+    for name, path in sorted(files.items()):
+        text = path.read_text(encoding="utf-8")
+        desc = text.split("\n---", 1)[0]
+        m = DESCRIPTION_NEXT.search(" ".join(desc.split()))
+        heads = [h for h in re.finditer(r"^##+ .*Handoff.*$", text, re.MULTILINE)]
+        if not m or not heads:
+            continue
+        handoff = text[heads[-1].end():].split("\n## ", 1)[0]
+        if f"`/{m.group(1)}`" not in handoff:
+            fail(f"{path.relative_to(ROOT).as_posix()}: the description says the next phase is /{m.group(1)}, but "
+                 f"its handoff never offers it - a tool shows the description when a user picks the skill")
 
 
 def released_version() -> str | None:
@@ -641,7 +708,7 @@ EVIDENCE_DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
 # The docs that TEACH the format necessarily contain placeholder specimens (`<command>`, `<date>`), so
 # they are read for the grammar rather than graded against it.
 EVIDENCE_TEACHING = {"docs/state-model.md", "templates/PRODUCT.md", "PRINCIPLES.md",
-                     "commands/dev-check.md", "commands/drift-check.md"}
+                     "commands/dev-check/SKILL.md", "commands/drift-check/SKILL.md"}
 
 
 def check_evidence_lines(files: dict[str, Path]) -> None:
@@ -851,6 +918,8 @@ def check_criteria_have_a_home(files: dict[str, Path]) -> None:
     reads as verified. Tracked in #192; each skill joins the set as it is migrated.
     """
     tpl = (ROOT / "templates" / "PRODUCT.md").read_text(encoding="utf-8")
+    sys.path.insert(0, str(ROOT / "tools"))
+    import status as status_engine  # the STATUS.md columns a criterion may cite (STATE-MODEL.md §2h)
     for name in sorted(CRITERIA_CITED):
         if name not in files:
             fail(f"CRITERIA_CITED names {name!r}, which is not a skill")
@@ -869,7 +938,14 @@ def check_criteria_have_a_home(files: dict[str, Path]) -> None:
                 fail(f"{name}: exit criterion has a citation arrow but names no field - {crit[:70]!r}")
                 continue
             for label in cited:
-                if label not in tpl:
+                if label.startswith("STATUS.md "):
+                    where, _, col = label[len("STATUS.md "):].partition(": ")
+                    ok = (col in status_engine.HEADER_KEYS if where == "header"
+                          else col in status_engine.COLUMNS.get(where, []))
+                    if not ok:
+                        fail(f"{name}: exit criterion cites {label!r}, which is no STATUS.md column status.py "
+                             f"writes - the criterion has nowhere to be recorded")
+                elif label not in tpl:
                     fail(f"{name}: exit criterion cites {label!r}, which templates/PRODUCT.md does not "
                          f"contain - the criterion has nowhere to be recorded")
 
@@ -961,12 +1037,12 @@ def check_skill_count(n: int, files: dict[str, Path]) -> None:
              f"{set(listed) ^ set(files)}")
 
 
-# The canonical phase order /playbook walks (commands/playbook.md Step 0, one source — check 22 asserts this
+# The canonical phase order /playbook walks (commands/playbook/SKILL.md Step 0, one source — check 22 asserts this
 # list equals it). A handoff may skip over an OPTIONAL phase: design-system runs for UI products only, and
 # deploy only when the product must be reachable before /test.
 CHAIN = ["vision", "validate", "scope", "plan", "architect", "structure", "design-system", "foundation",
          "contracts", "tickets", "build", "dev-check", "deploy", "test", "eval", "ship", "learn"]
-OPTIONAL_PHASES = {"design-system", "deploy"}
+OPTIONAL_PHASES = {"design-system", "deploy", "validate"}  # validate: optional since 2026-09-30 (owner)
 # The phases that run real commands for most of a session, where tool output is what grows the context.
 HYGIENE_DECLARING = {"foundation", "contracts", "tickets", "build"}
 HYGIENE_POINTER = f"{SECTION_SIGN}Context hygiene"
@@ -1025,7 +1101,7 @@ def check_handoff_chain(files: dict[str, Path]) -> None:
 def check_context_hygiene(files: dict[str, Path]) -> None:
     """23. The long derivation phases point at the context-hygiene rule where they close their gate.
 
-    /build has said "bulky output to files, broad searches to subagents" since #31, and on a logged test
+    /build has said "bulky output to files, broad searches to subagents" since a logged run, and on a logged test
     run /foundation (385 calls) and /contracts (326 calls) each cost ~$70-75 with ~60% of it cache
     re-reads of tool output - full test logs, whole files read back, long shell output. A sentence in one
     skill's Step 1 bound nobody; the rule now lives once in MECHANISMS-ON-DEMAND.md and each phase that
@@ -1163,6 +1239,17 @@ COMPOSING_REVIEWERS = {"build", "ship", "test", "eval", "dev-check"}
 # its report comes back as a result - a subagent - and the skill must say so where it invokes it (#212).
 SECURITY_REVIEW_INVOKERS = {"build", "ship", "dev-check"}
 SUBAGENT = "inside a subagent"
+# /build's review stretch runs in a helper with a fresh context (a logged build re-sent ~200k tokens on each of the
+# 54 calls after its first review); the rules the helper applies live in the one file it is handed.
+HELPER_RULES = {"build": "commands/build/references/review-stretch.md"}
+
+
+def with_helper_rules(files: dict[str, Path], name: str) -> str:
+    """A skill's text, plus the helper-rules file it hands its review helper - where review rules now live."""
+    text = files[name].read_text(encoding="utf-8")
+    if name in HELPER_RULES and "§Helper prompt" in text:
+        text += "\n" + (ROOT / HELPER_RULES[name]).read_text(encoding="utf-8")
+    return text
 DEV_CHECK_FILING_TOKENS = (
     ("**File what the checkpoint finds, IN THIS RUN**", "filing its findings in the run - handed back as a list, "
      "they are filed by nobody"),
@@ -1193,6 +1280,15 @@ def check_close_is_last(files: dict[str, Path]) -> None:
     if "LAST message" not in mech:
         fail("references/mechanisms.md §Plain-language close no longer says the close is the run's LAST "
              "message - a composed skill's report will be taken for the close again")
+    # The handoff has one place. Two rules both claimed the end of a run - "the close is LAST" and /playbook's
+    # next-phase offer - and two logged /vision runs split: one gave the offer with its sitting length after the
+    # close, the other dropped it. Both files must name the same place.
+    if "**It ends with the handoff:**" not in mech or "all four blocks are printed" not in mech:
+        fail("references/mechanisms.md §Plain-language close no longer puts the handoff at the end of *What YOU "
+             "do next*, or no longer counts four blocks - the next-phase offer drifts after the close or is dropped")
+    if "the offer is the last item of its *What YOU do next*" not in files["playbook"].read_text(encoding="utf-8"):
+        fail("playbook's sitting-length rule no longer says where the offer goes - the close's handoff and the "
+             "offer are two rules claiming the end of the run")
     for name in sorted(COMPOSING_REVIEWERS):
         text = files[name].read_text(encoding="utf-8")
         start = re.search(r"^#{2,4}\s*Step 3b\b", text, re.MULTILINE)
@@ -1212,7 +1308,7 @@ def check_close_is_last(files: dict[str, Path]) -> None:
         fail(f"references/mechanisms.md §Plain-language close no longer says a reviewer that ends on its own "
              f"report runs {SUBAGENT!r}")
     for name in sorted(SECURITY_REVIEW_INVOKERS):
-        body = " ".join(files[name].read_text(encoding="utf-8").split())
+        body = " ".join(with_helper_rules(files, name).split())
         spots = [m.start() for m in re.finditer(r"/security-review", body)]
         if not any(SUBAGENT in body[max(0, p - 300): p + 400] for p in spots):
             fail(f"{name} runs /security-review but never says, where it invokes it, to run it {SUBAGENT!r} - "
@@ -1314,7 +1410,7 @@ def check_batch_mode_offered(files: dict[str, Path]) -> None:
         fail("docs/state-model.md §2d does not define chain next to batch - the two terms will drift")
 
 
-ADOPT_ORDER = ["/vision", "/validate", "/scope", "/playbook"]
+ADOPT_ORDER = ["/vision", "/scope", "/playbook"]  # /validate is optional (owner, 2026-09-30): never routed to
 
 
 def check_adopt_routes_in_chain_order(files: dict[str, Path]) -> None:
@@ -1426,12 +1522,49 @@ def check_vision_search_record(files: dict[str, Path]) -> None:
             fail(f"{where} lost {what} (expected {token!r})")
     evals = json.loads((ROOT / "evals" / "evals.json").read_text(encoding="utf-8"))
     cases = json.dumps([c for c in evals.get("evals", []) if c.get("skill") == "vision"], ensure_ascii=False)
-    for where, body in (("commands/vision.md", text), ("evals/evals.json (vision cases)", cases)):
+    for where, body in (("commands/vision/SKILL.md", text), ("evals/evals.json (vision cases)", cases)):
         m = VISION_SEARCH_CAP_RE.search(" ".join(body.split()))
         if m:
             fail(f"{where} bounds the market read's searches ({m.group(0)!r}) - #252 declined a count: the runs "
                  f"made 1-4, and a bound cuts the complaint search a sharpening insight comes from (stating the "
                  f"ruling? it is worded 'No count on searches')")
+
+
+VALIDATE_MEASUREMENT_TOKENS = (
+    ("say how each count is recorded and what ties it to the person or unit it counts", "validate Step 2",
+     "the rule that the bar names its own measurement"),
+    ("how each count in it is recorded", "validate exit criteria", "the exit criterion the measurement is held to"),
+    ("a count in the threshold cannot be tied to", "validate Step 3b", "the stop rule for a bar the test cannot measure"),
+    ("`status.py set validate filled` only once", "validate Step 3b",
+     "the rule that only a measured result closes the gate"),
+    ("the state stays `running`", "validate Step 3b", "what a still-running experiment records at 3b"),
+)
+
+
+def check_validate_measurement(files: dict[str, Path]) -> None:
+    """54. /validate names how every count in the pass/fail bar is recorded, and never marks a running experiment
+    filled.
+
+    Two logged /validate runs (old 1.73.0 vs next, same answers) designed the same concierge test: a Google Sheet
+    per household, bar = "every member ticked >=1 chore in week 2". One run noticed that a Sheet edited without
+    signing in records every edit as Anonymous, so "every member" could not be counted; the other said nobody
+    needs to sign in and passed its own gate on a test that could not measure its bar. No rule asked, so the catch
+    was luck (finding E). Separately, 3b told every run to `set validate filled`, which status.py accepted from
+    running - erasing the due date and the provisional mark with no result (finding F). status.py now refuses
+    that transition without a result; this check holds the skill text to both rules.
+    """
+    text = files["validate"].read_text(encoding="utf-8")
+    step2 = re.search(r"^## Step 2\b(.*?)^## Step 3\b", text, re.MULTILINE | re.DOTALL)
+    step3b = re.search(r"^## Step 3b\b(.*?)^## Step 3c\b", text, re.MULTILINE | re.DOTALL)
+    regions = {"validate Step 2": " ".join((step2.group(1) if step2 else "").split()),
+               "validate exit criteria": " ".join(" ".join(criteria_of(text)).split()),
+               "validate Step 3b": " ".join((step3b.group(1) if step3b else "").split())}
+    for token, where, what in VALIDATE_MEASUREMENT_TOKENS:
+        if token not in regions[where]:
+            fail(f"{where} lost {what} (expected {token!r})")
+    if "`status.py set validate filled` (" in regions["validate Step 3b"]:
+        fail("validate Step 3b marks the phase filled unconditionally - a running experiment would close its gate "
+             "with no result (finding F)")
 
 
 def done(n: int = 0) -> int:
@@ -1542,12 +1675,12 @@ FINDING_GROUP_TOKENS = (
 # the skill had no rule for that. Nothing here changes what a build checks - only what it carries.
 STEP3C_HOME = "**Step 3c's result goes in the feature doc**"
 BUILD_WEIGHT_TOKENS = (
-    ("ONE table row", "the Build-log row being one line - rows of ~13k characters made a 53k log every build read"),
-    ("never load the log", "appending without reading the log back - a log every build reads makes each ticket "
-     "cost more than the last"),
-    ("`#Build log` holds table rows and nothing else", "the log holding rows only - a 1.67.0 build kept its row to "
-     "one line and still wrote a 1,600-character Step 3c paragraph under the table, copying the 15 the older "
-     "builds had left there; 'never in the row' did not forbid it"),
+    ("Record ONE ticket row", "the ticket row being one record - rows of ~13k characters made a 53k log every build "
+     "read; since the status switch the row is a `status.py ticket` command"),
+    ("`status.py` refuses a field past its limit", "the row's size enforced by the script, not by the model - a log's "
+     "one-line rule was kept in form while rows grew to 5,700 characters"),
+    ("never in the row", "findings and Step 3c's result kept out of the row - a 1.67.0 build wrote a 1,600-character "
+     "Step 3c paragraph under the table, copying the 15 the older builds had left there"),
     ("**Attribution is one traceback, not an investigation**", "the bound on attributing a flake - one build ran "
      "the suite ~10 more times after the traceback had already named a file it never changed"),
     ("**A review that never returns has found nothing**", "the dead-reviewer rule - a reviewer killed by a usage "
@@ -1563,8 +1696,9 @@ BUILD_WEIGHT_TOKENS = (
 BUILD_GUIDE_TOKENS = (
     ("**Name the archetype in it**", "the DoD naming the feature's archetype - a gate feature was built without its "
      "cluster ever being opened, and nothing showed it"),
-    ("Open the file on EVERY build", "the live-path triggers being read on every build - a trigger nobody read "
-     "cannot match (owner ruling, #257)"),
+    ("The start prints every check's trigger", "the live-path triggers being read on every build - a trigger nobody "
+     "read cannot match (owner ruling, #257); since next.30 the build start prints them all, so the file itself is "
+     "opened only by section for a trigger that matched"),
     ("Live-path checks walked", "the feature doc listing the live-path checks that matched - the trace that "
      "makes a skipped companion visible"),
 )
@@ -1594,7 +1728,7 @@ def check_build_loop_overhead(files: dict[str, Path]) -> None:
     full suites on every iteration, 17 live-path checks with no triggers, Step 3b asking for evidence
     Step 2 had already produced - and a board card still at Todo after the ticket merged.
     """
-    text = " ".join(files["build"].read_text(encoding="utf-8").split())
+    text = " ".join(with_helper_rules(files, "build").split())
     for token, what in (BUILD_OVERHEAD_TOKENS + RERUN_TOKENS + REVIEW_RERUN_TOKENS + REVIEW_FINDING_TOKENS
                         + REVIEW_VISIBLE_TOKENS + BUILD_GUIDE_TOKENS + BUILD_WEIGHT_TOKENS + GATE_SCOPE_TOKENS
                         + FINDING_GROUP_TOKENS):
@@ -1630,6 +1764,7 @@ AUDIT_ENGINE_PATH = '"${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py"'
 AUDIT_RUNNERS = ("frontend-audit", "design-system", "build", "new-component", "foundation")
 # A runnable audit line that names neither the installed engine, a placeholder for it, nor the project copy.
 AUDIT_BARE_RUN = re.compile(r'python3?\s+"?(?!\$\{CLAUDE_PLUGIN_ROOT\}|<engine>|<tooling>)[^\s"`]*audit\.py')
+FOUNDATION_VERIFY = ROOT / "commands" / "foundation" / "references" / "verify.md"
 FOUNDATION_AUDIT_TOKENS = (
     ("the frontend audit runs in the commit hooks AND CI", "the exit criterion wiring the audit into hooks + CI"),
     ("plant a raw hex colour", "Step 3b's proof that the audit gate goes red"),
@@ -1675,7 +1810,9 @@ def check_audit_engine_resolution(files: dict[str, Path]) -> None:
                         ("OLDER", "saying when the project copy is older than the installed engine")):
         if token not in fa:
             fail(f"frontend-audit lost {what} (expected {token!r})")
-    found = " ".join(files["foundation"].read_text(encoding="utf-8").split())
+    # Step 3b's proofs live in verify.md since the /foundation rewrite; the skill names each § to print
+    found = " ".join((files["foundation"].read_text(encoding="utf-8") + "\n" + FOUNDATION_VERIFY.read_text(
+        encoding="utf-8")).split())
     for token, what in FOUNDATION_AUDIT_TOKENS:
         if token not in found:
             fail(f"foundation lost {what} (expected {token!r}) - a gate you must remember is not a gate")
@@ -1684,6 +1821,41 @@ def check_audit_engine_resolution(files: dict[str, Path]) -> None:
     for token, what in SKELETON_AUDIT_TOKENS:
         if token not in steps:
             fail(f"foundation skeleton-steps.md lost {what} (expected {token!r})")
+
+
+def check_audit_viewport_pages() -> None:
+    """31c. Law 21's viewport is judged per PAGE (FA1): a child template passes through the layout it extends -
+    found in a sibling module's templates/ like a multi-folder loader - and a fragment is not a page; a child whose
+    layout lacks the tag, a whole page without it, and a child whose layout cannot be found all still fail. A
+    logged build got two false errors, a red check and a skipped hook for a page whose base.html had the tag."""
+    import importlib.util
+    import tempfile
+
+    spec = importlib.util.spec_from_file_location("audit_engine_fa1", AUDIT_ENGINE)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    with tempfile.TemporaryDirectory() as tmp:
+        t = Path(tmp)
+        (t / "app" / "ui" / "templates").mkdir(parents=True)
+        (t / "app" / "audit" / "templates").mkdir(parents=True)
+        base = t / "app" / "ui" / "templates" / "base.html"
+        base.write_text('<!doctype html><html><head><meta name="viewport" content="width=device-width">'
+                        '</head><body>{% block main %}{% endblock %}</body></html>', encoding="utf-8")
+        child = t / "app" / "audit" / "templates" / "log.html"
+        child.write_text('{% extends "base.html" %}{% block main %}<h1>Log</h1>{% endblock %}', encoding="utf-8")
+        frag = t / "app" / "audit" / "templates" / "rows.html"
+        frag.write_text("<tr><td>{{ row.what }}</td></tr>", encoding="utf-8")
+        page = t / "app" / "audit" / "templates" / "bare.html"
+        page.write_text("<!doctype html><html><head><title>x</title></head><body></body></html>", encoding="utf-8")
+        orphan = t / "app" / "audit" / "templates" / "orphan.html"
+        orphan.write_text('{% extends "missing.html" %}', encoding="utf-8")
+        got = {p.name: mod.has_viewport(str(p), p.read_text(encoding="utf-8")) for p in (child, frag, page, orphan)}
+        want = {"log.html": True, "rows.html": True, "bare.html": False, "orphan.html": False}
+        base.write_text(base.read_text(encoding="utf-8").replace("viewport", "other"), encoding="utf-8")
+        no_tag = mod.has_viewport(str(child), child.read_text(encoding="utf-8"))
+    if got != want or no_tag:
+        fail(f"audit.py judges the viewport per file, not per page: got {got}, child of a tagless layout "
+             f"{'passed' if no_tag else 'failed'} - want {want} and failed")
 
 
 def check_audit_engine_behaviour() -> None:
@@ -1841,15 +2013,25 @@ def check_foundation_boot_evidence(files: dict[str, Path]) -> None:
                  f"and a boot first shown at the end of the phase hides a broken one under seven steps")
     step3b = re.search(r"^## Step 3b\b(.*?)^## Step 3c\b", text, re.MULTILINE | re.DOTALL)
     body = step3b.group(1) if step3b else ""
-    line = re.search(r"^- runs end-to-end\b.*(?:\n[ \t]+\S.*)*", body, re.MULTILINE)
+    # Since the rewrite, Step 3b prints verify.md one § at a time: its §Runs end to end is the line, and the
+    # guard proofs are its other sections. The skill must still name them, or the run never prints them.
+    verify = FOUNDATION_VERIFY.read_text(encoding="utf-8") if FOUNDATION_VERIFY.is_file() else ""
+    if "verify.md" in body:
+        for sec in ("Runs end to end", "Usable end", "Guards", "Hooks and CI"):
+            if f"§{sec}" not in body:
+                fail(f"foundation Step 3b no longer names verify.md §{sec} - a proof the run is never shown is not run")
+        line = re.search(r"^## Runs end to end\n(.*?)(?=^## )", verify, re.MULTILINE | re.DOTALL)
+        body = body + "\n" + verify
+    else:
+        line = re.search(r"^- runs end-to-end\b.*(?:\n[ \t]+\S.*)*", body, re.MULTILINE)
     if not line:
-        fail("foundation Step 3b lost its `- runs end-to-end` line")
+        fail("foundation Step 3b lost its `- runs end-to-end` line (or verify.md its §Runs end to end)")
         return
     boot = " ".join(line.group(0).split())
     for token, what in [(t, f"/build's clause on {w}") for t, w in RERUN_TOKENS] + list(FOUNDATION_BOOT_CITE):
         if token not in boot:
             fail(f"foundation Step 3b's runs end-to-end line lost {what} (expected {token!r})")
-    flat = " ".join(text.split())
+    flat = " ".join((text + "\n" + verify).split())
     if flat.count(RERUN_CONDITION) != 1:
         fail(f"foundation carries the re-run condition {flat.count(RERUN_CONDITION)} times - once, on the runs "
              f"end-to-end line; anywhere else it lets a guard proof cite old evidence")
@@ -1914,103 +2096,92 @@ def check_no_private_names() -> None:
                  f"evidence and an invented example for a rule")
 
 
-# Check 35 (#259). Every phase /playbook can offer - /adopt for an existing codebase, then the chain - has a row.
-SITTING_SECTION = re.compile(r"^## Sitting lengths\b.*?(?=^## |\Z)", re.MULTILINE | re.DOTALL)
+# Check 35 (#259, reworked 2026-09-30). /playbook states a phase's SIZE, never minutes: the minutes table measured on
+# 1.36-1.47 went stale as the skills were rewritten, and nothing re-measured it. The size lives in status.py
+# (PHASE_SIZE, printed by `status.py route`), for every phase /playbook can offer - /adopt, then the chain.
 SITTING_PHASES = ["adopt"] + CHAIN
-SITTING_ROW = re.compile(r"^\|\s*`/([a-z-]+)`\s*\|([^|\n]*)\|([^|\n]*)\|([^|\n]*)\|\s*$", re.MULTILINE)
 SITTING_FIGURE = re.compile(r"\b\d+(?:\s*[–-]\s*\d+)?\s*(?:min|minutes?|h|hours?)\b", re.IGNORECASE)
-SITTING_RANGE = re.compile(r"\d\s*[–-]\s*\d+\s*(?:min|minutes?|h|hours?)\b", re.IGNORECASE)
-SITTING_VERSIONS = re.compile(r"(\d+\.\d+\.\d+)(?:\s*[–-]\s*(\d+\.\d+\.\d+))?")
-NOT_MEASURED = "not measured yet"
 MONEY = re.compile(r"[$€£]\s*\d|\d\s*(?:USD|EUR|GBP)\b|\b(?:dollars?|euros?)\b", re.IGNORECASE)
-SITTING_OFFER = (("§Sitting lengths", "the pointer to the one table the figures live in"),
-                 ("room left on your plan", "the warning to start with room left on the plan"),
+SITTING_OFFER = (("`Size:`", "the size read from `status.py route`, never guessed"),
+                 ("room left on your plan", "the warning to start a long phase with room left on the plan"),
                  ("loses review steps", "why the warning matters - a cut-off run loses review steps"),
-                 ("never estimated", "what to say when a phase has no measured run - that, never an estimate"),
-                 ("added up", "the batch's sitting, its phases' rows added up"))
-SESSION_COST_POINTER = '"${CLAUDE_PLUGIN_ROOT}/tools/session_cost.py"'
-
-
-def version_key(version: str) -> tuple[int, ...]:
-    return tuple(int(part) for part in version.split("."))
+                 ("Never a number of minutes", "the ban on quoting minutes, which go stale"))
 
 
 def check_sitting_lengths(files: dict[str, Path]) -> None:
-    """35. /playbook's offers say how long a sitting is, from one measured table, and warn to start with room left.
+    """35. /playbook's offers say whether a phase is short or long, from code, and warn to start a long one with room.
 
     The routing entry point offered /foundation + /contracts + /tickets as a batch because it was legal, and said
     nothing about length: about two hours of agent work on a logged test run. A usage limit that cuts a run off
     mid-review loses review steps - on one logged /build it struck inside the review, and four of the seven review
-    angles never ran. So every offer quotes a row and carries the warning, the figures live in one
-    section so a release updates one row, each is labelled with the version it was measured on, and no row may
-    hold a price or a range invented from one run.
+    angles never ran. The first fix was a table of measured minutes; every row was measured on 1.36-1.47, the skills
+    were rewritten after, and the table kept quoting old figures. A size (short: questions and one section; long: it
+    writes, runs or reviews project files) holds across rewrites, and status.py prints it so no run guesses it.
     """
+    sys.path.insert(0, str(ROOT / "tools"))
+    import status as status_engine
     text = files["playbook"].read_text(encoding="utf-8")
-    m = SITTING_SECTION.search(text)
-    if not m:
-        fail("playbook.md has no `## Sitting lengths` section - an offer that states a sitting has nowhere to "
-             "read it from, and figures scattered through the prose drift from each other")
-        return
-    section = m.group(0)
-    rows: dict[str, tuple[str, ...]] = {}
-    for row in SITTING_ROW.finditer(section):
-        if row.group(1) in rows:
-            fail(f"playbook.md §Sitting lengths lists /{row.group(1)} twice - one phase, one row")
-        rows[row.group(1)] = tuple(cell.strip() for cell in row.group(2, 3, 4))
-    for extra in sorted(set(rows) - set(SITTING_PHASES)):
-        fail(f"playbook.md §Sitting lengths has a row for /{extra}, which /playbook never offers as a phase")
-    released = released_version()
     for phase in SITTING_PHASES:
-        if phase not in rows:
-            fail(f"playbook.md §Sitting lengths has no row for /{phase} - its offer would state no sitting, or an "
-                 f"invented one; a phase with no measured run gets a `{NOT_MEASURED}` row")
-            continue
-        figure, measured, runs = rows[phase]
-        if figure == NOT_MEASURED:
-            if SITTING_VERSIONS.search(measured) or runs not in ("0", "—", "-"):
-                fail(f"/{phase} reads `{NOT_MEASURED}` but names a version or a run count - a row is measured or it is not")
-            continue
-        if not SITTING_FIGURE.search(figure):
-            fail(f"/{phase}'s sitting {figure!r} states no minutes or hours - give the measured figure or "
-                 f"`{NOT_MEASURED}`")
-        label = SITTING_VERSIONS.fullmatch(measured)
-        if not label:
-            fail(f"/{phase}'s sitting is labelled {measured!r}, not with the playbook version(s) it was measured on - "
-                 f"a figure from an older version reads as current")
-        else:
-            versions = [v for v in label.groups() if v]
-            if released and any(version_key(v) > version_key(released) for v in versions):
-                fail(f"/{phase}'s sitting is labelled {measured!r}, newer than the released {released} - no run "
-                     f"was measured on it")
-            if len(versions) == 2 and version_key(versions[0]) >= version_key(versions[1]):
-                fail(f"/{phase}'s version range {measured!r} does not run oldest to newest")
-        if not runs.isdigit() or int(runs) < 1:
-            fail(f"/{phase}'s sitting gives {runs!r} runs - a measured figure names how many runs it rests on")
-        elif runs == "1" and SITTING_RANGE.search(figure):
-            fail(f"/{phase}'s sitting {figure!r} is a range from one run - one run gives one figure")
+        if status_engine.PHASE_SIZE.get(phase) not in ("short", "long"):
+            fail(f"status.py PHASE_SIZE has no short/long size for /{phase} - `status.py route` would offer it with "
+                 f"no size, and the run would guess one")
+    for extra in sorted(set(status_engine.PHASE_SIZE) - set(SITTING_PHASES)):
+        fail(f"status.py PHASE_SIZE sizes /{extra}, which /playbook never offers as a phase")
+    if re.search(r"^## Sitting lengths\b", text, re.MULTILINE):
+        fail("playbook.md has a `## Sitting lengths` table again - measured minutes go stale when a skill is "
+             "rewritten; the size comes from `status.py route`")
     money = MONEY.search(text)
     if money:
         fail(f"playbook.md states a price ({money.group(0)!r}) - what a run costs depends on the user's plan, "
              f"and a subscription meets a usage limit, not a bill")
-    stray = SITTING_FIGURE.search(text[:m.start()] + text[m.end():])
+    stray = SITTING_FIGURE.search(text)
     if stray:
-        fail(f"playbook.md states a sitting figure outside §Sitting lengths ({stray.group(0)!r}) - the figures "
-             f"live in one place, or a release updates one copy and the other goes stale")
+        fail(f"playbook.md states a sitting in minutes or hours ({stray.group(0)!r}) - a figure goes stale when the "
+             f"skill is rewritten; say short or long, from `status.py route`")
     step2 = re.search(r"^## Step 2\b(.*?)^2\. ", text, re.MULTILINE | re.DOTALL)
     offer = " ".join(step2.group(1).split()) if step2 else ""
     for token, what in SITTING_OFFER:
         if token not in offer:
             fail(f"playbook.md Step 2 item 1 (the phase and batch offers) lost {what} (expected {token!r})")
-    if SESSION_COST_POINTER not in section or not (ROOT / "tools" / "session_cost.py").is_file():
-        fail(f"playbook.md §Sitting lengths does not point at {SESSION_COST_POINTER} - a user cannot measure a run "
-             f"of their own against the table")
     check_session_cost_working_time()
+
+
+# Check 35b (2026-09-30). /playbook's start and run, from seven logged runs: all seven listed the folder before anything
+# else, one read PRINCIPLES.md + MECHANISMS.md whole (31 KB) to route one phase, four of five started the phase in the
+# offer's own message, and Step 2 said "repeat" in the same conversation while MECHANISMS.md says the next phase runs
+# in a new one.
+PLAYBOOK_RUN = (
+    ("Step 0", "status.py route` first — one call, nothing before it", "route as the one first call"),
+    ("Step 0", "`/deploy` is never the next phase by itself", "when /deploy runs, beside the phase order"),
+    ("Step 2", "what's done (`Done:`), what's next, why", "the offer's three plain lines: done, next, why"),
+    ("Step 2", "**The user already named a goal**", "routing a goal the user named, with no extra question"),
+    ("Step 1", "only when `route` prints `Map: show it`", "the map shown only on a first visit"),
+    ("Step 2", "Start `/<phase>` now? (yes / later)", "the one question that ends the offer"),
+    ("Step 2", "only on the user's yes", "invoking the phase only on the user's yes"),
+    ("Step 2", "After the phase's close, this conversation is done", "one phase per conversation"),
+    ("Step 2", "Never invoke the next phase in this conversation", "the ban on starting the next phase here"),
+    ("Step 2", "open a new conversation and run `/playbook`", "the handoff to a new conversation"),
+)
+
+
+def check_playbook_run(files: dict[str, Path]) -> None:
+    """35b. /playbook starts with `status.py route`, asks before it runs a phase, and runs one phase per conversation."""
+    text = files["playbook"].read_text(encoding="utf-8")
+    steps = {m.group(1): m.group(2) for m in re.finditer(r"^## (Step \d)\b(.*?)(?=^## |\Z)", text, re.M | re.S)}
+    for step, token, what in PLAYBOOK_RUN:
+        if token not in " ".join(steps.get(step, "").split()):
+            fail(f"playbook {step} lost {what} (expected {token!r})")
+    if OPEN_RULES_LINE in text:
+        fail("playbook orders PRINCIPLES.md and MECHANISMS.md open whole - routing one phase needs the sections "
+             "`status.py route` prints (31 KB read, re-sent on every later call of the phase it starts)")
+    if re.search(r"\band repeat\b", steps.get("Step 2", "")):
+        fail("playbook Step 2 says to repeat in the same conversation - the next phase runs in a new one")
 
 
 def check_session_cost_working_time() -> None:
     """35, behaviour. tools/session_cost.py's agent working time leaves out every wait that ended in the user's
     input - a typed reply, an answered question card or an approved plan - and keeps the agent's own waits, and
-    its wall clock ends at the newest row, so the figure a user measures means what §Sitting lengths means."""
+    its wall clock ends at the newest row, so the figure a user measures is agent work, the time a phase's size stands for."""
     import importlib.util
     import tempfile
     spec = importlib.util.spec_from_file_location("session_cost", ROOT / "tools" / "session_cost.py")
@@ -2056,6 +2227,42 @@ def check_session_cost_working_time() -> None:
              f"questions {got.get('questions')} on the fixture, not 72.0 / 25.0 / 1 - the wall clock ends at the "
              f"newest row, and the working time leaves out waits for the user's reply, card answer or plan "
              f"approval while keeping the agent's own waits")
+    check_session_cost_antigravity(module)
+
+
+def check_session_cost_antigravity(module) -> None:
+    """35b. An Antigravity conversation's tokens come from its gen_metadata rows (a logged Gemini close guessed half
+    the real total from characters / 3.8): two calls with usage blocks are summed, a row without one is skipped."""
+    import sqlite3
+    import tempfile
+
+    def vi(n: int) -> bytes:
+        out = b""
+        while True:
+            out += bytes([(n & 0x7F) | (0x80 if n > 0x7F else 0)])
+            n >>= 7
+            if not n:
+                return out
+
+    def msg(fields: bytes, f: int) -> bytes:
+        return vi(f << 3 | 2) + vi(len(fields)) + fields
+
+    def usage(new: int, out: int, cached: int) -> bytes:
+        block = vi(2 << 3) + vi(new) + vi(3 << 3) + vi(out) + vi(5 << 3) + vi(cached)
+        return msg(vi(3 << 3) + vi(1319) + msg(block, 4), 1)
+
+    with tempfile.TemporaryDirectory() as t:
+        db = Path(t) / "conv.db"
+        con = sqlite3.connect(db)
+        con.execute("create table gen_metadata (idx integer, data blob, size integer)")
+        for i, data in enumerate((usage(24725, 308, 0), usage(11439, 379, 20415), msg(vi(8) + vi(1), 3))):
+            con.execute("insert into gen_metadata values (?, ?, 0)", (i, data))
+        con.commit()
+        con.close()
+        got = module.antigravity_tokens(db)
+    want = {"calls": 2, "input": 36164, "cache_read": 20415, "output": 687, "peak": 31854}
+    if got != want:
+        fail(f"tools/session_cost.py read an Antigravity file as {got}, not {want}")
 
 
 # Check 36 (#249). The epic layer, the plan file and the lane flow graph.
@@ -2083,7 +2290,7 @@ EPIC_TOKENS = (
     ("no duplicate epic or link", "tickets exit criteria", "a re-run creating no second epic or link"),
     ("milestone → epic → ticket", "tickets Step 3A.1", "printing the proposal as the hierarchy"),
     ("`references/tickets-md.md`", "tickets Step 3A.2", "the pointer to the plan file's shape where the plan is written"),
-    ("top of `TICKETS.md`", "tickets Step 0", "a stopped run's trace line living in the plan file"),
+    ("status.py set tickets declined", "tickets Step 0", "a stopped run's trace recorded in STATUS.md - the phase owns no spine section"),
     ("## §Epics", "slicing.md", "the epic mechanism"),
     ("one feature of one milestone, inside one lane", "slicing.md", "what an epic is"),
     ("## §Waiting or building against", "slicing.md", "the two kinds of dependency"),
@@ -2294,7 +2501,7 @@ def check_epic_plan(files: dict[str, Path]) -> None:
                         ("evals/evals.json (tickets cases)", current_cases),
                         ("README.md", (ROOT / "README.md").read_text(encoding="utf-8")),
                         ("docs/how-it-works.md", (ROOT / "docs" / "how-it-works.md").read_text(encoding="utf-8")),
-                        ("commands/new-component.md", files["new-component"].read_text(encoding="utf-8"))):
+                        ("commands/new-component/SKILL.md", files["new-component"].read_text(encoding="utf-8"))):
         m = LEGACY_ID.search(text)
         if m:
             fail(f"{where} still gives a ticket ID as {m.group(0)!r}... - IDs are epic-scoped now (M1-PARTY-02); an old "
@@ -2336,6 +2543,30 @@ VERIFY_SPLIT_TOKENS = (
     ("never read them as a reason to stop before publishing", "verification.md header", "the read-backs never blocking a publish"),
     ("A local-only run", "verification.md header", "the local-only run saying the read-backs did not run"),
 )
+
+
+def check_tickets_close() -> None:
+    """36b. tools/test_tickets_close.py: `next --phase tickets` prints what the backlog derives from within Claude
+    Code's 30,000 characters, and `set tickets filled` refuses every countable gap in one list (a logged run spent
+    38 calls; a logged Gemini backlog had 11 same-milestone pairs writing one file unordered)."""
+    import subprocess
+    p = subprocess.run([sys.executable, str(ROOT / "tools" / "test_tickets_close.py")], capture_output=True,
+                       text=True, encoding="utf-8", errors="replace")
+    if p.returncode != 0:
+        fail("/tickets' start or close misbehaves (tools/test_tickets_close.py): "
+             + " | ".join((p.stdout + p.stderr).split("\n")))
+
+
+def check_releaseops_close() -> None:
+    """61. tools/test_releaseops_close.py: `next --phase eval|learn|ship|deploy` prints the phase's start in one call
+    within Claude Code's 30,000 characters, and its close refuses every countable gap in one list - a realistic record
+    closes the first time, each check goes red on its own break (each read three rule files whole and closed on prose)."""
+    import subprocess
+    p = subprocess.run([sys.executable, str(ROOT / "tools" / "test_releaseops_close.py")], capture_output=True,
+                       text=True, encoding="utf-8", errors="replace")
+    if p.returncode != 0:
+        fail("a release phase's start or close misbehaves (tools/test_releaseops_close.py): "
+             + " | ".join((p.stdout + p.stderr).split("\n")))
 
 
 def check_verification_publish_split(files: dict[str, Path]) -> None:
@@ -2644,7 +2875,6 @@ DEAD_README_POINTER = "see README"
 TEMPLATE_MENTION = "`PRODUCT.md` template"
 TEMPLATE_PATH = "`${CLAUDE_PLUGIN_ROOT}/templates/PRODUCT.md`"
 # Plugin paths a copy install may leave as they are, because the skill names its own copy-install fallback.
-PLUGIN_PATHS_WITH_FALLBACK = {"commands/frontend-audit/audit.py": "/frontend-audit §Which engine runs (#256)"}
 # Files the agent opens with Read: Claude Code fills `${CLAUDE_PLUGIN_ROOT}` into skill text only.
 READ_COMPANIONS = ("PRINCIPLES.md", "references/mechanisms.md", "references/mechanisms-on-demand.md",
                    "references/lessons.md")
@@ -2748,37 +2978,57 @@ def check_copy_install_rule_paths() -> None:
         else:
             print("note: check 41's copy-install run skipped - no Git bash found")
         return
-    with tempfile.TemporaryDirectory() as tmp:
-        base = Path(tmp) / ".claude"
-        run = subprocess.run([bash, (ROOT / "install.sh").as_posix(), "--project", Path(tmp).as_posix()],
-                             cwd=ROOT, capture_output=True)
-        if run.returncode != 0:
-            fail(f"check 41: install.sh --project failed: {run.stderr.decode('utf-8', 'replace')[-300:]}")
-            return
-        support = base / "product-playbook"
-        installed = sorted((base / "commands").rglob("*.md")) + sorted(support.glob("*.md"))
-        if not installed:
-            fail("check 41: install.sh --project installed no Markdown files - nothing to check")
-        for path in installed:
-            text = path.read_text(encoding="utf-8")
-            where = path.relative_to(base).as_posix()
-            for m in PLUGIN_PATH_RE.finditer(text):
-                if m.group(1) not in PLUGIN_PATHS_WITH_FALLBACK:
-                    fail(f"copy install: {where} still gives {PLUGIN_ROOT_VAR}/{m.group(1)} - install.sh must "
-                         f"rewrite it to the file it installed")
-            if RULES_LINE in text:
-                given = re.findall(r"`\.claude/product-playbook/([A-Za-z0-9_.-]+)`", text)
-                if "PRINCIPLES.md" not in given:
-                    fail(f"copy install: {where}'s rule-files line does not point at the installed PRINCIPLES.md")
-                if PROJECT_ROOT_NOTE not in text or RULES_FALLBACK in text:
-                    fail(f"copy install: {where}'s rule-files line does not say where the project root is - its "
-                         f"paths are relative, and Claude Code may start in a subfolder")
-                for name in given:
-                    if not (support / name).is_file():
-                        fail(f"copy install: {where} points at .claude/product-playbook/{name}, which "
-                             f"install.sh did not install")
-        if not (support / "session_cost.py").is_file():
-            fail("copy install: session_cost.py is not installed - a copy-install close could never measure its cost")
+    # Both routes: Claude Code's .claude/, and .agents/, which Cursor and Antigravity read (CAPABILITIES.md).
+    for tool, folder in (("claude", ".claude"), ("cursor", ".agents")):
+        with tempfile.TemporaryDirectory() as tmp:
+            copy_install_one(bash, tool, folder, Path(tmp), subprocess)
+
+
+def copy_install_one(bash: str, tool: str, folder: str, tmp: Path, subprocess) -> None:
+    base = tmp / folder
+    run = subprocess.run([bash, (ROOT / "install.sh").as_posix(), "--project", tmp.as_posix(), "--tool", tool],
+                         cwd=ROOT, capture_output=True)
+    if run.returncode != 0:
+        fail(f"check 41: install.sh --project --tool {tool} failed: {run.stderr.decode('utf-8', 'replace')[-300:]}")
+        return
+    support = base / "product-playbook"
+    skills = base / "skills"
+    got = {d.name for d in skills.iterdir() if (d / "SKILL.md").is_file()} if skills.is_dir() else set()
+    if got != set(skill_files()):
+        fail(f"copy install ({tool}): {folder}/skills/ holds {sorted(got)[:5]}... - every skill must land as "
+             f"<name>/SKILL.md, the one form all three tools read")
+    installed = sorted(skills.rglob("*.md")) + sorted(support.rglob("*.md"))
+    if not installed:
+        fail(f"check 41: install.sh --tool {tool} installed no Markdown files - nothing to check")
+    for path in installed:
+        text = path.read_text(encoding="utf-8")
+        where = f"{tool}: " + path.relative_to(base).as_posix()
+        # Every plugin path, the engines' included: Cursor and Antigravity never fill the variable in.
+        for m in PLUGIN_PATH_RE.finditer(text):
+            fail(f"copy install {where} still gives {PLUGIN_ROOT_VAR}/{m.group(1)} - install.sh must "
+                 f"rewrite it to the file it installed")
+        for m in re.finditer(r"`" + re.escape(folder) + r"/(skills|product-playbook)/([A-Za-z0-9_./-]+)`", text):
+            if not (base / m.group(1) / m.group(2).split("`")[0]).exists():
+                fail(f"copy install {where} points at {folder}/{m.group(1)}/{m.group(2)}, which install.sh did "
+                     f"not install")
+        if RULES_LINE in text:
+            given = re.findall(r"`" + re.escape(folder) + r"/product-playbook/([A-Za-z0-9_.-]+)`", text)
+            if "PRINCIPLES.md" not in given:
+                fail(f"copy install {where}'s rule-files line does not point at the installed PRINCIPLES.md")
+            if PROJECT_ROOT_NOTE not in text or RULES_FALLBACK in text:
+                fail(f"copy install {where}'s rule-files line does not say where the project root is - its "
+                     f"paths are relative, and an agent may start in a subfolder")
+    for tool_file in ("session_cost.py", "status.py", "VERSION"):
+        if not (support / tool_file).is_file():
+            fail(f"copy install ({tool}): {tool_file} is not installed")
+    # Cursor lists Claude Code's installed skills beside these, same names and descriptions: a logged test run
+    # started the other copy without knowing. So a Cursor/Antigravity copy carries its version in the description.
+    for skill in sorted(skills.glob("*/SKILL.md")):
+        m = re.search(r"^description:[ \t]*>?-?[ \t]*\n?[ \t]*(.*)$", skill.read_text(encoding="utf-8"), re.MULTILINE)
+        labelled = bool(m) and m.group(1).startswith("[product-playbook ")
+        if labelled != (tool != "claude"):
+            fail(f"copy install ({tool}): {skill.parent.name}'s description "
+                 f"{'lacks' if tool != 'claude' else 'carries'} the [product-playbook <version>] label")
 
 
 
@@ -2788,6 +3038,9 @@ def check_copy_install_rule_paths() -> None:
 # /drift-check runs Step 0b and 0c before its Step 0, and /new-component has no Step 0 at all.
 OPEN_RULES_LINE = "**Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step**"
 OPEN_RULES_SITUATIONAL = "a situational companion only when a rule points into it"
+# L3: a phase listed in status.py PHASE_RULES gets its rule sections printed by `status.py rules`, word for word, and
+# says so instead (test_status.py fails when the skill cites a section the output leaves out).
+OPEN_RULES_BY_NEXT = "prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`**"
 # MECHANISMS-ON-DEMAND.md is "the mechanism you open only when its trigger fires" and LESSONS.md is the same:
 # opening either on every run is the per-session context cost they were split out to avoid, so no skill may
 # order it. Checked as a phrase that would ORDER it, not as a mention - every skill names both files' paths.
@@ -2816,7 +3069,7 @@ def check_rule_files_are_opened(files: dict[str, Path]) -> None:
         where = path.relative_to(ROOT).as_posix()
         if RULES_LINE not in text:
             continue  # a skill that names no rule file has none to open (/frontend-audit)
-        if OPEN_RULES_LINE not in text:
+        if OPEN_RULES_LINE not in text and OPEN_RULES_BY_NEXT not in " ".join(text.split()):
             fail(f"{where} names its rule files but never says to open them - naming a file is not reading it, "
                  f"so whether the run loads the rules is left to chance ({OPEN_RULES_LINE!r})")
         elif OPEN_RULES_SITUATIONAL not in text:
@@ -2980,6 +3233,454 @@ def check_build_ship_frictions(files: dict[str, Path]) -> None:
     if "## §Project policy" not in mod or "never what it proves" not in mod:
         fail("MECHANISMS-ON-DEMAND.md does not define §Project policy with its limit - a policy narrows what a "
              "phase does, never what it proves")
+
+# Two logged /ship runs (2026-09-22): one reviewed its own fix a third time and started the full gate six
+# times, only the last of which spoke for the shipped tree; the other ran the gate BEFORE its review fixes and
+# never after. Each rule is one sentence a later edit could drop, and nothing else would notice.
+SHIP_BOUND_TOKENS = (
+    ("**Round 1 is the review Step 0 says must run**", "the round /build skipped still runs in /ship"),
+    ("**Round 2 — over THIS run's fixes — is the user's call, never automatic.**",
+     "a review of /ship's own fixes being asked, not assumed"),
+    ("**A skipped round 2 is RECORDED**", "a skipped round never being silent"),
+    ("**No round 3.**", "the bound on review rounds - a logged ship ran a third, 18-minute round"),
+    ("**The full gate runs ONCE, after the last fix**", "the gate speaking for the shipped tree - one logged ship "
+     "started it six times, another never ran it after its fixes"),
+    ("**Never two test runs at once**", "a background gate and a foreground test sharing one test database"),
+    ("**Tests while fixing: the test files that import a module you changed**",
+     "a named method, never 'the affected tests' - a judgement call no two models make alike"),
+    ("**Fix with the edit tool, not with a patch script**", "the patch-script rule /ship never had"),
+    ("gate ×1", "the gate count on the Ship log row, so a reader can see it ran once"),
+)
+
+
+def check_ship_loop_bounds(files: dict[str, Path]) -> None:
+    """46. /ship bounds its own review rounds and runs the full gate once, after the last fix."""
+    flat = " ".join(files["ship"].read_text(encoding="utf-8").split())
+    for token, why in SHIP_BOUND_TOKENS:
+        if token not in flat:
+            fail(f"ship no longer says {token!r} - {why}")
+    if "(case file: The gate that ran for every fix)" not in flat:
+        fail("ship's round bound lost its pointer to the war story")
+    cf = (ROOT / "references" / "case-files-ship.md").read_text(encoding="utf-8")
+    if "## The gate that ran for every fix" not in cf:
+        fail("case-files-ship.md has no 'The gate that ran for every fix' - the pointer in ship.md names it")
+# A logged /build (2026-09-22) ran the full suite seven times where the skill asked for two: "the affected
+# files" named no method, so after a shared change the run could not say which tests those were.
+BUILD_TEST_TOKENS = (
+    ("**Tests while coding: the test files that import a module you changed**", "a named method in the coding "
+     "step - 'affected' is a judgement no two models make alike"),
+    ("a search for `<module name>`", "how to find those files"),
+    ("**The full suite runs at the gate and at the close, nowhere else**", "the bound on full-suite runs"),
+    ("**Count the full-suite runs and pass the count as `--runs` on the ticket row**", "a count a reader can check"),
+    ("**These re-run rules are Step 3b's alone**", "3b's 'when unsure, re-run' staying at the gate"),
+)
+
+
+def check_build_test_method(files: dict[str, Path]) -> None:
+    """47. /build names HOW to pick the tests while coding, and counts the full-suite runs."""
+    flat = " ".join(files["build"].read_text(encoding="utf-8").split())
+    for token, why in BUILD_TEST_TOKENS:
+        if token not in flat:
+            fail(f"build no longer says {token!r} - {why}")
+    if "the affected files while you iterate" in flat:
+        fail("build says 'the affected files while you iterate' again - a judgement with no method")
+    cf = (ROOT / "references" / "case-files-build.md").read_text(encoding="utf-8")
+    if "## The suite that ran for every edit" not in cf:
+        fail("case-files-build.md has no 'The suite that ran for every edit' - the pointer in /build names it")
+# A logged /tickets run (2026-09-18) published 19 issues in 49 seconds, then spent ~13 minutes and ~60 agent
+# steps on hand-written links, board fields and read-back checkers - three of which had bugs that cost a retry.
+PUBLISH_ENGINE = ROOT / "commands" / "tickets" / "publish.py"
+PUBLISH_ENGINE_PATH = '"${CLAUDE_PLUGIN_ROOT}/commands/tickets/publish.py"'
+
+
+def check_clarity() -> None:
+    """49-52. The clarity standard, run from tools/clarity.py so this file does not grow with it.
+
+    49 no judgement word without a method in the same sentence (C2) · 50 every `FILE.md §name` and
+    `case file:` pointer names something that exists (C4) · 51 one tool's command only inside
+    CAPABILITIES.md (C7) · 52 every skill within its character budget (C8). Counts are held per file
+    against tools/clarity-baseline.json, in both directions: more fails, and fewer fails until the
+    baseline is lowered, so a clean-up cannot quietly come undone.
+    """
+    sys.path.insert(0, str(ROOT / "tools"))
+    import clarity
+    clarity.run(fail)
+
+
+def check_status_engine() -> None:
+    """53. tools/status.py against tools/test_status.py: every §2b transition legal or refused as the state
+    model says, its table equal to §2b's, the required details and row limits enforced, next-phase logic, and
+    a migrate that loses no line. A script that holds the project's status is only safe while it behaves.
+    """
+    import subprocess
+    p = subprocess.run([sys.executable, str(ROOT / "tools" / "test_status.py")], capture_output=True, text=True,
+                       encoding="utf-8", errors="replace")
+    if p.returncode != 0:
+        fail("tools/status.py misbehaves (tools/test_status.py): " + " | ".join((p.stdout + p.stderr).split("\n")))
+
+
+def check_structure_template() -> None:
+    """53b. templates/check_structure.py against tools/test_check_structure.py: a logged run on a second model left
+    modules without tests/, no file convention, recorded decisions with no home, print-only tasks and an
+    assertTrue(True) test; the rules existed, and only this check makes every model follow them."""
+    import subprocess
+    p = subprocess.run([sys.executable, str(ROOT / "tools" / "test_check_structure.py")], capture_output=True,
+                       text=True, encoding="utf-8", errors="replace")
+    if p.returncode != 0:
+        fail("templates/check_structure.py misbehaves (tools/test_check_structure.py): "
+             + " | ".join((p.stdout + p.stderr).split("\n")))
+    # /structure's one start and its close in code: a realistic record closes first time, each check red alone
+    p = subprocess.run([sys.executable, str(ROOT / "tools" / "test_structure_close.py")], capture_output=True,
+                       text=True, encoding="utf-8", errors="replace")
+    if p.returncode != 0:
+        fail("/structure's start or close misbehaves (tools/test_structure_close.py): "
+             + " | ".join((p.stdout + p.stderr).split("\n")))
+
+
+def check_run_report() -> None:
+    """53c. tools/run_report.py against tools/test_run_report.py: a step a model skips silently is caught only if
+    the session log is read; the report must find a skipped step in both log formats it reads."""
+    import subprocess
+    p = subprocess.run([sys.executable, str(ROOT / "tools" / "test_run_report.py")], capture_output=True,
+                       text=True, encoding="utf-8", errors="replace")
+    if p.returncode != 0:
+        fail("tools/run_report.py misbehaves (tools/test_run_report.py): "
+             + " | ".join((p.stdout + p.stderr).split("\n")))
+
+
+def check_foundation_tools() -> None:
+    """53e. commands/foundation/devserver.py + ci_local.py against tools/test_foundation_tools.py: a logged run spent 14
+    calls freeing a port a background server kept, and every run's CI never ran for want of a remote."""
+    import subprocess
+    p = subprocess.run([sys.executable, str(ROOT / "tools" / "test_foundation_tools.py")], capture_output=True,
+                       text=True, encoding="utf-8", errors="replace")
+    if p.returncode != 0:
+        fail("commands/foundation/devserver.py or ci_local.py misbehaves (tools/test_foundation_tools.py): "
+             + " | ".join((p.stdout + p.stderr).split("\n")))
+    # /foundation's one start command and its close: a realistic record recorded first time, each check red alone,
+    # the logged Gemini faults refused in ONE list (a logged run's fix took two rounds)
+    p = subprocess.run([sys.executable, str(ROOT / "tools" / "test_foundation_close.py")], capture_output=True,
+                       text=True, encoding="utf-8", errors="replace")
+    if p.returncode != 0:
+        fail("/foundation's start or close misbehaves (tools/test_foundation_close.py): "
+             + " | ".join(l for l in (p.stdout + p.stderr).split("\n") if l.startswith(("  x", "FAIL"))))
+
+
+def check_build_tools() -> None:
+    """53f. commands/build/gate.py + wirecut.py against tools/test_build_tools.py: a logged build spent ~40 of its 120
+    calls on one check per call and 13 wire cuts made by hand, each call re-sending a 200k-token conversation."""
+    import subprocess
+    p = subprocess.run([sys.executable, str(ROOT / "tools" / "test_build_tools.py")], capture_output=True,
+                       text=True, encoding="utf-8", errors="replace")
+    if p.returncode != 0:
+        fail("commands/build/gate.py or wirecut.py misbehaves (tools/test_build_tools.py): "
+             + " | ".join((p.stdout + p.stderr).split("\n")))
+
+
+def check_render_check() -> None:
+    """53d. commands/frontend-audit/render_check.py against tools/test_render_check.py (D4): audit.py reads CSS, so a
+    page whose phone view buries its main action under a full-screen menu passed every one of its checks. With no
+    browser here the test prints SKIPPED and passes; the script itself then says NOT RUN, never PASS."""
+    import subprocess
+    p = subprocess.run([sys.executable, str(ROOT / "tools" / "test_render_check.py")], capture_output=True,
+                       text=True, encoding="utf-8", errors="replace")
+    if p.returncode != 0:
+        fail("commands/frontend-audit/render_check.py misbehaves (tools/test_render_check.py): "
+             + " | ".join((p.stdout + p.stderr).split("\n")))
+    elif "SKIPPED" in p.stdout:
+        print("note: check 53d skipped - " + p.stdout.strip().splitlines()[-1])
+
+
+def check_support_v2() -> None:
+    """53g. tools/test_support_v2.py: the 2.0 alignment of /playbook, /validate, /drift-check, /adopt, /frontend-audit
+    and /new-component - one start command each, a close checked in code where the skill writes a record, a realistic
+    record passing the first time and a broken one refused in one list."""
+    import subprocess
+    p = subprocess.run([sys.executable, str(ROOT / "tools" / "test_support_v2.py")], capture_output=True, text=True,
+                       encoding="utf-8", errors="replace")
+    if p.returncode != 0:
+        fail("a support skill's start or close misbehaves (tools/test_support_v2.py): "
+             + " | ".join((p.stdout + p.stderr).strip().splitlines()))
+
+
+def check_start_sizes() -> None:
+    """53h. tools/test_start_sizes.py (P47): every skill's `next --phase` start under 25,000 characters on a project
+    filled to a logged run's sizes. Claude Code cuts a tool output over 30,000 characters to a file the model reads
+    again (paid twice); a size rule written down with no check let /structure's start grow to 59K."""
+    import subprocess
+    p = subprocess.run([sys.executable, str(ROOT / "tools" / "test_start_sizes.py")], capture_output=True, text=True,
+                       encoding="utf-8", errors="replace")
+    if p.returncode != 0:
+        fail("a phase's start is too long (tools/test_start_sizes.py): "
+             + " | ".join((p.stdout + p.stderr).strip().splitlines()))
+    else:
+        for line in p.stdout.splitlines():
+            if line.startswith("note:"):
+                print("note: check 53h - " + line[6:])
+
+
+def check_design_close() -> None:
+    """53e. /design-system's one start and `set design-system filled` against tools/test_design_close.py: a realistic
+    record records the first time; each logged fault (no owner's answers, no rendered check, a host platform's design
+    rules never searched, a placeholder left) is refused by name, and the logged Gemini shapes in ONE refusal."""
+    import subprocess
+    p = subprocess.run([sys.executable, str(ROOT / "tools" / "test_design_close.py")], capture_output=True,
+                       text=True, encoding="utf-8", errors="replace")
+    if p.returncode != 0:
+        fail("/design-system's start or close misbehaves (tools/test_design_close.py): "
+             + " | ".join((p.stdout + p.stderr).split("\n")))
+
+
+CROSS_MODEL_RULES = (
+    ("commands/vision/SKILL.md", "**never draft who it's for, the problem, why now, the riskiest assumption or the "
+     "business model**", "facts only the user knows are never drafted (a run drafted the problem and why now)"),
+    ("commands/vision/SKILL.md", "its line on the search list starts `why now ·`",
+     "why now is found by text on the search list (a run stated it as fact and passed its own gate)"),
+    ("commands/vision/SKILL.md", "the search list has no line starting `why now ·`", "the 3b stop for why now"),
+    ("commands/vision/SKILL.md", "one row each in the `## North-star terms` table",
+     "the term -> number table (two of three models left terms undefined)"),
+    ("commands/vision/SKILL.md", "north-star terms table has no number", "the 3b stop for the table"),
+    ("commands/vision/SKILL.md", "Leave `UI` alone: `/architect` decides it",
+     "no UI flag at /vision (a run set UI: yes unasked)"),
+    ("commands/architect/SKILL.md", "`status.py flag --ui yes|no`", "the phase that decides the UI records it"),
+    ("commands/validate/SKILL.md", "observes that action** — rung 3, 4 or 5",
+     "a behaviour bet is observed, not asked about (a run chose interviews for 'owners will allow refunds')"),
+    ("commands/validate/SKILL.md", "the bet is about a behaviour and the experiment only asks about it",
+     "the 3b stop for a behaviour bet"),
+    ("commands/validate/SKILL.md", "· pass: <the bar, plain words>", "the plain shape of a running note"),
+    ("PRINCIPLES.md", "`status.py` warns on a `PRODUCT.md` line over 300 characters",
+     "readable documents: Markdown structure, and the long-line warning (a run wrote 600-character fields)"),
+    ("references/mechanisms.md", "**`next` prints first `Playbook <version> · rule files in <folder>`**",
+     "the run says which playbook copy it is (a tool listed two copies and ran the other one)"),
+    # From /plan in the same test: a non-Claude run asked nothing on an input gate, called every judged row
+    # VERIFIED at 95%, and receipted its own output. Plus the agent track, built before /architect.
+    # next.65: asked in two rounds, never drafted before round 1's answers
+    ("commands/plan/SKILL.md", "**Round 1: these three together; draft no milestone or date before the answers**",
+     "an input gate names its questions (a run invented a 4-6 week timeline)"),
+    ("commands/architect/SKILL.md", "**Round 1: ask these in ONE message, numbered as written, and recommend nothing "
+     "before the answers**", "the constraints /architect chooses against are asked, not assumed - in one round (P37)"),
+    # next.67 (A1, P43): 3 of 4 logged runs set identity N/A or sent the pilot's AI calls outside the EU unasked
+    ("commands/architect/SKILL.md", "**5.** where the data must be processed, including what is sent to the AI model",
+     "where the data and the AI calls are processed is the owner's answer, not a default"),
+    ("commands/architect/SKILL.md", "**6.** which login people use", "the login is the owner's answer, not N/A"),
+    ("references/mechanisms.md", "a criterion you judged, or one about wording",
+     "VERIFIED means a command agreed in this run; a judged criterion is UNVERIFIED (judged)"),
+    ("PRINCIPLES.md", "No criterion `VERIFIED` by a command: at most 80%.", "the confidence cap for judged runs"),
+    ("references/mechanisms-on-demand.md", "**Receipt the files this phase READ as input, never one it wrote.**",
+     "a receipt quotes an input, never the phase's own output"),
+    # next.65: the one `set` call records both flags (`flag` stays for a later change)
+    ("commands/vision/SKILL.md", "--ai yes|no --agent yes|no", "/vision records the agent flag"),
+    ("commands/architect/SKILL.md", "`status.py flag --agent yes|no`", "/architect asks when the agent flag is unknown"),
+    ("commands/architect/SKILL.md", "every AGENT.md §Architect row", "the agent rows are an exit criterion"),
+    ("references/agent.md", "## §Architect — the ten agent decisions", "the agent track's /architect section"),
+    ("install.sh", '"${ROOT}/references/agent.md"  "${SUPPORT}/AGENT.md"', "a copy install carries AGENT.md"),
+    ("templates/PRODUCT.md", "- **(Agent) the ten AGENT.md §Architect rows", "the record has a field for them"),
+    # From /architect in the same test: a run called file links VERIFIED at 100%, copied a receipt out of
+    # PRODUCT.md, picked 2024 models without a search, invented a provenance value and wrote LaTeX.
+    ("references/mechanisms.md", "tests *that* criterion and agreed (a link is not a command)",
+     "VERIFIED needs a command that tests that criterion (P)"),
+    ("PRINCIPLES.md", "Never 100%.", "no confidence of 100% (P)"),
+    ("tools/status.py", "errs += receipt_problems(text, product.resolve().parent)",
+     "`check --product` tests every Read quote: in its file, once in PRODUCT.md (R)"),
+    ("tools/status.py", "bad = receipt_problems(prod.read_text(encoding=\"utf-8\"), prod.resolve().parent, sec)",
+     "`set filled` refuses a copied receipt in the phase's own section (R)"),
+    ("commands/architect/SKILL.md", "The model row names the model and its **release date** from its search",
+     "the model's release date from a search (S)"),
+    ("commands/architect/SKILL.md", "no third value (\"go with your recommendation\" is `default taken`)",
+     "exactly two provenance values (Q)"),
+    ("PRINCIPLES.md", "no LaTeX\n  (write ≤, not `$\\le$`)", "no LaTeX math in documents (L)"),
+    ("tools/status.py", "LATEX.search(doc.read_text(encoding=\"utf-8\"))", "`check --product` warns on LaTeX (L)"),
+    # Fewer steps: the new runs cost 7-29% more than the old ones, about half of it bookkeeping turns.
+    ("commands/scope/SKILL.md", "**First turn, ONE command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase "
+     "scope`**", "Step 0 in one command, not four rounds (its rules come with it)"),
+    ("tools/status.py", 'msg += "\\n  " + record_sizes(text, prod.resolve().parent, sec)',
+     "`set filled` prints the size line and the quotes it checked, so no run measures by hand"),
+    # From /structure: the owner gave the same override three phases running; a heading grep "verified" wording.
+    ("docs/state-model.md", "**One override carries** to every later phase until that gate is filled or its due date",
+     "one override of a running gate carries to later phases (T)"),
+    ("tools/status.py", "carried = carried_bypass(st, blocked_by[0]) if blocked_by else None",
+     "`next` proceeds under a carried override instead of asking again (T)"),
+    ("references/mechanisms.md", "or one about wording or quality (plain, clear, explained), is `UNVERIFIED (judged)`",
+     "a wording or quality criterion is never VERIFIED by a command (P2)"),
+    # The agent track beyond /architect: the owner asked whether frameworks and the agent's structure are covered.
+    ("references/agent.md", "**show\n   the user a table of 3–4 options before recommending**",
+     "the framework row shows the user a comparison before recommending (A1)"),
+    ("references/agent.md", "**The families below are examples; the search decides the current names and versions:**",
+     "the framework list is examples, not a fixed list that goes stale (A1)"),
+    ("references/agent.md", "## §Structure — a home for every agent part", "AGENT.md §Structure (A2)"),
+    ("commands/structure/SKILL.md", "**`Agent: yes`: every AGENT.md §Structure row**", "/structure applies it (A2)"),
+    ("references/agent.md", "**Create every folder now**, each with a\none-line note of what goes there",
+     "the agent's folders exist after /structure, not only on the map (X)"),
+    ("commands/structure/SKILL.md", "(folders created), or N/A.", "/structure's exit criterion says so (X)"),
+    ("references/agent.md", "## §Foundation — the agent walking skeleton", "AGENT.md §Foundation (A3)"),
+    ("commands/foundation/SKILL.md", "**`Agent: yes`: every AGENT.md §Foundation item**", "/foundation applies it (A3)"),
+    # The /structure re-run: Gemini skipped a conditional AGENT.md line, asked "re-run?" and recommended no, and
+    # /architect filled before the framework table existed was never flagged; the two models homed guards apart.
+    ("tools/status.py", 'notes.append(f"Agent: yes - open now: {rules.as_posix()} §{run.capitalize()}',
+     "`next --phase` orders the phase's AGENT.md section open, not a condition (Y1)"),
+    ("tools/status.py", "never ask whether to re-run. First compare the WHOLE section against the current rules",
+     "`next --phase` on a filled phase prints the re-run order (Y2)"),
+    ("references/mechanisms.md", "Never ask *whether* to re-run: the user chose it by\nrunning the phase.",
+     "a re-run compares first and asks one question, never whether to re-run (Y2)"),
+    ("tools/status.py", "r[6] = playbook_version()  # the rules this section was written under (RULE_CHANGES)",
+     "`set filled` records the rules version (Y3)"),
+    ("tools/status.py", 'notes.append(f"rules changed since #{p} was filled',
+     "`next` names a rule change newer than a filled phase (Y3)"),
+    ("references/agent.md", "the home is the name below, not a choice.", "each agent part has one named home (Z)"),
+    ("references/agent.md", "| 8 | Memory |", "memory has a home (Z)"),
+    ("references/agent.md", "| 10 | Fake model |", "the fake model has a home (Z)"),
+    # The /architect re-run: both runs showed only AGENT.md's example frameworks, found by no open search.
+    ("references/agent.md", "**never a framework name**", "the framework search query names no framework (F1)"),
+    ("references/agent.md", "**At least one row the search found that is not named below**",
+     "the table reaches beyond the examples list (F1)"),
+    ("references/agent.md", "**The table goes in the chat message, then the question**",
+     "the table is shown before the choice, not only written after (F1)"),
+    ("tools/status.py", '("1.73.0-next.18", "architect", "agent"', "projects filled before F1 are told to re-run (F1)"),
+    # Second review of /structure: rules existed that only Claude followed; each now fails a check.
+    ("tools/status.py", "THIRD_PROVENANCE.findall(body)", "`set architect filled` refuses a third provenance value (Q2)"),
+    ("tools/status.py", "not only a flagged change", "a re-run compares the whole section (Y4)"),
+    ("tools/status.py", "bad += model_age_problems(body, today)",
+     "`set architect filled` refuses an old dated model id or no release date on an AI product (G2)"),
+    ("references/agent.md", "read from the package registry page", "framework versions come from the registry (G1)"),
+    ("templates/check_structure.py", "SUPERSEDED_LINE", "a superseded line outside ## Changes fails (S2)"),
+    ("templates/check_structure.py", '"## Where decisions live"', "every recorded decision has a home on disk (H1)"),
+    ("commands/structure/SKILL.md", "**`## Where decisions live`**", "/structure writes the decisions table (H1)"),
+    # The /structure re-run kept replaced rows in the map as superseded lines: two homes for guards, a dead loop.py.
+    ("commands/structure/SKILL.md", "A replaced map row is deleted; its dated `superseded` line goes under `## Changes`",
+     "STRUCTURE.md shows only the current tree; history goes under ## Changes (S1)"),
+    ("commands/design-system/references/design-md-template.md", "**`DESIGN.md` holds only the current tokens.**",
+     "DESIGN.md holds only the current tokens (S1)"),
+)
+
+
+def check_cross_model_rules() -> None:
+    """56. Rules a logged four-tool test run found model-dependent, each turned from 'the model has to notice' into
+    text a run can follow and a reader can check. One product was run through /vision and /validate in Claude,
+    Cursor and Antigravity (three models); each rule here is one a non-Claude model skipped or a tool broke."""
+    for rel, token, what in CROSS_MODEL_RULES:
+        path = ROOT / rel
+        if not path.is_file():
+            fail(f"{rel} is missing - it holds {what}")
+            continue
+        text = path.read_text(encoding="utf-8")
+        if token not in text:
+            fail(f"{rel} lost {what} (expected {token!r})")
+
+
+# 57. What a run must do at its start and its close is written IN the skill, not only in MECHANISMS.md.
+STEP0_NEXT = "`python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next"  # + " --phase <skill>`" for a chain phase
+# /playbook closes no phase: its start is `route`, which prints the version line; the phase it runs prints the rest
+STEP0_ROUTE = {"playbook": "`python ${CLAUDE_PLUGIN_ROOT}/tools/status.py route`"}
+STEP0_HEADING = re.compile(r"^## Step 0 ", re.M)
+CLOSE_LINE = re.compile(r"[Cc]lose in plain language\*\*")
+CLOSE_BLOCKS = ("**What just happened**", "**What I skipped or couldn't do**", "**Test this yourself**",
+                "**What YOU do next**")
+SAVE_QUESTION = "Save this version of your project? (yes / no)"
+STALE_CLOSE = re.compile(r"two or three sentences of \*what just happened\*.{0,80}then a numbered")
+
+
+def check_skill_carries_its_steps(files: dict[str, Path]) -> None:
+    """57. A skill carries its own first command and its own close, word for word, instead of a summary that
+    sends the run to MECHANISMS.md for the real rule. In a logged test run a non-Claude model never opened
+    MECHANISMS.md and followed the skill's own text exactly: that text summarised the close as two blocks (the
+    rule is four) and said "offer to commit" (the rule is a yes/no question), and `status.py next` appeared only
+    in MECHANISMS.md, so the run never showed which playbook copy it was. Every model runs what the skill says.
+    """
+    for name, path in sorted(files.items()):
+        text = path.read_text(encoding="utf-8")
+        flat = " ".join(text.split())
+        where = path.relative_to(ROOT).as_posix()
+        if STEP0_HEADING.search(text) and RULES_LINE in text and STEP0_NEXT not in flat                 and STEP0_ROUTE.get(name, STEP0_NEXT) not in flat:
+            fail(f"{where} has a Step 0 but never runs {STEP0_NEXT} - the version line and the close checklist it "
+                 f"prints live nowhere else a run is sure to see")
+        want = f"{STEP0_NEXT} --phase {name}`"
+        if name in CHAIN and STEP0_NEXT in flat and want not in flat:
+            fail(f"{where} runs `status.py next` without --phase {name} - a run is then told its agent rules as a "
+                 f"condition and never gets the RE-RUN line (a logged Gemini run skipped both)")
+        if CLOSE_LINE.search(text):
+            missing = [b for b in CLOSE_BLOCKS if b not in flat]
+            if missing:
+                fail(f"{where} closes in plain language without naming all four blocks (missing {missing}) - a run "
+                     f"that never opens MECHANISMS.md writes only the blocks the skill names")
+        m = STALE_CLOSE.search(flat)
+        if m:
+            fail(f"{where} still summarises the close as two blocks ({m.group(0)[:60]!r}...) - MECHANISMS.md "
+                 f"§Plain-language close has four")
+        if "§Commit the work" in text and SAVE_QUESTION not in flat:
+            fail(f"{where} commits its work but never writes the save question {SAVE_QUESTION!r} - 'offer to "
+                 f"commit' was read as a line of text, not a question")
+
+
+def check_rule_inventory() -> None:
+    """55. tools/rule_inventory.py: for each skill with a tools/rules/<skill>.json, every rule of the version before
+    its rewrite is still in the skill (or behind the pointer the inventory names), and every changed line of that
+    version is accounted for as a kept rule or a dropped sentence with its reason. Clarity standard C8: a cut is
+    only safe while nothing the old text asked for has quietly gone. A clone without the base commit (a shallow
+    CI checkout) skips with a note rather than passing silently.
+    """
+    import subprocess
+    p = subprocess.run([sys.executable, str(ROOT / "tools" / "rule_inventory.py")], capture_output=True, text=True,
+                       encoding="utf-8", errors="replace")
+    if p.returncode == 2:
+        print("note: check 55 skipped - a rule inventory's base commit is not in this clone (fetch full history)")
+    elif p.returncode != 0:
+        fail("a rewritten skill lost a rule (tools/rule_inventory.py): " + " | ".join(p.stdout.strip().splitlines()))
+
+
+# 58. A command the playbook prints runs in PowerShell as well as bash: Antigravity and Cursor on Windows run
+# PowerShell, which has no `&&` (5.1), `tail`, `grep` or `export X=` - a logged run spent calls on each.
+SHELL_ONLY = re.compile(r"\bgrep\s+-|\|\s*grep\b|\btail\s+-|\|\s*tail\b|\s&&\s|\bexport\s+[A-Z_]+=")
+PRINTING_TOOLS = ("tools/status.py", "tools/session_cost.py", "tools/run_report.py")
+
+
+def check_engine_hashes() -> None:
+    """59. tools/engine.sha256 fingerprints the checkers status.py runs (check_structure.py, audit.py); status.py
+    refuses a checker that no longer matches (a logged run edited the installed one to get past it). A stale list
+    after a checker changes would refuse every project, so the list must match the checkers in this clone."""
+    sys.path.insert(0, str(ROOT / "tools"))
+    import status as st
+    shipped = (ROOT / "tools" / "engine.sha256")
+    if not shipped.is_file() or shipped.read_text(encoding="utf-8") != st.engine_hash_text():
+        fail("tools/engine.sha256 does not match the checkers - run `python tools/status.py engine --write` after "
+             "changing templates/check_structure.py or commands/frontend-audit/audit.py")
+    if 'engine.sha256" "${SUPPORT}/ENGINE.sha256"' not in (ROOT / "install.sh").read_text(encoding="utf-8"):
+        fail("install.sh does not ship tools/engine.sha256 as ENGINE.sha256 - a copy install could not tell an "
+             "edited checker from the real one")
+
+
+def check_shell_neutral() -> None:
+    """58. No shell-only command in a skill, a reference a skill opens, a template, or a string status.py,
+    session_cost.py or run_report.py prints. Case files quote what past runs typed and are left alone."""
+    import ast
+    docs = [p for d in ("commands", "references", "templates") for p in (ROOT / d).rglob("*.md")
+            if not p.name.startswith("case-files")] + [ROOT / "PRINCIPLES.md", ROOT / "docs" / "state-model.md"]
+    for p in docs:
+        for n, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1):
+            m = SHELL_ONLY.search(line)
+            if m:
+                fail(f"{p.relative_to(ROOT).as_posix()}:{n} prints a shell-only command ({m.group(0).strip()!r}) - "
+                     f"PowerShell has none of &&, tail, grep, export: one command per call, or a playbook script")
+    for rel in PRINTING_TOOLS:
+        for node in ast.walk(ast.parse((ROOT / rel).read_text(encoding="utf-8"))):
+            if isinstance(node, ast.Constant) and isinstance(node.value, str) and SHELL_ONLY.search(node.value):
+                fail(f"{rel}:{node.lineno} prints a shell-only command "
+                     f"({SHELL_ONLY.search(node.value).group(0).strip()!r}) - one command per call")
+
+
+def check_publish_engine_behaviour(files: dict[str, Path]) -> None:
+    """48. The tickets publish engine publishes, reads back, proves and re-runs clean against a fake GitHub."""
+    import subprocess
+    if not PUBLISH_ENGINE.exists():
+        fail("commands/tickets/publish.py is missing - /tickets Step 3A.2 runs it")
+        return
+    p = subprocess.run([sys.executable, str(ROOT / "tools" / "test_publish.py")], capture_output=True, text=True,
+                       encoding="utf-8")
+    if p.returncode != 0:
+        fail("the publish engine's behaviour tests failed: " + (p.stdout + p.stderr).strip()[-800:])
+    flat = " ".join(files["tickets"].read_text(encoding="utf-8").split())
+    if PUBLISH_ENGINE_PATH not in flat:
+        fail(f"/tickets never names the installed engine {PUBLISH_ENGINE_PATH} - a run would publish by hand")
+
 
 if __name__ == "__main__":
     sys.exit(main())

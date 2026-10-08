@@ -25,6 +25,8 @@ which is why the obvious shortcut is the one thing it forbids:
   remote resource — that is the real cost, and it is why this gets designed here rather than
   discovered in CI.
 - **Embedded** → a temp file (or in-memory instance) per run, deleted after.
+  **In-memory SQLite is one database per connection:** a second connection (a pool, another thread, the
+  migration runner) sees an empty database. Use a temp file, or one shared connection (`StaticPool`, `file::memory:?cache=shared`).
 These are **recipes per custody, with vendors as dated examples — never a supported-vendor list**;
 the playbook does not pre-decide a trade-off the project's own constraints should decide
 (`PRINCIPLES.md`). **If none of them is achievable today, say so and record it** — an honestly

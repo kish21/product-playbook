@@ -1,0 +1,531 @@
+{
+ "skill": "scope",
+ "base": "3f6ab06",
+ "rules": [
+  {
+   "id": "S01",
+   "what": "purpose: one core feature and a defended out-of-scope list",
+   "old": [
+    "- **Purpose:** force a single core feature and an explicit, defended OUT-OF-SCOPE list."
+   ],
+   "new": [
+    "- **Purpose:** force a single core feature and an explicit, defended OUT-OF-SCOPE list."
+   ]
+  },
+  {
+   "id": "S02",
+   "what": "reads #Vision",
+   "old": [
+    "- **Reads:** `PRODUCT.md#Vision`."
+   ],
+   "new": [
+    "- **Reads:** `PRODUCT.md#Vision` and `#Validation`'s state, as `next` prints them."
+   ]
+  },
+  {
+   "id": "S03",
+   "what": "writes #Scope's fields",
+   "old": [
+    "- **Writes:** `PRODUCT.md#Scope` — fields: THE core feature · in-scope (now) · Deferred (+trigger) · Non-goals (never)."
+   ],
+   "new": [
+    "- **Writes:** `PRODUCT.md#Scope` — fields: THE core feature · in-scope (now) · Deferred (+trigger) · Non-goals (never) · Table stakes · `docs/scope.md`."
+   ]
+  },
+  {
+   "id": "S04",
+   "what": "input gate, never batched",
+   "old": [
+    "- **Gate type:** `input` — what gets cut is a preference no prior section encodes. **Never batched** - skipping it fabricates the product's premise. (`STATE-MODEL.md` §2d)"
+   ],
+   "new": [
+    "- **Gate type:** `input` — what gets cut is a preference no prior section encodes. **Never batched** - skipping it fabricates the product's premise. (`STATE-MODEL.md` §2d)"
+   ]
+  },
+  {
+   "id": "S05",
+   "what": "state model: declined, override, superseded",
+   "old": [
+    "- **State model** (`STATE-MODEL.md` §2c): writes `#Scope` · `declined` ✓ · `override` ✓ · `superseded` ✓"
+   ],
+   "new": [
+    "- **State model** (`STATE-MODEL.md` §2c): writes `#Scope` · `declined` ✓ · `override` ✓ · `superseded` ✓"
+   ]
+  },
+  {
+   "id": "S06",
+   "what": "companion docs/scope.md; #Scope stays a record",
+   "old": [
+    "- **Companion:** `docs/scope.md` — the reasoning, workings and raw notes. `PRODUCT.md#Scope` stays a",
+    "RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay."
+   ],
+   "new": [
+    "- **Companion:** `docs/scope.md` — the reasoning, workings and raw notes. `PRODUCT.md#Scope` stays a",
+    "RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay."
+   ]
+  },
+  {
+   "id": "S07",
+   "what": "exit: exactly one core feature",
+   "old": [
+    "- [ ] Exactly **one** core feature named (the thing that, alone, delivers the core value). → `THE core feature`"
+   ],
+   "new": [
+    "- [ ] Exactly **one** core feature named (the thing that, alone, delivers the core value). → `THE core feature`"
+   ]
+  },
+  {
+   "id": "S08",
+   "what": "exit: short in-scope list tied to the value proposition and the north star",
+   "old": [
+    "- [ ] A short in-scope list, each item tied to the vision's value proposition **and** plausibly moving the north-star metric. → `In scope (now)`"
+   ],
+   "new": [
+    "- [ ] A short in-scope list, each item tied to the vision's value proposition **and** naming the north-star input it moves. → `In scope (now)`"
+   ]
+  },
+  {
+   "id": "S09",
+   "what": "exit: non-empty Deferred list with triggers, and Non-goals",
+   "old": [
+    "- [ ] A **non-empty Deferred list**, each item with the **trigger** that would bring it in — **and** a **Non-goals** list (things we deliberately will *never* build). → `Deferred (out for now` · `Non-goals`"
+   ],
+   "new": [
+    "- [ ] A **non-empty Deferred list**, each item with the **trigger** that would bring it in — **and** a **Non-goals** list (things we deliberately will *never* build). → `Deferred (out for now` · `Non-goals`"
+   ]
+  },
+  {
+   "id": "S10",
+   "what": "exit: each in-scope item traces to a customer outcome",
+   "old": [
+    "- [ ] Each in-scope item traces to a customer outcome, not a feature wish. → `In scope (now)`"
+   ],
+   "new": [
+    "- [ ] Each in-scope item traces to a customer outcome, not a feature wish. → `In scope (now)`"
+   ]
+  },
+  {
+   "id": "S11",
+   "what": "exit: every table-stakes item sorted, none unsorted",
+   "old": [
+    "- [ ] **The table-stakes checklist is fully sorted** — every item explicitly **in-scope now**, **Deferred (with trigger)** or **N/A (with reason)**.",
+    "**No item may be left unsorted**: an unsorted item fails this gate,",
+    "→ `Table stakes`"
+   ],
+   "new": [
+    "- [ ] **The table-stakes checklist is fully sorted** — every item explicitly **in-scope now**, **Deferred (with trigger)** or **N/A (with reason)**.",
+    "**No item may be left unsorted**: an unsorted item fails this gate,",
+    "→ `Table stakes`"
+   ]
+  },
+  {
+   "id": "S12",
+   "what": "exit: #Scope is a record; size reported, never trimmed to",
+   "old": [
+    "- [ ] `#Scope` is a **RECORD** — every field is a decision, evidence line or pointer; the reasoning is",
+    "in `docs/scope.md`. Size is reported, never trimmed to. → `Detail:`"
+   ],
+   "new": [
+    "- [ ] `#Scope` is a **RECORD** — every field is a decision, evidence line or pointer; the reasoning is",
+    "in `docs/scope.md`. Size is reported, never trimmed to. → `Detail:`"
+   ]
+  },
+  {
+   "id": "S13",
+   "what": "exit: every companion opened is receipted",
+   "old": [
+    "- [ ] **Every companion opened is receipted** — one line per file, quoting a fragment that",
+    "occurs verbatim in it. → `Read (file · date · verbatim quote)`"
+   ],
+   "new": [
+    "- [ ] **Every companion opened is receipted** — one line per file, quoting a fragment that",
+    "occurs verbatim in it. → `Read (file · date · verbatim quote)`"
+   ]
+  },
+  {
+   "id": "S14",
+   "what": "step 0: one first message runs the start",
+   "old": [
+    "- **One first message: run `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase scope` and read all of `PRINCIPLES.md`, `MECHANISMS.md`, `PRODUCT.md`.** Show its first line; close by its checklist."
+   ],
+   "new": [
+    "- **First turn, ONE command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase scope`** — it prints the start and this phase's rules; never the rule files or `PRODUCT.md` whole: the start prints what `/scope` needs from them. Show its first line; close by its checklist."
+   ]
+  },
+  {
+   "id": "S15",
+   "what": "no #Vision: warn, offer /vision, allow override",
+   "old": [
+    "- Read `PRODUCT.md#Vision`. If it is missing/empty, warn: \"`/vision` looks incomplete — scope without",
+    "a vision drifts.\" Offer to run `/vision` first, but allow override (standalone use)."
+   ],
+   "new": [
+    "- `#Vision` empty (the start says so) → warn: \"`/vision` looks incomplete — scope without",
+    "a vision drifts.\" Offer to run `/vision` first, but allow override (standalone use)."
+   ]
+  },
+  {
+   "id": "S16",
+   "what": "#Validation running: advisory, proceed provisionally, mark dependent decisions; blocks from /architect",
+   "old": [
+    "- **`#Validation` is `running`?** (a timeboxed experiment, due-dated, result `PENDING` —",
+    "`STATE-MODEL.md` §2a.) This phase treats that as **advisory, not blocking**: proceed",
+    "**provisionally**, mark every scope decision that depends on the pending result, and say the mark",
+    "clears when the result lands.",
+    "It **blocks from `/architect`",
+    "onward**, where the cost of being wrong is real."
+   ],
+   "new": [
+    "- `#Validation` **running** → **advisory, not blocking**: proceed **provisionally**, mark every scope decision that depends on the pending result `provisional`, and say the mark",
+    "clears when the result lands.",
+    "It **blocks from `/architect`",
+    "onward**, where the cost of being wrong is real."
+   ]
+  },
+  {
+   "id": "S17",
+   "what": "/validate optional: empty is normal; the riskiest assumption carried in, marked untested",
+   "old": [
+    "- `/validate` is optional: an empty `#Validation` is normal — no warning, no override. Carry `#Vision`'s",
+    "riskiest assumption into the scope discussion, marked **untested**, so the core feature is chosen with",
+    "that risk visible. A `#Validation` result (a verdict, or an override) shapes the scope as recorded."
+   ],
+   "new": [
+    "- `#Validation` **empty** is normal (`/validate` is optional) — no warning, no override. Carry `#Vision`'s",
+    "riskiest assumption into the scope discussion, marked **untested**, so the core feature is chosen with",
+    "that risk visible. A `#Validation` result (a verdict, or an override) shapes the scope as recorded."
+   ]
+  },
+  {
+   "id": "S18",
+   "what": "an override is recorded with the user's own words",
+   "old": [
+    "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from scope --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
+   ],
+   "new": [
+    "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from scope --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
+   ]
+  },
+  {
+   "id": "S19",
+   "what": "re-run: one question listing what would change; a reversed decision keeps a superseded line",
+   "old": [
+    "- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** a filled section → follow the `RE-RUN` line `next` prints: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line."
+   ],
+   "new": [
+    "- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** a filled section → follow the `RE-RUN` line `next` prints: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line."
+   ]
+  },
+  {
+   "id": "S20",
+   "what": "a stopped run is recorded as declined; PRODUCT.md unchanged",
+   "old": [
+    "- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** record it — `status.py set scope declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`."
+   ],
+   "new": [
+    "- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** record it — `status.py set scope declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`."
+   ]
+  },
+  {
+   "id": "S21",
+   "what": "scope discipline: the default answer is 'not yet - what's the trigger?'",
+   "old": [
+    "- **Scope discipline:** the default answer to a new feature is **\"not yet — what's the trigger?\"**"
+   ],
+   "new": [
+    "- **Scope discipline:** the default answer to a new feature is **\"not yet — what's the trigger?\"**"
+   ]
+  },
+  {
+   "id": "S22",
+   "what": "vision alignment: an item that does not serve the value proposition is out",
+   "old": [
+    "- **Vision-alignment:** every in-scope item must serve the value proposition; if it doesn't, it's out."
+   ],
+   "new": [
+    "- **Vision-alignment:** every in-scope item must serve the value proposition; if it doesn't, it's out."
+   ]
+  },
+  {
+   "id": "S23",
+   "what": "defer until a real trigger, paid infra included",
+   "old": [
+    "- **Defer until a real trigger** (incl. paid infra): record the condition that would pull it in."
+   ],
+   "new": [
+    "- **Defer until a real trigger** (incl. paid infra): record the condition that would pull it in."
+   ]
+  },
+  {
+   "id": "S24",
+   "what": "Q1: the one capability; push back on three",
+   "old": [
+    "1. **If you could ship only ONE capability and nothing else, what is it?** → that's the core feature.",
+    "Push back if they name three; help them pick the one that delivers the core value alone."
+   ],
+   "new": [
+    "1. **If you could ship only ONE capability and nothing else, what is it?** → that's the core feature.",
+    "Push back if they name three; help them pick the one that delivers the core value alone."
+   ]
+  },
+  {
+   "id": "S25",
+   "what": "Q2: the smallest set that makes the core usable",
+   "old": [
+    "2. **What's the smallest set around it that makes that core usable?** → the in-scope (now) list. Keep it ruthless."
+   ],
+   "new": [
+    "2. **What's the smallest set around it that makes that core usable?** → the in-scope (now) list. Keep it ruthless."
+   ]
+  },
+  {
+   "id": "S26",
+   "what": "Q3: temptations, creep categories, sorted into Deferred (+trigger) or Non-goal",
+   "old": [
+    "3. **What are you tempted to add that is NOT needed for the core?** If the user is unsure, prompt with the",
+    "usual creep categories — auth/multi-user, admin dashboard, integrations, mobile, analytics, settings.",
+    "Sort each into **Deferred** (with the **trigger/signal** that would justify it) or **Non-goal** (never)."
+   ],
+   "new": [
+    "3. **What are you tempted to add that is NOT needed for the core?** If the user is unsure, prompt with the",
+    "usual creep categories — auth/multi-user, admin dashboard, integrations, mobile, analytics, settings.",
+    "Sort each into **Deferred** (with the **trigger/signal** that would justify it) or **Non-goal** (never)."
+   ]
+  },
+  {
+   "id": "S27",
+   "what": "Q4: walk the table stakes, sort every one, adapt the list to the product kind",
+   "old": [
+    "4. **Walk the table-stakes checklist** — the boring items nobody proposes and everybody expects.",
+    "Sort **every** one into **in-scope now / Deferred",
+    "(+trigger) / N-A (+reason)**:",
+    "password reset · email verification · account deletion **+ data export** (often a legal duty, not a",
+    "feature) · empty / loading / error states · privacy policy + terms · accessibility baseline · a way for a",
+    "user to report a problem.",
+    "**Adapt the list to the product kind** — an account-less CLI has no password reset (N-A: \"no accounts\"),",
+    "but it still has error states and a licence. Adapting the list is expected; leaving an item unsorted is not."
+   ],
+   "new": [
+    "4. **Walk the table-stakes checklist** — the boring items nobody proposes and everybody expects.",
+    "Sort **every** one into **in-scope now / Deferred",
+    "(+trigger) / N-A (+reason)**, one line each:",
+    "**Adapt the list to the product kind** — an account-less CLI has no password reset (N-A: \"no accounts\"),",
+    "but it still has error states and a licence. Adapting the list is expected; leaving an item unsorted is not.",
+    "`next` prints the list for this product"
+   ]
+  },
+  {
+   "id": "S28",
+   "what": "Q5: each in-scope item tied to a customer outcome and the north star",
+   "old": [
+    "5. Tie each in-scope item to **a customer outcome** (\"user can X in minutes\"), not a feature name — and check it plausibly moves the north-star metric."
+   ],
+   "new": [
+    "5. Tie each in-scope item to **a customer outcome** (what the user can now do), not a feature name — and name the north-star input it moves."
+   ]
+  },
+  {
+   "id": "S29",
+   "what": "one recommendation on the tightest viable core, in round 2 with the yes (next.65)",
+   "old": [
+    "Give **one recommendation** on the tightest viable core; get a yes/no."
+   ],
+   "new": [
+    "Round 2 ends with **one recommendation** on the tightest viable core"
+   ]
+  },
+  {
+   "id": "S30",
+   "what": "step 3: fill #Scope's fields, table stakes with a verdict each",
+   "old": [
+    "Fill `#Scope`: THE core feature · in-scope (now) · Deferred (each with its trigger) · Non-goals (never) ·",
+    "**Table stakes** (every item with its in / deferred+trigger / N-A+reason verdict)."
+   ],
+   "new": [
+    "THE core feature (one line) · in-scope (now) ·",
+    "Deferred (+ trigger) · Non-goals (never) · **Table stakes**"
+   ]
+  },
+  {
+   "id": "S31",
+   "what": "an empty Deferred list or no Non-goals: STOP and ask for the obvious temptations",
+   "old": [
+    "Check the boxes. **If the Deferred list is empty, or there are no Non-goals, STOP** — an empty",
+    "out-of-scope list is how products drift. Push the user to name at least the obvious temptations",
+    "(sorted into deferred-with-trigger vs never)."
+   ],
+   "new": [
+    "**If the Deferred list is empty, or there are no Non-goals, STOP** — an empty",
+    "out-of-scope list is how products drift. Push the user to name at least the obvious temptations",
+    "(sorted into deferred-with-trigger vs never)."
+   ]
+  },
+  {
+   "id": "S32",
+   "what": "reversing a Non-goal: recorded reversal, re-sort, blast radius; unrecorded = drift",
+   "old": [
+    "## Reopening a Non-goal later (the reversal protocol)",
+    "A Non-goal is \"never *for this product's vision*\", not \"never discussable.\" The owner may reverse",
+    "one when the world changes (a competitor makes it table stakes, the buyer demands it). When that",
+    "happens, the move is an **explicit recorded reversal, never silent drift**:",
+    "1. **Record the decision** — date, who decided, and the *reason the world changed* — in the spine",
+    "(`PRODUCT.md`: strike the Non-goal line with a pointer, add it to Deferred or scope) and in the",
+    "feature's design doc header.",
+    "2. **Re-sort, don't just delete** — a reversed Non-goal usually lands in **Deferred with a trigger**",
+    "(e.g. \"design doc + benchmark done\"), not straight into scope.",
+    "3. **Check the blast radius** — a reversal is often a *new capability track*, not a sub-item of the",
+    "feature that prompted it (e.g. \"avatar\" reopened during an editor build is a generation feature",
+    "with its own doc, not an editor button). Name it separately so its true size is visible.",
+    "If the assistant notices work quietly contradicting a Non-goal without this protocol, that is",
+    "drift — surface it (`/drift-check` treats an unrecorded reversal as a finding, not a decision)."
+   ],
+   "new": [
+    "## Reopening a Non-goal later (the reversal protocol)",
+    "A Non-goal is \"never *for this product's vision*\", not \"never discussable.\" The owner may reverse",
+    "one when the world changes (a competitor makes it table stakes, the buyer demands it). When that",
+    "happens, the move is an **explicit recorded reversal, never silent drift**:",
+    "1. **Record the decision** — date, who decided, and the *reason the world changed* — in the spine",
+    "(`PRODUCT.md`: strike the Non-goal line with a pointer, add it to Deferred or scope) and in the",
+    "feature's design doc header.",
+    "2. **Re-sort, don't just delete** — a reversed Non-goal usually lands in **Deferred with a trigger**",
+    "(e.g. \"design doc + benchmark done\"), not straight into scope.",
+    "3. **Check the blast radius** — a reversal is often a *new capability track*, not a sub-item of the",
+    "If the assistant notices work quietly contradicting a Non-goal without this protocol, that is",
+    "drift — surface it (`/drift-check` treats an unrecorded reversal as a finding, not a decision).",
+    "feature that prompted it. Name it separately so its true size is visible."
+   ]
+  },
+  {
+   "id": "S33",
+   "what": "the size line and the Read line written by set; a quote for a file opened beyond next (next.65)",
+   "old": [
+    "**Measure what you wrote and receipt what you read** (`MECHANISMS-ON-DEMAND.md §Section is a record`, `MECHANISMS-ON-DEMAND.md §Read receipt`): report the section and file size in one line, then apply the record test to every field — reasoning moves into the companion, a tight answer stays whatever it weighs, never trim to a number; write one `Read:` line per companion opened, each quoting a fragment that occurs verbatim in that file."
+   ],
+   "new": [
+    "(`MECHANISMS-ON-DEMAND.md §Section is a record`, `MECHANISMS-ON-DEMAND.md §Read receipt`)",
+    "only an input file you opened yourself gets a quote"
+   ]
+  },
+  {
+   "id": "S34",
+   "what": "the close: set filled --commit on the confirm message's yes, transition guard, plain-language close; reconcile + save question in round 2 (next.65)",
+   "old": [
+    "**Close the loop (`MECHANISMS.md` §Step 3b):** record the phase's state — `status.py set scope filled` (`MECHANISMS.md` §Status) — reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work — this project's repo, name the branch, commit on a yes, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff)."
+   ],
+   "new": [
+    "`status.py set scope filled --section-from <file> --commit \"<one",
+    "**run the transition guard**",
+    "\"Anything to change? If not: Save this version of your project? (yes / no)\""
+   ]
+  },
+  {
+   "id": "S35",
+   "what": "3c: check against #Vision and #Validation's verdict in round 2; name both sides, ask, update the loser",
+   "old": [
+    "## Step 3c — Contradiction check (before the gate closes)",
+    "Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Vision` (customer · job-to-be-done · north star) and `#Validation`'s verdict — a core feature that serves nobody in `#Vision`, or scope written as if a failed validation had passed. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction."
+   ],
+   "new": [
+    "## Step 3c — Contradiction check (in round 2, before the yes; the close's step 3 confirms it)"
+   ]
+  },
+  {
+   "id": "S36",
+   "what": "handoff: /plan next; /drift-check holds the scope",
+   "old": [
+    "\"Scope locked — one core feature, with an explicit out-of-scope list. `/drift-check` will hold you to",
+    "it later. Next run **`/plan`** to sequence the build core-first.\""
+   ],
+   "new": [
+    "\"Scope locked — one core feature, with an explicit out-of-scope list. `/drift-check` will hold you to",
+    "it later. Next run **`/plan`** to sequence the build core-first.\""
+   ]
+  },
+  {
+   "id": "S27b",
+   "what": "the base table-stakes list now lives in the start (status.py SCOPE_STAKES)",
+   "home": "tools/status.py",
+   "old": [
+    "password reset · email verification · account deletion **+ data export** (often a legal duty, not a",
+    "feature) · empty / loading / error states · privacy policy + terms · accessibility baseline · a way for a",
+    "user to report a problem."
+   ],
+   "new": [
+    "(\"password reset\", r\"password\"), (\"email verification\", r\"verif\")",
+    "(\"account deletion + data export (often a legal duty)\", r\"delet|export\")",
+    "(\"empty / loading / error states\", r\"error|empty|loading\"), (\"privacy policy + terms\", r\"privacy|terms\")",
+    "(\"accessibility baseline\", r\"accessib|a11y|wcag\"), (\"a way for a user to report a problem\", r\"report|feedback\")"
+   ]
+  }
+ ],
+ "dropped": [
+  {
+   "old": "(a timeboxed experiment, due-dated, result `PENDING` —",
+   "why": "what 'running' means - STATE-MODEL.md §2a defines it; the rule (proceed provisionally) is kept in S16"
+  },
+  {
+   "old": "`STATE-MODEL.md` §2a.) This phase treats that as",
+   "why": "the pointer to the definition of running; the rule is kept in S16"
+  },
+  {
+   "old": "`/scope` produces a document, not code — blocking it for a fortnight buys",
+   "why": "why the running gate is advisory here - history, not a rule (S16 keeps the rule)"
+  },
+  {
+   "old": "little, and the wait-or-override menu is why the override always won.",
+   "why": "same why-sentence as above"
+  },
+  {
+   "old": "Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.",
+   "why": "why an override is recorded - S18 keeps the rule; MECHANISMS §Declined runs (printed by rules scope) holds the why"
+  },
+  {
+   "old": "Ask, one block at a time:",
+   "why": "now 'Ask one numbered block at a time and wait for the answer' (owner rule: one at a time, friendly)"
+  },
+  {
+   "old": "They do not",
+   "why": "why table stakes are walked - the exit criterion S11 keeps 'the things nobody proposes and everybody expects'"
+  },
+  {
+   "old": "get deferred, they get *forgotten*, and they resurface at ship time as \"we can't launch without this\":",
+   "why": "same why-sentence"
+  },
+  {
+   "old": "the exact scope shock this skill exists to prevent.",
+   "why": "same why-sentence"
+  },
+  {
+   "old": "Check the boxes.",
+   "why": "a judgement word; `set scope filled` now refuses the countable gaps (scope_gaps), Step 3b says so"
+  },
+  {
+   "old": "(e.g. \"avatar\" reopened during an editor build is a generation feature",
+   "why": "an example of the blast-radius rule; the rule is kept in S32"
+  },
+  {
+   "old": "with its own doc, not an editor button).",
+   "why": "same example"
+  },
+  {
+   "old": "A pointer nobody can prove was followed is how a phase invents what the artefact would have said.",
+   "why": "why receipts exist - MECHANISMS-ON-DEMAND §Read receipt holds it; `set` checks the quotes"
+  },
+  {
+   "old": "re-run this phase's own `evidence:` lines and report",
+   "why": "MECHANISMS §Step 3b item 4 (printed at the close) says it; /scope writes no evidence lines of its own"
+  },
+  {
+   "old": "and check the transition is legal.",
+   "why": "MECHANISMS §Step 3b item 4 ('Check the transition is legal'), printed when set scope filled passes"
+  },
+  {
+   "old": "this project's repo, name the branch,",
+   "why": "MECHANISMS §Commit the work (printed at the close) says it; commit-on-yes and push stay in S34"
+  },
+  {
+   "old": "record the phase's state —",
+   "why": "joining words of the old close sentence; the step is kept as (1) in S34"
+  }
+ ]
+}

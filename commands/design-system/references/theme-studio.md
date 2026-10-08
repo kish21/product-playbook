@@ -10,8 +10,9 @@
 > (`design-md-template.md` §2 — the export reads them all) plus `--font-sans`; size readable text in **rem** with
 > `html { font-size: var(--font-size-base, 16px) }`.
 >
-> **AGENT:** replace the `PRESETS` array with **3–5 vetted accents for the chosen archetype** — each entry is one
-> `palettes.md` Accents row: `[name, --primary light, --primary dark]`.
+> **AGENT:** do not copy the block below — run `theme_studio.py` (beside `SKILL.md`) with **3–5 vetted accents for
+> the chosen archetype**, each one `palettes.md` Accents row: `--preset "name|--primary light|--primary dark"`. It
+> inserts this block with those presets, replaces an earlier one, and names every "must" above the page misses.
 
 ```html
 <!-- ===== THEME STUDIO (dev-only; delete this whole block for the production build) ===== -->
@@ -112,8 +113,10 @@
   beat an OS set to dark. **The Mode toggle auto-reflects the page's starting mode on load** — a **dark-default**
   product ships `<html class="dark">` and the toggle opens on **Dark** (not a hard-coded Light). Keep the sample
   **token-only (no hardcoded colours)** so switching to Light actually adapts — a stray `#fff` will ghost in light mode.
-- **Font in a standalone preview (T5-7):** load the distinctive face via `<link>` (the laws forbid CSS `@import`); the real
-  shadcn/Next build uses self-hosted `next/font`. Without it the preview silently falls back to a system font.
+- **Font in a standalone preview (T5-7):** self-host the distinctive face - its `.woff2` files and licence in the
+  project, an `@font-face` with a relative `url()` (the laws forbid CSS `@import`); the real shadcn/Next build uses
+  self-hosted `next/font`. No `<link>` to a font service (Google Fonts, a CDN) unless the owner chose one: it sends
+  every visitor's address to that host. Without the face the preview silently falls back to a system font.
 - **Base text size** sets `--font-size-base`; the sample's `html { font-size: var(--font-size-base,16px) }` + rem text
   makes the whole type scale respond. Export captures it as a token (so DESIGN.md is complete).
 - **Accent per mode:** a preset sets the light AND dark accent from its `palettes.md` row; a custom colour sets the
@@ -125,6 +128,7 @@
   shadcn `globals.css`; §3's other fonts and §6's shadows still come from Step 3. **Before pasting, act on its
   notes:** `MISSING` → add those tokens to the sample and export again · `FAIL` or `NOT CHECKED` in the AA line → fix the pair ·
   `NOT OKLCH` → convert that value · the same-`--background` `WARNING` → the sample lacks the escape hatch above.
-- Strip the entire commented block for production; the chosen tokens already live in `DESIGN.md`.
+- Strip the entire block once the sample is approved (`theme_studio.py <sample> --remove`) and for production; the
+  chosen tokens already live in `DESIGN.md`.
 - The block is delimited by the `THEME STUDIO … /THEME STUDIO` markers; **`/frontend-audit` skips everything between
   them** (it's dev-only), so the studio's own colour-input hex literal + 🎨 emoji + panel labels don't false-positive.

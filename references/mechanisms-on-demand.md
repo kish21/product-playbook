@@ -15,7 +15,7 @@ that default is stated inline in `MECHANISMS.md` §Spine resolution.
 
 **2. No `PRODUCT.md`, but the project has docs** → resolve the spine from the project's own docs, in
 order: `CLAUDE.md` → `README.md` → `docs/` → `AGENTS.md`. Map sections *loosely* (Vision ≈ the "what/why";
-Scope/Non-goals ≈ an out-of-scope / "not doing" list; Build log ≈ a build-state / `CHANGELOG`). **State
+Scope/Non-goals ≈ an out-of-scope / "not doing" list; built tickets ≈ a build-state / `CHANGELOG`). **State
 which file you resolved as the spine.** Never fabricate a section that isn't there.
 
 **3. Code only, no spine doc at all** → infer a **low-confidence** picture from the code + package
@@ -37,8 +37,10 @@ into. A skill that *creates* `PRODUCT.md` by design (e.g. `/vision`) keeps doing
 Re-running a phase is not an edge case: a pivot, a changed constraint, or simply a redo. What gets lost is
 the most expensive thing in the section to reconstruct — **why the other option was rejected.**
 
-- **A run over a *non-empty* section shows what is about to change and asks before replacing it.** Never a
-  silent overwrite. A first run over an empty section is unchanged — no extra prompting.
+- **A run over a *non-empty* section compares it against the current rules first** (`next`'s rule changes,
+  the exit criteria), **then asks ONE question listing each concrete change**, gaps marked Recommended;
+  nothing differs → say so and stop. Never a silent overwrite; never ask *whether* to re-run. A first run
+  over an empty section is unchanged.
 - **A reversed decision is dated, not erased.** The superseded ADR / scope item / metric stays, with a
   `superseded <date>: <why>` line beside it — the same record Step 3c writes, and what makes a reversal
   auditable instead of invisible.
@@ -47,7 +49,7 @@ the most expensive thing in the section to reconstruct — **why the other optio
   run writes one line into the section it is filling: `chose <X> over the recommended <Y> (<date>): <the
   user's reason>`. A confirm-and-iterate phase reverses within a run as its normal mode, and an argument
   made once in chat is gone by the next session.
-- **Log-shaped sections keep appending** — `#Validation`, `#Build log`, `#Drift log`, `#Ship log`,
+- **Log-shaped sections keep appending** — `#Validation`, the `STATUS.md` ticket / release / drift rows,
   `#Learnings`. `/validate`'s "append a new dated entry, never overwrite" is the general case.
 - **A true restart may replace wholesale** — but only as an explicit, recorded choice.
 
@@ -62,34 +64,33 @@ one**. A skill that correctly stops at an unmet prior gate leaves the repo byte-
 `/eval` and it correctly declined"* is indistinguishable from *"I never ran `/eval`"*, and `/playbook`,
 which orients purely by which sections are filled, keeps proposing the phase with no memory of the stop.
 
-**A phase that declines to run records that it declined.** One dated line at the top of its own
-section, in this form, with nothing else in the section touched:
+**A phase that declines to run records that it declined** — in `STATUS.md`, with nothing in `PRODUCT.md`
+touched:
 
-`_Not run <date>: <what was missing> — run <the phase(s) that fill it> first._`
+`status.py set <phase> declined --reason "<what was missing>" --gate <the phase(s) that fill it>`
 
 - **The scaffold stays intact and visibly unfilled.** Blanking or half-filling the fields is the
   §Re-run failure wearing new clothes: the note is orientation, not content.
 - **It does not count as the section being filled.** `/playbook`, `/drift-check` and the next session
   still route to the missing phase — the note only lets them say *"attempted <date>, declined because X"*
   instead of proposing it blind.
-- **One line, replaced on the next attempt — never appended.** An append-only log of every early
+- **One note, replaced on the next attempt — never appended** (`declined ──▶ declined`). An append-only log of every early
   invocation is noise, and noise trains people to skip the line that mattered.
-- **Only a *declined* run writes it.** A phase that runs to completion writes its section normally; a
+- **Only a *declined* run records it.** A phase that runs to completion writes its section normally; a
   phase nobody invoked writes nothing. This line means exactly *"attempted, and stopped for a reason"*.
 - **Only an *unfilled* section can take it — `filled ──▶ declined` is refused** (`STATE-MODEL.md`
   §2b: a phase that ran does not un-run). A stop over an **already filled** section leaves it exactly as
   it is and says so; a filled section that needs redoing goes `filled ──▶ filled` through §Re-run
-  semantics. The Not-run line over real content would destroy the phase's output *and* route `/playbook`
-  back to a phase that is not owed.
+  semantics. A declined state over real content would hide the phase's output *and* route `/playbook`
+  back to a phase that is not owed — `status.py` refuses it.
 
-**A deliberate skip is the same rule's other shape.** Where a phase is not merely *early* but is
-**skipped on purpose** — `/validate`'s untested assumption, `/ship`'s skipped phases — or where a prior
-gate is **bypassed on unmet criteria**, the line reads `Override <date>: <reason> — bypassed <gate>`, it
-*does* count as filled, and later phases surface it every time they orient. Three things are required and
-none is optional: **which gate** was bypassed, **a reason in the user's own words** (not the agent's
-paraphrase, and not "user said continue"), and **the date**. A verbal "yes, continue" that reaches no file
-turns a gated workflow into an advisory one. Both lines are dated, both are one line, both keep the
-scaffold; they differ only in whether the phase is still owed.
+**A deliberate skip is the same rule's other shape.** A phase **skipped on purpose** (`/validate`'s untested
+assumption) is `status.py set <phase> overridden …`: it counts as done, and `next` surfaces it on every
+orient. THIS phase **proceeding although a prior gate is unmet** is `status.py bypass …`: the unmet phase
+stays owed, `next` keeps routing to it and surfaces the bypass, which closes itself when that phase is
+filled. Required, none optional: **which gate**, **a reason in the user's own words** (not the agent's
+paraphrase, not "user said continue"), and **the date** (`status.py` stamps it). A verbal "yes, continue"
+that reaches no file turns a gated workflow into an advisory one.
 
 ## §Read receipt — proving a pointer was followed
 
@@ -97,10 +98,8 @@ scaffold; they differ only in whether the phase is still owed.
 **Trigger:** the section you are reading has a **`Detail:` companion file**. With no companion there is
 nothing to follow and nothing to prove.
 
-`MECHANISMS.md` §Follow the pointer makes opening the file an obligation. An obligation nobody can check
-is a suggestion — it was named in 2 of 22 skills and enforced by no check, while the failure it exists to
-prevent (a phase reading the record, inventing what the artefact would have said, and publishing eleven
-wrong issues) had already happened once.
+`MECHANISMS.md` §Follow the pointer makes opening the file an obligation; an obligation nobody can check
+is a suggestion.
 
 **So the proof is a quotation, not an assertion.** A phase that consumes a companion writes, into its own
 section's `Read` field, one line per file opened:
@@ -112,6 +111,8 @@ Read: docs/scope.md (2026-09-12) — "no accounts for the organiser either"
 - **The quoted fragment must occur VERBATIM in the named file.** That is the whole mechanism: the
   quotation cannot be produced without opening the file, and it is verifiable by string match rather
   than by trust. *"I read it"* is not checkable; a fragment is.
+- **Receipt the files this phase READ as input, never one it wrote.** `status.py set <phase> filled` checks
+  each quote (in its file, once in `PRODUCT.md`); no grep of your own.
 - **Quote something you actually used** — the line that decided what you wrote, not the first heading.
   A receipt quoting the title proves the file was opened and not that it was read.
 - **One line per companion**, in the order read. A phase reading three companions writes three.
@@ -130,7 +131,7 @@ fields make its old 25KB total unreachable by construction. The instrument is th
 **After writing, before closing the gate:**
 
 1. **Measure and report** the section and the file in one line (`#Vision 5.1KB · PRODUCT.md 12.4KB`).
-   Silence reads as unmeasured, and unmeasured is how it reached 73KB once. A *signal* for `/drift-check`,
+   `status.py set <phase> filled` prints this line: report it as printed. A *signal* for `/drift-check`,
    never a verdict.
 2. **Apply the record test to every field, invented fields included** — *is this the decision, or the
    reasoning behind it?* A decision, an evidence line or a pointer **stays, however many bytes it is**.
@@ -150,7 +151,7 @@ it; the user chooses; one phase per session stays the default.
 
 1. **Nothing inside a phase changes** — every step and gate runs in full; a confirm still stops.
 2. **One commit per phase** on one batch branch — the record stays traceable, §Re-run semantics unchanged.
-3. **Stop on the first red** — that phase closes normally; later phases get a `_Not run_` line each.
+3. **Stop on the first red** — that phase closes normally; later phases are recorded `declined` each (§Declined runs).
 4. **One plain-language close** at the end — a line per phase, one guard report per phase, one *next*.
 5. **A batch is one session** — §Context hygiene applies harder: files, progress lines, measured metrics.
 
@@ -170,7 +171,7 @@ carried assumptions.
 and `/contracts` each cost ~$70–75, ~60 % of it cache re-reads of **tool output**. **Nothing here changes
 what a phase checks, writes or verifies — reporting and context only.** (case file: The seventy-dollar skeleton)
 
-1. **Bulky output goes to a file.** Output that would exceed a screen is redirected to the scratchpad
+1. **Bulky output goes to a file.** Output over 30 lines is redirected to the scratchpad
    (`> <scratch>/ci.log 2>&1`); read the tail or grep the verdict line; the `evidence:` line cites the
    file. Read a file in full only when about to edit it; otherwise the range you need. After your own
    edit, read back the lines you changed, never the file. Write code and tests with the edit tool where
@@ -188,6 +189,18 @@ what a phase checks, writes or verifies — reporting and context only.** (case 
    — or the line reads *"not measured"*.
    Never an estimate: live closes guessed "$1.50–2.50" for a $20 run and "not visible" for a $75 one.
 
+## §Seam — who owns the dependency manifest
+
+
+Two phases can both plausibly claim it, so the split is fixed here and stated identically in both skills:
+
+- **`/structure` owns its existence, shape and first run** — the file, the dev/prod split, metadata, a real
+  lockfile, the install, the linter and ONE smoke test passing (offline: `lock pending`, `/foundation` resolves it).
+- **`/foundation` owns its contents and provability** — the skeleton's dependencies, version policy, the tool
+  config files those scripts reference, and the skeleton's first run that genuinely passes.
+- **`/structure` leaves no script that cannot run** unless marked as arriving with `/foundation`: green while
+  `make check` fails is a lie.
+
 ## §Project policy — a project's own rules, declared once
 
 **Trigger:** the spine's `## Project policy` has a key filled. A project that wraps `/build` and `/ship` in
@@ -196,7 +209,7 @@ its own command declares its rules there once, and the wrapper stops restating t
 - `deploy: never` — run no deploy. The rollback path and the signal to watch are still named.
 - `release record: <X>` — `/ship` writes `n/a — releases recorded in <X>` instead of a CHANGELOG entry.
 - `reviews run in: /build` — `/ship` cites `/build`'s recorded reviews for an unchanged diff (its Step 2 item 0).
-- `per-ticket record: <path>` — `/build` writes the feature doc's content there, once. The `#Build log` row stays.
+- `per-ticket record: <path>` — `/build` writes the feature doc's content there, once. The `status.py ticket` row stays.
 
 **A policy narrows what a phase does, never what it proves:** no key skips a review of code no review has
 seen, a gate, the evidence or the close. A key not listed here is ignored, and the run says so.

@@ -4,6 +4,10 @@
 > (§A path rewrite reaches GitHub), on demand. `SKILL.md` carries the
 > guards as one-liners — never create a remote, never overwrite a template, never half-publish; this
 > file carries the procedure behind each.
+> **A publish is run by the engine** (`commands/tickets/publish.py`, SKILL.md Step 3A.2): §Mirror, §Epics and
+> §The Delivery Board below are what it does, kept here as its specification. The regroup and path-rewrite
+> exceptions (§Provision item 4, §A path rewrite reaches GitHub) edit existing issues, which the engine never
+> does — those stay by hand.
 
 ## §Provision and pre-flight
 
