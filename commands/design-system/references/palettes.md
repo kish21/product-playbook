@@ -45,7 +45,12 @@
 | **Amber** | bright accent (use as fill sparingly) | `oklch(0.74 0.15 75)` | `oklch(0.80 0.14 80)` | **ink both** (bright) |
 
 - **white** = `oklch(0.99 0.005 250)`, **ink** = `oklch(0.20 0.02 260)`. The studio takes whichever of the two contrasts more with the accent (Step 3 follows the column above); verify with the audit.
-- **Semantic status (shared):** success `oklch(0.55 0.13 155)` · warning `oklch(0.65 0.13 75)` · destructive `oklch(0.55 0.20 27)` · info `oklch(0.55 0.14 250)` — **AA-darken the *label* text** on light surfaces (T1-b).
+- **Semantic status — one value per mode, AA as text (4.5:1) on every base's background, card and muted (the audit
+  checks it):** light: success `oklch(0.51 0.13 155)` · warning `oklch(0.53 0.13 75)` · destructive
+  `oklch(0.55 0.20 27)` · info `oklch(0.53 0.14 250)` — dark: success `oklch(0.66 0.13 155)` · warning
+  `oklch(0.68 0.13 75)` · destructive `oklch(0.71 0.20 27)` · info `oklch(0.68 0.14 250)`. `--destructive-foreground`:
+  white (light) / ink (dark). A brighter fill for a dot or bar is its own token named `--warning-dot` (3:1). *(The
+  shared values these replace failed the playbook's own audit in a logged run - 11 `[FAIL]`s and a 1.6M-token fix loop.)*
 
 ## How the Theme Studio uses this
 The studio's `PRESETS` array is 3–5 rows from the Accents table above that fit the archetype, each as `[name, light, dark]` (e.g. Calm Authority → Teal-Slate,

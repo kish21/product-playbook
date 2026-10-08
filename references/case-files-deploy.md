@@ -160,3 +160,11 @@ rolled out in any order, with no outage window and no bypass window.
 The agent's own safety layer blocked it from writing a config line that would attach a DNS route. That is
 correct: attaching a domain is the owner's act at the dashboard. The host's add-domain dialog also looked
 up the ZONE (`example.com`); typing the full subdomain offered to onboard a brand-new domain instead.
+
+## The deploy nobody wrote down
+
+On an earlier logged run, eleven phases in, with green CI and 111 passing tests, the app had never been
+deployed anywhere and no document said how. `#Architecture` had recorded the runtime target; the
+execution was left to the user to work out alone, the one step in the chain where a decision was recorded
+and nothing carried it out. `/deploy` exists to execute that recorded decision and write the steps down,
+so the next deploy is not a rediscovery.

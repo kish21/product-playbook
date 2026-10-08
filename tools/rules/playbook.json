@@ -1,0 +1,487 @@
+{
+ "skill": "playbook",
+ "base": "bce57d4",
+ "rules": [
+  {
+   "id": "PB01",
+   "what": "purpose: the audience is freshers and engineers",
+   "old": [
+    "- **Purpose:** walk a (possibly non-technical) user through the lifecycle one phase at a time."
+   ],
+   "new": [
+    "walk a fresher or a working engineer through the lifecycle one phase at a time"
+   ]
+  },
+  {
+   "id": "PB02",
+   "what": "reads where the project stands through status.py",
+   "old": [
+    "- **Reads:** `PRODUCT.md` (which sections are filled = how far along)."
+   ],
+   "new": [
+    "**Reads:** `STATUS.md` through `status.py route` (which phases are filled = how far along)."
+   ]
+  },
+  {
+   "id": "PB03",
+   "what": "writes no PRODUCT.md section; STATUS.md only via status.py on a yes",
+   "old": [
+    "**Writes:** nothing itself — each phase skill writes its own section."
+   ],
+   "new": [
+    "**Writes:** no `PRODUCT.md` section — each phase skill writes its own.",
+    "(`migrate --write`, `bypass`, `flag --order-override`), each on the user's yes."
+   ]
+  },
+  {
+   "id": "PB04",
+   "what": "one status call first; it finds the first unfilled phase in the chain order",
+   "old": [
+    "- **Run `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next` first** (`MECHANISMS.md` §Status) and show its output. It finds the **first unfilled /",
+    "incomplete phase** in order: Vision → **Validate** → Scope → Plan → Architect → Structure → **Design (if UI)** →"
+   ],
+   "new": [
+    "status.py route` first — one call, nothing before it",
+    "It finds the **first unfilled / incomplete phase** in order: Vision → Validate (optional) → Scope → Plan → Architect → Structure → **Design (if UI)** →"
+   ]
+  },
+  {
+   "id": "PB05",
+   "what": "no STATUS.md: fresh -> /vision, old header -> migrate dry run then --write on yes, code -> /adopt (skill)",
+   "old": [
+    "- **No `STATUS.md`:** no `PRODUCT.md` either → a fresh start, the next phase is **`/vision`**. A `PRODUCT.md` with",
+    "the old `_Last updated: … Stage:` header → offer `status.py migrate` (a dry run; `--write` only on the user's",
+    "yes) before anything else. Existing code with no `PRODUCT.md` → route to `/adopt` (below)."
+   ],
+   "new": [
+    "a fresh folder → **`/vision`**",
+    "existing code or a `PRODUCT.md`",
+    "→ **`/adopt`**",
+    "old `_Last updated: … Stage:` header → `status.py migrate` (a dry run; `--write` only on the user's yes)"
+   ]
+  },
+  {
+   "id": "PB06",
+   "what": "no STATUS.md: the same routing decided in code",
+   "old": [],
+   "new": [
+    "Next: /vision",
+    "Next: /adopt",
+    "Next: status.py migrate (a dry run)",
+    "migrate --write only on their yes"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "PB07",
+   "what": "report what the status command lists before proposing",
+   "old": [
+    "- **Report what `next` lists, before proposing anything** — one line each, in plain words:"
+   ],
+   "new": [
+    "**Report what `route` lists, before proposing anything** — one line each, in plain words:"
+   ]
+  },
+  {
+   "id": "PB08",
+   "what": "a recorded order override is printed, never re-asked",
+   "old": [
+    "(`status.py flag --order-override \"<the user's reason>\"`); `next` prints it — **do not re-ask**."
+   ],
+   "new": [
+    "(`status.py flag --order-override \"<the user's reason>\"`); `route` prints it — **do not re-ask**."
+   ]
+  },
+  {
+   "id": "PB09",
+   "what": "brownfield routes to /adopt; entering at /architect or /build stays offered but re-guesses the spine",
+   "old": [
+    "- **Brownfield (existing code, no `PRODUCT.md`): route to `/adopt`.** It drafts an INFERRED `PRODUCT.md`",
+    "from what the repo actually contains and confirms it with the owner — after which orienting works",
+    "normally. Entering straight at `/architect` or `/build` still works and stays offered, but it leaves the",
+    "project with no spine, so every later phase re-guesses it."
+   ],
+   "new": [
+    "which drafts or confirms the spine with the owner",
+    "entering straight at `/architect` or `/build` still works and stays offered, but every later phase then re-guesses the spine"
+   ]
+  },
+  {
+   "id": "PB10",
+   "what": "the map: one screen, shown on a first visit only (was: once, briefly, plain language); since 2.0 the list itself is route's (one source, P41)",
+   "old": [
+    "## Step 1 — Explain the map (once, briefly, plain language)",
+    "Show the journey in one screen so the user has the mental model:"
+   ],
+   "new": [
+    "## Step 1 — Explain the map (only when `route` prints `Map: show it`)",
+    "`Map: skip it` → no map",
+    "Show `route`'s `Skills, in order` lines as printed (one source: never re-type the list) so the user has the mental model"
+   ]
+  },
+  {
+   "id": "PB11",
+   "what": "the map's later steps and /drift-check anytime: in route's skill list (SKILL_MAP) since 2.0",
+   "old": [
+    "`#Architecture` chose) · `test` · `eval` · `ship` · `learn` · `/drift-check` anytime. Note: each step asks a few",
+    "questions and ends with a check before moving on — you stay in control."
+   ],
+   "new": [
+    "/test -> /eval -> /ship -> /learn",
+    "/drift-check (are we still building the vision?)"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "PB11b",
+   "what": "each step asks and ends with a check: you stay in control",
+   "old": [],
+   "new": [
+    "questions and ends with a check before moving on — you stay in control."
+   ]
+  },
+  {
+   "id": "PB12",
+   "what": "tell the next phase in plain language: what and why now",
+   "old": [
+    "## Step 2 — Run the next phase (one at a time)",
+    "1. Tell the user the next phase in plain language: *what it does and why it matters now.*"
+   ],
+   "new": [
+    "## Step 2 — Offer the next phase, then run it (one phase per conversation)",
+    "the next phase in plain language — *what it does and why it matters now*"
+   ]
+  },
+  {
+   "id": "PB13",
+   "what": "every offer states the phase's length (now its size, from status.py) and the start-with-room warning; no price",
+   "old": [
+    "- **Say how long a sitting it is, and when to start it** — on every offer, one phase or a batch; after a",
+    "phase's row in §Sitting lengths below with the version it was measured on: *\"`/<phase>` takes <its row,",
+    "as written>: the agent's working time on playbook <version>, plus your own time answering and",
+    "reviewing.\"* A row that reads `not measured yet` is said as exactly that, never estimated. Then: *\"Start",
+    "it in a new conversation, with room left on your plan: a run a usage limit cuts off mid-review loses review steps.\"* No prices —",
+    "what a run costs depends on the user's plan."
+   ],
+   "new": [
+    "its size from `route`'s `Size:`",
+    "Start it with room left on your plan: a run a usage limit cuts off mid-review loses review steps.",
+    "Never a number of minutes, never a price — what a run costs depends on the user's plan."
+   ]
+  },
+  {
+   "id": "PB14",
+   "what": "the size per phase lives in code",
+   "old": [],
+   "new": [
+    "PHASE_SIZE = {",
+    "SIZE_TEXT = {"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "PB15",
+   "what": "the offer is the last item of the phase's What YOU do next; since 2.0 the phase's own printed handoff line, no second route call (L1)",
+   "old": [
+    "phase, the offer is the last item of its *What YOU do next* (`MECHANISMS.md` §Plain-language close). Quote the"
+   ],
+   "new": [
+    "the offer is the last item of its *What YOU do next* (`MECHANISMS.md` §Plain-language close) — the `Open a NEW conversation and type: /<next>` line the phase's close printed, word for word"
+   ]
+  },
+  {
+   "id": "PB16",
+   "what": "a batch only when legal (derivation phases, an input phase splits it); the user chooses; a batch is long",
+   "old": [
+    "- **Offer a batch when it is legal — and only then** (`MECHANISMS-ON-DEMAND.md` §Batch mode): the next",
+    "phase and the one after it are both `derivation` (`STATE-MODEL.md` §2d) with no `input` phase",
+    "between. *\"Run `/foundation` alone, or `/foundation` + `/contracts` + `/tickets` as one batch? The batch",
+    "still stops where a phase asks you to confirm; one commit per phase, one review at the end.\"* An",
+    "`input` phase splits the batch (UI product: `structure` alone → `design-system` → batch the three).",
+    "The user's choice is a choice, not a default. **The batch's sitting is its phases' rows added up** —",
+    "*\"at least\"* when one reads `not measured yet` — so a batch of long phases is offered as the long sitting",
+    "it is, not only as legal; the start-with-room line goes with it."
+   ],
+   "new": [
+    "**Offer a batch only when `route` prints `Batch: legal`** (`MECHANISMS-ON-DEMAND.md` §Batch mode)",
+    "*\"Run `/foundation` alone, or `/foundation` + `/contracts` + `/tickets` as one batch? The batch still stops where a phase asks you to confirm; one commit per phase, one review at the end.\"*",
+    "A batch is long. The user's choice is a choice, not a default."
+   ]
+  },
+  {
+   "id": "PB17",
+   "what": "batch legality decided in code from STATE-MODEL.md §2d",
+   "old": [],
+   "new": [
+    "STATE-MODEL.md §2d derivation phases",
+    "design-system (input) splits it"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "PB18",
+   "what": "invoke the phase skill (now only on the user's yes)",
+   "old": [
+    "2. **Invoke that phase's skill** (e.g. run `/vision`). Let it ask its questions and do its work."
+   ],
+   "new": [
+    "**Invoke that phase's skill only on the user's yes** (e.g. run `/vision`)",
+    "The phase asks its questions and does its work."
+   ]
+  },
+  {
+   "id": "PB19",
+   "what": "pause at the exit gate; never advance past an unmet gate",
+   "old": [
+    "3. When that skill reaches its **exit gate**, surface the result and **pause** — confirm with the user",
+    "that it's right before continuing. **Never advance past an unmet gate.**"
+   ],
+   "new": [
+    "When it reaches its **exit gate**, surface the result and **pause** — confirm with the user that it's right before continuing. **Never advance past an unmet gate.**"
+   ]
+  },
+  {
+   "id": "PB20",
+   "what": "after the close: next phase in a new conversation; stop and resume anytime with /playbook",
+   "old": [
+    "4. On confirmation, point to the next phase and repeat. The user can stop anytime and resume later by",
+    "running `/playbook` again (it re-orients from `PRODUCT.md`)."
+   ],
+   "new": [
+    "**After the phase's close, this conversation is done.**",
+    "**Never invoke the next phase in this conversation**",
+    "The user can stop anytime and resume later by running `/playbook` again."
+   ]
+  },
+  {
+   "id": "PB21",
+   "what": "handoff",
+   "old": [
+    "proposed next skill, or just keep running `/playbook` and I'll walk you through.\""
+   ],
+   "new": [
+    "proposed next skill, or just keep running `/playbook` in a new conversation and I'll walk you through.\""
+   ]
+  },
+  {
+   "id": "PB22",
+   "what": "dev-check, test and eval stay next until their verdict is pass; /deploy is never next by itself",
+   "old": [
+    "their verdict is `pass`.)*"
+   ],
+   "new": [
+    "their verdict is `pass`. `/deploy` is never the next phase by itself: it runs when a milestone needs a real URL, else `/test` follows `/dev-check`."
+   ]
+  },
+  {
+   "id": "PB23",
+   "what": "UI projects: recommend /frontend-audit once, never a gate; UI: no says nothing about the UI suite",
+   "old": [
+    "- **UI projects only — recommend the enforcement tool, never gate on it.** If `STATUS.md` says `UI: yes` and",
+    "the ticket rows already include UI work, say once that `/frontend-audit` mechanically checks that UI against",
+    "the laws `/design-system` set (real contrast computation, not an opinion). It is a **recommendation, not a",
+    "phase**: it writes no `PRODUCT.md` section, so the first-unfilled frontier must never look for one, and a",
+    "user who ignores it is not behind on anything. For a backend/API/CLI product (has-UI false) say nothing —",
+    "neither UI-suite skill exists for that user."
+   ],
+   "new": [
+    "**UI projects only — recommend the enforcement tool, never gate on it.**",
+    "say once that `/frontend-audit` mechanically checks that UI against the laws `/design-system` set (real contrast computation, not an opinion).",
+    "A **recommendation, not a phase**: it writes no `PRODUCT.md` section, and a user who ignores it is not behind.",
+    "`UI: no` → say nothing about the UI suite."
+   ]
+  },
+  {
+   "id": "PB24",
+   "what": "(new, review 2026-09-30) the offer leads with done / next / why",
+   "old": [],
+   "new": [
+    "Lead with three plain lines — what's done (`Done:`), what's next, why"
+   ]
+  },
+  {
+   "id": "PB25",
+   "what": "(new, review 2026-09-30) a goal the user already named is routed with no extra question",
+   "old": [],
+   "new": [
+    "**The user already named a goal**",
+    "a bug → `/tickets \"<the bug>\"`",
+    "\"something feels off\" → `/drift-check`"
+   ]
+  },
+  {
+   "id": "PB26",
+   "what": "(new, review 2026-09-30) route prints what is done, and an agent product's agent-track phase is long",
+   "old": [],
+   "new": [
+    "Done: ",
+    "the agent track adds its own section"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "PB-V",
+   "what": "/validate is optional (owner decision 2026-09-30): never the next phase by itself, off the journey's main line",
+   "old": [
+    "*(Design = run `/design-system`, skipped when `STATUS.md` says `UI: no`; Validate = run `/validate`. Build stays"
+   ],
+   "new": [
+    "Validate = `/validate`, only when the user asks — never the next phase by itself."
+   ]
+  },
+  {
+   "id": "PB-V2",
+   "what": "the journey's main line with /validate optional, every skill listed: route's SKILL_MAP (one source)",
+   "old": [
+    "`vision → validate → scope → plan` (Product) · `architect → structure → design-system* → foundation → contracts → tickets → build → dev-check → deploy**†**`",
+    "UI products also get `/new-component` to build one against `DESIGN.md` and `/frontend-audit` to check it; tools, not steps)",
+    "(Development; **†** `/deploy` runs when something ahead needs a real URL"
+   ],
+   "new": [
+    "/vision -> /validate (optional: only when you ask) -> /scope -> /plan",
+    "/build -> /dev-check -> /deploy (when something ahead needs a real URL)",
+    "UI only: /new-component (one",
+    "/frontend-audit (checks the built UI)"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "PB-NOT",
+   "what": "what /playbook must NOT do (P44)",
+   "old": [],
+   "new": [
+    "**Must NOT:** write a `PRODUCT.md` section, answer a phase's questions for the user, start a phase without the user's yes, or start the next phase in the same conversation."
+   ]
+  }
+ ],
+ "dropped": [
+  {
+   "old": "`/playbook` only routes + explains.",
+   "why": "the header already says it orchestrates the phase skills; the Writes line now names the STATUS.md writes it does make"
+  },
+  {
+   "old": "## Sitting lengths — the figures every offer quotes, kept only here",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "**Agent working time from a phase's start to its close**, read from the session logs of logged test runs on",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "small web apps. Waits for the user's replies, answers and tool approvals are left out, so a user adds their",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "own, and a bigger product runs longer. Rounded to 5 minutes; a range spans the runs and names the playbook",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "versions they ran on. Only a run that reached its phase's close counts: a declined, gate-failed or interrupted",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "run is a different sitting. A release that changes how long a phase runs re-measures it and updates its row —",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "no other file carries these figures. **No prices:** what a run costs depends on the user's plan, and a",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "subscription meets a usage limit, not a bill. To measure a run of your own:",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "`python \"${CLAUDE_PLUGIN_ROOT}/tools/session_cost.py\" --project .` (from a clone: `tools/session_cost.py`) —",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "its *agent working* line is this figure, except that it counts time spent approving a tool.",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "| Phase | Sitting — agent working time | Measured on | Runs |",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "|---|---|---|---|",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "| `/adopt` | about 5 min | 1.41.0 | 1 |",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "| `/vision` | 5–10 min | 1.40.0–1.40.1 | 2 |",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "| `/validate` | under 5 min to set the experiment up | 1.40.1 | 1 |",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "| `/scope` | about 5 min | 1.40.1 | 1 |",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "| `/plan` | about 10 min | 1.40.1 | 1 |",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "| `/architect` | about 15 min | 1.40.1 | 1 |",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "| `/structure` | about 20 min | 1.40.1 | 1 |",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "| `/design-system` | about 20 min | 1.40.1 | 1 |",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "| `/foundation` | about 50 min | 1.40.1 | 1 |",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "| `/contracts` | about 50 min | 1.40.1 | 1 |",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "| `/tickets` | about 20 min | 1.40.1 | 1 |",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "| `/build` | 30–40 min per ticket | 1.45.0–1.47.0 | 3 |",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "| `/dev-check` | not measured yet | — | 0 |",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "| `/deploy` | not measured yet | — | 0 |",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "| `/test` | about 35 min | 1.36.0 | 1 |",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "| `/eval` | not measured yet | — | 0 |",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "| `/ship` | not measured yet | — | 0 |",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "| `/learn` | not measured yet | — | 0 |",
+   "why": "§Sitting lengths removed: minutes measured on 1.36-1.47 went stale when the skills were rewritten and nothing re-measured them; a short/long size in status.py PHASE_SIZE replaces them (check 35), session_cost.py still measures a run"
+  },
+  {
+   "old": "— it executes the host",
+   "reason": "/deploy's own skill says what it executes; the map names when it runs"
+  }
+ ]
+}

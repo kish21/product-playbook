@@ -1,6 +1,6 @@
 {
   "name": "product-playbook",
-  "version": "1.73.0",
+  "version": "2.0.0",
   "description": "AI writes code faster than anyone can reason about it. product-playbook puts evidence gates between the phases: 21 Claude Code skills that walk a product from idea to shipped, one gate at a time, recording every decision in one file in your repo. For technical builders shipping with AI coding agents. Anti-scope-creep by design.",
   "author": "kish21",
   "license": "MIT",
@@ -8,8 +8,8 @@
   "kind": "claude-code-skills-collection",
   "install": {
     "method": "copy",
-    "from": "commands/*.md + directory-form commands/<name>/ (SKILL.md + references/) (+ PRINCIPLES.md, VISION.md, templates/PRODUCT.md)",
-    "to": "~/.claude/commands/",
+    "from": "commands/<name>/ (SKILL.md + references/ + engines) (+ the companions: rule files, templates, case files, status.py)",
+    "to": "~/.claude/skills/ (--tool cursor: ~/.cursor/skills/ · --tool antigravity: ~/.gemini/config/skills/ · --project: <project>/.claude/skills/ or <project>/.agents/skills/)",
     "one_liner": "curl -fsSL https://raw.githubusercontent.com/kish21/product-playbook/master/install.sh | bash",
     "subset": "./install.sh --only build,ship  (or: curl -fsSL .../install.sh | bash -s -- --only build,ship) — named skills + companions only; ./install.sh --list shows the names",
     "plugin": {
@@ -27,37 +27,37 @@
       "id": "playbook",
       "category": "0-entry",
       "purpose": "Guided entry-point — walk the phases one at a time, pausing at each gate",
-      "file": "commands/playbook.md"
+      "file": "commands/playbook/SKILL.md"
     },
     {
       "id": "adopt",
       "category": "0-entry",
       "purpose": "Bring an existing half-built project in: an INFERRED PRODUCT.md, confirmed by the owner",
-      "file": "commands/adopt.md"
+      "file": "commands/adopt/SKILL.md"
     },
     {
       "id": "vision",
       "category": "1-product",
       "purpose": "Vision, customer, problem, value — benchmarked to the current-year market",
-      "file": "commands/vision.md"
+      "file": "commands/vision/SKILL.md"
     },
     {
       "id": "validate",
       "category": "1-product",
       "purpose": "Test the riskiest assumption with the cheapest experiment BEFORE code — threshold set in advance; proceed / pivot / kill",
-      "file": "commands/validate.md"
+      "file": "commands/validate/SKILL.md"
     },
     {
       "id": "scope",
       "category": "1-product",
       "purpose": "Lock the ONE core feature + explicit OUT-OF-SCOPE list (anti-creep)",
-      "file": "commands/scope.md"
+      "file": "commands/scope/SKILL.md"
     },
     {
       "id": "plan",
       "category": "1-product",
       "purpose": "Core-first phased plan with a testable exit criterion per milestone",
-      "file": "commands/plan.md"
+      "file": "commands/plan/SKILL.md"
     },
     {
       "id": "architect",
@@ -93,7 +93,7 @@
       "id": "contracts",
       "category": "2-development",
       "purpose": "Typed models/schemas/migrations BEFORE logic; agree units across boundaries",
-      "file": "commands/contracts.md"
+      "file": "commands/contracts/SKILL.md"
     },
     {
       "id": "tickets",
@@ -111,49 +111,49 @@
       "id": "dev-check",
       "category": "2-development",
       "purpose": "Checkpoint tester: verify exit criteria + security DoD before testing",
-      "file": "commands/dev-check.md"
+      "file": "commands/dev-check/SKILL.md"
     },
     {
       "id": "deploy",
       "category": "2-development",
       "purpose": "Execute the recorded runtime target: the repo reaches a host, and docs/deployment.md says how",
-      "file": "commands/deploy.md"
+      "file": "commands/deploy/SKILL.md"
     },
     {
       "id": "test",
       "category": "3-testing",
       "purpose": "Unit/integration/regression + adversarial (injection/authz); live-path",
-      "file": "commands/test.md"
+      "file": "commands/test/SKILL.md"
     },
     {
       "id": "eval",
       "category": "4-evaluation",
       "purpose": "Is it good? measure-first; separate failures; confidence score",
-      "file": "commands/eval.md"
+      "file": "commands/eval/SKILL.md"
     },
     {
       "id": "ship",
       "category": "5-ship",
       "purpose": "Deep review + security review + reconcile docs + PR + handoff",
-      "file": "commands/ship.md"
+      "file": "commands/ship/SKILL.md"
     },
     {
       "id": "learn",
       "category": "6-learn",
       "purpose": "Success metric + retro + decide next from evidence",
-      "file": "commands/learn.md"
+      "file": "commands/learn/SKILL.md"
     },
     {
       "id": "drift-check",
       "category": "cross-cutting",
       "purpose": "Run anytime: scope creep / vision drift / code↔docs drift check",
-      "file": "commands/drift-check.md"
+      "file": "commands/drift-check/SKILL.md"
     },
     {
       "id": "new-component",
       "category": "ui-suite",
       "purpose": "(UI suite, bundled) build/skin ONE React component against DESIGN.md tokens; CSS-vars, interactive states, a11y",
-      "file": "commands/new-component.md"
+      "file": "commands/new-component/SKILL.md"
     }
   ],
   "compatibility": {

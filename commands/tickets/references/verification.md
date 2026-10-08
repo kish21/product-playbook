@@ -76,7 +76,9 @@ Walk the principles and prove each against the files just written — do not ass
 
 ## §After publishing — the read-backs
 
-Run once `/tickets` has published; each one reads GitHub back rather than trusting what was sent.
+Run once `/tickets` has published; each one reads GitHub back rather than trusting what was sent. **The
+publish engine runs all of them** (SKILL.md Step 3A.2) — the second run, each read-back and each break-and-restore
+proof — and prints one `OK`/`FAIL` line per check with its count: those lines are the evidence, quoted in the close.
 - **Structure mirrored + idempotent.** Every published ticket carries its milestone, its `lane: <name>` and
   its `owner: <role>` label; a second run created no duplicate milestone, label, epic, board field or issue
   (**re-run it and show that**); no link points at a feature doc that does not exist yet; permissions —

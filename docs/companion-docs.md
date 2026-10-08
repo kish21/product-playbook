@@ -21,7 +21,7 @@ file to point *at*:
 | `#Structure` | `STRUCTURE.md` |
 | `#Design` | `DESIGN.md` |
 | `#Foundation` | `docs/runbook.md` |
-| `#Build log` | `docs/features/*` |
+| `STATUS.md` ticket rows | `docs/features/*` |
 | `#Deployment` | `docs/deployment.md` |
 
 **Eight do not:** `#Vision`, `#Validation`, `#Scope`, `#Plan`, `#Contracts`, `#Tests`, `#Evaluation`,
@@ -47,7 +47,7 @@ public issues once (#166).
 
 Its current reach, verified:
 
-- **named in 2 of 22 skills** — `commands/contracts.md`, `commands/tickets/SKILL.md`
+- **named in 2 of 22 skills** — `commands/contracts/SKILL.md`, `commands/tickets/SKILL.md`
 - **enforced by 0 of 18 checks** in `tools/check.py`
 - the text claims it *"is greppable, so it is a gate, not an intention"* — **nothing greps it**
 
@@ -116,7 +116,7 @@ is verified statically here, and the *act* is verified at runtime there.
 - every skill with a `**Reads:**` naming a companion-backed section — receipt obligation
 - `references/mechanisms.md` — §Follow the pointer gains the receipt format; a new §Section is a record rule (built in `mechanisms-on-demand.md`; named §Section size until #200)
 - `tools/check.py` — L1 check; extend check 17's region test to the receipt + size obligations
-- `commands/drift-check.md` — keeps the size check; it is no longer the *only* place it lives
+- `commands/drift-check/SKILL.md` — keeps the size check; it is no longer the *only* place it lives
 
 ---
 

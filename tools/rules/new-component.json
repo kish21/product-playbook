@@ -1,0 +1,889 @@
+{
+ "skill": "new-component",
+ "base": "7244338",
+ "rules": [
+  {
+   "id": "NC01",
+   "what": "Contract: Purpose: one React component, written in the token vocabulary",
+   "old": [
+    "- **Purpose:** one React component, written in **the token vocabulary this project actually uses**."
+   ],
+   "new": [
+    "- **Purpose:** one React component, written in **the token vocabulary this project actually uses**."
+   ]
+  },
+  {
+   "id": "NC02",
+   "what": "Contract: Reads: DESIGN.md (tokens · type scale · motion ·",
+   "old": [
+    "- **Reads:** `DESIGN.md` (tokens · type scale · motion · depth ladder) and `PRODUCT.md#Design`; `STRUCTURE.md` for where components live."
+   ],
+   "new": [
+    "- **Reads:** `DESIGN.md` (tokens · type scale · motion · depth ladder) and `PRODUCT.md#Design`; `STRUCTURE.md` for where components live."
+   ]
+  },
+  {
+   "id": "NC03",
+   "what": "Contract: Writes: one component file (path confirmed with the user).",
+   "old": [
+    "- **Writes:** one component file (path confirmed with the user)."
+   ],
+   "new": [
+    "- **Writes:** one component file (path confirmed with the user)."
+   ]
+  },
+  {
+   "id": "NC04",
+   "what": "Contract: Gate type: derivation — the component is computable from",
+   "old": [
+    "- **Gate type:** `derivation` — the component is computable from `DESIGN.md`'s tokens plus the chosen ticket; the only preference in it (the file path) is confirmed, not invented. Batchable - several components may be built and reviewed together. Writes no spine section, so it declares no state model. (`STATE-MODEL.md` §2d)"
+   ],
+   "new": [
+    "- **Gate type:** `derivation` — the component is computable from `DESIGN.md`'s tokens plus the chosen ticket; the only preference in it (the file path) is confirmed, not invented. Batchable - several components may be built and reviewed together. Writes no spine section, so it declares no state model. (`STATE-MODEL.md` §2d)"
+   ]
+  },
+  {
+   "id": "NC05",
+   "what": "Contract: Invoked bare, the pending components for the active milestone",
+   "old": [
+    "- [ ] Invoked bare, the **pending components for the active milestone are offered** (built vs pending) and exactly **one** is chosen; with no tickets, it falls back to a description and says why."
+   ],
+   "new": [
+    "- [ ] Invoked bare, the **pending components for the active milestone are offered** (built vs pending) and exactly **one** is chosen; with no tickets, it falls back to a description and says why."
+   ]
+  },
+  {
+   "id": "NC06",
+   "what": "Contract: Every var( token) the component references resolves IN THE",
+   "old": [
+    "- [ ] **Every `var(--token)` the component references resolves IN THE APP** — checked mechanically against"
+   ],
+   "new": [
+    "- [ ] **Every `var(--token)` the component references resolves IN THE APP** — checked mechanically against"
+   ]
+  },
+  {
+   "id": "NC07",
+   "what": "Contract: the project stylesheet DESIGN.md §2 names ( src/app/globals.css or",
+   "old": [
+    "the project stylesheet `DESIGN.md` §2 names (`src/app/globals.css` or equivalent), **not against the"
+   ],
+   "new": [
+    "the project stylesheet `DESIGN.md` §2 names (`src/app/globals.css` or equivalent), **not against the"
+   ]
+  },
+  {
+   "id": "NC08",
+   "what": "Contract: spec . Documented and resolves at runtime are different",
+   "old": [
+    "spec**. *Documented* and *resolves at runtime* are different claims and only the second one renders:"
+   ],
+   "new": [
+    "spec**. *Documented* and *resolves at runtime* are different claims and only the second one renders:"
+   ]
+  },
+  {
+   "id": "NC09",
+   "what": "Contract: CSS drops a declaration whose var() is undefined, silently,",
+   "old": [
+    "CSS drops a declaration whose `var()` is undefined, silently, so the component looks almost right and"
+   ],
+   "new": [
+    "CSS drops a declaration whose `var()` is undefined, silently, so the component looks almost right and"
+   ]
+  },
+  {
+   "id": "NC10",
+   "what": "Contract: the audit reports zero errors. No such stylesheet yet",
+   "old": [
+    "the audit reports zero errors. No such stylesheet yet → say so and stop; that is `/design-system`"
+   ],
+   "new": [
+    "the audit reports zero errors. No such stylesheet yet → say so and stop; that is `/design-system`"
+   ]
+  },
+  {
+   "id": "NC11",
+   "what": "Contract: output that was never emitted, not something to improvise",
+   "old": [
+    "output that was never emitted, not something to improvise here."
+   ],
+   "new": [
+    "output that was never emitted, not something to improvise here."
+   ]
+  },
+  {
+   "id": "NC12",
+   "what": "Contract: No raw hex, no literal font string, no invented",
+   "old": [
+    "- [ ] No raw hex, no literal font string, no invented token name. A token this component needs but `DESIGN.md` lacks is a **gap to raise**, not one to improvise."
+   ],
+   "new": [
+    "- [ ] No raw hex, no literal font string, no invented token name. A token this component needs but `DESIGN.md` lacks is a **gap to raise**, not one to improvise."
+   ]
+  },
+  {
+   "id": "NC13",
+   "what": "Contract: Every interactive element has hover · focus visible ·",
+   "old": [
+    "- [ ] Every interactive element has **hover · focus-visible · active**; focus is never suppressed without a visible replacement."
+   ],
+   "new": [
+    "- [ ] Every interactive element has **hover · focus-visible · active**; focus is never suppressed without a visible replacement."
+   ]
+  },
+  {
+   "id": "NC14",
+   "what": "Contract: Motion animates transform / opacity only — never transition:",
+   "old": [
+    "- [ ] Motion animates `transform`/`opacity` only — never `transition: all`, never a layout/paint property."
+   ],
+   "new": [
+    "- [ ] Motion animates `transform`/`opacity` only — never `transition: all`, never a layout/paint property."
+   ]
+  },
+  {
+   "id": "NC15",
+   "what": "Contract: Typed props; no font size below the floor DESIGN.md",
+   "old": [
+    "- [ ] Typed props; no `font-size` below the floor `DESIGN.md` sets (12px absolute minimum)."
+   ],
+   "new": [
+    "- [ ] Typed props; no `font-size` below the floor `DESIGN.md` sets (12px absolute minimum)."
+   ]
+  },
+  {
+   "id": "NC16",
+   "what": "Contract: /frontend audit reports 0 errors on the file —",
+   "old": [
+    "- [ ] **`/frontend-audit` reports 0 errors** on the file — the gate `/build` runs. Necessary, not sufficient: it checks the tokens that *are* defined, not the ones you referenced."
+   ],
+   "new": [
+    "- [ ] **`/frontend-audit` reports 0 errors** on the file — the gate `/build` runs. Necessary, not sufficient: it checks the tokens that *are* defined, not the ones you referenced."
+   ]
+  },
+  {
+   "id": "NC17",
+   "what": "Step 0a — Scope discovery (only when inv: ## Step 0a — Scope discovery (only when invoked",
+   "old": [
+    "## Step 0a — Scope discovery (only when invoked with NO arguments)"
+   ],
+   "new": [
+    "## Step 0a — Scope discovery (only when invoked with NO arguments)"
+   ]
+  },
+  {
+   "id": "NC18",
+   "what": "the tickets already hold the UI file paths: offer them",
+   "old": [
+    "Nobody remembers exact file paths, and **the playbook already wrote them down**: `/tickets` requires each"
+   ],
+   "new": [
+    "The tickets already record every UI file a milestone needs (`/tickets` derives exact Target files from"
+   ]
+  },
+  {
+   "id": "NC19",
+   "what": "Step 0a — Scope discovery (only when inv: ticket's Target files to be exact paths derived from",
+   "old": [
+    "ticket's Target files to be exact paths derived from `STRUCTURE.md`, so every UI file a milestone needs is"
+   ],
+   "new": [
+    "`STRUCTURE.md`): offer those instead of asking the user to retype a path:"
+   ]
+  },
+  {
+   "id": "NC21",
+   "what": "resolve the active milestone - the start does it from the tickets (L3)",
+   "old": [
+    "1. Resolve the active milestone from `docs/issues/` (+ `PRODUCT.md#Plan`)."
+   ],
+   "new": [
+    "1-3. The start resolves the milestone from `docs/issues/`"
+   ]
+  },
+  {
+   "id": "NC22",
+   "what": "the Target files, with /build's own reading (ticket_sections)",
+   "old": [
+    "2. Take the component paths from that ticket's **Target files** — **reuse the reading `/build` already does**"
+   ],
+   "new": [
+    "takes each ticket's **Target files** with the",
+    "reading `/build` already does (no second parser)"
+   ]
+  },
+  {
+   "id": "NC23",
+   "what": "Step 0a — Scope discovery (only when inv: for its ALLOW list; do not grow a second",
+   "old": [
+    "for its ALLOW list; do not grow a second parser here."
+   ],
+   "new": [
+    "reading `/build` already does (no second parser)"
+   ]
+  },
+  {
+   "id": "NC24",
+   "what": "Step 0a — Scope discovery (only when inv: 3. Diff against what exists on disk.",
+   "old": [
+    "3. Diff against what exists on disk."
+   ],
+   "new": [
+    "and marks what exists on disk."
+   ]
+  },
+  {
+   "id": "NC25",
+   "what": "Step 0a — Scope discovery (only when inv: 4. Show the scoped menu and ask which one",
+   "old": [
+    "4. Show the scoped menu and ask which one to build:"
+   ],
+   "new": [
+    "4. Show that menu and ask which one to build:"
+   ]
+  },
+  {
+   "id": "NC26",
+   "what": "Step 0a — Scope discovery (only when inv: Current scope: M1 DASH 03 Dashboard experience",
+   "old": [
+    "Current scope: [M1-DASH-03] Dashboard experience"
+   ],
+   "new": [
+    "Current scope: [M1-DASH-03] Dashboard experience"
+   ]
+  },
+  {
+   "id": "NC27",
+   "what": "Step 0a — Scope discovery (only when inv: Which should we build next?",
+   "old": [
+    "Which should we build next?"
+   ],
+   "new": [
+    "Which should we build next?"
+   ]
+  },
+  {
+   "id": "NC28",
+   "what": "Step 0a — Scope discovery (only when inv: Three constraints that keep this honest:",
+   "old": [
+    "**Three constraints that keep this honest:**"
+   ],
+   "new": [
+    "**Three constraints that keep this honest:**"
+   ]
+  },
+  {
+   "id": "NC29",
+   "what": "Step 0a — Scope discovery (only when inv: Discovery is a fallback, never a dependency. The playbook",
+   "old": [
+    "- **Discovery is a fallback, never a dependency.** The playbook is *sequential but standalone*: with no"
+   ],
+   "new": [
+    "- **Discovery is a fallback, never a dependency.** The playbook is *sequential but standalone*: with no"
+   ]
+  },
+  {
+   "id": "NC30",
+   "what": "Step 0a — Scope discovery (only when inv: docs/issues/ or no active milestone, say so in one",
+   "old": [
+    "`docs/issues/` or no active milestone, **say so in one line and continue from a plain description**. Never"
+   ],
+   "new": [
+    "`docs/issues/` or no active milestone, **say so in one line and continue from a plain description**. Never"
+   ]
+  },
+  {
+   "id": "NC31",
+   "what": "Step 0a — Scope discovery (only when inv: an error, never a dead end.",
+   "old": [
+    "an error, never a dead end."
+   ],
+   "new": [
+    "an error, never a dead end."
+   ]
+  },
+  {
+   "id": "NC32",
+   "what": "Step 0a — Scope discovery (only when inv: One component per invocation. There is no \"generate all",
+   "old": [
+    "- **One component per invocation.** There is no \"generate all pending\" path, deliberately: `/build` builds"
+   ],
+   "new": [
+    "- **One component per invocation.** There is no \"generate all pending\" path, deliberately: `/build` builds"
+   ]
+  },
+  {
+   "id": "NC33",
+   "what": "Step 0a — Scope discovery (only when inv: one thing against a definition of done, and a",
+   "old": [
+    "one thing against a definition-of-done, and a batch generator in a leaf skill routes around that gate and"
+   ],
+   "new": [
+    "one thing against a definition-of-done, and a batch generator in a leaf skill routes around that gate and"
+   ]
+  },
+  {
+   "id": "NC34",
+   "what": "Step 0a — Scope discovery (only when inv: emits N files nothing has reviewed.",
+   "old": [
+    "emits N files nothing has reviewed."
+   ],
+   "new": [
+    "emits N files nothing has reviewed."
+   ]
+  },
+  {
+   "id": "NC35",
+   "what": "Step 0a — Scope discovery (only when inv: Directories come from STRUCTURE.md , never a hardcoded src/components/ui/",
+   "old": [
+    "- **Directories come from `STRUCTURE.md`**, never a hardcoded `src/components/ui/` — the playbook does not"
+   ],
+   "new": [
+    "- **Directories come from `STRUCTURE.md`**, never a hardcoded `src/components/ui/` — the playbook does not"
+   ]
+  },
+  {
+   "id": "NC36",
+   "what": "Step 0a — Scope discovery (only when inv: get to assume a layout it told the user",
+   "old": [
+    "get to assume a layout it told the user to choose."
+   ],
+   "new": [
+    "get to assume a layout it told the user to choose."
+   ]
+  },
+  {
+   "id": "NC37",
+   "what": "Step 0a — Scope discovery (only when inv: A ticket is a parsed document, and a parsed",
+   "old": [
+    "**A ticket is a parsed document, and a parsed document is a boundary** (see"
+   ],
+   "new": [
+    "**A ticket is a parsed document, and a parsed document is a boundary** (see"
+   ]
+  },
+  {
+   "id": "NC38",
+   "what": "Step 0a — Scope discovery (only when inv: ${CLAUDE_PLUGIN_ROOT}/references/case files contracts.md ). A malformed or hand edited",
+   "old": [
+    "`${CLAUDE_PLUGIN_ROOT}/references/case-files-contracts.md`). A malformed or hand-edited ticket **fails loudly, naming the file and"
+   ],
+   "new": [
+    "`${CLAUDE_PLUGIN_ROOT}/references/case-files-contracts.md`). A malformed or hand-edited ticket **fails loudly, naming the file and"
+   ]
+  },
+  {
+   "id": "NC39",
+   "what": "Step 0a — Scope discovery (only when inv: what would not parse — never a silently empty",
+   "old": [
+    "what would not parse** — never a silently empty menu, which reads as \"nothing pending\" and is the worst"
+   ],
+   "new": [
+    "what would not parse** — never a silently empty menu, which reads as \"nothing pending\" and is the worst"
+   ]
+  },
+  {
+   "id": "NC40",
+   "what": "Step 0b — Resolve the token vocabulary (: ## Step 0b — Resolve the token vocabulary (do",
+   "old": [
+    "## Step 0b — Resolve the token vocabulary (do this BEFORE writing a line)"
+   ],
+   "new": [
+    "## Step 0b — Resolve the token vocabulary (do this BEFORE writing a line)"
+   ]
+  },
+  {
+   "id": "NC41",
+   "what": "Step 0b — Resolve the token vocabulary (: The names below are examples, not the contract .",
+   "old": [
+    "The names below are **examples, not the contract**. Where `DESIGN.md` records a name, **that name wins**."
+   ],
+   "new": [
+    "The names below are **examples, not the contract**. Where `DESIGN.md` records a name, **that name wins**."
+   ]
+  },
+  {
+   "id": "NC42",
+   "what": "Step 0b — Resolve the token vocabulary (: 1. DESIGN.md exists → read §Tokens and use those",
+   "old": [
+    "1. **`DESIGN.md` exists** → read §Tokens and use those names verbatim. `/design-system` emits"
+   ],
+   "new": [
+    "1. **`DESIGN.md` exists** → read §Tokens and use those names verbatim. `/design-system` emits"
+   ]
+  },
+  {
+   "id": "NC43",
+   "what": "Step 0b — Resolve the token vocabulary (: shadcn compatible OKLCH tokens , so expect background ·",
+   "old": [
+    "**shadcn-compatible OKLCH tokens**, so expect `--background` · `--foreground` · `--card` ·"
+   ],
+   "new": [
+    "**shadcn-compatible OKLCH tokens**, so expect `--background` · `--foreground` · `--card` ·"
+   ]
+  },
+  {
+   "id": "NC44",
+   "what": "Step 0b — Resolve the token vocabulary (: card foreground · primary · primary foreground · muted",
+   "old": [
+    "`--card-foreground` · `--primary` · `--primary-foreground` · `--muted` · `--muted-foreground` ·"
+   ],
+   "new": [
+    "`--card-foreground` · `--primary` · `--primary-foreground` · `--muted` · `--muted-foreground` ·"
+   ]
+  },
+  {
+   "id": "NC45",
+   "what": "Step 0b — Resolve the token vocabulary (: destructive · success · warning · border · input",
+   "old": [
+    "`--destructive` · `--success` · `--warning` · `--border` · `--input` · `--ring` · `--radius` ·"
+   ],
+   "new": [
+    "`--destructive` · `--success` · `--warning` · `--border` · `--input` · `--ring` · `--radius` ·"
+   ]
+  },
+  {
+   "id": "NC46",
+   "what": "Step 0b — Resolve the token vocabulary (: shadow sm · shadow lg . Take the type",
+   "old": [
+    "`--shadow-sm` · `--shadow-lg`. Take the **type scale**, **motion durations** and the **depth"
+   ],
+   "new": [
+    "`--shadow-sm` · `--shadow-lg`. Take the **type scale**, **motion durations** and the **depth"
+   ]
+  },
+  {
+   "id": "NC47",
+   "what": "Step 0b — Resolve the token vocabulary (: ladder from there too.",
+   "old": [
+    "ladder** from there too."
+   ],
+   "new": [
+    "ladder** from there too."
+   ]
+  },
+  {
+   "id": "NC48",
+   "what": "Step 0b — Resolve the token vocabulary (: 2. No DESIGN.md → say so plainly, recommend /design",
+   "old": [
+    "2. **No `DESIGN.md`** → say so plainly, recommend **`/design-system`**, and fall back to the **shadcn"
+   ],
+   "new": [
+    "2. **No `DESIGN.md`** → say so plainly, recommend **`/design-system`**, and fall back to the **shadcn"
+   ]
+  },
+  {
+   "id": "NC49",
+   "what": "Step 0b — Resolve the token vocabulary (: defaults above — the vocabulary /design system emits and",
+   "old": [
+    "defaults above** — the vocabulary `/design-system` emits and the ecosystem shares. **Never invent a"
+   ],
+   "new": [
+    "defaults above** — the vocabulary `/design-system` emits and the ecosystem shares. **Never invent a"
+   ]
+  },
+  {
+   "id": "NC50",
+   "what": "Step 0b — Resolve the token vocabulary (: private one. A component written to token names the",
+   "old": [
+    "private one.** A component written to token names the project never defines does not error: CSS"
+   ],
+   "new": [
+    "private one** (an undefined `var()` is dropped silently — the exit criteria say why)."
+   ]
+  },
+  {
+   "id": "NC54",
+   "what": "Step 0b — Resolve the token vocabulary (: 3. A brownfield project with its own tokens →",
+   "old": [
+    "3. **A brownfield project with its own tokens** → use the project's names and record where you found them."
+   ],
+   "new": [
+    "3. **A brownfield project with its own tokens** → use the project's names and record where you found them."
+   ]
+  },
+  {
+   "id": "NC55",
+   "what": "Rules — the intent is fixed, the token n: ## Rules — the intent is fixed, the token",
+   "old": [
+    "## Rules — the intent is fixed, the token names come from Step 0"
+   ],
+   "new": [
+    "## Rules — the intent is fixed, the token names come from Step 0"
+   ]
+  },
+  {
+   "id": "NC56",
+   "what": "Rules — the intent is fixed, the token n: 1. File location — put it where STRUCTURE.md says",
+   "old": [
+    "1. **File location** — put it where `STRUCTURE.md` says components live (e.g. `components/<Name>.tsx`). Ask if unsure; never invent a new components root."
+   ],
+   "new": [
+    "1. **File location** — put it where `STRUCTURE.md` says components live (e.g. `components/<Name>.tsx`). Ask if unsure; never invent a new components root."
+   ]
+  },
+  {
+   "id": "NC57",
+   "what": "Rules — the intent is fixed, the token n: 2. No raw hex — every colour is a",
+   "old": [
+    "2. **No raw hex** — every colour is a token from Step 0."
+   ],
+   "new": [
+    "2. **No raw hex** — every colour is a token from Step 0."
+   ]
+  },
+  {
+   "id": "NC58",
+   "what": "Rules — the intent is fixed, the token n: 3. No raw fonts — use the project's font",
+   "old": [
+    "3. **No raw fonts** — use the project's font variables/constants from `DESIGN.md`. Never write `'Inter'`, `system-ui`, or any literal font string."
+   ],
+   "new": [
+    "3. **No raw fonts** — use the project's font variables/constants from `DESIGN.md`. Never write `'Inter'`, `system-ui`, or any literal font string."
+   ]
+  },
+  {
+   "id": "NC59",
+   "what": "Rules — the intent is fixed, the token n: 4. Theme context — use the project's own theme",
+   "old": [
+    "4. **Theme context** — use the project's own theme hook if `isDark`/theme state is needed. Don't import theme from an unrelated module."
+   ],
+   "new": [
+    "4. **Theme context** — use the project's own theme hook if `isDark`/theme state is needed. Don't import theme from an unrelated module."
+   ]
+  },
+  {
+   "id": "NC60",
+   "what": "Rules — the intent is fixed, the token n: 5. Border rule — never mix the border shorthand",
+   "old": [
+    "5. **Border rule** — never mix the `border` shorthand with `borderTop`/`borderLeft`/`borderRight`/`borderBottom` in one element's inline styles: React warns and the style breaks on re-render. All four sides explicitly, or the shorthand alone."
+   ],
+   "new": [
+    "5. **Border rule** — never mix the `border` shorthand with `borderTop`/`borderLeft`/`borderRight`/`borderBottom` in one element's inline styles: React warns and the style breaks on re-render. All four sides explicitly, or the shorthand alone."
+   ]
+  },
+  {
+   "id": "NC61",
+   "what": "Rules — the intent is fixed, the token n: 6. Interactive states — hover + focus visible +",
+   "old": [
+    "6. **Interactive states** — hover + focus-visible + active on everything clickable, at a target ≥44px. Use the hover surface `DESIGN.md` names (shadcn default: `--muted` or `--accent`). Never suppress a focus outline without a visible replacement."
+   ],
+   "new": [
+    "6. **Interactive states** — hover + focus-visible + active on everything clickable, at a target ≥44px. Use the hover surface `DESIGN.md` names (shadcn default: `--muted` or `--accent`). Never suppress a focus outline without a visible replacement."
+   ]
+  },
+  {
+   "id": "NC62",
+   "what": "Rules — the intent is fixed, the token n: 7. No transition: all — animate transform and opacity",
+   "old": [
+    "7. **No `transition: all`** — animate `transform` and `opacity` only, at the duration `DESIGN.md` records, and honour `prefers-reduced-motion`."
+   ],
+   "new": [
+    "7. **No `transition: all`** — animate `transform` and `opacity` only, at the duration `DESIGN.md` records, and honour `prefers-reduced-motion`."
+   ]
+  },
+  {
+   "id": "NC63",
+   "what": "Rules — the intent is fixed, the token n: 8. Status colours are semantic — the success/warning/destructive tokens",
+   "old": [
+    "8. **Status colours are semantic** — the success/warning/destructive tokens from Step 0 (shadcn default: `--success` · `--warning` · `--destructive`). Never a raw colour for state."
+   ],
+   "new": [
+    "8. **Status colours are semantic** — the success/warning/destructive tokens from Step 0 (shadcn default: `--success` · `--warning` · `--destructive`). Never a raw colour for state."
+   ]
+  },
+  {
+   "id": "NC64",
+   "what": "Rules — the intent is fixed, the token n: 9. Depth — follow DESIGN.md 's layering ladder: base",
+   "old": [
+    "9. **Depth** — follow `DESIGN.md`'s layering ladder: base (`--background`) → raised (`--card` + `--shadow-sm`) → floating (`--shadow-lg` + border). Never everything on one z-plane."
+   ],
+   "new": [
+    "9. **Depth** — follow `DESIGN.md`'s layering ladder: base (`--background`) → raised (`--card` + `--shadow-sm`) → floating (`--shadow-lg` + border). Never everything on one z-plane."
+   ]
+  },
+  {
+   "id": "NC65",
+   "what": "Rules — the intent is fixed, the token n: 10. Third party DOM injection — form and auth",
+   "old": [
+    "10. **Third-party DOM injection** — form and auth surfaces receive attributes and nodes from password"
+   ],
+   "new": [
+    "10. **Third-party DOM injection** — form and auth surfaces receive attributes and nodes from password"
+   ]
+  },
+  {
+   "id": "NC66",
+   "what": "Rules — the intent is fixed, the token n: managers, autofill and accessibility extensions before the framework hydrates.",
+   "old": [
+    "managers, autofill and accessibility extensions before the framework hydrates. Where your framework"
+   ],
+   "new": [
+    "managers, autofill and accessibility extensions before the framework hydrates. Where your framework"
+   ]
+  },
+  {
+   "id": "NC67",
+   "what": "Rules — the intent is fixed, the token n: offers a hydration mismatch escape hatch, apply it to",
+   "old": [
+    "offers a hydration-mismatch escape hatch, apply it **to the specific element that receives them, with a"
+   ],
+   "new": [
+    "offers a hydration-mismatch escape hatch, apply it **to the specific element that receives them, with a"
+   ]
+  },
+  {
+   "id": "NC68",
+   "what": "Rules — the intent is fixed, the token n: comment naming why — never as a default across",
+   "old": [
+    "comment naming why** — **never as a default across every input**. A blanket suppression silences genuine"
+   ],
+   "new": [
+    "comment naming why** — **never as a default across every input**. A blanket suppression silences genuine"
+   ]
+  },
+  {
+   "id": "NC69",
+   "what": "Rules — the intent is fixed, the token n: mismatches (clock/random values, locale drift, branch divergence) that are",
+   "old": [
+    "mismatches (clock/random values, locale drift, branch divergence) that are real bugs. `/test`'s"
+   ],
+   "new": [
+    "mismatches (clock/random values, locale drift, branch divergence) that are real bugs. `/test`'s"
+   ]
+  },
+  {
+   "id": "NC70",
+   "what": "Rules — the intent is fixed, the token n: real user environment class is what proves the surface",
+   "old": [
+    "real-user-environment class is what proves the surface actually survives it."
+   ],
+   "new": [
+    "real-user-environment class is what proves the surface actually survives it."
+   ]
+  },
+  {
+   "id": "NC71",
+   "what": "Output format: Full TypeScript component with correct prop types",
+   "old": [
+    "- Full TypeScript component with correct prop types"
+   ],
+   "new": [
+    "- Full TypeScript component with correct prop types"
+   ]
+  },
+  {
+   "id": "NC72",
+   "what": "Output format: Export at bottom ( export default or named export)",
+   "old": [
+    "- Export at bottom (`export default` or named export)"
+   ],
+   "new": [
+    "- Export at bottom (`export default` or named export)"
+   ]
+  },
+  {
+   "id": "NC73",
+   "what": "Output format: No comments unless the WHY is non obvious",
+   "old": [
+    "- No comments unless the WHY is non-obvious"
+   ],
+   "new": [
+    "- No comments unless the WHY is non-obvious"
+   ]
+  },
+  {
+   "id": "NC74",
+   "what": "Before you hand it back — verify, don't : ## Before you hand it back — verify, don't",
+   "old": [
+    "## Before you hand it back — verify, don't assert"
+   ],
+   "new": [
+    "## Before you hand it back — verify, don't assert"
+   ]
+  },
+  {
+   "id": "NC75",
+   "what": "Before you hand it back — verify, don't : Both in one run — pass DESIGN.md alongside the",
+   "old": [
+    "**Both in one run** — pass `DESIGN.md` alongside the component, or the token check cannot run:"
+   ],
+   "new": [
+    "**Both in one run** — pass `DESIGN.md` alongside the component, or the token check cannot run:"
+   ]
+  },
+  {
+   "id": "NC76",
+   "what": "Before you hand it back — verify, don't : 1. Every token the component references resolves in the",
+   "old": [
+    "1. **Every token the component references resolves in the app.** Audit the component **together with the"
+   ],
+   "new": [
+    "1. **Every token the component references resolves in the app.** Audit the component **together with the"
+   ]
+  },
+  {
+   "id": "NC77",
+   "what": "Before you hand it back — verify, don't : project's token stylesheet — the file DESIGN.md §2 records,",
+   "old": [
+    "project's token stylesheet** — the file `DESIGN.md` §2 records, not `DESIGN.md` itself — so the two"
+   ],
+   "new": [
+    "project's token stylesheet** — the file `DESIGN.md` §2 records, not `DESIGN.md` itself — so the two"
+   ]
+  },
+  {
+   "id": "NC78",
+   "what": "Before you hand it back — verify, don't : resolve against each other; Law 14b errors on any",
+   "old": [
+    "resolve against each other; Law 14b errors on any `var(--token)` nothing defines:"
+   ],
+   "new": [
+    "resolve against each other; Law 14b errors on any `var(--token)` nothing defines:"
+   ]
+  },
+  {
+   "id": "NC79",
+   "what": "Before you hand it back — verify, don't : python \"${CLAUDE_PLUGIN_ROOT}/commands/frontend audit/audit.py\" src/app/globals.css <the new component",
+   "old": [
+    "python \"${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py\" src/app/globals.css <the new component>"
+   ],
+   "new": [
+    "python \"${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py\" src/app/globals.css <the new component>"
+   ]
+  },
+  {
+   "id": "NC80",
+   "what": "Before you hand it back — verify, don't : The installed engine — never search the plugin cache",
+   "old": [
+    "The installed engine — **never search the plugin cache for `audit.py`** (a `$` left in the path:"
+   ],
+   "new": [
+    "The installed engine — **never search the plugin cache for `audit.py`** (a `$` left in the path:"
+   ]
+  },
+  {
+   "id": "NC81",
+   "what": "Before you hand it back — verify, don't : /frontend audit §Which engine runs).",
+   "old": [
+    "`/frontend-audit` §Which engine runs)."
+   ],
+   "new": [
+    "`/frontend-audit` §Which engine runs)."
+   ]
+  },
+  {
+   "id": "NC82",
+   "what": "Before you hand it back — verify, don't : Auditing the component alone cannot check this and will",
+   "old": [
+    "Auditing the component **alone** cannot check this and will say so (`tokens-defined: warn`,"
+   ],
+   "new": [
+    "Auditing the component **alone** cannot check this and will say so (`tokens-defined: warn`,"
+   ]
+  },
+  {
+   "id": "NC83",
+   "what": "Before you hand it back — verify, don't : \"unverified\"). Auditing it against DESIGN.md passes on a token",
+   "old": [
+    "\"unverified\"). Auditing it against `DESIGN.md` passes on a token the running app does not have —"
+   ],
+   "new": [
+    "\"unverified\"). Auditing it against `DESIGN.md` passes on a token the running app does not have —"
+   ]
+  },
+  {
+   "id": "NC84",
+   "what": "Before you hand it back — verify, don't : the spec then does the job the stylesheet should,",
+   "old": [
+    "the spec then does the job the stylesheet should, which is the failure this check exists to catch."
+   ],
+   "new": [
+    "the spec then does the job the stylesheet should, which is the failure this check exists to catch."
+   ]
+  },
+  {
+   "id": "NC85",
+   "what": "Before you hand it back — verify, don't : 2. 0 errors overall on that same run.",
+   "old": [
+    "2. **0 errors overall** on that same run."
+   ],
+   "new": [
+    "2. **0 errors overall** on that same run."
+   ]
+  },
+  {
+   "id": "NC86",
+   "what": "Before you hand it back — verify, don't : A token this component genuinely needs but DESIGN.md doesn't",
+   "old": [
+    "A token this component genuinely needs but `DESIGN.md` doesn't define is a **contradiction between the"
+   ],
+   "new": [
+    "A token this component genuinely needs but `DESIGN.md` doesn't define is a **contradiction between the"
+   ]
+  },
+  {
+   "id": "NC87",
+   "what": "Before you hand it back — verify, don't : component and the recorded design system : name both",
+   "old": [
+    "component and the recorded design system**: name both sides and take it back to `/design-system` to be"
+   ],
+   "new": [
+    "component and the recorded design system**: name both sides and take it back to `/design-system` to be"
+   ]
+  },
+  {
+   "id": "NC88",
+   "what": "Before you hand it back — verify, don't : added there — never invent it here ( MECHANISMS.md",
+   "old": [
+    "added there — never invent it here (`MECHANISMS.md` §Step 3c)."
+   ],
+   "new": [
+    "added there — never invent it here (`MECHANISMS.md` §Step 3c)."
+   ]
+  },
+  {
+   "id": "NC-START",
+   "what": "one start command: tokens really defined, where components live, pending components, the audit command (P1, L3)",
+   "old": [],
+   "new": [
+    "**First turn, ONE command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase new-component`**"
+   ]
+  },
+  {
+   "id": "NC-NOT",
+   "what": "what /new-component must NOT do (P44)",
+   "old": [],
+   "new": [
+    "- **Must NOT:** build more than one component, invent a token or a components folder, edit `DESIGN.md` or the stylesheet."
+   ]
+  }
+ ],
+ "dropped": [
+  {
+   "old": "(+ `PRODUCT.md#Plan`)",
+   "reason": "a ticket id carries its milestone (M1-...); the start reads docs/issues/ only"
+  },
+  {
+   "old": "treats `color: var(--color-success)` with no such token as invalid at computed-value time and drops",
+   "reason": "a repeat of the exit criterion (CSS drops an undefined var() silently, the audit reports 0 errors) and of 'Before you hand it back'"
+  },
+  {
+   "old": "the declaration, so the status colour silently inherits and the component looks *almost* right. The",
+   "reason": "a repeat of the exit criterion (CSS drops an undefined var() silently, the audit reports 0 errors) and of 'Before you hand it back'"
+  },
+  {
+   "old": "audit reports 0 errors on it (verified). Nothing catches it — which is exactly why Step 0 exists.",
+   "reason": "a repeat of the exit criterion (CSS drops an undefined var() silently, the audit reports 0 errors) and of 'Before you hand it back'"
+  },
+  {
+   "old": "A component written to token names the project never defines does not error: CSS",
+   "reason": "the same repeat (NC51-53)"
+  },
+  {
+   "old": "recorded, machine-readably, before this skill ever runs. Offer that instead of asking the user to retype it:",
+   "reason": "the why, said shorter in NC18-19 (offer the recorded paths, never ask to retype)"
+  }
+ ]
+}

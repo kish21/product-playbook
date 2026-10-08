@@ -1,0 +1,1158 @@
+{
+ "skill": "validate",
+ "base": "7244338",
+ "rules": [
+  {
+   "id": "VA01",
+   "what": "Contract: Purpose: falsify (or survive) the riskiest assumption with the",
+   "old": [
+    "- **Purpose:** falsify (or survive) the riskiest assumption with the cheapest experiment that can, and decide from the measured result. **Optional:** runs only when the user asks; `/scope` never requires it."
+   ],
+   "new": [
+    "- **Purpose:** falsify (or survive) the riskiest assumption with the cheapest experiment that can, and decide from the measured result. **Optional:** runs only when the user asks; `/scope` never requires it."
+   ]
+  },
+  {
+   "id": "VA02",
+   "what": "Reads #Vision's five lines, as the start prints them (P1)",
+   "old": [
+    "- **Reads:** `PRODUCT.md#Vision` — riskiest assumption · north-star metric · job-to-be-done · target user · business model."
+   ],
+   "new": [
+    "- **Reads:** `PRODUCT.md#Vision` — riskiest assumption · north-star metric · job-to-be-done · target user · business model, as `next` prints them."
+   ]
+  },
+  {
+   "id": "VA03",
+   "what": "Contract: Writes: PRODUCT.md#Validation — fields: assumption under test · experiment",
+   "old": [
+    "- **Writes:** `PRODUCT.md#Validation` — fields: assumption under test · experiment (type, who, time box) · pass/fail threshold (set before) · measured result · verdict (proceed / pivot / kill) · override (if any)."
+   ],
+   "new": [
+    "- **Writes:** `PRODUCT.md#Validation` — fields: assumption under test · experiment (type, who, time box) · pass/fail threshold (set before) · measured result · verdict (proceed / pivot / kill) · override (if any)."
+   ]
+  },
+  {
+   "id": "VA04",
+   "what": "Contract: Gate type: input — the assumption, the threshold and",
+   "old": [
+    "- **Gate type:** `input` — the assumption, the threshold and the verdict are the user's, not derivable. **Never batched** - skipping it fabricates the product's premise. (`STATE-MODEL.md` §2d)"
+   ],
+   "new": [
+    "- **Gate type:** `input` — the assumption, the threshold and the verdict are the user's, not derivable. **Never batched** - skipping it fabricates the product's premise. (`STATE-MODEL.md` §2d)"
+   ]
+  },
+  {
+   "id": "VA05",
+   "what": "Contract: State model ( STATE MODEL.md §2c): writes #Validation ·",
+   "old": [
+    "- **State model** (`STATE-MODEL.md` §2c): writes `#Validation` · `declined` ✓ · `override` ✓ · `running` ✓ (the timeboxed experiment — this phase is where that state comes from) · `superseded` n/a — append-only log: a new dated entry per run, so a second run cannot erase the first"
+   ],
+   "new": [
+    "- **State model** (`STATE-MODEL.md` §2c): writes `#Validation` · `declined` ✓ · `override` ✓ · `running` ✓ (the timeboxed experiment — this phase is where that state comes from) · `superseded` n/a — append-only log: a new dated entry per run, so a second run cannot erase the first"
+   ]
+  },
+  {
+   "id": "VA06",
+   "what": "Contract: Companion: docs/validation.md — the reasoning, workings and raw notes.",
+   "old": [
+    "- **Companion:** `docs/validation.md` — the reasoning, workings and raw notes. `PRODUCT.md#Validation` stays a"
+   ],
+   "new": [
+    "- **Companion:** `docs/validation.md` — the reasoning, workings and raw notes. `PRODUCT.md#Validation` stays a"
+   ]
+  },
+  {
+   "id": "VA07",
+   "what": "Contract: RECORD (summary · decision · evidence · pointer) —",
+   "old": [
+    "RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay."
+   ],
+   "new": [
+    "RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay."
+   ]
+  },
+  {
+   "id": "VA08",
+   "what": "Contract: The assumption under test is stated as a falsifiable",
+   "old": [
+    "- [ ] The assumption under test is stated as a **falsifiable sentence** (\"<user> will <behaviour> because <reason>\"), copied from `#Vision` or sharpened with the user. → `Assumption under test`"
+   ],
+   "new": [
+    "- [ ] The assumption under test is stated as a **falsifiable sentence** (\"<user> will <behaviour> because <reason>\"), copied from `#Vision` or sharpened with the user. → `Assumption under test`"
+   ]
+  },
+  {
+   "id": "VA09",
+   "what": "Contract: One experiment chosen, the cheapest that can falsify it",
+   "old": [
+    "- [ ] **One experiment** chosen, the cheapest that can falsify it — with the real people it reaches and a **time box** (days, not months). → `Experiment (type`"
+   ],
+   "new": [
+    "- [ ] **One experiment** chosen, the cheapest that can falsify it — with the real people it reaches and a **time box** (days, not months). → `Experiment (type`"
+   ]
+  },
+  {
+   "id": "VA10",
+   "what": "Contract: A pass/fail threshold written down BEFORE the experiment runs",
+   "old": [
+    "- [ ] A **pass/fail threshold written down BEFORE the experiment runs** (a number, e.g. \"≥ 3 of 10 interviewees describe doing this manually today\" / \"≥ 5% of visitors leave an email\"), with how each count in it is recorded and tied to the person or unit it counts. → `Pass/fail threshold`"
+   ],
+   "new": [
+    "- [ ] A **pass/fail threshold written down BEFORE the experiment runs** (a number, e.g. \"≥ 3 of 10 interviewees describe doing this manually today\" / \"≥ 5% of visitors leave an email\"), with how each count in it is recorded and tied to the person or unit it counts. → `Pass/fail threshold`"
+   ]
+  },
+  {
+   "id": "VA11",
+   "what": "Contract: A measured result — an actual number or quoted",
+   "old": [
+    "- [ ] A **measured result** — an actual number or quoted evidence, never \"people seemed interested\". → `Measured result`"
+   ],
+   "new": [
+    "- [ ] A **measured result** — an actual number or quoted evidence, never \"people seemed interested\". → `Measured result`"
+   ]
+  },
+  {
+   "id": "VA12",
+   "what": "Contract: A verdict : proceed / pivot / kill, with",
+   "old": [
+    "- [ ] A **verdict**: proceed / pivot / kill, with one sentence of reasoning tied to the threshold. → `Verdict (proceed / pivot / kill)`"
+   ],
+   "new": [
+    "- [ ] A **verdict**: proceed / pivot / kill, with one sentence of reasoning tied to the threshold. → `Verdict (proceed / pivot / kill)`"
+   ]
+  },
+  {
+   "id": "VA13",
+   "what": "Contract: If the user skips the experiment, an explicit override",
+   "old": [
+    "- [ ] If the user skips the experiment, an **explicit override** line (date + reason) is recorded instead — never a silent pass. → `If the user overrode this gate`"
+   ],
+   "new": [
+    "- [ ] If the user skips the experiment, an **explicit override** line (date + reason) is recorded instead — never a silent pass. → `If the user overrode this gate`"
+   ]
+  },
+  {
+   "id": "VA14",
+   "what": "Contract: The override reason is pressure tested against #Vision before",
+   "old": [
+    "- [ ] **The override reason is pressure-tested against `#Vision` before it is recorded.** A reason implying a *different product* than the Vision describes (\"personal use\", \"internal tool\", \"just for me\" — against a Vision with a public customer, a north star and a business model) is a **contradiction, not a deferral**: name the `#Vision` line it contradicts and offer `/vision` first. The override stays allowed, but as an informed choice. → `If the user overrode this gate`"
+   ],
+   "new": [
+    "- [ ] **The override reason is pressure-tested against `#Vision` before it is recorded.** A reason implying a *different product* than the Vision describes (\"personal use\", \"internal tool\", \"just for me\" — against a Vision with a public customer, a north star and a business model) is a **contradiction, not a deferral**: name the `#Vision` line it contradicts and offer `/vision` first. The override stays allowed, but as an informed choice. → `If the user overrode this gate`"
+   ]
+  },
+  {
+   "id": "VA15",
+   "what": "Contract: The override follows MECHANISMS.md §Declined runs — the deliberate",
+   "old": [
+    "- [ ] **The override follows `MECHANISMS.md` §Declined runs** — the *deliberate-skip* shape of that rule: one dated line, the experiment fields kept and each marked `— not run (override <date>)`, never a blanked section. (Unlike a `Not run` note, an override **does** count as filled — the phase is not still owed — and every later phase surfaces it.) → `If the user overrode this gate`"
+   ],
+   "new": [
+    "- [ ] **The override follows `MECHANISMS.md` §Declined runs** — the *deliberate-skip* shape of that rule: one dated line, the experiment fields kept and each marked `— not run (override <date>)`, never a blanked section. (Unlike a `Not run` note, an override **does** count as filled — the phase is not still owed — and every later phase surfaces it.) → `If the user overrode this gate`"
+   ]
+  },
+  {
+   "id": "VA16",
+   "what": "Contract: #Validation is a RECORD — every field is a",
+   "old": [
+    "- [ ] `#Validation` is a **RECORD** — every field is a decision, evidence line or pointer; the reasoning is"
+   ],
+   "new": [
+    "- [ ] `#Validation` is a **RECORD** — every field is a decision, evidence line or pointer; the reasoning is"
+   ]
+  },
+  {
+   "id": "VA17",
+   "what": "Contract: in docs/validation.md . Size is reported, never trimmed to.",
+   "old": [
+    "in `docs/validation.md`. Size is reported, never trimmed to. → `Detail:`"
+   ],
+   "new": [
+    "in `docs/validation.md`. Size is reported, never trimmed to. → `Detail:`"
+   ]
+  },
+  {
+   "id": "VA18",
+   "what": "Contract: Every companion opened is receipted — one line per",
+   "old": [
+    "- [ ] **Every companion opened is receipted** — one line per file, quoting a fragment that"
+   ],
+   "new": [
+    "- [ ] **Every companion opened is receipted** — one line per file, quoting a fragment that"
+   ]
+  },
+  {
+   "id": "VA19",
+   "what": "Contract: occurs verbatim in it. → Read (file · date",
+   "old": [
+    "occurs verbatim in it. → `Read (file · date · verbatim quote)`"
+   ],
+   "new": [
+    "occurs verbatim in it. → `Read (file · date · verbatim quote)`"
+   ]
+  },
+  {
+   "id": "VA20",
+   "what": "Step 0 — Context + prior-gate check: ## Step 0 — Context + prior gate check",
+   "old": [
+    "## Step 0 — Context + prior-gate check"
+   ],
+   "new": [
+    "## Step 0 — Context + prior-gate check"
+   ]
+  },
+  {
+   "id": "VA21",
+   "what": "one start command; no whole-file reads (P1, P2) - was: read all of PRINCIPLES.md, MECHANISMS.md, PRODUCT.md",
+   "old": [
+    "- **One first message: run `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase validate` and read all of `PRINCIPLES.md`, `MECHANISMS.md`, `PRODUCT.md`.** Show its first line; close by its checklist."
+   ],
+   "new": [
+    "**First turn, ONE command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase validate`** — it prints the start and this phase's rules; never the rule files or `PRODUCT.md` whole"
+   ]
+  },
+  {
+   "id": "VA22",
+   "what": "riskiest assumption missing or vague -> warn, offer /vision",
+   "old": [
+    "- Read `PRODUCT.md#Vision`. If the **riskiest assumption** is missing or vague (\"people will like it\"),"
+   ],
+   "new": [
+    "`#Vision` as the start prints it: if the **riskiest assumption** is missing or vague (\"people will like it\"),"
+   ]
+  },
+  {
+   "id": "VA23",
+   "what": "Step 0 — Context + prior-gate check: warn: \" /vision looks incomplete — there is nothing",
+   "old": [
+    "warn: \"`/vision` looks incomplete — there is nothing testable to validate.\" Offer to run `/vision`"
+   ],
+   "new": [
+    "warn: \"`/vision` looks incomplete — there is nothing testable to validate.\" Offer to run `/vision`"
+   ]
+  },
+  {
+   "id": "VA24",
+   "what": "Step 0 — Context + prior-gate check: first, but allow override (standalone use): ask the user",
+   "old": [
+    "first, but allow override (standalone use): ask the user to state the assumption now."
+   ],
+   "new": [
+    "first, but allow override (standalone use): ask the user to state the assumption now."
+   ]
+  },
+  {
+   "id": "VA25",
+   "what": "Step 0 — Context + prior-gate check: An override is RECORDED, never a verbal \"yes\" (",
+   "old": [
+    "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from validate --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
+   ],
+   "new": [
+    "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from validate --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
+   ]
+  },
+  {
+   "id": "VA26",
+   "what": "a result already there = re-validating",
+   "old": [
+    "- If `#Validation` already has a result, you are **re-validating** (a pivot, or a stale result) — read"
+   ],
+   "new": [
+    "- If `#Validation` already has a result, you are **re-validating** (a pivot, or a stale result) — do not"
+   ]
+  },
+  {
+   "id": "VA27",
+   "what": "never overwrite the earlier record; append a dated entry - now refused in code (validate_gaps)",
+   "old": [
+    "it, and do not overwrite the earlier record; append a new dated entry."
+   ],
+   "new": [
+    "overwrite the earlier record; append a new dated entry."
+   ]
+  },
+  {
+   "id": "VA27b",
+   "what": "append-only #Validation, refused in code when a line of the earlier entry is gone",
+   "old": [],
+   "new": [
+    "#Validation is append-only"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "VA28",
+   "what": "Step 0 — Context + prior-gate check: Re running this phase ( MECHANISMS.md §Re run semantics):",
+   "old": [
+    "- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** a filled section → follow the `RE-RUN` line `next` prints: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line."
+   ],
+   "new": [
+    "- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** a filled section → follow the `RE-RUN` line `next` prints: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line."
+   ]
+  },
+  {
+   "id": "VA29",
+   "what": "Step 0 — Context + prior-gate check: If the gate is unmet and the run stops",
+   "old": [
+    "- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** record it — `status.py set validate declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`."
+   ],
+   "new": [
+    "- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** record it — `status.py set validate declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`."
+   ]
+  },
+  {
+   "id": "VA30",
+   "what": "Step 1 — Apply principles (this phase): ## Step 1 — Apply principles (this phase)",
+   "old": [
+    "## Step 1 — Apply principles (this phase)"
+   ],
+   "new": [
+    "## Step 1 — Apply principles (this phase)"
+   ]
+  },
+  {
+   "id": "VA31",
+   "what": "Step 1 — Apply principles (this phase): Verify, don't assume: the user's confidence is not evidence.",
+   "old": [
+    "- **Verify, don't assume:** the user's confidence is not evidence. Neither is yours. Only people"
+   ],
+   "new": [
+    "- **Verify, don't assume:** the user's confidence is not evidence. Neither is yours. Only people"
+   ]
+  },
+  {
+   "id": "VA32",
+   "what": "Step 1 — Apply principles (this phase): outside the building count.",
+   "old": [
+    "outside the building count."
+   ],
+   "new": [
+    "outside the building count."
+   ]
+  },
+  {
+   "id": "VA33",
+   "what": "measure before fixing: the bar before the result - checked in code since 2.0 (Step 2 item 3 keeps the words)",
+   "old": [
+    "- **Measure before fixing:** the threshold comes *before* the result, or the result gets rationalised."
+   ],
+   "new": [
+    "the threshold has no date - write the day it was set",
+    "#Validation: the threshold was set"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "VA34",
+   "what": "a verdict without a number is a wish - checked in code since 2.0 (3b's stop list keeps the words)",
+   "old": [
+    "- **Evidence-based \"done\":** a verdict without a number is a wish. Say so."
+   ],
+   "new": [
+    "the verdict does not start with proceed, pivot or kill",
+    "the pass/fail threshold has no number"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "VA35",
+   "what": "plain language, one recommendation (PRINCIPLES.md §Communication, printed by the start)",
+   "old": [
+    "- Speak in **plain language**; end with **one recommendation**, not a menu of research methods."
+   ],
+   "new": [
+    "Round 2 gives **one recommendation**"
+   ]
+  },
+  {
+   "id": "VA36",
+   "what": "Step 2 — Design the experiment (ask, the: ## Step 2 — Design the experiment (ask, then",
+   "old": [
+    "## Step 2 — Design the experiment (ask, then sharpen)"
+   ],
+   "new": [
+    "## Step 2 — Design the experiment (ask, then sharpen)"
+   ]
+  },
+  {
+   "id": "VA37",
+   "what": "ask in two rounds (P37) - was: one block at a time",
+   "old": [
+    "Ask one block at a time; wait for answers."
+   ],
+   "new": [
+    "**Two rounds, each ONE message or form**",
+    "**round 1, questions 1–4; round 2, the recommendation below"
+   ]
+  },
+  {
+   "id": "VA38",
+   "what": "Step 2 — Design the experiment (ask, the: 1. Restate the assumption as a bet. \"If we're",
+   "old": [
+    "1. **Restate the assumption as a bet.** \"If we're wrong about *this*, nothing else matters — agree?\""
+   ],
+   "new": [
+    "1. **Restate the assumption as a bet.** \"If we're wrong about *this*, nothing else matters — agree?\""
+   ]
+  },
+  {
+   "id": "VA39",
+   "what": "Step 2 — Design the experiment (ask, the: Make it falsifiable: who does what observable thing. Push",
+   "old": [
+    "Make it falsifiable: *who* does *what* observable thing. Push back on \"people want X\" until it"
+   ],
+   "new": [
+    "Make it falsifiable: *who* does *what* observable thing. Push back on \"people want X\" until it"
+   ]
+  },
+  {
+   "id": "VA40",
+   "what": "Step 2 — Design the experiment (ask, the: names a behaviour (\"ops leads at 20 200 person",
+   "old": [
+    "names a behaviour (\"ops leads at 20-200-person firms will hand us a spreadsheet they maintain by"
+   ],
+   "new": [
+    "names a behaviour (\"ops leads at 20-200-person firms will hand us a spreadsheet they maintain by"
+   ]
+  },
+  {
+   "id": "VA41",
+   "what": "Step 2 — Design the experiment (ask, the: 2. What is the cheapest thing that could prove",
+   "old": [
+    "2. **What is the cheapest thing that could prove this wrong?** Recommend ONE from the ladder below —"
+   ],
+   "new": [
+    "2. **What is the cheapest thing that could prove this wrong?** Recommend ONE from the ladder below —"
+   ]
+  },
+  {
+   "id": "VA42",
+   "what": "Step 2 — Design the experiment (ask, the: the lowest rung that can actually falsify this assumption",
+   "old": [
+    "the lowest rung that can actually falsify *this* assumption — and say why in a sentence:"
+   ],
+   "new": [
+    "the lowest rung that can actually falsify *this* assumption — and say why in a sentence:"
+   ]
+  },
+  {
+   "id": "VA43",
+   "what": "Step 2 — Design the experiment (ask, the: Rung Experiment Falsifies Cost",
+   "old": [
+    "| Rung | Experiment | Falsifies | Cost |"
+   ],
+   "new": [
+    "| Rung | Experiment | Falsifies | Cost |"
+   ]
+  },
+  {
+   "id": "VA44",
+   "what": "Step 2 — Design the experiment (ask, the: 1 Desk check — do people already pay for",
+   "old": [
+    "| 1 | **Desk check** — do people already pay for / hack around this? (compose a web search or `/deep-research` if available) | \"nobody has this problem\" | hours |"
+   ],
+   "new": [
+    "| 1 | **Desk check** — do people already pay for / hack around this? (compose a web search or `/deep-research` if available) | \"nobody has this problem\" | hours |"
+   ]
+  },
+  {
+   "id": "VA45",
+   "what": "Step 2 — Design the experiment (ask, the: 2 5–10 problem interviews with the named user (not",
+   "old": [
+    "| 2 | **5–10 problem interviews** with the named user (not friends) | \"the problem is not painful enough to act on\" | days |"
+   ],
+   "new": [
+    "| 2 | **5–10 problem interviews** with the named user (not friends) | \"the problem is not painful enough to act on\" | days |"
+   ]
+  },
+  {
+   "id": "VA46",
+   "what": "Step 2 — Design the experiment (ask, the: 3 Landing page / fake door — the promise,",
+   "old": [
+    "| 3 | **Landing page / fake door** — the promise, one call-to-action, measure conversion | \"nobody will show intent\" | days |"
+   ],
+   "new": [
+    "| 3 | **Landing page / fake door** — the promise, one call-to-action, measure conversion | \"nobody will show intent\" | days |"
+   ]
+  },
+  {
+   "id": "VA47",
+   "what": "Step 2 — Design the experiment (ask, the: 4 Concierge / Wizard of Oz — deliver the",
+   "old": [
+    "| 4 | **Concierge / Wizard-of-Oz** — deliver the outcome by hand for 3–5 real users | \"the outcome is not valuable\" | 1–2 weeks |"
+   ],
+   "new": [
+    "| 4 | **Concierge / Wizard-of-Oz** — deliver the outcome by hand for 3–5 real users | \"the outcome is not valuable\" | 1–2 weeks |"
+   ]
+  },
+  {
+   "id": "VA48",
+   "what": "Step 2 — Design the experiment (ask, the: 5 Pre sale / LOI / deposit \"nobody will",
+   "old": [
+    "| 5 | **Pre-sale / LOI / deposit** | \"nobody will pay\" | 1–2 weeks |"
+   ],
+   "new": [
+    "| 5 | **Pre-sale / LOI / deposit** | \"nobody will pay\" | 1–2 weeks |"
+   ]
+  },
+  {
+   "id": "VA49",
+   "what": "Step 2 — Design the experiment (ask, the: A bet about a behaviour (people will allow ,",
+   "old": [
+    "**A bet about a behaviour** (people will *allow*, *pay*, *use*, *switch*) **needs an experiment that"
+   ],
+   "new": [
+    "**A bet about a behaviour** (people will *allow*, *pay*, *use*, *switch*) **needs an experiment that"
+   ]
+  },
+  {
+   "id": "VA50",
+   "what": "Step 2 — Design the experiment (ask, the: observes that action — rung 3, 4 or 5.",
+   "old": [
+    "observes that action** — rung 3, 4 or 5. Asking people what they would do is rung 2: it shows the"
+   ],
+   "new": [
+    "observes that action** — rung 3, 4 or 5. Asking people what they would do is rung 2: it shows the"
+   ]
+  },
+  {
+   "id": "VA51",
+   "what": "Step 2 — Design the experiment (ask, the: problem hurts, never the behaviour.",
+   "old": [
+    "problem hurts, never the behaviour."
+   ],
+   "new": [
+    "problem hurts, never the behaviour."
+   ]
+  },
+  {
+   "id": "VA52",
+   "what": "Step 2 — Design the experiment (ask, the: For internal products: rung 2 with the actual internal",
+   "old": [
+    "For **internal** products: rung 2 with the actual internal users, or rung 4 (do the job by hand for"
+   ],
+   "new": [
+    "For **internal** products: rung 2 with the actual internal users, or rung 4 (do the job by hand for"
+   ]
+  },
+  {
+   "id": "VA53",
+   "what": "Step 2 — Design the experiment (ask, the: one team). For AI products : rung 4 with",
+   "old": [
+    "one team). For **AI products**: rung 4 with a human behind the curtain — it tests the *outcome*"
+   ],
+   "new": [
+    "one team). For **AI products**: rung 4 with a human behind the curtain — it tests the *outcome*"
+   ]
+  },
+  {
+   "id": "VA54",
+   "what": "Step 2 — Design the experiment (ask, the: before any model, prompt or eval exists.",
+   "old": [
+    "before any model, prompt or eval exists."
+   ],
+   "new": [
+    "before any model, prompt or eval exists."
+   ]
+  },
+  {
+   "id": "VA55",
+   "what": "Step 2 — Design the experiment (ask, the: 3. Set the bar before you look. Ask: \"What",
+   "old": [
+    "3. **Set the bar before you look.** Ask: \"What result would make you *not* build this?\" Turn the"
+   ],
+   "new": [
+    "3. **Set the bar before you look.** Ask: \"What result would make you *not* build this?\" Turn the"
+   ]
+  },
+  {
+   "id": "VA56",
+   "what": "Step 2 — Design the experiment (ask, the: answer into a number + a time box. Write",
+   "old": [
+    "answer into a number + a time box. Write both down now. If the user cannot name a failing result,"
+   ],
+   "new": [
+    "answer into a number + a time box. Write both down now. If the user cannot name a failing result,"
+   ]
+  },
+  {
+   "id": "VA57",
+   "what": "Step 2 — Design the experiment (ask, the: the experiment is theatre — say so and keep",
+   "old": [
+    "the experiment is theatre — say so and keep asking."
+   ],
+   "new": [
+    "the experiment is theatre — say so and keep asking."
+   ]
+  },
+  {
+   "id": "VA58",
+   "what": "Step 2 — Design the experiment (ask, the: Then, for every count in the bar, say how",
+   "old": [
+    "**Then, for every count in the bar, say how each count is recorded and what ties it to the person or unit it counts**"
+   ],
+   "new": [
+    "**Then, for every count in the bar, say how each count is recorded and what ties it to the person or unit it counts**"
+   ]
+  },
+  {
+   "id": "VA59",
+   "what": "Step 2 — Design the experiment (ask, the: — a sheet edited without signing in logs edits",
+   "old": [
+    "— a sheet edited without signing in logs edits as anonymous. If the method cannot attribute a count, fix it"
+   ],
+   "new": [
+    "— a sheet edited without signing in logs edits as anonymous. If the method cannot attribute a count, fix it"
+   ]
+  },
+  {
+   "id": "VA60",
+   "what": "Step 2 — Design the experiment (ask, the: (a name/date column, a per person link) before the",
+   "old": [
+    "(a name/date column, a per-person link) before the start date."
+   ],
+   "new": [
+    "(a name/date column, a per-person link) before the start date."
+   ]
+  },
+  {
+   "id": "VA61",
+   "what": "Step 2 — Design the experiment (ask, the: 4. Who exactly, and how do you reach them",
+   "old": [
+    "4. **Who exactly, and how do you reach them this week?** Names, channels, a date. An experiment"
+   ],
+   "new": [
+    "4. **Who exactly, and how do you reach them this week?** Names, channels, a date. An experiment"
+   ]
+  },
+  {
+   "id": "VA62",
+   "what": "Step 2 — Design the experiment (ask, the: with no reachable participants is a plan, not a",
+   "old": [
+    "with no reachable participants is a plan, not a test."
+   ],
+   "new": [
+    "with no reachable participants is a plan, not a test."
+   ]
+  },
+  {
+   "id": "VA63",
+   "what": "one recommendation (experiment + threshold + time box), confirmed with two options",
+   "old": [
+    "Give **one recommendation** (experiment + threshold + time box); get a yes/no."
+   ],
+   "new": [
+    "Round 2 gives **one recommendation**: experiment + threshold (dated, with how each count is recorded) + time box + due date."
+   ]
+  },
+  {
+   "id": "VA64",
+   "what": "Step 3 — Run it, then record the measure: ## Step 3 — Run it, then record the",
+   "old": [
+    "## Step 3 — Run it, then record the measured result"
+   ],
+   "new": [
+    "## Step 3 — Run it, then record the measured result"
+   ]
+  },
+  {
+   "id": "VA65",
+   "what": "Step 3 — Run it, then record the measure: Run or schedule it. Small desk checks run now.",
+   "old": [
+    "- **Run or schedule it.** Small desk checks run now. Interviews / landing pages / concierge runs take"
+   ],
+   "new": [
+    "- **Run or schedule it.** Small desk checks run now. Interviews / landing pages / concierge runs take"
+   ]
+  },
+  {
+   "id": "VA66",
+   "what": "Step 3 — Run it, then record the measure: days: put the phase into the running state (",
+   "old": [
+    "days: put the phase into the **`running` state** (`STATE-MODEL.md` §2a) —"
+   ],
+   "new": [
+    "days: put the phase into the **`running` state** (`STATE-MODEL.md` §2a) —"
+   ]
+  },
+  {
+   "id": "VA67",
+   "what": "Step 3 — Run it, then record the measure: status.py set validate running due <date reason \"<what is",
+   "old": [
+    "`status.py set validate running --due <date> --reason \"<what is measured> · pass: <the bar, plain words>\"`"
+   ],
+   "new": [
+    "`status.py set validate running --due <date> --reason \"<what is measured> · pass: <the bar, plain words>\"`"
+   ]
+  },
+  {
+   "id": "VA68",
+   "what": "Step 3 — Run it, then record the measure: ( MECHANISMS.md §Status), e.g. \"8 owners, 2 week trial",
+   "old": [
+    "(`MECHANISMS.md` §Status), e.g. `\"8 owners, 2-week trial · pass: at least 3 of 8 allow unchecked replies\"`,"
+   ],
+   "new": [
+    "(`MECHANISMS.md` §Status), e.g. `\"8 owners, 2-week trial · pass: at least 3 of 8 allow unchecked replies\"`,"
+   ]
+  },
+  {
+   "id": "VA69",
+   "what": "Step 3 — Run it, then record the measure: the fields filled, and PENDING where the result goes.",
+   "old": [
+    "the fields filled, and `PENDING` where the result goes. **Say plainly that the gate is NOT closed**, and offer to re-measure later (compose"
+   ],
+   "new": [
+    "the fields filled, and `PENDING` where the result goes. **Say plainly that the gate is NOT closed**, and offer to re-measure later (compose"
+   ]
+  },
+  {
+   "id": "VA70",
+   "what": "Step 3 — Run it, then record the measure: /loop or /schedule for a count that changes over",
+   "old": [
+    "`/loop` or `/schedule` for a count that changes over time)."
+   ],
+   "new": [
+    "`/loop` or `/schedule` for a count that changes over time)."
+   ]
+  },
+  {
+   "id": "VA71",
+   "what": "Step 3 — Run it, then record the measure: Then give the user THREE ways forward, not two",
+   "old": [
+    "- **Then give the user THREE ways forward, not two** (§2a): wait for the result · **proceed"
+   ],
+   "new": [
+    "- **Then give the user THREE ways forward, not two** (§2a): wait for the result · **proceed"
+   ]
+  },
+  {
+   "id": "VA72",
+   "what": "Step 3 — Run it, then record the measure: provisionally — /scope and /plan continue with the dependent",
+   "old": [
+    "provisionally** — `/scope` and `/plan` continue with the dependent work marked, and the mark clears"
+   ],
+   "new": [
+    "provisionally** — `/scope` and `/plan` continue with the dependent work marked, and the mark clears"
+   ]
+  },
+  {
+   "id": "VA73",
+   "what": "Step 3 — Run it, then record the measure: when the result lands · or a real override",
+   "old": [
+    "when the result lands · or a real **override**, which abandons the experiment."
+   ],
+   "new": [
+    "when the result lands · or a real **override**, which abandons the experiment."
+   ]
+  },
+  {
+   "id": "VA74",
+   "what": "Step 3 — Run it, then record the measure: When the result is in, record what was measured",
+   "old": [
+    "- When the result is in, **record what was measured** — the number, the quotes, the count — and the"
+   ],
+   "new": [
+    "- When the result is in, **record what was measured** — the number, the quotes, the count — and the"
+   ]
+  },
+  {
+   "id": "VA75",
+   "what": "Step 3 — Run it, then record the measure: date. Keep the raw evidence somewhere the repo can",
+   "old": [
+    "date. Keep the raw evidence somewhere the repo can point to (`docs/validation/<date>-<experiment>.md`"
+   ],
+   "new": [
+    "date. Keep the raw evidence somewhere the repo can point to (`docs/validation/<date>-<experiment>.md`"
+   ]
+  },
+  {
+   "id": "VA76",
+   "what": "Step 3 — Run it, then record the measure: for interview notes / screenshots), not only in chat.",
+   "old": [
+    "for interview notes / screenshots), not only in chat."
+   ],
+   "new": [
+    "for interview notes / screenshots), not only in chat."
+   ]
+  },
+  {
+   "id": "VA77",
+   "what": "Step 3 — Run it, then record the measure: Apply the threshold mechanically , then interpret:",
+   "old": [
+    "- **Apply the threshold mechanically**, then interpret:"
+   ],
+   "new": [
+    "- **Apply the threshold mechanically**, then interpret:"
+   ]
+  },
+  {
+   "id": "VA78",
+   "what": "Step 3 — Run it, then record the measure: Proceed — met the bar. Note any sharpening the",
+   "old": [
+    "- **Proceed** — met the bar. Note any sharpening the evidence gave the vision (a narrower segment, a"
+   ],
+   "new": [
+    "- **Proceed** — met the bar. Note any sharpening the evidence gave the vision (a narrower segment, a"
+   ]
+  },
+  {
+   "id": "VA79",
+   "what": "Step 3 — Run it, then record the measure: different JTBD wording) and update #Vision deliberately , with",
+   "old": [
+    "different JTBD wording) and update `#Vision` *deliberately*, with a one-line \"changed because\"."
+   ],
+   "new": [
+    "different JTBD wording) and update `#Vision` *deliberately*, with a one-line \"changed because\"."
+   ]
+  },
+  {
+   "id": "VA80",
+   "what": "Step 3 — Run it, then record the measure: Pivot — missed the bar but the evidence points",
+   "old": [
+    "- **Pivot** — missed the bar but the evidence points somewhere adjacent. Say what changed, rewrite"
+   ],
+   "new": [
+    "- **Pivot** — missed the bar but the evidence points somewhere adjacent. Say what changed, rewrite"
+   ]
+  },
+  {
+   "id": "VA81",
+   "what": "Step 3 — Run it, then record the measure: the riskiest assumption, and run /validate again on the",
+   "old": [
+    "the riskiest assumption, and **run `/validate` again** on the new one. Do not proceed to `/scope`"
+   ],
+   "new": [
+    "the riskiest assumption, and **run `/validate` again** on the new one. Do not proceed to `/scope`"
+   ]
+  },
+  {
+   "id": "VA82",
+   "what": "Step 3 — Run it, then record the measure: on the old assumption.",
+   "old": [
+    "on the old assumption."
+   ],
+   "new": [
+    "on the old assumption."
+   ]
+  },
+  {
+   "id": "VA83",
+   "what": "Step 3 — Run it, then record the measure: Kill — missed the bar and nothing adjacent showed",
+   "old": [
+    "- **Kill** — missed the bar and nothing adjacent showed up. Record it plainly. A kill here is the"
+   ],
+   "new": [
+    "- **Kill** — missed the bar and nothing adjacent showed up. Record it plainly. A kill here is the"
+   ]
+  },
+  {
+   "id": "VA84",
+   "what": "Step 3 — Run it, then record the measure: playbook working: it cost days, not a codebase.",
+   "old": [
+    "playbook working: it cost days, not a codebase."
+   ],
+   "new": [
+    "playbook working: it cost days, not a codebase."
+   ]
+  },
+  {
+   "id": "VA85",
+   "what": "Step 3b — Self-verify (the evidence gate: ## Step 3b — Self verify (the evidence gate)",
+   "old": [
+    "## Step 3b — Self-verify (the evidence gate)"
+   ],
+   "new": [
+    "## Step 3b — Self-verify (the evidence gate)"
+   ]
+  },
+  {
+   "id": "VA86",
+   "what": "Step 3b — Self-verify (the evidence gate: Walk the exit criteria. STOP and do not hand",
+   "old": [
+    "Walk the exit criteria. **STOP and do not hand off if:**"
+   ],
+   "new": [
+    "Walk the exit criteria. **STOP and do not hand off if:**"
+   ]
+  },
+  {
+   "id": "VA87",
+   "what": "Step 3b — Self-verify (the evidence gate: the threshold was written after the result (or is",
+   "old": [
+    "- the threshold was written *after* the result (or is missing) — it is not a test;"
+   ],
+   "new": [
+    "- the threshold was written *after* the result (or is missing) — it is not a test;"
+   ]
+  },
+  {
+   "id": "VA88",
+   "what": "Step 3b — Self-verify (the evidence gate: the \"result\" is a feeling, a friend's opinion, or",
+   "old": [
+    "- the \"result\" is a feeling, a friend's opinion, or the user's own conviction;"
+   ],
+   "new": [
+    "- the \"result\" is a feeling, a friend's opinion, or the user's own conviction;"
+   ]
+  },
+  {
+   "id": "VA89",
+   "what": "Step 3b — Self-verify (the evidence gate: the bet is about a behaviour and the experiment",
+   "old": [
+    "- the bet is about a behaviour and the experiment only asks about it (Step 2 item 2);"
+   ],
+   "new": [
+    "- the bet is about a behaviour and the experiment only asks about it (Step 2 item 2);"
+   ]
+  },
+  {
+   "id": "VA90",
+   "what": "Step 3b — Self-verify (the evidence gate: the verdict contradicts the threshold without a recorded reason;",
+   "old": [
+    "- the verdict contradicts the threshold without a recorded reason;"
+   ],
+   "new": [
+    "- the verdict contradicts the threshold without a recorded reason;"
+   ]
+  },
+  {
+   "id": "VA91",
+   "what": "Step 3b — Self-verify (the evidence gate: a count in the threshold cannot be tied to",
+   "old": [
+    "- a count in the threshold cannot be tied to the person or unit it counts (Step 2 item 3)."
+   ],
+   "new": [
+    "- a count in the threshold cannot be tied to the person or unit it counts (Step 2 item 3)."
+   ]
+  },
+  {
+   "id": "VA92",
+   "what": "Step 3b — Self-verify (the evidence gate: If the user wants to skip the experiment entirely:",
+   "old": [
+    "If the user wants to skip the experiment entirely: allowed, but **only with an explicit override** —"
+   ],
+   "new": [
+    "If the user wants to skip the experiment entirely: allowed, but **only with an explicit override** —"
+   ]
+  },
+  {
+   "id": "VA93",
+   "what": "Step 3b — Self-verify (the evidence gate: status.py set validate overridden reason \"<the user's own words (with the section file, so the override record is checked)",
+   "old": [
+    "`status.py set validate overridden --reason \"<the user's own words>\" --gate validate` — and the"
+   ],
+   "new": [
+    "`status.py set validate overridden --reason \"<the user's own words>\" --gate validate --section-from <file>` — and the"
+   ]
+  },
+  {
+   "id": "VA94",
+   "what": "Step 3b — Self-verify (the evidence gate: #Validation field If the user overrode this gate says",
+   "old": [
+    "`#Validation` field *If the user overrode this gate* says what stays untested."
+   ],
+   "new": [
+    "`#Validation` field *If the user overrode this gate* says what stays untested."
+   ]
+  },
+  {
+   "id": "VA95",
+   "what": "Step 3b — Self-verify (the evidence gate: First, pressure test the reason against #Vision — one",
+   "old": [
+    "**First, pressure-test the reason against `#Vision`** — one comparison, not an interrogation: does it fit the"
+   ],
+   "new": [
+    "**First, pressure-test the reason against `#Vision`** — one comparison, not an interrogation: does it fit the"
+   ]
+  },
+  {
+   "id": "VA96",
+   "what": "Step 3b — Self-verify (the evidence gate: recorded customer , business model and north star ?",
+   "old": [
+    "recorded **customer**, **business model** and **north star**? A reason that merely *defers* (\"no budget this"
+   ],
+   "new": [
+    "recorded **customer**, **business model** and **north star**? A reason that merely *defers* (\"no budget this"
+   ]
+  },
+  {
+   "id": "VA97",
+   "what": "Step 3b — Self-verify (the evidence gate: month\", \"pre sold to a design partner\") records cleanly",
+   "old": [
+    "month\", \"pre-sold to a design partner\") records cleanly in one step. A reason that describes a **different"
+   ],
+   "new": [
+    "month\", \"pre-sold to a design partner\") records cleanly in one step. A reason that describes a **different"
+   ]
+  },
+  {
+   "id": "VA98",
+   "what": "Step 3b — Self-verify (the evidence gate: product does not — quote the #Vision line it",
+   "old": [
+    "product** does not — quote the `#Vision` line it contradicts and offer `/vision` first. If the user proceeds anyway, record it."
+   ],
+   "new": [
+    "product** does not — quote the `#Vision` line it contradicts and offer `/vision` first. If the user proceeds anyway, record it."
+   ]
+  },
+  {
+   "id": "VA99",
+   "what": "keep the scaffold on an override",
+   "old": [
+    "**Keep the scaffold** (`MECHANISMS.md` §Declined runs — the deliberate-skip shape). Writing the override"
+   ],
+   "new": [
+    "**Keep the scaffold** (`MECHANISMS.md` §Declined runs — the deliberate-skip shape): each field stays, marked"
+   ]
+  },
+  {
+   "id": "VA100",
+   "what": "never blank a field: marked not run - refused in code since 2.0",
+   "old": [
+    "must not blank the experiment fields: leave each present and marked `— not run (override <date>)`."
+   ],
+   "new": [
+    "`— not run (override <date>)`; the record call refuses a blanked one."
+   ]
+  },
+  {
+   "id": "VA101",
+   "what": "receipts and size: written by set (P25, L3)",
+   "old": [
+    "**Measure what you wrote and receipt what you read** (`MECHANISMS-ON-DEMAND.md §Section is a record`, `MECHANISMS-ON-DEMAND.md §Read receipt`): report the section and file size in one line, then apply the record test to every field — reasoning moves into the companion, a tight answer stays whatever it weighs, never trim to a number; write one `Read:` line per companion opened, each quoting a fragment that occurs verbatim in that file."
+   ],
+   "new": [
+    "`set` writes the `Read:` line and the size line; only an input file you opened yourself gets a quote. Reasoning moves into the companion, never trim to a number."
+   ]
+  },
+  {
+   "id": "VA102",
+   "what": "close the loop: filled only on a result, the save is round 2's answer, transition guard, four blocks ending in the printed handoff",
+   "old": [
+    "**Close the loop (`MECHANISMS.md` §Step 3b):** record the phase's state — `status.py set validate filled` only once a measured result and verdict are recorded (`--note \"<result vs bar>\"`); while the experiment runs, the state stays `running` (`MECHANISMS.md` §Status) — reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work — this project's repo, name the branch, commit on a yes, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff)."
+   ],
+   "new": [
+    "**Close the loop (`MECHANISMS.md` §Step 3b):** record the phase's state — `status.py set validate filled` only once a measured result and verdict are recorded (`--note \"<result vs bar>\"`); while the experiment runs, the state stays `running` (`MECHANISMS.md` §Status) — reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it); the save was round 2's answer (`MECHANISMS.md` §Commit the work: `--commit` on a yes). Then **run the transition guard**",
+    "**What YOU do next**, ending with the `Open a NEW conversation` line the record call printed, word for word."
+   ]
+  },
+  {
+   "id": "VA103",
+   "what": "Step 3c — Contradiction check (before th: ## Step 3c — Contradiction check (before the gate",
+   "old": [
+    "## Step 3c — Contradiction check (before the gate closes)"
+   ],
+   "new": [
+    "## Step 3c — Contradiction check (before the gate closes)"
+   ]
+  },
+  {
+   "id": "VA104",
+   "what": "Step 3c — Contradiction check (before th: Per MECHANISMS.md §Step 3c, check what this phase just",
+   "old": [
+    "Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Vision` — the assumption you tested must be the **riskiest** one recorded there, and a skip override whose reason implies a different user or business model contradicts `#Vision` itself. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction."
+   ],
+   "new": [
+    "Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Vision` — the assumption you tested must be the **riskiest** one recorded there, and a skip override whose reason implies a different user or business model contradicts `#Vision` itself. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction."
+   ]
+  },
+  {
+   "id": "VA105",
+   "what": "Step 4 — Handoff: ## Step 4 — Handoff",
+   "old": [
+    "## Step 4 — Handoff"
+   ],
+   "new": [
+    "## Step 4 — Handoff"
+   ]
+  },
+  {
+   "id": "VA106",
+   "what": "Step 4 — Handoff: Proceed: \"Assumption tested and recorded in PRODUCT.md#Validation (result vs",
+   "old": [
+    "- **Proceed:** \"Assumption tested and recorded in `PRODUCT.md#Validation` (result vs threshold)."
+   ],
+   "new": [
+    "- **Proceed:** \"Assumption tested and recorded in `PRODUCT.md#Validation` (result vs threshold)."
+   ]
+  },
+  {
+   "id": "VA107",
+   "what": "Step 4 — Handoff: Next run /scope to lock the ONE core feature",
+   "old": [
+    "Next run **`/scope`** to lock the ONE core feature — now with evidence about what the user actually does.\""
+   ],
+   "new": [
+    "Next run **`/scope`** to lock the ONE core feature — now with evidence about what the user actually does.\""
+   ]
+  },
+  {
+   "id": "VA108",
+   "what": "Step 4 — Handoff: Pivot: \"Recorded. The riskiest assumption changed — re run",
+   "old": [
+    "- **Pivot:** \"Recorded. The riskiest assumption changed — re-run **`/validate`** on the new one before scoping.\""
+   ],
+   "new": [
+    "- **Pivot:** \"Recorded. The riskiest assumption changed — re-run **`/validate`** on the new one before scoping.\""
+   ]
+  },
+  {
+   "id": "VA109",
+   "what": "Step 4 — Handoff: Kill: \"Recorded as killed with the evidence. Nothing further",
+   "old": [
+    "- **Kill:** \"Recorded as killed with the evidence. Nothing further to build; if a new idea emerges,"
+   ],
+   "new": [
+    "- **Kill:** \"Recorded as killed with the evidence. Nothing further to build; if a new idea emerges,"
+   ]
+  },
+  {
+   "id": "VA110",
+   "what": "Step 4 — Handoff: start again at /vision .\"",
+   "old": [
+    "start again at **`/vision`**.\""
+   ],
+   "new": [
+    "start again at **`/vision`**.\""
+   ]
+  },
+  {
+   "id": "VA111",
+   "what": "Step 4 — Handoff: Override: \"Recorded as untested, by your decision. /scope and",
+   "old": [
+    "- **Override:** \"Recorded as untested, by your decision. `/scope` and `/drift-check` will keep"
+   ],
+   "new": [
+    "- **Override:** \"Recorded as untested, by your decision. `/scope` and `/drift-check` will keep"
+   ]
+  },
+  {
+   "id": "VA112",
+   "what": "Step 4 — Handoff: flagging it until an experiment closes it. Next run",
+   "old": [
+    "flagging it until an experiment closes it. Next run **`/scope`**.\""
+   ],
+   "new": [
+    "flagging it until an experiment closes it. Next run **`/scope`**.\""
+   ]
+  },
+  {
+   "id": "VA-NOT",
+   "what": "what /validate must NOT do (P44)",
+   "old": [],
+   "new": [
+    "- **Must NOT:** write `#Scope` or any later section, write code, or record a result nobody measured."
+   ]
+  },
+  {
+   "id": "VA-REC",
+   "what": "one message writes the companion and the section file, then one record call (P25)",
+   "old": [],
+   "new": [
+    "**ONE message, then ONE record call**, both as the start prints them."
+   ]
+  }
+ ],
+ "dropped": []
+}

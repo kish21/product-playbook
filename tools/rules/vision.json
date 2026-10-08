@@ -1,0 +1,580 @@
+{
+ "skill": "vision",
+ "base": "3f2da16",
+ "rules": [
+  {
+   "id": "V01",
+   "what": "existing PRODUCT.md: read #Vision and refine it",
+   "old": [
+    "If `PRODUCT.md` exists, read `#Vision`; you are refining"
+   ],
+   "new": [
+    "`PRODUCT.md` exists → read `#Vision`; you are refining it."
+   ]
+  },
+  {
+   "id": "V02",
+   "what": "code but no PRODUCT.md: infer, then confirm with the user",
+   "old": [
+    "skim it to infer what's being built, then confirm with the user",
+    "If a codebase exists but no `PRODUCT.md`,"
+   ],
+   "new": [
+    "skim it, say what you infer is being built, and confirm it with the user",
+    "Code exists, no `PRODUCT.md`"
+   ]
+  },
+  {
+   "id": "V03",
+   "what": "neither: start from the template",
+   "old": [
+    "If neither, start fresh from the bundled `PRODUCT.md` template"
+   ],
+   "new": [
+    "Neither → start from the template `${CLAUDE_PLUGIN_ROOT}/templates/PRODUCT.md`"
+   ]
+  },
+  {
+   "id": "V04",
+   "what": "re-run: show what changes, ask first, date a reversal",
+   "old": [
+    "**show what would change and ask before replacing it**",
+    "- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** if the section is already filled,",
+    "and leave a reversed decision in place with a dated `superseded <date>: <why>` line."
+   ],
+   "new": [
+    "**show what would change and ask before replacing it**; a reversed decision keeps a dated `superseded <date>: <why>` line",
+    "Already filled → **re-run** (`MECHANISMS.md` §Re-run semantics)"
+   ]
+  },
+  {
+   "id": "V05",
+   "what": "a first run over an empty section is unchanged",
+   "old": [
+    "A first run over an empty section is unchanged."
+   ],
+   "new": [
+    "A first run over an empty section is unchanged"
+   ],
+   "home": "references/mechanisms-on-demand.md"
+  },
+  {
+   "id": "V06",
+   "what": "a stopped run is recorded as declined via status.py, PRODUCT.md untouched",
+   "old": [
+    "record that it stopped (`MECHANISMS.md` §Declined runs)",
+    "- **If the gate is unmet and the run stops here,",
+    "record it — `status.py set vision declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`."
+   ],
+   "new": [
+    "`status.py set vision declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>`",
+    "change nothing in `PRODUCT.md`",
+    "**The run stops with the gate unmet** (`MECHANISMS.md` §Declined runs)"
+   ]
+  },
+  {
+   "id": "V07",
+   "what": "verify, don't assume: ask for the user's intent",
+   "old": [
+    "do not invent the user's intent — ask",
+    "- **Verify, don't assume:**"
+   ],
+   "new": [
+    "the user's intent comes from the user — ask",
+    "**Verify, don't assume:**"
+   ]
+  },
+  {
+   "id": "V08",
+   "what": "benchmark to the current year",
+   "old": [
+    "the idea must be judged against how the market solves this *now*",
+    "**Benchmark to the current year:**"
+   ],
+   "new": [
+    "judge the idea against how the market solves this *now*",
+    "**Benchmark to the current year:**"
+   ]
+  },
+  {
+   "id": "V09",
+   "what": "plain language, one recommendation with a yes that also records and saves (next.65)",
+   "old": [
+    "Speak in **plain language**; end with **one recommendation**",
+    "Give **one clear recommendation** on the crispest framing; get a yes/no. Keep it plain — no jargon."
+   ],
+   "new": [
+    "Give **one recommendation** on the framing"
+   ]
+  },
+  {
+   "id": "V10",
+   "what": "each round asked in ONE message, numbered with an example, wait; short for a newcomer (owner's choice 2026-10-01: was one block at a time)",
+   "old": [
+    "Ask these one block at a time; wait for answers. Keep it short — a newcomer should not feel interrogated."
+   ],
+   "new": [
+    "**Ask each round in ONE message**",
+    "so a\nnewcomer does not feel interrogated",
+    "and wait for the answers"
+   ]
+  },
+  {
+   "id": "V11",
+   "what": "the vision sentence is the world it creates, not the product",
+   "old": [
+    "Then sharpen the answer into the",
+    "**one-sentence vision — the world this creates once it works**, not a description of the product",
+    "(\"nobody stands at the door guessing the wait\", not \"an app for a waitlist\").",
+    "1. **In one line, what is this product and who is it for?**"
+   ],
+   "new": [
+    "**one-sentence vision — the world this creates once it works**, not what the product is",
+    "(\"nobody stands at the door guessing the wait\", not \"an app for a waitlist\")",
+    "1. **In one line, what is this product and who is it for?**"
+   ]
+  },
+  {
+   "id": "V12",
+   "what": "why now is backed by a search, or recorded as the owner's claim",
+   "old": [
+    "**Why now is backed by a search**, recorded in `docs/vision.md`'s search list like any other; when no search",
+    "backs it, the record says `why now: the owner's claim, not verified`."
+   ],
+   "new": [
+    "**Why now is backed by a search** — its line on the search list starts `why now ·`; with no search behind it, the record says `why now: the owner's claim, not verified`."
+   ]
+  },
+  {
+   "id": "V13",
+   "what": "ask how people solve it today and what fails",
+   "old": [
+    "3. **How do people solve this today, and why is that not good enough?**"
+   ],
+   "new": [
+    "3. **How do people solve this today, and what fails about that?**"
+   ]
+  },
+  {
+   "id": "V14",
+   "what": "north star: all five parts asked together; a direction is not a metric",
+   "old": [
+    "the **north star, in five parts**. Ask for them together; a bare",
+    "direction is the usual answer and is not yet a metric:",
+    "4. **How will you know it's working?** —"
+   ],
+   "new": [
+    "the **north star: ask for all five parts in one block** (a bare direction is the usual first answer and is not yet a metric)",
+    "4. **How will you know it's working?** —"
+   ]
+  },
+  {
+   "id": "V15",
+   "what": "input metrics drive the target; cadence follows the product, not weekly by force",
+   "old": [
+    "the numbers that move between events/releases and *drive* it.",
+    "Cadence follows the product: weekly for a SaaS, per-event for a tool",
+    "- **2–3 input metrics** —"
+   ],
+   "new": [
+    "numbers that move between events/releases and drive the target. Cadence follows the product: weekly for a SaaS, per event for a tool used monthly.",
+    "- **2–3 input metrics** —"
+   ]
+  },
+  {
+   "id": "V16",
+   "what": "instrumentation named now; nothing records it = a finding said plainly",
+   "old": [
+    "**Instrumentation** — *how* it gets measured, named now. **If nothing can currently record it, that is a",
+    "finding, not a detail for later** — say so plainly."
+   ],
+   "new": [
+    "**Instrumentation** — how it is measured. **Nothing can record it yet → say so plainly: it is a finding.**"
+   ]
+  },
+  {
+   "id": "V17",
+   "what": "every term gets a number; propose only what the owner left out, marked (proposed); the owner confirms",
+   "old": [
+    "A term with no number cannot be counted: propose one, and",
+    "the owner confirms or changes it."
+   ],
+   "new": [
+    "marked `(proposed)`, and the owner confirms or changes it"
+   ]
+  },
+  {
+   "id": "V18",
+   "what": "benchmark with a real search, never from memory",
+   "old": [
+    "Then **benchmark to the current year** — and actually check, don't guess (compose a web search):"
+   ],
+   "new": [
+    "Then **benchmark to the current year** with a web search, never from memory:"
+   ]
+  },
+  {
+   "id": "V19",
+   "what": "2-3 real comparables and the current approach",
+   "old": [
+    "Name 2–3 **real** comparables and the current best-practice approach."
+   ],
+   "new": [
+    "Name 2–3 **real** comparables and how the market solves this *now*."
+   ]
+  },
+  {
+   "id": "V20",
+   "what": "no count on searches; complaint searches give the insight; no-search line",
+   "old": [
+    "about verifies no comparable, and it is where a sharpening insight comes from.",
+    "a search gets its own line: `<name> · no search — <where the name came from>`. (case file: The search list nobody could check)",
+    "A comparable named without"
+   ],
+   "new": [
+    "**No count on searches:** a search for what users complain about is where a sharpening insight comes from.",
+    "`<name> · no search — <where the name came from>`. (case file: The search list nobody could check)",
+    "A comparable named without a search gets its own line:"
+   ]
+  },
+  {
+   "id": "V21",
+   "what": "job-to-be-done in the when/want/so-I-can form",
+   "old": [
+    "Frame the problem as a **job-to-be-done** (\"when <situation>, I want to <motivation>, so I can <outcome>\")."
+   ],
+   "new": [
+    "Frame the **job-to-be-done**: \"when <situation>, I want to <motivation>, so I can <outcome>\"."
+   ]
+  },
+  {
+   "id": "V22",
+   "what": "one sharpening insight the user had not stated",
+   "old": [
+    "Surface **one sharpening insight**: a sharper angle, segment, or differentiator the user hadn't stated."
+   ],
+   "new": [
+    "Surface **one sharpening insight** the user had not stated: an angle, segment or differentiator."
+   ]
+  },
+  {
+   "id": "V23",
+   "what": "fill every #Vision field, record the AI flag via status.py",
+   "old": [
+    "Fill `#Vision`: the one-sentence vision · who · problem (why now) · value proposition · verified",
+    "market/competitor read · north star",
+    "(**target+date · input metrics · guardrail · instrumentation**) · job-to-be-done · riskiest assumption ·",
+    "business model. Record it: `status.py flag --ai yes|no` (`MECHANISMS.md` §Status)."
+   ],
+   "new": [
+    "Fill every `#Vision` field `next` printed",
+    "`set vision filled --section-from <file> --ai yes|no --agent yes|no"
+   ]
+  },
+  {
+   "id": "V24",
+   "what": "3b: comparables checked name by name against the search list",
+   "old": [
+    "Walk the exit criteria and confirm each is **concrete with evidence** — the competitor read cites *real*",
+    "named products (not from memory), **checked name by name against the search list in `docs/vision.md`**: a",
+    "search settled it, or it has its own no-search line; a name on neither is an assertion, so search it or",
+    "record where it came from."
+   ],
+   "new": [
+    "Check every named comparable **against the search list in `docs/vision.md`**: a search settled it, or it has its own no-search line; a name on neither → search it, or record where it came from."
+   ]
+  },
+  {
+   "id": "V25",
+   "what": "3b: STOP and fill with the user when a field is empty or vague (north star, vision sentence, JTBD/risk)",
+   "old": [
+    "The metric is a measurable number, the JTBD/risk are specific. **If any",
+    "field is empty or vague, STOP and fill it with the user** — **a north star missing its target, date, input",
+    "metrics, guardrail or instrumentation line is vague by definition**, and so is **a vision sentence that",
+    "describes the product instead of the world it creates**"
+   ],
+   "new": [
+    "**STOP and fill it with the user** when a field is empty, or when:",
+    "the north star lacks its target, date, input metrics, guardrail or instrumentation line, or a row of the north-star terms table has no number;",
+    "the vision sentence describes the product instead of the world it creates",
+    "the job-to-be-done or the riskiest assumption names no user, situation or behaviour of this product."
+   ]
+  },
+  {
+   "id": "V26",
+   "what": "the size line from set; a quote for another companion opened (next.65)",
+   "old": [
+    "**Measure what you wrote and receipt what you read**",
+    "report the section and file size in one line, then apply the record test to every field",
+    "reasoning moves into the companion,",
+    "never trim to a number;",
+    "write one `Read:` line per companion opened, each quoting a fragment that occurs verbatim in that file."
+   ],
+   "new": [
+    "(`MECHANISMS-ON-DEMAND.md §Section is a record`, `MECHANISMS-ON-DEMAND.md §Read receipt`)",
+    "another companion you opened gets a quote"
+   ]
+  },
+  {
+   "id": "V27",
+   "what": "close: set filled --commit on the drafts' yes, transition guard, plain close; reconcile + save question moved into the drafts message (next.65)",
+   "old": [
+    "record the phase's state — `status.py set vision filled`",
+    "reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it)",
+    "**offer to commit the change**",
+    "**run the transition guard**",
+    "**Close in plain language**",
+    "**Close the loop (`MECHANISMS.md` §Step 3b):**",
+    "(`MECHANISMS.md` §Status) —",
+    "(`MECHANISMS.md` §Commit the work —",
+    "(`MECHANISMS.md` §Step 3b, item 4):",
+    "— `UNVERIFIED` is a normal outcome, silence is not —",
+    "(`MECHANISMS.md` §Plain-language close):"
+   ],
+   "new": [
+    "`set vision filled --section-from <file>",
+    "**run the transition guard**",
+    "\"Anything to change? If not: Save this version of your project? (yes / no)\""
+   ]
+  },
+  {
+   "id": "V28",
+   "what": "commit details: repo check, branch, message, push rules",
+   "old": [
+    "check the repo exists, name the branch, offer the message, push only if a remote exists and the user says so"
+   ],
+   "new": [
+    "**Push only if a remote exists and the user says so.**",
+    "**Name the branch AND the repository root you are on.**"
+   ],
+   "home": "references/mechanisms.md"
+  },
+  {
+   "id": "V29",
+   "what": "transition guard re-runs evidence lines and checks the transition is legal",
+   "old": [
+    "re-run this phase's own `evidence:` lines and report a verdict for every exit criterion",
+    "and check the transition is legal"
+   ],
+   "new": [
+    "**Re-run this phase's own evidence.**",
+    "**Check the transition is legal**"
+   ],
+   "home": "references/mechanisms.md"
+  },
+  {
+   "id": "V30",
+   "what": "plain close content: what just happened, what YOU do next",
+   "old": [
+    "two or three sentences of *what just happened* with no playbook dialect, then a numbered *what YOU do next*"
+   ],
+   "new": [
+    "**What just happened** — two or three sentences.",
+    "**What YOU do next**"
+   ],
+   "home": "references/mechanisms.md"
+  },
+  {
+   "id": "V31",
+   "what": "3c: compare against README/CLAUDE.md and prior #Vision; name both sides, ask, update the loser",
+   "old": [
+    "here: any spine that already exists (`README.md`/`CLAUDE.md` purpose, a prior `#Vision`)",
+    "a re-run that quietly changes the customer, the north star or the business model",
+    "**name both sides, ask which wins, and update the loser**",
+    "Adding detail to an earlier decision is not a contradiction.",
+    "On a conflict,",
+    "(fix the artefact, or add a dated `superseded by` line to the earlier section)"
+   ],
+   "new": [
+    "the `README.md`/`CLAUDE.md` purpose and any prior `#Vision`",
+    "A change to the customer, the north star or the business model is a conflict",
+    "**name both sides, ask which wins, and update the loser**",
+    "Added detail is not a contradiction.",
+    "(fix the artefact, or add a dated `superseded by` line)"
+   ]
+  },
+  {
+   "id": "V32",
+   "what": "a contradiction is never left standing in two places",
+   "old": [
+    "never leave it standing in two places"
+   ],
+   "new": [
+    "A contradiction is **never left standing in two"
+   ],
+   "home": "references/mechanisms.md"
+  },
+  {
+   "id": "V33",
+   "what": "plain close: the user's own actions, dated, or 'Nothing — you're done'",
+   "old": [
+    "— the user's own actions, dated where they are time-bound, or \"Nothing — you're done\"."
+   ],
+   "new": [
+    "with dates where the work is time-bound",
+    "**\"Nothing — you're done;"
+   ],
+   "home": "references/mechanisms.md"
+  },
+  {
+   "id": "V34",
+   "what": "record whether it is an AI product (now also whether it is an agent) in STATUS.md",
+   "old": [
+    "Recorded whether this is an **AI product** (uses LLMs)",
+    "flags the AI-security layer downstream. → `STATUS.md header: AI product`",
+    "6. **Will it use AI / LLMs?** (yes flags the AI-security layer in later phases)"
+   ],
+   "new": [
+    "Recorded whether this is an **AI product** (uses LLMs) and an **agent** (acts on its own)",
+    "flags the AI-security layer downstream. → `STATUS.md header: AI product`",
+    "6. **Will it use AI?** no · an AI feature (writes text a person uses) · an **agent**",
+    "--ai yes|no --agent yes|no",
+    "records the AI flag"
+   ]
+  },
+  {
+   "id": "V35",
+   "what": "handoff: /scope next; /validate offered as optional (owner decision 2026-09-30)",
+   "old": [
+    "Vision captured in `PRODUCT.md`. Next run **`/validate`** to test the riskiest assumption you just",
+    "named with the cheapest real-world experiment — days of evidence before months of code."
+   ],
+   "new": [
+    "Next run **`/scope`** to lock the ONE core feature and what stays out.",
+    "**`/validate`** is optional",
+    "experiment — days of evidence before months of code."
+   ]
+  },
+  {
+   "id": "V36",
+   "what": "3c keeps its heading; it now runs in the drafts message (next.65)",
+   "old": [
+    "## Step 3c — Contradiction check"
+   ],
+   "new": [
+    "## Step 3c — Contradiction check (in the drafts message, before the yes; the close's step 3 confirms it)"
+   ]
+  },
+  {
+   "id": "V40",
+   "what": "the companion's job and PRODUCT.md#Vision stays a record (next.57: a founder's document)",
+   "old": [
+    "`docs/vision.md` — the reasoning, workings, raw notes and the search list.",
+    "`PRODUCT.md#Vision` stays a",
+    "RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay."
+   ],
+   "new": [
+    "**the document a founder reads** (Step 3)",
+    "`PRODUCT.md#Vision` stays a RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay."
+   ]
+  },
+  {
+   "id": "V41",
+   "what": "Step 3 writes the record (next.57: docs/vision.md once, then PRODUCT.md)",
+   "old": [
+    "## Step 3 — Write back to `PRODUCT.md`"
+   ],
+   "new": [
+    "## Step 3 — Write `docs/vision.md` once, then `PRODUCT.md`"
+   ]
+  }
+ ],
+ "dropped": [
+  {
+   "old": "not overwriting blindly.",
+   "why": "the re-run rule (V04) says what to do instead"
+  },
+  {
+   "old": "Every later phase checks",
+   "why": "why the sentence matters - history, not a rule"
+  },
+  {
+   "old": "alignment against this sentence, so it is written down, not implied.",
+   "why": "why the sentence matters - history, not a rule"
+  },
+  {
+   "old": "Never state it as fact with neither.",
+   "why": "V12 already names the only two allowed forms"
+  },
+  {
+   "old": "A north star",
+   "why": "why input metrics exist - not a rule"
+  },
+  {
+   "old": "moves too slowly to steer by.",
+   "why": "why input metrics exist - not a rule"
+  },
+  {
+   "old": "used a few times a month — a metric that cannot move weekly is not thereby a bad metric.",
+   "why": "kept as 'per event for a tool used monthly' (V15)"
+  },
+  {
+   "old": "last 14 days\", \"weekly\" = \"Monday to Sunday\".",
+   "why": "line kept word for word, re-wrapped"
+  },
+  {
+   "old": "How do leading products solve this *now*?",
+   "why": "merged into V19"
+  },
+  {
+   "old": "**Record every search in `docs/vision.md`, one line each: query · what it settled** — the comparables it",
+   "why": "kept word for word (check 33 holds it)"
+  },
+  {
+   "old": "verified, the insight it gave, or \"nothing\". **No count on searches:** a search for what users complain",
+   "why": "kept (V20)"
+  },
+  {
+   "old": "— a fuzzy vision is the root of later drift.",
+   "why": "why the gate exists - not a rule"
+  },
+  {
+   "old": "(`MECHANISMS-ON-DEMAND.md §Section is a record`, `MECHANISMS-ON-DEMAND.md §Read receipt`)",
+   "why": "pointer kept word for word"
+  },
+  {
+   "old": "(`MECHANISMS.md` §Step 3b):** record the phase's state",
+   "why": "kept (V27)"
+  },
+  {
+   "old": "Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded**",
+   "why": "kept (V31)"
+  },
+  {
+   "old": "— never a silent overwrite —",
+   "why": "said by 'ask before replacing it' (V04)"
+  },
+  {
+   "old": ", not 3 years ago.",
+   "why": "'*now*' already says it (V08)"
+  },
+  {
+   "old": "not a jargon matrix.",
+   "why": "'plain language' already says it (V09)"
+  },
+  {
+   "old": "a tight answer stays whatever it weighs,",
+   "why": "the same rule as 'never trim to a number' (V26)"
+  },
+  {
+   "old": "A pointer nobody can prove was followed is how a phase invents what the artefact would have said.",
+   "why": "why the receipt exists - not a rule"
+  },
+  {
+   "old": "rewrites the premise every later phase was built on.",
+   "why": "why the conflict matters - not a rule"
+  },
+  {
+   "old": "**`/scope`** locks the ONE core feature and what's explicitly out of scope — your seatbelt against",
+   "why": "the handoff names the next phase only; /validate's own handoff names /scope (paid for the agent question)"
+  },
+  {
+   "old": "fields: the one-sentence vision · who it's for · problem (why now) · value proposition ·",
+   "why": "a partial list (5 of 14 fields, a review found); the Contract now points at every field `next --phase vision` prints"
+  },
+  {
+   "old": "(before the gate closes)",
+   "why": "contradicted the close order `next` prints (set filled first, 3c is step 3); the heading now says the close's step 3"
+  }
+ ]
+}

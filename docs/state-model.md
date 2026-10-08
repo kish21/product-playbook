@@ -1,73 +1,25 @@
-# `PRODUCT.md` as a declared state machine — and gates classified by where the answer lives
+# STATE-MODEL.md — the states a phase can be in, the moves between them, and where they are recorded
 
-> Design note, v1.31.0. The shape of a design note: the problem, the contract, what it
-> touches, what is verified. Closes #126 and #121, which are one piece of work — both declare something
-> the repo already does implicitly, and both enforce the declaration in `tools/check.py` in the style of
-> check 9. They share one syntax on purpose; two declaration formats in one skill file would be worse
-> than none.
-
----
-
-## 1. The problem
-
-### 1a. The state vocabulary was never written down
-
-`PRODUCT.md` is described as the spine's *memory*. It is more than that already, and has been for
-several releases — the state vocabulary accreted one fix at a time:
-
-| Shipped | What it added |
-|---|---|
-| v1.23.0 | `_Not run <date>: … — run X first._` — a phase that declines leaves a trace |
-| §Declined runs | `Override <date>: <reason>` — a deliberate skip *counts as filled* |
-| v1.28.0 (#128) | `Override <date>: <reason> — bypassed <gate>` — a bypassed gate, ditto |
-| §Re-run semantics | `superseded <date>: <why>` — a reversed decision is dated, not erased |
-| `/playbook` Step 0 | the *frontier* — the first unfilled section — plus out-of-order inversion warnings |
-
-Those **are** states and transitions. Nobody had written the set down, and an undeclared vocabulary
-grown ad hoc has holes nobody can see. Measured across all 16 phase skills before this change:
-
-| Marker | Coverage |
-|---|---|
-| `Not run` (declined) | 15/16 — `/design-system` had none |
-| Step 3b (close the loop) | 15/16 — `/design-system` had none |
-| Step 3c (contradiction check) | 15/16 — `/design-system` had none |
-| §Re-run semantics (superseded) | **6/16** |
-
-Two consequences, and the second is the real defect:
-
-1. **`/design-system` was outside the state model entirely** — zero of four — while still writing
-   `PRODUCT.md#Design`.
-2. **Re-run semantics covered 6 of 16, and some of those omissions are correct.** `/build`, `/ship`
-   and `/learn` append rather than overwrite, so "a second run must not erase the first" may be free
-   for them. **But it was impossible to tell.** With no declared rule for which skills need it, an
-   intentional omission and a hole are indistinguishable. *That ambiguity is the bug*, not the
-   omission.
-
-### 1b. Every stop was called "confirmation", and most of them are not
-
-`/vision` Step 2 says *"Ask these one block at a time; wait for answers."* `/scope` says *"Ask, one
-block at a time."* Those pause because **the answer exists only in the user's head** — who it is for,
-the north-star target, what gets cut. Describing them as *"stops and waits for your confirmation"*
-makes an **interview** sound like a **signature**, and a reader budgets eighteen approval clicks
-before they have run anything. That framing is ours, and it is the largest single source of the
-"bureaucratic" reading.
-
----
-
-## 2. The contract
+**Read by** every skill that records a phase's state (§2c) and by `/playbook` when it orients. The rules are
+below; the reasoning and history behind them are in `references/case-files-principles.md`
+§The state model's history.
 
 ### 2a. The state set
 
-A `PRODUCT.md` section is in exactly one of these. Nothing else is a state.
+Each phase is in exactly one of these, recorded in `STATUS.md` (§2h). Nothing else is a state.
 
 | State | Written as | Counts as filled? | Frontier logic treats it as |
 |---|---|---|---|
-| **empty** | the scaffold, unfilled | no | **empty** — this is the frontier |
-| **declined** | `_Not run <date>: <what was missing> — run <phase> first._` | no | **empty**, but names the earlier attempt instead of proposing blind |
-| **filled** | the phase's required fields, non-empty and evidenced | yes | done |
-| **running** | `_Running <date>, due <date>: <what is being measured>._` + the section's fields filled, `PENDING` where the result goes | **no** — the gate is open | **not the frontier, and not done**: the work started and finishes later |
-| **overridden** | `Override <date>: <reason> — bypassed <gate>` | **yes** — the phase is not still owed | done, **and surfaced every time a later phase orients** |
+| **empty** | the phase has not run (`status.py init` writes every phase empty) | no | **empty** — this is the frontier |
+| **declined** | `status.py set <phase> declined --reason <what was missing> --gate <phase to run first>` | no | **empty**, but names the earlier attempt instead of proposing blind |
+| **filled** | `status.py set <phase> filled` — after the phase's required fields in `PRODUCT.md` are non-empty and evidenced | yes | done |
+| **running** | `status.py set <phase> running --due <date> --reason <what is being measured>` + the section's fields filled in `PRODUCT.md`, `PENDING` where the result goes | **no** — the gate is open | **not the frontier, and not done**: the work started and finishes later |
+| **overridden** | `status.py set <phase> overridden --reason <the user's words> --gate <the gate bypassed>` | **yes** — the phase is not still owed | done, **and surfaced every time a later phase orients** |
 | **superseded** | `superseded <date>: <why>` beside the old entry | n/a — a property of an *entry*, not a section | unchanged |
+
+**`/validate` is optional** (owner, 2026-09-30): an `empty` `#Validation` is normal — it never blocks, is never
+the next phase by itself, and no later phase warns about it. Only an experiment the user started (`running`)
+gates the phases after it, as below.
 
 **`running` is for work that has genuinely started and cannot finish today** — a two-week
 Wizard-of-Oz experiment, a pre-sale, a measurement that needs real users. It is **full of text with its
@@ -84,6 +36,8 @@ which is the silent skip this playbook exists to prevent. So:
   **provisionally**, mark what depends on the pending result, and say so. They produce documents, not
   code — blocking them buys little.
 - **From `/architect` onward it BLOCKS**, like any unmet gate, and needs a real override to pass.
+  **One override carries** to every later phase until that gate is filled or its due date passes:
+  the owner answers once, and `status.py next` shows it on every run (`proceeding under the override`).
   Blocking `/build` on an untested behavioural assumption buys a great deal.
 - **Proceeding provisionally is not an override.** It expects a result, it is due-dated, and the mark
   **clears when the result lands** rather than only by a new experiment. If the experiment fails, the
@@ -91,11 +45,20 @@ which is the silent skip this playbook exists to prevent. So:
 - **An overdue `running` section is a drift finding** (`/drift-check`): past its due date with no result
   is a stalled gate, and nothing was emitting it.
 
+**A verification gate is passed only by a `pass` verdict.** `/dev-check`, `/test` and `/eval` set their phase
+filled with `--verdict pass` or `--verdict fail`; a filled phase whose verdict is `fail` (or was never recorded)
+stays the next phase — a written section is not a passed gate. **`#build` is done only when every ticket of the
+current milestone in `TICKETS.md` has a row** (`status.py ticket`); until then `status.py next` names the
+tickets not yet recorded. *(Added 2026-09-24: a logged test run's spine read FAIL at #Dev-complete with 5 of 19
+tickets unbuilt, and the section-is-written rule still routed it to `/test`.)*
+
 **No state is terminal.** Every one can be re-entered by a re-run; that is the point of §Re-run
 semantics. `superseded` is deliberately not a section state — a section holding a superseded ADR is
 still `filled`, and treating it otherwise would make every reversal look like regression.
 
 ### 2b. The legal transitions
+
+`status.py set` refuses every move not listed here, and says why (§2h).
 
 ```
 empty ──▶ filled          a normal run
@@ -105,11 +68,17 @@ running ──▶ running       a re-run that extends or re-scopes the experimen
 running ──▶ overridden    the user chose to proceed without waiting for the result
 empty ──▶ declined        the prior gate was unmet and the run stopped (§Declined runs)
 empty ──▶ overridden      the prior gate was unmet and the user chose to proceed (#128)
+declined ──▶ declined     a later attempt also stopped; the Not-run note is REPLACED with the new one
 declined ──▶ filled       the missing phase ran; the Not-run line is REPLACED, never appended to
 declined ──▶ overridden   the user chose to proceed without it
 filled ──▶ filled         a re-run: show what changes, ask first, date what it reverses
 overridden ──▶ filled     the skipped phase was run after all
 ```
+
+**`running ──▶ filled` needs the result.** `status.py` refuses it without `--note` (the measured result
+against the bar), and refuses it while the phase's `PRODUCT.md` section still reads `PENDING`. A phase that
+writes its fields and reaches Step 3b while its experiment runs leaves the state `running`; marking it
+`filled` there would erase the due date and the provisional mark with no result behind it.
 
 **`filled ──▶ running` is illegal**, for the same reason as the line below: a closed gate does not
 re-open into "still measuring". A new experiment over a filled section is `filled ──▶ filled` through
@@ -134,83 +103,15 @@ Declared per skill, so an omission can never again be mistaken for a decision.
 |---|---|---|---|
 | `/vision` `/scope` `/plan` `/architect` `/structure` `/design-system` `/foundation` `/contracts` `/dev-check` `/test` `/eval` | `#Vision` … `#Evaluation` | **required** | the section is rewritten in place |
 | `/validate` | `#Validation` | exempt | append-only: "append a new dated entry, never overwrite" |
-| `/build` | `#Build log` | exempt | append-only: one row per feature |
-| `/ship` | `#Ship log` | exempt | append-only: one entry per release |
+| `/build` | a `STATUS.md` ticket row | exempt | append-only: one row per ticket |
+| `/ship` | a `STATUS.md` release row | exempt | append-only: one row per release |
 | `/learn` | `#Learnings` | exempt | append-only: one entry per cycle |
 | `/tickets` | writes `TICKETS.md` + `docs/issues/*`, not a spine section | exempt | a re-run skips tickets that already exist; nothing in the spine to erase |
-| `/drift-check` | `#Drift log` | exempt | append-only: one entry per run |
+| `/drift-check` | a `STATUS.md` drift row | exempt | append-only: one row per finding |
 
 **`/design-system` is resolved as a full participant**, not an exemption. It writes `#Design`, that
 section can be redone, and a redone design system that silently discards the rejected archetype loses
 the most expensive thing in it. It gains `Not run`, Step 3b, Step 3c and §Re-run semantics.
-
-### 2f. Evidence — ONE representation, settled here (#131)
-
-An exit criterion may carry **re-runnable** evidence. There is exactly one format, and it is a single
-line appended to the criterion itself:
-
-```
-- [x] Authentication works — `evidence: pnpm test:e2e → 18 passed · tests/e2e/auth.spec.ts · 2026-09-10`
-```
-
-`evidence: <command> → <result> · <artefact> · <YYYY-MM-DD>` — four fields, one line, all required.
-
-**Why a line and not a block.** `README.md` promises `PRODUCT.md` reads top-to-bottom. A four-line
-structured block per criterion taxes that promise on every page, and the spine is read far more often
-than it is parsed. A line stays prose to a human and is trivially machine-readable behind a fixed
-`evidence:` prefix. It also honours `VISION.md`'s no-service non-goal by construction: this is Markdown
-in the repo, and re-verification is running the command it names.
-
-**Evidence is derived, not declared.** The command and the artefact path are things the phase *did*;
-they are transcribed, never invented. A criterion whose evidence cannot be stated as a command someone
-else can run is not evidenced — it is asserted, and should be marked so honestly.
-
-**The command must SURVIVE the session that wrote it.** Evidence that names a throwaway script is a
-claim with a receipt that no longer exists: on a real run a phase reported *"PASS — mechanically verified
-— `verify_map.py`"*, and that file was in neither the tree nor git history. The claim happened to be
-true; the proof was gone, and the transition guard could not tell, because it runs **inside the session
-that created the temp file**, where the path still resolves. So: **a command or artefact that is not
-committed is `UNVERIFIED`, never `PASS`** — and a verification script worth citing is worth committing
-(`scripts/`), which costs one `git add` and makes every later re-run possible.
-
-**Evidence is optional; a MALFORMED evidence line is not.** A criterion with no evidence line is
-reported as `UNVERIFIED` and is a normal state — plenty of things are judged rather than measured. A
-line that *looks* like evidence but names no command or no date is worse than none, because it stops
-anyone going to look. `tools/check.py` check 15 fails it.
-
-### 2g. The four-state verdict
-
-Produced by `/drift-check`'s claim-to-evidence pass, per criterion:
-
-| Verdict | Means | Separator |
-|---|---|---|
-| **VERIFIED** | the command was re-run and the result matches what was recorded | a measurement agrees |
-| **PARTIALLY VERIFIED** | re-ran and the artefact exists, but the result differs in degree not direction, or the evidence covers only part of the claim | a measurement agrees in part |
-| **UNVERIFIED** | **no measurement was taken** — no evidence line, or the command cannot run here (absent tooling, credentials, a live service) | *absence of evidence* |
-| **CONTRADICTED** | **a measurement was taken and it disagrees** — the command fails, or the named artefact does not exist | *evidence of absence* |
-
-**What separates `UNVERIFIED` from `CONTRADICTED` is whether a measurement was actually taken.** They
-are routinely conflated, and conflating them is expensive in both directions: reporting a
-never-attempted check as CONTRADICTED sends people chasing a phantom regression, and reporting a failed
-check as UNVERIFIED hides a real one behind "we could not tell". A claim with no evidence is **always
-reported**, never silently passed.
-
-### 2h. Where this lives — the surface-cost decision (#131)
-
-Three options were on the table: extend `/drift-check` · a `/prove` engine other skills compose · a 22nd
-top-level skill. **Chosen: extend `/drift-check`**, and the ticket's instruction not to pick the third by
-default is honoured.
-
-- `/drift-check` **already owns claim-vs-reality** — its exit criteria already include *"code↔docs drift
-  checked (claims that don't match reality)"*. This generalises that from scope/vision/doc drift to
-  *every claim in the spine*, which is a widening of an existing remit rather than a new capability.
-- It is **already the "run anytime" skill**, which is exactly when a re-verification pass is wanted.
-- A 22nd top-level skill would directly contradict #116 and #123, which are about the surface already
-  being intimidating. That cost is real and buys nothing here.
-
-**This also supplied the transition guard §4 deferred.** Once evidence is re-runnable, reconciling
-*intended* against *actual* at a transition is a small addition to Step 3b rather than a new subsystem.
-That is exactly how it shipped in #145 — see §4.
 
 ### 2d. Gate types — classified by where the answer lives
 
@@ -252,87 +153,95 @@ Stop calling input gates "confirmation". An input step **asks a question**; a ve
 **reports a result and asks whether to proceed**. Most of the felt friction is removed by describing
 them honestly, at zero cost to the guarantee.
 
----
+### 2f. Evidence — ONE representation, settled here (#131)
 
-## 3. Considered and REJECTED: `/playbook --auto`
+An exit criterion may carry **re-runnable** evidence. There is exactly one format, and it is a single
+line appended to the criterion itself:
 
-Recorded here so a future session finds it before re-proposing it cold.
+```
+- [x] Authentication works — `evidence: pnpm test:e2e → 18 passed · tests/e2e/auth.spec.ts · 2026-09-10`
+```
 
-1. **It would let the AI author the product premise.** Phase 1 gates have no derivable answer.
-   Autopiloting `/vision` → `/scope` does not skip a confirmation; it has the agent invent what the
-   product is and build on it — the exact failure this repo was founded on (*"I let features creep in
-   that nobody needed"*). That places the vibe-coding trap inside the tool built to prevent it.
-2. **It deletes the cost mechanism, not just the safety one.** A vision→ship run in one session is a
-   single 600–900-call session; agent-session cost grows roughly quadratically with session length,
-   because every call re-reads the whole history. The per-phase stops **are** the session boundaries.
-3. **The escape hatch already exists.** Every skill runs standalone (`commands/playbook.md`), so an
-   experienced builder types `/contracts` directly and never touches the orchestrator. The residual
-   complaint is `/playbook` **verbosity** — a narration fix, not a new mode.
+`evidence: <command> → <result> · <artefact> · <YYYY-MM-DD>` — four fields, one line, all required. Spelled exactly
+so: an arrow `→` (or `->`) after the command, a middle dot `·` between the other fields.
 
-Batching within `derivation` and `verification` runs delivers most of what was asked for, and grants
-no authority to invent product decisions. **If `--auto` is ever reopened it must be a deliberate
-reversal with the reasoning recorded** — not a silent re-introduction.
+**Why a line and not a block.** `README.md` promises `PRODUCT.md` reads top-to-bottom. A four-line
+structured block per criterion taxes that promise on every page, and the spine is read far more often
+than it is parsed. A line stays prose to a human and is trivially machine-readable behind a fixed
+`evidence:` prefix. It also honours `VISION.md`'s no-service non-goal by construction: this is Markdown
+in the repo, and re-verification is running the command it names.
 
----
+**Evidence is derived, not declared.** The command and the artefact path are things the phase *did*;
+they are transcribed, never invented. A criterion whose evidence cannot be stated as a command someone
+else can run is not evidenced — it is asserted, and should be marked so honestly.
 
-## 4. The transition guard — SHIPPED (#145), after a deferral that was reopened on its trigger
+**The command must SURVIVE the session that wrote it.** Evidence that names a throwaway script is a
+claim with a receipt that no longer exists: on a real run a phase reported *"PASS — mechanically verified
+— `verify_map.py`"*, and that file was in neither the tree nor git history. The claim happened to be
+true; the proof was gone, and the transition guard could not tell, because it runs **inside the session
+that created the temp file**, where the path still resolves. So: **a command or artefact that is not
+committed is `UNVERIFIED`, never `PASS`** — and a verification script worth citing is worth committing
+(`scripts/`), which costs one `git add` and makes every later re-run possible.
 
-The audit's model makes **evidence reconciliation a transition guard**: every advance compares
-*intended* state against *actual* repository state. Nothing did that automatically — `/drift-check`
-does intended-vs-actual but is opt-in, and Step 3c compares recorded decisions against *other recorded
-decisions* (docs vs docs, not docs vs repo). **A gate that only runs when you remember it is not a gate.**
+**Evidence is optional; a MALFORMED evidence line is not.** A criterion with no evidence line is
+reported as `UNVERIFIED` and is a normal state — plenty of things are judged rather than measured. A
+line that *looks* like evidence but names no command or no date is worse than none, because it stops
+anyone going to look. `tools/check.py` check 15 fails it.
 
-**It shipped as a fourth item in `MECHANISMS.md` §Step 3b**, not a new subsystem and not a new skill —
-§2h had already made and recorded that surface-cost decision. At every transition the phase re-runs its
-own `evidence:` lines through `/drift-check`'s Step 0b pass, classifies each with §2g's four verdicts,
-and checks the transition against §2b's table. `UNVERIFIED` — no measurement possible here — stays a
-normal outcome and never blocks a phase, or the guard would punish exactly the environments that
-legitimately cannot measure.
+### 2g. The four-state verdict
 
-**The one illegal transition is refused where it is produced.** `filled ──▶ declined` comes from a
-*declining* run, which stops early and never reaches Step 3b — so the refusal lives in
-`MECHANISMS.md` §Declined runs (only an unfilled section may take the Not-run line), not in a gate that
-path never executes. A guard placed where the failure cannot occur is a heading, not a behaviour.
+Produced by `/drift-check`'s claim-to-evidence pass, per criterion:
 
-**The deferral, kept rather than erased** (§Re-run semantics: date the reversal, do not erase it). It was
-deferred as the largest behavioural change in the area, and blocked on #131, which had to land a
-re-runnable evidence record before a guard had anything to check. **Reopen trigger, met 2026-09-10:**
-#131 shipped §2f, so the guard became a small addition to Step 3b rather than a new subsystem, and #145
-picked it up at its own gate. Nothing about the original reasoning was wrong; the condition it named
-came true.
+| Verdict | Means | Separator |
+|---|---|---|
+| **VERIFIED** | the command was re-run and the result matches what was recorded | a measurement agrees |
+| **PARTIALLY VERIFIED** | re-ran and the artefact exists, but the result differs in degree not direction, or the evidence covers only part of the claim | a measurement agrees in part |
+| **UNVERIFIED** | **no measurement was taken** — no evidence line, or the command cannot run here (absent tooling, credentials, a live service) | *absence of evidence* |
+| **CONTRADICTED** | **a measurement was taken and it disagrees** — the command fails, or the named artefact does not exist | *evidence of absence* |
 
----
+**What separates `UNVERIFIED` from `CONTRADICTED` is whether a measurement was actually taken.** They
+are routinely conflated, and conflating them is expensive in both directions: reporting a
+never-attempted check as CONTRADICTED sends people chasing a phantom regression, and reporting a failed
+check as UNVERIFIED hides a real one behind "we could not tell". A claim with no evidence is **always
+reported**, never silently passed.
 
-## 5. What this does NOT do
+### 2h. Where status lives — `STATUS.md`, written only by `status.py`
 
-**No engine.** A YAML state file with a transition engine would be heavier than the thing it guards,
-and these skills are prompt files, not code. The value is in **declaring the set and enforcing
-participation**, exactly as check 9 enforces prior gates.
+A project's status — each phase's state (§2a), the open items, the ticket, release and drift rows — is written
+**only by `status.py`**; a run never edits it by hand. **`STATUS.md`** at the project root holds the flags and the
+phase table. **Each open item, ticket, release and drift row is one small file under `status/`** (`status/open/`,
+`status/tickets/`, `status/releases/`, `status/drift/`), so 2–10 workers on separate branches add separate files
+and never edit the same line, and a lock makes runs in one folder take turns. Nothing that changes on every
+command is stored (the date, the stage, the next phase); `/build` and `/ship` count as filled once a ticket or
+release file exists. **`status.py show` prints all of it on one screen.** Open items have short ids (`o7k2`) that
+two branches cannot both pick; a project's older STATUS.md moves its rows into these files on its first write.
+`PRODUCT.md` holds the product's content: the sections, their fields, their `evidence:` lines (§2f), and an
+override of ONE criterion inside a section (it is part of that section's record; `status.py` tracks it as an
+open item).
 
-**No service.** Per `VISION.md`'s recorded non-goal, machine-readable state is added *against* that
-guard rail: everything here is a line of Markdown in a file in the repo.
+**Which command records what:** `status.py how` prints it — the tool is the one home for its
+commands (`MECHANISMS.md` §Status). Every command is also in `status.py`'s own `--help`.
 
-**No second override format.** `Override <date>: <reason> — bypassed <gate>` is #128's, reused.
+**Each phase row records the rules it was written under** (the `Rules` column: the playbook version at `set
+filled`). `status.py` holds a short table of rule changes that alter what a filled phase would have produced;
+`next` names each change newer than a row's version (or every one, for a row with no version) and the phase
+to re-run, or how to keep it (`set <phase> filled --note "kept: <reason>"`). A project that updates the
+playbook mid-way is told, instead of never knowing an earlier phase skipped a question that now exists.
 
----
+**A row is a record.** Each field has a length limit; a longer value is refused with the file to put the detail
+in (the feature doc, the release notes). **Nothing is lost by `migrate`**: every line it removes from
+`PRODUCT.md` goes verbatim to `docs/status-archive.md`, and it refuses to write if a line would go missing.
 
-## 6. What is verified
+**Superseded 2026-09-24:** *"No engine. A YAML state file with a transition engine would be heavier than the
+thing it guards"* (v1.31.0). Reversed for status only, on measurement from a logged test run: runs searched
+`PRODUCT.md` 5–30 times each to find their place; the `Stage:` header grew into a 700-character paragraph;
+`#Build log` grew to 35% of the file although its rule said one row per feature; and nothing but the model's
+memory refused an illegal move. A script refuses; prose cannot. Still no service: a Python file and a Markdown
+file in the repo, readable without the script.
 
-`tools/check.py`:
+## 3. Rejected: `/playbook --auto`
 
-- **check 12** — every phase skill declares a **Gate type** of `input` · `derivation` ·
-  `verification`, and an `input` gate declares that it is **never batched**.
-- **check 13** — every skill that writes a spine section declares its **State model**: the section it
-  writes, and `declined` / `override` / `superseded` each either implemented or marked `n/a` **with a
-  reason**. A missing declaration fails; so does an exemption with no reason.
-- **check 16** — every skill that writes a spine section actually **runs the transition guard** in the
-  region where it closes its gate (Step 3b through Step 3c), points at `MECHANISMS.md` §Step 3b where the
-  guard is defined once, and says there that `UNVERIFIED` is a normal outcome. Reading the region rather
-  than the file is deliberate: a skill that *mentions* the guard elsewhere and never runs it would
-  otherwise pass, which is check 9's lesson (a heading is not a behaviour) applied to the clause that
-  names one. `/drift-check` is the single exemption: it *owns* the claim-to-evidence pass the guard
-  re-uses, so a pointer back to itself would say nothing. `/adopt` participates too — it drafts the whole
-  spine from repo evidence, so reconciling intended against actual is its subject matter, and an inferred
-  spine is precisely where unmeasured claims collect.
-
-All three were proven to fail before they passed.
+An auto mode would let the AI author the product premise (input gates have no derivable answer), would turn
+the per-phase stops that bound a session's cost into one long session, and the escape hatch already exists
+(every skill runs standalone). **Reopening it must be a deliberate reversal with the reasoning recorded.**
+Full reasoning: `references/case-files-principles.md` §The state model's history.

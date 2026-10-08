@@ -48,7 +48,7 @@ def title(version: str, body: str) -> str:
 
     DOTALL, because the changelog wraps at ~100 columns and a lead sentence often spans two lines: without
     it the first bold span that fits on ONE line wins, which on v1.41.0 was the fragment between `walks.**`
-    and `**tickets**` — a release titled "`commands/playbook.md` says contracts →". Whitespace is collapsed
+    and `**tickets**` — a release titled "`commands/playbook/SKILL.md` says contracts →". Whitespace is collapsed
     so the wrapped phrase reads as one line.
     """
     m = re.search(r"\*\*(.+?)\*\*", body, re.DOTALL)

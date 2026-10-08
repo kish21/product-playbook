@@ -21,7 +21,7 @@ from collections import Counter
 
 # The playbook release this engine shipped in. tools/check.py (check 5) holds it equal to the release,
 # so a project copy can say which checks it carries.
-ENGINE_VERSION = "1.73.0"
+ENGINE_VERSION = "2.0.0"
 
 # ---------- colour math ----------------------------------------------------
 
@@ -145,6 +145,38 @@ def _block(text, selector):
     """Inner text of the first `selector { ... }` block (token blocks have no nested braces)."""
     m = re.search(re.escape(selector) + r"\s*\{(.*?)\}", text, re.S)
     return m.group(1) if m else ""
+
+EXTENDS = re.compile(r"""\{%-?\s*extends\s+["']([^"']+)["']""")
+DOCUMENT = re.compile(r"<!doctype|<html\b|<head\b", re.I)
+
+
+def has_viewport(path, text, depth=0):
+    """Law 21's viewport is a property of the PAGE, not of every file: a Jinja/Django child template gets it from
+    the layout it extends, and a fragment (no <html>/<head>, no extends) is inserted into a page that has one. A
+    logged build got two false errors - a red check, a skipped hook, "DoD partial" - for a page whose base.html
+    carried the tag. A parent that cannot be found keeps the error: unverified is not passed."""
+    if "viewport" in text:
+        return True
+    m = EXTENDS.search(text)
+    if m:
+        if depth > 5:
+            return False
+        here = os.path.dirname(os.path.abspath(path))
+        name = m.group(1).replace("/", os.sep)
+        # the parent by its name, from this folder up through each ancestor, its templates/ folder and its
+        # sub-folders' templates/ - a loader with several folders (app/ui/templates beside app/audit/templates)
+        while True:
+            cands = [os.path.join(here, name), os.path.join(here, "templates", name)]
+            cands += sorted(glob.glob(os.path.join(here, "*", "templates", name)))
+            for cand in cands:
+                if os.path.isfile(cand):
+                    with open(cand, encoding="utf-8", errors="replace") as f:
+                        return has_viewport(cand, f.read(), depth + 1)
+            up = os.path.dirname(here)
+            if up == here:
+                return False
+            here = up
+    return not DOCUMENT.search(text)  # a fragment is not a page
 
 def audit_text(path, text, findings):
     # Law 7 + 22 — COMPUTED contrast on every fg/surface pair, in BOTH light and dark modes.
@@ -274,7 +306,7 @@ def audit_text(path, text, findings):
     for m in re.finditer(r"font-size:\s*([0-9.]+)(px|rem|em)\b", text):
         px = float(m.group(1)) * (16 if m.group(2) in ("rem", "em") else 1)
         if px < 12:
-            findings.append(("ERROR", "Law3-tiny-font", path, f"font-size {m.group(1)}{m.group(2)} (~{px:.0f}px) below 12px floor"))
+            findings.append(("ERROR", "Law3-tiny-font", path, f"font-size {m.group(1)}{m.group(2)} (~{px:.0f}px) below 12px floor - declare the step as a type-scale token in :root (--text-xs: 0.75rem) and use var(--text-xs), never another raw size"))
 
     # Law 13 — interactive elements should define focus-visible (presence heuristic)
     if re.search(r"<(button|input|a)\b", text, re.I) and "focus-visible" not in text:
@@ -288,7 +320,7 @@ def audit_text(path, text, findings):
               or "auto-fit" in text or "auto-fill" in text or "minmax(" in text or "clamp(" in text)
     multicol = (bool(re.search(r"grid-template-columns\s*:[^;]*\d{3,}px", text))
                 or bool(re.search(r"grid-template-columns\s*:(?:[^;]*\b1fr\b){2,}", text)))
-    if path.lower().endswith((".html", ".htm")) and "viewport" not in text:
+    if path.lower().endswith((".html", ".htm")) and not has_viewport(path, text):
         findings.append(("ERROR", "Law21-viewport", path, "missing <meta name=viewport> - not mobile-ready"))
     if multicol and not has_bp:
         findings.append(("ERROR", "Law21-responsive", path,
@@ -425,10 +457,10 @@ def engine_copy_notes():
         listed = subprocess.run(["git", "-C", root, "ls-files", "-z", "--", COPY_PATHSPEC], **git)
     except (OSError, subprocess.SubprocessError) as exc:
         return [f"engine copy: not checked - git unavailable ({exc.__class__.__name__})"]
-    # A project-level copy install commits the INSTALLED engine under .claude/commands/ - that is a skill,
-    # not the copy the hooks and CI run, so it is never the thing being judged.
+    # A project-level copy install commits the INSTALLED engine under .claude/ (Claude Code) or .agents/ (Cursor,
+    # Antigravity) - that is a skill, not the copy the hooks and CI run, so it is never the thing being judged.
     copies = [os.path.realpath(os.path.join(root, p)) for p in listed.stdout.split("\0")
-              if p and "/.claude/" not in "/" + p]
+              if p and "/.claude/" not in "/" + p and "/.agents/" not in "/" + p]
     if os.path.normcase(here) in {os.path.normcase(c) for c in copies}:
         return []  # this IS the project's copy, running in a hook or CI
     if not copies:

@@ -1,0 +1,642 @@
+{
+ "skill": "architect",
+ "base": "72ea4e9",
+ "rules": [
+  {
+   "id": "A01",
+   "what": "purpose: stack, tools and decisions before any folders exist",
+   "old": [
+    "- **Purpose:** choose the stack/tools/decisions before any folders exist, aligned to the product."
+   ],
+   "new": [
+    "- **Purpose:** choose the stack/tools/decisions before any folders exist, aligned to the product."
+   ]
+  },
+  {
+   "id": "A02",
+   "what": "reads #Vision, #Scope, #Plan",
+   "old": [
+    "- **Reads:** `PRODUCT.md#Vision`, `#Scope`, `#Plan`."
+   ],
+   "new": [
+    "- **Reads:** `PRODUCT.md#Vision`, `#Scope`, `#Plan` — as `next` prints them."
+   ]
+  },
+  {
+   "id": "A03",
+   "what": "writes #Architecture's fields",
+   "old": [
+    "- **Writes:** `PRODUCT.md#Architecture` — stack+tools+why · **dev tooling** · ADRs · externals behind adapters · resilience · perf/cost budget · (AI) prompt-versioning/eval."
+   ],
+   "new": [
+    "- **Writes:** `PRODUCT.md#Architecture` — stack+tools+why · **dev tooling** · ADRs · externals behind adapters · resilience · perf/cost budget · (AI) prompt-versioning/eval · `docs/architecture.md`"
+   ]
+  },
+  {
+   "id": "A04",
+   "what": "input gate on the four constraints, never batched",
+   "old": [
+    "- **Gate type:** `input` — the choice is made against the project's constraints - team size, operational appetite, budget, tolerable lock-in - and those live in the human. **Never batched** - skipping it fabricates the product's premise. (`STATE-MODEL.md` §2d)"
+   ],
+   "new": [
+    "- **Gate type:** `input` — the choice is made against the project's constraints - team size, operational appetite, budget, tolerable lock-in - and those live in the human. **Never batched** - skipping it fabricates the product's premise. (`STATE-MODEL.md` §2d)"
+   ]
+  },
+  {
+   "id": "A05",
+   "what": "state model: declined, override, superseded",
+   "old": [
+    "- **State model** (`STATE-MODEL.md` §2c): writes `#Architecture` · `declined` ✓ · `override` ✓ · `superseded` ✓"
+   ],
+   "new": [
+    "- **State model** (`STATE-MODEL.md` §2c): writes `#Architecture` · `declined` ✓ · `override` ✓ · `superseded` ✓"
+   ]
+  },
+  {
+   "id": "A06",
+   "what": "exit: complete, traces to scope/plan, provenance on every row, the constraint set",
+   "old": [
+    "- **Exit criteria (the gate — small: is the section complete?):**",
+    "`#Architecture` is complete and **traces to scope/plan** (no gold-plating): stack+tools+why **with",
+    "a provenance flag on every row** and **the constraint set each choice was optimised against**",
+    "(reliability · operational burden · team size · cost · compatibility · maturity · lock-in/exit cost);"
+   ],
+   "new": [
+    "- **Exit criteria (the gate — small: is the section complete?):**",
+    "`#Architecture` is complete and **traces to scope/plan** (no gold-plating): stack+tools+why **with",
+    "a provenance flag on every row** and **the constraint set each choice was optimised against**",
+    "**the constraint set each choice was optimised against** (Step 1);"
+   ]
+  },
+  {
+   "id": "A07",
+   "what": "exit: every external behind an adapter, ADRs, migrations approach",
+   "old": [
+    "every external behind an adapter; key ADRs (patterns applied / anti-patterns avoided); the migrations",
+    "approach;"
+   ],
+   "new": [
+    "every external behind an adapter; key ADRs (patterns applied / anti-patterns avoided); the migrations",
+    "approach;"
+   ]
+  },
+  {
+   "id": "A08",
+   "what": "exit: custody + runtime target per deployable unit + identity, each an ADR or N/A",
+   "old": [
+    "a **custody + runtime target** line (data custody · **a runtime target for each deployable",
+    "unit** · identity custody, each an ADR or an explicit N/A);"
+   ],
+   "new": [
+    "a **custody + runtime target** line (data custody · **a runtime target for each deployable",
+    "unit** · identity custody, each an ADR or an explicit N/A);"
+   ]
+  },
+  {
+   "id": "A09",
+   "what": "exit: Dev tooling line names all five slots",
+   "old": [
+    "a **Dev tooling** line naming hook runner ·",
+    "secret scanner · task runner · formatter/linter · dependency manifest (leave one unnamed and `/structure` picks it blind); and the"
+   ],
+   "new": [
+    "a **Dev tooling** line naming hook runner ·",
+    "secret scanner · task runner · formatter/linter · dependency manifest; and the"
+   ]
+  },
+  {
+   "id": "A10",
+   "what": "exit: concern areas recorded or N/A (resilience, budget, security, observability, AI four)",
+   "old": [
+    "**decisions for the concern areas this product needs** — resilience · perf/cost budget ·",
+    "security/no-secret-in-code · observability **+ (AI) prompt-versioning · eval · tracing · model runtime",
+    "config** — each recorded or marked **N/A**;"
+   ],
+   "new": [
+    "**decisions for the concern areas this product needs** — resilience · perf/cost budget ·",
+    "security/no-secret-in-code · observability **+ (AI) prompt-versioning · eval · tracing · model runtime",
+    "config** — each recorded or marked **N/A**;"
+   ]
+  },
+  {
+   "id": "A11",
+   "what": "exit: Agent: yes - every AGENT.md §Architect row recorded or N/A",
+   "old": [
+    "**`Agent: yes`: every AGENT.md §Architect row** in the (Agent) field, recorded or `N/A — <reason>`."
+   ],
+   "new": [
+    "**`Agent: yes`: every AGENT.md §Architect row** in the (Agent) field, recorded or `N/A — <reason>`."
+   ]
+  },
+  {
+   "id": "A12",
+   "what": "first command: the start command (prints the spine facts, fields, refusals, rules); show its first line - the close's steps now print at `set`",
+   "old": [
+    "- **One first message: run `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase architect`",
+    "Show its first line; close by its checklist."
+   ],
+   "new": [
+    "- **One first command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase architect`**",
+    "Show its first line."
+   ]
+  },
+  {
+   "id": "A13",
+   "what": "the rules and the spine: printed by `next` (architect_start_text + architect_rules_text), never read whole",
+   "old": [
+    "and read all of `PRINCIPLES.md`, `MECHANISMS.md`, `PRODUCT.md`.**",
+    "Read `#Vision/#Scope/#Plan`."
+   ],
+   "new": [
+    "never open those files or `PRODUCT.md` whole",
+    "**`status.py next --phase architect` prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** (and AGENT.md §Architect when `Agent: yes`)"
+   ]
+  },
+  {
+   "id": "A14",
+   "what": "#Scope/#Plan empty: warn, offer them first, allow override",
+   "old": [
+    "If `#Scope`/`#Plan` are empty, warn and offer to run them first (allow",
+    "override)."
+   ],
+   "new": [
+    "`#Scope`/`#Plan` empty → warn and offer to run them first (allow",
+    "override)."
+   ]
+  },
+  {
+   "id": "A15",
+   "what": "a running upstream gate blocks from here on",
+   "old": [
+    "**A `running` upstream gate BLOCKS from here on** (`STATE-MODEL.md` §2a): it was",
+    "advisory for `/scope` and `/plan`, which produce documents — from here the product is being built, so a",
+    "pending result needs the result, or a recorded override."
+   ],
+   "new": [
+    "**A `running` upstream gate BLOCKS from here on** (`STATE-MODEL.md` §2a): a",
+    "pending result needs the result, or a recorded override.",
+    "pending result needs the result, or a recorded override."
+   ]
+  },
+  {
+   "id": "A16",
+   "what": "an override is recorded with the user's own words (bypass)",
+   "old": [
+    "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from architect --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing. Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through."
+   ],
+   "new": [
+    "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from architect --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
+   ]
+  },
+  {
+   "id": "A17",
+   "what": "Agent unknown on an AI product: the agent question in round 1, record the flag; AGENT.md §Architect printed by `next` (set refuses an unknown flag)",
+   "old": [
+    "- **`Agent: unknown` on an AI product** (the `next` output says so): ask *\"Does the AI act on its own - look records up, change them, send messages, move money - or only write text a person sends?\"* → `status.py flag --agent yes|no`. `yes` → open AGENT.md §Architect now."
+   ],
+   "new": [
+    "**`Agent: unknown` on an AI product** (`next` says so): *\"Does the AI act on its own - look records up, change them, send messages, move money - or only write text a person sends?\"* → `status.py flag --agent yes|no`"
+   ]
+  },
+  {
+   "id": "A18",
+   "what": "brownfield: detect the existing stack and record it as the starting point",
+   "old": [
+    "- Brownfield: detect the existing stack from the repo and record it as the starting point."
+   ],
+   "new": [
+    "- Brownfield: detect the existing stack from the repo and record it as the starting point."
+   ]
+  },
+  {
+   "id": "A19",
+   "what": "a narrow run (one decision for another phase): that row only, no close of its own",
+   "old": [
+    "- **A NARROW run — one decision, called from another phase** (`/deploy` finds a unit with no runtime",
+    "target): decide that row only — its benchmark search, its provenance, one line in `#Architecture` (an ADR",
+    "if it is load-bearing) — then hand back. No chain offer, no commit offer, no close of its own, no",
+    "state recorded, and the full-section exit criterion does not apply; the calling phase's close reports",
+    "it. (case file: Two closes in one run)"
+   ],
+   "new": [
+    "- **A NARROW run — one decision, called from another phase** (`/deploy` finds a unit with no runtime",
+    "decide that row only — its search, its provenance, one line in `#Architecture` (an ADR",
+    "if load-bearing) — then hand back: no chain or commit offer, no close, no state recorded, no full-section exit criterion; the calling phase's close reports it.",
+    "(case file: Two closes in one run)"
+   ]
+  },
+  {
+   "id": "A20",
+   "what": "offer the chain into /structure as round 1's last question; stop-after is the default",
+   "old": [
+    "- **Offer the chain, never default to it** (`MECHANISMS-ON-DEMAND.md` §Batch mode, *chain*): *\"Stop after",
+    "the architecture (default), or continue straight into `/structure` in this session — every question",
+    "still asked, two records, two commits, one close at the end?\"* A red gate here never reaches `/structure`."
+   ],
+   "new": [
+    "- **Offer the chain, never default to it** (`MECHANISMS-ON-DEMAND.md` §Batch mode, *chain*), as the last question of round 1: *\"Stop after"
+   ]
+  },
+  {
+   "id": "A21",
+   "what": "re-run: follow the RE-RUN line, one question, superseded line for a reversed decision",
+   "old": [
+    "- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** a filled section → follow the `RE-RUN` line `next` prints: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line."
+   ],
+   "new": [
+    "- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** a filled section → follow the `RE-RUN` line `next` prints: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line."
+   ]
+  },
+  {
+   "id": "A22",
+   "what": "a stopped run is recorded declined and PRODUCT.md is not changed",
+   "old": [
+    "- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** record it — `status.py set architect declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`."
+   ],
+   "new": [
+    "- **The gate is unmet and the run stops here (`MECHANISMS.md` §Declined runs):** `status.py set architect declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`."
+   ]
+  },
+  {
+   "id": "A23",
+   "what": "benchmark to the current year, then choose on constraints; record the constraint set and why the winner won",
+   "old": [
+    "- **Benchmark to the current year, then choose on constraints:** find what leading teams use *now* — that half is load-bearing and stops the AI reaching for a stale default. Then pick on **fit, not ideology**: reliability, operational burden, **the size of the team that has to run it**, cost, compatibility, maturity, and **lock-in (portability + exit cost)**. Open source often wins on lock-in, not automatically: self-hosting can cost a solo builder more than the licence it saves. **Record the constraint set you optimised against** and why the winner won — one line each, in `#Architecture`, so the decision is auditable when a constraint changes."
+   ],
+   "new": [
+    "- **Benchmark to the current year, then choose on constraints:**",
+    "**Record the constraint set you optimised against** and why the winner won"
+   ]
+  },
+  {
+   "id": "A24",
+   "what": "search bound: one search per open decision row, a comparison page, the list in docs/architecture.md",
+   "old": [
+    "- **Search discipline — the benchmark is bounded, not open-ended:** **one search per open decision row**,",
+    "a comparison page over several vendor pages, and **the search list recorded in `docs/architecture.md`**",
+    "(query · what it settled). A search that settled nothing is not benchmark evidence. The bound never lowers a verdict — a row that is still open after its search says so."
+   ],
+   "new": [
+    "- **Search discipline — two turns, bounded:** **Turn A:** **one search per open decision row**, all in one turn after round 1",
+    "**The search list goes in `docs/architecture.md`**",
+    "(query · what it settled). A search that settled nothing is not benchmark evidence. The bound never lowers a verdict — a row still open says so."
+   ]
+  },
+  {
+   "id": "A25",
+   "what": "where approvals attach: self-hosting OSS does not bypass an app-level approval",
+   "old": [
+    "- **Check where approvals attach (the self-host blind spot):** where an integration is gated by a third",
+    "party's approval, ask *\"does it attach to the app/account, or to the software?\"* If it attaches to the",
+    "app, **self-hosting OSS does not bypass it** — OSS saves code, not compliance",
+    "(`references/decisions.md` §Where approvals attach)."
+   ],
+   "new": [
+    "- **Check where approvals attach (the self-host blind spot):** where an integration is gated by a third",
+    "party's approval, ask *\"does it attach to the app/account, or to the software?\"* If it attaches to the",
+    "app, **self-hosting OSS does not bypass it** — OSS saves code, not compliance",
+    "(`references/decisions.md` §Where approvals attach)."
+   ]
+  },
+  {
+   "id": "A26",
+   "what": "patterns and anti-patterns, adapted to this project",
+   "old": [
+    "- **Patterns & anti-patterns awareness:** know the established design patterns for this kind of system *and* its common anti-patterns (e.g. god-objects, tight coupling to a vendor, dead config, N+1 / blocking the event loop, distributed-monolith). Apply the right patterns; consciously avoid the anti-patterns — adapted to *this* project, not cargo-culted."
+   ],
+   "new": [
+    "- **Patterns & anti-patterns awareness:** the established patterns for this kind of system *and* its anti-patterns (god-objects, vendor coupling, dead config, N+1 / a blocked event loop, a distributed monolith)."
+   ]
+  },
+  {
+   "id": "A27",
+   "what": "provider/adapter for every external, swappable via .env",
+   "old": [
+    "- **Provider/adapter for every external:** no vendor SDK in business logic — wrap it behind a config-selected interface so it's swappable via `.env`."
+   ],
+   "new": [
+    "- **Provider/adapter for every external:** no vendor SDK in business logic — wrap it behind a config-selected interface so it's swappable via `.env`."
+   ]
+  },
+  {
+   "id": "A28",
+   "what": "no hardcoding, typed contracts",
+   "old": [
+    "- **No-hardcoding & typed contracts:** decisions must keep values in config and payloads typed."
+   ],
+   "new": [
+    "- **No-hardcoding & typed contracts:** decisions must keep values in config and payloads typed."
+   ]
+  },
+  {
+   "id": "A29",
+   "what": "the four constraint questions in ONE message (round 1, P37), nothing recommended before the answers, recorded as the constraint set (set refuses a missing `Constraint set:` part)",
+   "old": [
+    "**First ask these four, one per message, and recommend nothing before the answers** - every row is chosen against them: **1.** who builds and runs it (people, hours a week, languages they know) · **2.** money a month for hosting and AI at the start · **3.** infrastructure they will run (managed only · some · self-host) · **4.** lock-in they accept (any vendor · portable only). Record them as the constraint set."
+   ],
+   "new": [
+    "**Round 1: ask these in ONE message, numbered as written, and recommend nothing before the answers** - every row is chosen against them: **1.** who builds and runs it (people, hours a week, languages they know) · **2.** money a month for hosting and AI at the start · **3.** infrastructure they will run (managed only · some · self-host) · **4.** lock-in they accept (any vendor · portable only)"
+   ]
+  },
+  {
+   "id": "A30",
+   "what": "kind of system, matched to scope; the UI flag; 2-3 patterns and anti-patterns as ADRs",
+   "old": [
+    "1. **What kind of system is it?** (web app · API · CLI · data/ML · agentic). Match the scope, not ambition.",
+    "Note whether it has a **user-facing UI** and record it — `status.py flag --ui yes|no` (`MECHANISMS.md`",
+    "§Status) — `/design-system` runs after `/structure` for a UI product and is skipped for backend/API/CLI.",
+    "Then name the **2–3 design patterns** that fit it and the **2–3 anti-patterns** to avoid (current-year), and how this design honours/avoids them — record the notable ones as ADRs."
+   ],
+   "new": [
+    "1. **What kind of system is it?** (web app · API · CLI · data/ML · agentic). Match the scope, not ambition.",
+    "Note whether it has a **user-facing UI** and record it — `status.py flag --ui yes|no` (`MECHANISMS.md`",
+    "§Status) — it decides whether `/design-system` runs.",
+    "Then name the **2–3 design patterns** that fit it and the **2–3 anti-patterns** to avoid (current-year), and how this design honours/avoids them — record the notable ones as ADRs."
+   ]
+  },
+  {
+   "id": "A31",
+   "what": "stack core with a one-line why each; anything paid with its trigger",
+   "old": [
+    "2. **Choose the stack core** (language · framework · datastore · key libs). One-line why each; flag",
+    "anything paid and its trigger to adopt. **Two rules on how the rows are recorded:**"
+   ],
+   "new": [
+    "2. **Choose the stack core** (language · framework · datastore · key libs). One-line why each; flag",
+    "anything paid and its trigger to adopt. **Two rules on how the rows are recorded:**"
+   ]
+  },
+  {
+   "id": "A32",
+   "what": "provenance: exactly two values, an unvoiced default is the failure",
+   "old": [
+    "- **Every row carries its provenance** — `user-chosen` or `default taken, not user-chosen`, no third value (\"go with your recommendation\" is `default taken`). A default is fine; an **unvoiced** default is what nobody can decline."
+   ],
+   "new": [
+    "- **Every row carries its provenance** — `user-chosen` or `default taken, not user-chosen`, no third value (\"go with your recommendation\" is `default taken`)."
+   ]
+  },
+  {
+   "id": "A33",
+   "what": "a UI-tooling constraint binds the UI only",
+   "old": [
+    "- **A UI-tooling constraint binds the UI only.** React/shadcn decides what `frontend/` is written in and",
+    "says **nothing** about the server language. `/structure` derives the tree's shape from this row. (case file: One app by accident)"
+   ],
+   "new": [
+    "- **A UI-tooling constraint binds the UI only.** React/shadcn decides what `frontend/` is written in and",
+    "says **nothing** about the server language. (case file: One app by accident)"
+   ]
+  },
+  {
+   "id": "A34",
+   "what": "custody, runtime target per deployable unit (set refuses a row with no category), identity; one plain line on what running it means; decisions.md holds the trade-offs",
+   "old": [
+    "3. **Custody + runtime target — three questions that are NOT stack trivia.** *Where does the data live?*",
+    "(local/self-hosted · managed-serverless · embedded) · *Where does each part run?* — **list the",
+    "deployable units first** (the site, the API, a worker, a forwarder) and record a runtime target for EACH",
+    "(container-anywhere · a PaaS · a VPS · the user's machine · a static site / CDN) · *Who holds identity?*",
+    "(self-hosted auth vs the vendor's auth + RLS). Before the hosting question, explain in one plain line",
+    "what running it somewhere means for this product. The runtime target is what **`/deploy` later",
+    "executes**; the custody answer selects `/foundation`'s test-datastore recipe. **Open `references/decisions.md` §Custody, runtime and identity** for the",
+    "trade-offs and the recorded-default rule: a default is fine, an **unvoiced** default is not."
+   ],
+   "new": [
+    "3. **Custody + runtime target, from answers 5 and 6 - never asked again** (`references/decisions.md` §Custody, runtime and identity holds the trade-offs): *Where does the data live?*",
+    "deployable units first** (the site, the API, a worker, a forwarder) and record a runtime target for EACH",
+    "Explain in one plain line"
+   ]
+  },
+  {
+   "id": "A35",
+   "what": "a host the user chose still gets its facts (whole rule in decisions.md §Custody; set refuses a runtime field with no cost)",
+   "old": [
+    "**A host the user already chose still gets, in plain words:** what it costs, the free-tier limits and",
+    "what happens AT each one (throttled, blocked or billed), and 2–3 alternatives with why they lost. The",
+    "choice stands; the information is not skipped. (case file: \"Is it free?\")"
+   ],
+   "new": [
+    "**A host the user already chose still gets its facts** — cost, free-tier limits and what happens AT each, 2–3 alternatives (decisions.md §Custody). (case file: \"Is it free?\")"
+   ]
+  },
+  {
+   "id": "A36",
+   "what": "every external: its adapter interface and its resilience strategy",
+   "old": [
+    "4. **List every external** and the **adapter interface** it hides behind (`LLMProvider`, `Storage`) — *and*",
+    "its **failure/resilience strategy** (timeouts · retry-transient-only · fallback/circuit-breaker). That",
+    "is what keeps it swappable, testable and resilient."
+   ],
+   "new": [
+    "4. **List every external** and the **adapter interface** it hides behind (LLMProvider, Storage: plain names, backticks only around a path) — *and*",
+    "its **failure/resilience strategy** (timeouts · retry-transient-only · fallback/circuit-breaker)."
+   ]
+  },
+  {
+   "id": "A37",
+   "what": "perf/cost budget from the dominant cost, or aspirational and re-measured in /eval, or N/A",
+   "old": [
+    "5. **Set a rough perf/cost budget** where it matters (latency + cost-per-operation) — the stack choice",
+    "locks it in — or mark **N/A**. **Derive it from the dominant cost, don't guess:** name the single most",
+    "expensive step (a durable fsync, an LLM call, a network hop) and budget from a quick probe of *that*;",
+    "if you cannot probe now, write the budget as **explicitly aspirational** and commit to re-measuring in",
+    "`/eval`."
+   ],
+   "new": [
+    "5. **Set a rough perf/cost budget** (latency + cost-per-operation) or mark **N/A**. **Derive it from the dominant cost, don't guess:**",
+    "budgeted from a quick probe of *that*, or written as **explicitly aspirational**, re-measured in `/eval`."
+   ]
+  },
+  {
+   "id": "A38",
+   "what": "dev tooling: five slots picked from the stack, one line of why each",
+   "old": [
+    "6. **Name the dev tooling** — hook runner (pre-commit · lefthook · husky) · secret scanner · task runner",
+    "(`make` · npm scripts · just) · formatter/linter · dependency manifest. `/structure` scaffolds exactly these; an **unrecorded slot is filled from habit**, not the stack. Pick them from the stack you",
+    "just chose, one line of why each."
+   ],
+   "new": [
+    "6. **Name the dev tooling** — hook runner (pre-commit · lefthook · husky) · secret scanner · task runner",
+    "(`make` · npm scripts · just) · formatter/linter · dependency manifest. `/structure` scaffolds exactly these. Pick them from the stack you",
+    "just chose, one line of why each."
+   ]
+  },
+  {
+   "id": "A39",
+   "what": "AI: prompt-versioning, eval, tracing, model runtime config as ADRs; model release date; budget tied to config",
+   "old": [
+    "7. **If it's an AI product:** decide **prompt-versioning**, an **eval harness**, **LLM tracing** and the",
+    "**model runtime config** as ADRs — don't let them emerge. The model row names the model and its **release date** from its search; older than 12 months needs a stated reason. The budget depends on the runtime config (thinking effort, `max_tokens`, timeout, streaming, retry",
+    "and refusal fallback, caching): adaptive thinking is on **by default** and bills as output. **Tie the Step-5",
+    "budget to the recorded config** — `references/decisions.md` §AI runtime config."
+   ],
+   "new": [
+    "7. **If it's an AI product:** decide **prompt-versioning**, an **eval harness**, **LLM tracing** and the",
+    "The model row names the model and its **release date** from its search; older than 12 months needs a stated reason.",
+    "**Tie the Step-5 budget to the recorded runtime config** (thinking effort, `max_tokens`, timeout, streaming, retry and refusal fallback, caching — `references/decisions.md` §AI runtime config); the cost per use shows its working (tokens × price per 1M, from this run's page)."
+   ]
+  },
+  {
+   "id": "A40",
+   "what": "Agent: yes - the ten AGENT.md rows; the framework row gets its search",
+   "old": [
+    "**`Agent: yes`:** decide AGENT.md §Architect's ten rows; the framework row gets its search like any stack row."
+   ],
+   "new": [
+    "**`Agent: yes`:** decide AGENT.md §Architect's ten rows (`next` prints them); the framework row gets its search like any stack row."
+   ]
+  },
+  {
+   "id": "A41",
+   "what": "2-4 ADRs as files with a status line; the section carries the pointer; legacy inline ADRs keep their numbers",
+   "old": [
+    "8. **Record 2–4 ADRs** for the load-bearing choices — **as FILES, one per decision:",
+    "`docs/adr/NNNN-<slug>.md` with a `status:` line** (`accepted` / `superseded by ADR-N`), from",
+    "`templates/adr.md`. `#Architecture` then carries the **one-line summary and the pointer**, not the",
+    "paragraphs. A file is individually addressable and **supersedable**; a buried paragraph is neither. (case file: ADRs with no files) **A spine with inline legacy ADRs** keeps their",
+    "numbers: the first file takes the next one (`docs/adr/0011-…`), a legacy ADR moves to a file only when",
+    "it is edited or superseded, and `#Architecture` says where the file ADRs start."
+   ],
+   "new": [
+    "8. **Record 2–4 ADRs** for the load-bearing choices — **as FILES, one per decision:",
+    "A spine with inline legacy ADRs: `references/decisions.md` §Legacy ADRs."
+   ]
+  },
+  {
+   "id": "A42",
+   "what": "round 2: one recommendation, any clash, then one question that also asks to save (next.66)",
+   "old": [
+    "- Give **one recommendation** for the stack; get a yes/no. Keep it plain — explain *why* for a newcomer."
+   ],
+   "new": [
+    "then one question: *\"Anything to change? If not: Save this version of your project? (yes / no)\"*",
+    "Keep it plain — explain *why* for a newcomer; the table as approved becomes the `## Decisions` blocks of `docs/architecture.md`."
+   ]
+  },
+  {
+   "id": "A43",
+   "what": "the section is a record: one line per decision plus the ADR pointer; the fields",
+   "old": [
+    "**The section is a RECORD, not a container** (`PRINCIPLES.md`): one line per decision plus the pointer",
+    "to `docs/adr/*`. Fill `#Architecture`: stack+tools+why **with a provenance flag on every row** · **data custody · runtime target per deployable unit · identity custody** · (AI) **model runtime config** · **dev tooling** (hook runner · secret scanner · task runner · formatter/linter · dependency manifest) · ADRs (patterns/anti-patterns) · externals behind adapters + resilience · perf/cost budget · migrations approach · (AI) prompt-versioning/eval/tracing · (Agent) AGENT.md's ten rows."
+   ],
+   "new": [
+    "**The section is a RECORD, not a container** (`PRINCIPLES.md`): one line per decision plus the pointer",
+    "every field the exit criteria name, in the shape `next` printed."
+   ]
+  },
+  {
+   "id": "A44",
+   "what": "principle gate: adapters, resilience, migrations, tooling slots refused by `set` (code); patterns, secrets, stack fit judged; vague -> stop",
+   "old": [
+    "Walk this phase's load-bearing principles (Step 1) and confirm each is **concretely decided**, not hand-waved:",
+    "- every external actually has an adapter interface **and** a resilience strategy (no raw vendor SDK in logic);",
+    "- patterns/anti-patterns are *addressed by the design*, not just listed;",
+    "- secrets go to `.env` (none in code); a migrations approach exists for any datastore;",
+    "- **every dev-tooling slot is named and stack-appropriate** — `/structure` treats this line as the instruction for which files to write.",
+    "**If any is vague or missing, STOP and decide it.** (No code yet, so the evidence is concrete, consistent",
+    "decisions in `#Architecture`; `/build` later re-verifies them in code via `/code-review`.)"
+   ],
+   "new": [
+    "Walk this phase's load-bearing principles (Step 1) and confirm each is **concretely decided**, not hand-waved — `set` refuses a missing adapter, resilience strategy, migrations approach or dev-tooling slot",
+    "**If any is vague or missing, STOP and decide it.**"
+   ]
+  },
+  {
+   "id": "A45",
+   "what": "the close: set prints the checklist; save = the round-2 yes; transition guard; plain-language close ending with the printed handoff (next.66)",
+   "old": [
+    "**Close the loop (`MECHANISMS.md` §Step 3b):** record the phase's state — `status.py set architect filled` (`MECHANISMS.md` §Status) — reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work — this project's repo, name the branch, commit on a yes, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff)."
+   ],
+   "new": [
+    "**Close the loop (`MECHANISMS.md` §Step 3b):** the checklist `set architect filled` prints",
+    "--commit \"<one line>\"",
+    "(`MECHANISMS.md` §Commit the work)",
+    "**What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next**, ending with its `Open a NEW conversation` line word for word"
+   ]
+  },
+  {
+   "id": "A46",
+   "what": "Step 3c: against #Scope and #Plan - out-of-scope sizing, budget vs business model; name both sides, update the loser",
+   "old": [
+    "Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Scope` and `#Plan` — a stack sized for work that is explicitly out of scope is gold-plating, and a perf/cost budget must not contradict `#Vision`'s business model (paid infra against a free product). On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction."
+   ],
+   "new": [
+    "Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Scope` and `#Plan` — a stack sized for work that is explicitly out of scope is gold-plating, and a perf/cost budget must not contradict `#Vision`'s business model (paid infra against a free product). On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction."
+   ]
+  },
+  {
+   "id": "A47",
+   "what": "handoff: /structure next, or the chain starts now",
+   "old": [
+    "\"Stack and decisions recorded. Now build the **first concrete thing**: run **`/structure`** to lay",
+    "out clean folders and explain what each is for — or, if you chose the chain at Step 0, it starts now.\""
+   ],
+   "new": [
+    "\"Stack and decisions recorded. Next, **`/structure`** lays out the folders"
+   ]
+  },
+  {
+   "id": "A48",
+   "what": "open source vs self-hosting: moved to decisions.md §Custody",
+   "home": "commands/architect/references/decisions.md",
+   "old": [
+    "Open source often wins on lock-in, not automatically: self-hosting can cost a solo builder more than the licence it saves."
+   ],
+   "new": [
+    "open source often wins on lock-in, not automatically: self-hosting can cost a solo builder more than the licence it saves."
+   ]
+  },
+  {
+   "id": "A49",
+   "what": "legacy inline ADRs keep their numbers: moved to decisions.md §Legacy ADRs",
+   "home": "commands/architect/references/decisions.md",
+   "old": [
+    "numbers: the first file takes the next one (`docs/adr/0011-…`), a legacy ADR moves to a file only when",
+    "it is edited or superseded, and `#Architecture` says where the file ADRs start."
+   ],
+   "new": [
+    "numbers: the first file takes the next one (`docs/adr/0011-…`), a legacy ADR moves to a file only when",
+    "it is edited or superseded, and `#Architecture` says where the file ADRs start."
+   ]
+  }
+ ],
+ "dropped": [
+  {
+   "old": "Show its first line; close by its checklist.",
+   "why": "the close's steps print at `set architect filled` (close_steps_text); the start carries the habits only (P2)"
+  },
+  {
+   "old": "Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.",
+   "why": "the why of the bypass rule; the rule and its command stay"
+  },
+  {
+   "old": "## Step 2 — Guided decisions",
+   "why": "heading renamed: Guided decisions, in two rounds"
+  },
+  {
+   "old": "## Step 3b — Principle-gate: verify the decisions are real, not vague",
+   "why": "heading renamed: Principle-gate and close"
+  },
+  {
+   "old": "Before the hosting question, explain in one plain line",
+   "why": "kept as 'Explain in one plain line' (the hosting question is in round 2 now)"
+  },
+  {
+   "old": "trade-offs and the recorded-default rule: a default is fine, an **unvoiced** default is not.",
+   "why": "duplicate of the provenance rule in item 2 (A32) and decisions.md §Custody"
+  },
+  {
+   "old": "(No code yet, so the evidence is concrete, consistent",
+   "why": "the why; set now checks the countable part in code"
+  },
+  {
+   "old": "re-run this phase's own `evidence:` lines and report",
+   "why": "an /architect record has no evidence lines (no code yet); the verdict per criterion stays"
+  },
+  {
+   "old": "## Step 3c — Contradiction check (before the gate closes)",
+   "why": "heading renamed (next.66): 3c runs in round 2, before the yes; the close step 3 confirms it"
+  }
+ ]
+}

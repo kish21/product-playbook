@@ -41,3 +41,34 @@ proofs are new work at Step 3b, not repeats, so they always run.
 *Deliberately not added:* a git recipe for "what changed since the evidence", for the reason
 *The audit the review fix outran* records. #251's items 2 (one copy of the eight steps) and 4 (a tiered
 CVE gate) were declined by the owner and are not part of this change.
+
+## The skeleton nobody could log in to
+
+**A logged test run.** A health path proves the process booted, not that a human can get in: the app booted
+perfectly and nobody could log in. So for a product with auth the bar became *logging in* with the seeded account,
+not *200 OK*.
+
+## The override that leaves a trace
+
+Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace:
+without a recorded reason a later reader cannot tell a gate that held from a gate that was waved through. Hence
+`status.py bypass --reason "<the user's own words>"` before continuing.
+
+## The foundation that passed on paper
+
+**A logged agent test, three models on one product (2026-09-26).** One run (a fast, cheap model) closed `/foundation`
+with every required step in its run report and a run cost several times lower than the others. Run by hand, the skeleton
+failed where it mattered:
+- **It cited ten tests that do not exist** as `evidence:` lines — every gate passed, because gates checked that the
+  words were present, not that the claims were true.
+- **The app booted and answered `/health` with every placeholder secret set**: only a request handler ever called the
+  loader. The loader also gave six `CHANGE_ME` variables a hardcoded fallback, so production mode loaded a dev key.
+- **The commit hooks were configured and never installed** (`.git/hooks` empty); **no lockfile**; the tests ran on
+  SQLite under a Postgres design; the seed added order and refund models with money as a float and no migration.
+- The two runs on a stronger model met the phase, but one spent ~40 of 143 calls on its environment: a server that kept
+  port 8000 on Windows (14 calls), CRLF line endings (a `.gitattributes` `/structure` never wrote) and secret-scanner
+  tuning — about 30% of its cost, since each late call re-sent a 250k-token conversation.
+
+What changed: `set foundation filled` now resolves every cited file and test, and checks the installed hooks, the
+lockfile, fallback secrets and the test engine; `devserver.py` does start–check–stop in one call; `ci_local.py` runs
+the CI steps locally when there is no remote; `/structure` copies `templates/gitattributes` and `gitleaks.toml`.

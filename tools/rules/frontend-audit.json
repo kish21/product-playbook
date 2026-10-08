@@ -1,0 +1,722 @@
+{
+ "skill": "frontend-audit",
+ "base": "7244338",
+ "rules": [
+  {
+   "id": "FA01",
+   "what": ": Phase 2/3 of product playbook — the UI enforcement",
+   "old": [
+    "Phase 2/3 of product-playbook — the UI enforcement gate. Mechanically checks built UI (and its"
+   ],
+   "new": [
+    "Phase 2/3 of product-playbook — the UI enforcement gate. Mechanically checks built UI (and its"
+   ]
+  },
+  {
+   "id": "FA02",
+   "what": ": DESIGN.md) against the /design system universal laws, with a",
+   "old": [
+    "DESIGN.md) against the /design-system universal laws, with a REAL WCAG contrast engine"
+   ],
+   "new": [
+    "DESIGN.md) against the /design-system universal laws, with a REAL WCAG contrast engine"
+   ]
+  },
+  {
+   "id": "FA03",
+   "what": ": (OKLCH/hex → ratio) so contrast is computed, never asserted.",
+   "old": [
+    "(OKLCH/hex → ratio) so contrast is computed, never asserted. Use after building or changing UI,"
+   ],
+   "new": [
+    "(OKLCH/hex → ratio) so contrast is computed, never asserted. Use after building or changing UI,"
+   ]
+  },
+  {
+   "id": "FA04",
+   "what": ": before shipping, or in CI — run /frontend audit",
+   "old": [
+    "before shipping, or in CI — run /frontend-audit \"check my UI\", \"is this accessible\", \"audit the"
+   ],
+   "new": [
+    "before shipping, or in CI — run /frontend-audit \"check my UI\", \"is this accessible\", \"audit the"
+   ]
+  },
+  {
+   "id": "FA05",
+   "what": ": frontend\", \"did I break the design system\". Reports a",
+   "old": [
+    "frontend\", \"did I break the design system\". Reports a pass/warn/error scorecard and exits non-zero"
+   ],
+   "new": [
+    "frontend\", \"did I break the design system\". Reports a pass/warn/error scorecard and exits non-zero"
+   ]
+  },
+  {
+   "id": "FA06",
+   "what": ": on errors. Pairs with /design system (which sets the",
+   "old": [
+    "on errors. Pairs with /design-system (which sets the laws + DESIGN.md) and /new-component."
+   ],
+   "new": [
+    "on errors. Pairs with /design-system (which sets the laws + DESIGN.md) and /new-component."
+   ]
+  },
+  {
+   "id": "FA07",
+   "what": "`/frontend-audit` — the UI quality gate : # /frontend audit — the UI quality gate (mechanical",
+   "old": [
+    "# `/frontend-audit` — the UI quality gate (mechanical floor)"
+   ],
+   "new": [
+    "# `/frontend-audit` — the UI quality gate (mechanical floor)"
+   ]
+  },
+  {
+   "id": "FA08",
+   "what": "`/frontend-audit` — the UI quality gate : Part of the product playbook UI suite (mastered here;",
+   "old": [
+    "> Part of the **product-playbook UI suite** (mastered here; see `/design-system`). `/design-system`"
+   ],
+   "new": [
+    "> Part of the **product-playbook UI suite** (mastered here; see `/design-system`). `/design-system`"
+   ]
+  },
+  {
+   "id": "FA09",
+   "what": "`/frontend-audit` — the UI quality gate : decides the look and writes DESIGN.md + the 26",
+   "old": [
+    "> *decides* the look and writes `DESIGN.md` + the 26 universal laws; **this skill *enforces* the"
+   ],
+   "new": [
+    "> *decides* the look and writes `DESIGN.md` + the 26 universal laws; **this skill *enforces* the"
+   ]
+  },
+  {
+   "id": "FA10",
+   "what": "`/frontend-audit` — the UI quality gate : mechanically checkable subset so a guaranteed floor holds regardless",
+   "old": [
+    "> mechanically-checkable subset** so a guaranteed floor holds regardless of who built the screen."
+   ],
+   "new": [
+    "> mechanically-checkable subset** so a guaranteed floor holds regardless of who built the screen."
+   ]
+  },
+  {
+   "id": "FA11",
+   "what": "`/frontend-audit` — the UI quality gate : It does not judge taste/archetype fit — it checks",
+   "old": [
+    "> It does **not** judge taste/archetype fit — it checks what a machine can prove."
+   ],
+   "new": [
+    "> It does **not** judge taste/archetype fit — it checks what a machine can prove."
+   ]
+  },
+  {
+   "id": "FA12",
+   "what": "What it does: ## What it does",
+   "old": [
+    "## What it does"
+   ],
+   "new": [
+    "## What it does"
+   ]
+  },
+  {
+   "id": "FA13",
+   "what": "What it does: Runs audit.py (stdlib only, portable, ASCII output — no",
+   "old": [
+    "Runs `audit.py` (stdlib-only, portable, ASCII output — no `PYTHONUTF8` needed) over UI files and"
+   ],
+   "new": [
+    "Runs `audit.py` (stdlib-only, portable, ASCII output — no `PYTHONUTF8` needed) over UI files and"
+   ]
+  },
+  {
+   "id": "FA14",
+   "what": "What it does: DESIGN.md , and prints a scorecard. Exits non zero",
+   "old": [
+    "`DESIGN.md`, and prints a scorecard. **Exits non-zero if any ERROR-level law fails** (CI-friendly)."
+   ],
+   "new": [
+    "`DESIGN.md`, and prints a scorecard. **Exits non-zero if any ERROR-level law fails** (CI-friendly)."
+   ]
+  },
+  {
+   "id": "FA15",
+   "what": "Which engine runs — the installed one, n: ## Which engine runs — the installed one, never",
+   "old": [
+    "## Which engine runs — the installed one, never a search"
+   ],
+   "new": [
+    "## Which engine runs — the installed one, never a search"
+   ]
+  },
+  {
+   "id": "FA16",
+   "what": "Which engine runs — the installed one, n: python \"${CLAUDE_PLUGIN_ROOT}/commands/frontend audit/audit.py\" DESIGN.md <ui dir more...",
+   "old": [
+    "python \"${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py\" DESIGN.md <ui-dir> [more...]"
+   ],
+   "new": [
+    "python \"${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py\" DESIGN.md <ui-dir> [more...]"
+   ]
+  },
+  {
+   "id": "FA17",
+   "what": "Which engine runs — the installed one, n: Claude Code writes the loaded plugin's folder into that",
+   "old": [
+    "Claude Code writes the loaded plugin's folder into that path, so it is **the installed version**."
+   ],
+   "new": [
+    "Claude Code writes the loaded plugin's folder into that path, so it is **the installed version**."
+   ]
+  },
+  {
+   "id": "FA18",
+   "what": "Which engine runs — the installed one, n: Never search the plugin cache for audit.py : the",
+   "old": [
+    "**Never search the plugin cache for `audit.py`:** the cache keeps every old version, and a text sort"
+   ],
+   "new": [
+    "**Never search the plugin cache for `audit.py`:** the cache keeps every old version, and a text sort"
+   ]
+  },
+  {
+   "id": "FA19",
+   "what": "Which engine runs — the installed one, n: picks 1.9.0 over 1.48.0 — a real build ran",
+   "old": [
+    "picks `1.9.0` over `1.48.0` — a real build ran an engine missing five of today's checks that way. If"
+   ],
+   "new": [
+    "picks `1.9.0` over `1.48.0` — a real build ran an engine missing five of today's checks that way. If"
+   ]
+  },
+  {
+   "id": "FA20",
+   "what": "Which engine runs — the installed one, n: the path above still starts with a $ ,",
+   "old": [
+    "the path above still starts with a `$`, this is a copy install: the engine is"
+   ],
+   "new": [
+    "the path above still starts with a `$`, this is a copy install: the engine is"
+   ]
+  },
+  {
+   "id": "FA21",
+   "what": "Which engine runs — the installed one, n: frontend audit/audit.py in the installed skills folder ( .claude/skills/",
+   "old": [
+    "`frontend-audit/audit.py` in the installed skills folder (`.claude/skills/` or `.agents/skills/` in the"
+   ],
+   "new": [
+    "`frontend-audit/audit.py` in the installed skills folder (`.claude/skills/` or `.agents/skills/` in the"
+   ]
+  },
+  {
+   "id": "FA22",
+   "what": "Which engine runs — the installed one, n: project, else your tool's user skills folder, CAPABILITIES.md §Where",
+   "old": [
+    "project, else your tool's user skills folder, `CAPABILITIES.md` §Where the skills are installed); neither there →"
+   ],
+   "new": [
+    "project, else your tool's user skills folder, `CAPABILITIES.md` §Where the skills are installed); neither there →"
+   ]
+  },
+  {
+   "id": "FA23",
+   "what": "Which engine runs — the installed one, n: stop and say so. The scorecard's first line names",
+   "old": [
+    "stop and say so. **The scorecard's first line names the engine version — quote it in the evidence line.**"
+   ],
+   "new": [
+    "stop and say so. **The scorecard's first line names the engine version — quote it in the evidence line.**"
+   ]
+  },
+  {
+   "id": "FA24",
+   "what": "Which engine runs — the installed one, n: Hooks and CI run a project copy ( /foundation",
+   "old": [
+    "**Hooks and CI run a project copy** (`/foundation` commits it as `<tooling>/frontend-audit/audit.py`,"
+   ],
+   "new": [
+    "**Hooks and CI run a project copy** (`/foundation` commits it as `<tooling>/frontend-audit/audit.py`,"
+   ]
+  },
+  {
+   "id": "FA25",
+   "what": "Which engine runs — the installed one, n: because a clean clone has no plugin). Every run",
+   "old": [
+    "because a clean clone has no plugin). Every run of the installed engine ends with an `engine copy:`"
+   ],
+   "new": [
+    "because a clean clone has no plugin). Every run of the installed engine ends with an `engine copy:`"
+   ]
+  },
+  {
+   "id": "FA26",
+   "what": "Which engine runs — the installed one, n: line — the copy matches, is OLDER (refresh it:",
+   "old": [
+    "line — the copy matches, is **OLDER** (refresh it: the line names the file to copy), is newer (update"
+   ],
+   "new": [
+    "line — the copy matches, is **OLDER** (refresh it: the line names the file to copy), is newer (update"
+   ]
+  },
+  {
+   "id": "FA27",
+   "what": "Which engine runs — the installed one, n: the plugin), was edited in place, or does not",
+   "old": [
+    "the plugin), was edited in place, or does not exist (hooks and CI do not run the audit). **Repeat that"
+   ],
+   "new": [
+    "the plugin), was edited in place, or does not exist (hooks and CI do not run the audit). **Repeat that"
+   ]
+  },
+  {
+   "id": "FA28",
+   "what": "Which engine runs — the installed one, n: line to the user; an older copy means CI",
+   "old": [
+    "line to the user;** an older copy means CI passes on checks this run fails."
+   ],
+   "new": [
+    "line to the user;** an older copy means CI passes on checks this run fails."
+   ]
+  },
+  {
+   "id": "FA29",
+   "what": "What it checks (the mechanical subset of: ## What it checks (the mechanical subset of the",
+   "old": [
+    "## What it checks (the mechanical subset of the 20 laws)"
+   ],
+   "new": [
+    "## What it checks (the mechanical subset of the 20 laws)"
+   ]
+  },
+  {
+   "id": "FA30",
+   "what": "What it checks (the mechanical subset of: 7 — contrast (the headline) Computes WCAG ratio for",
+   "old": [
+    "| **7 — contrast (the headline)** | **Computes** WCAG ratio for every foreground/surface token pair — shadcn names **plus common aliases** (`--text`/`--surface`/`--bg`/`--text-muted`…) — (OKLCH or hex → relative luminance → ratio). `<4.5` body = ERROR, `3–4.5` = large-only WARN. **Anti-false-pass:** if colour tokens exist but no pair was checkable, it **WARNs \"unverified\"** rather than silently reporting ok. *This is the law `/design-system` could only assert.* |"
+   ],
+   "new": [
+    "| **7 — contrast (the headline)** | **Computes** WCAG ratio for every foreground/surface token pair — shadcn names **plus common aliases** (`--text`/`--surface`/`--bg`/`--text-muted`…) — (OKLCH or hex → relative luminance → ratio). `<4.5` body = ERROR, `3–4.5` = large-only WARN. **Anti-false-pass:** if colour tokens exist but no pair was checkable, it **WARNs \"unverified\"** rather than silently reporting ok. *This is the law `/design-system` could only assert.* |"
+   ]
+  },
+  {
+   "id": "FA31",
+   "what": "What it checks (the mechanical subset of: 7b — status colours, two bars Every status token",
+   "old": [
+    "| **7b — status colours, two bars** | Every status token (`--success`/`--warning`/`--destructive`/`--info` and friends) against `--card`/`--background`/`--popover`/`--muted`, in **both modes**. Held to **4.5:1** as text, or **3:1** when the token's *name* marks it a graphic (`-dot`, `-indicator`, `-fill`, `-bar`, `-chart`) - so one value can pass as a dot and fail as a label. Below its bar = ERROR, with the fix named. Opt out only by declaring the token `/* decorative */`. *This is where palettes actually drift: the shade is chosen for brightness so the dot reads as \"amber\", then reused as a label.* |"
+   ],
+   "new": [
+    "| **7b — status colours, two bars** | Every status token (`--success`/`--warning`/`--destructive`/`--info` and friends) against `--card`/`--background`/`--popover`/`--muted`, in **both modes**. Held to **4.5:1** as text, or **3:1** when the token's *name* marks it a graphic (`-dot`, `-indicator`, `-fill`, `-bar`, `-chart`) - so one value can pass as a dot and fail as a label. Below its bar = ERROR, with the fix named. Opt out only by declaring the token `/* decorative */`. *This is where palettes actually drift: the shade is chosen for brightness so the dot reads as \"amber\", then reused as a label.* |"
+   ]
+  },
+  {
+   "id": "FA32",
+   "what": "What it checks (the mechanical subset of: 14 — tokens only raw #hex in component code",
+   "old": [
+    "| 14 — tokens only | raw `#hex` in component code (outside `:root`) = ERROR |"
+   ],
+   "new": [
+    "| 14 — tokens only | raw `#hex` in component code (outside `:root`) = ERROR |"
+   ]
+  },
+  {
+   "id": "FA33",
+   "what": "What it checks (the mechanical subset of: 14b — tokens exist a var( token) nothing defines",
+   "old": [
+    "| **14b — tokens exist** | a `var(--token)` **nothing defines** = ERROR (cross-file: `audit.py DESIGN.md frontend/` resolves components against the design system in the same run). CSS drops such a declaration *silently* - the colour never arrives and nothing else reports it, so this is the one class the rest of the audit was blind to. `var(--x, fallback)` is exempt (a declared fallback is a choice). **Anti-false-pass:** references but no definitions anywhere in the set = WARN \"unverified\", never a pass. |"
+   ],
+   "new": [
+    "| **14b — tokens exist** | a `var(--token)` **nothing defines** = ERROR (cross-file: `audit.py DESIGN.md frontend/` resolves components against the design system in the same run). CSS drops such a declaration *silently* - the colour never arrives and nothing else reports it, so this is the one class the rest of the audit was blind to. `var(--x, fallback)` is exempt (a declared fallback is a choice). **Anti-false-pass:** references but no definitions anywhere in the set = WARN \"unverified\", never a pass. |"
+   ]
+  },
+  {
+   "id": "FA34",
+   "what": "What it checks (the mechanical subset of: 12 — motion transition: all / transition all =",
+   "old": [
+    "| 12 — motion | `transition: all` / `transition-all` = ERROR; transition on a layout/paint prop = WARN; heavy-motion lib without a `prefers-reduced-motion` guard = WARN |"
+   ],
+   "new": [
+    "| 12 — motion | `transition: all` / `transition-all` = ERROR; transition on a layout/paint prop = WARN; heavy-motion lib without a `prefers-reduced-motion` guard = WARN |"
+   ]
+  },
+  {
+   "id": "FA35",
+   "what": "What it checks (the mechanical subset of: 1 — distinctive font Inter/Roboto/Arial/system ui as the display",
+   "old": [
+    "| 1 — distinctive font | Inter/Roboto/Arial/system-ui as the **display** `--font-display` = ERROR; as the body face = WARN; **a display that is a width/weight variant of the body face (e.g. `Inter Tight` over `Inter`) = WARN** (near-twin, not a distinct identity) |"
+   ],
+   "new": [
+    "| 1 — distinctive font | Inter/Roboto/Arial/system-ui as the **display** `--font-display` = ERROR; as the body face = WARN; **a display that is a width/weight variant of the body face (e.g. `Inter Tight` over `Inter`) = WARN** (near-twin, not a distinct identity) |"
+   ]
+  },
+  {
+   "id": "FA36",
+   "what": "What it checks (the mechanical subset of: 3 — type floor any font size below 12px",
+   "old": [
+    "| 3 — type floor | any `font-size` below 12px (px **and** rem/em) = ERROR |"
+   ],
+   "new": [
+    "| 3 — type floor | any `font-size` below 12px (px **and** rem/em) = ERROR |"
+   ]
+  },
+  {
+   "id": "FA37",
+   "what": "What it checks (the mechanical subset of: 13 — states interactive elements but no :focus visible",
+   "old": [
+    "| 13 — states | interactive elements but no `:focus-visible` = WARN |"
+   ],
+   "new": [
+    "| 13 — states | interactive elements but no `:focus-visible` = WARN |"
+   ]
+  },
+  {
+   "id": "FA38",
+   "what": "What it checks (the mechanical subset of: 21 — responsive missing <meta viewport (html) = ERROR;",
+   "old": [
+    "| **21 — responsive** | missing `<meta viewport>` (html) = ERROR; multi-column/grid layout with **no** `@media`/`@container`/`auto-fit`/`minmax` = ERROR (desktop-only) |"
+   ],
+   "new": [
+    "| **21 — responsive** | missing `<meta viewport>` (html) = ERROR; multi-column/grid layout with **no** `@media`/`@container`/`auto-fit`/`minmax` = ERROR (desktop-only) |"
+   ]
+  },
+  {
+   "id": "FA39",
+   "what": "What it checks (the mechanical subset of: 22 — theming computes contrast in both :root (light)",
+   "old": [
+    "| **22 — theming** | computes contrast in **both** `:root` (light) and `.dark`; `:root` colour tokens but no `.dark` block = WARN (single-mode); **a `.dark` block but no `prefers-color-scheme` rule that swaps tokens = WARN** (system preference ignored — manual-toggle-only) |"
+   ],
+   "new": [
+    "| **22 — theming** | computes contrast in **both** `:root` (light) and `.dark`; `:root` colour tokens but no `.dark` block = WARN (single-mode); **a `.dark` block but no `prefers-color-scheme` rule that swaps tokens = WARN** (system preference ignored — manual-toggle-only) |"
+   ]
+  },
+  {
+   "id": "FA40",
+   "what": "What it checks (the mechanical subset of: 23 — live regions a value that looks computed/updated",
+   "old": [
+    "| **23 — live regions** | a value that looks computed/updated (`total`, `count`, `balance`, `status`…) with no `aria-live` and no `role=\"status\"` = WARN. Heuristic by nature — a regex cannot know what re-renders — so it warns rather than errors, and it is the check that would have caught a live \"You owe ₹253\" that was **silent to every screen reader** on a page scoring 86 pass / 0 errors |"
+   ],
+   "new": [
+    "| **23 — live regions** | a value that looks computed/updated (`total`, `count`, `balance`, `status`…) with no `aria-live` and no `role=\"status\"` = WARN. Heuristic by nature — a regex cannot know what re-renders — so it warns rather than errors, and it is the check that would have caught a live \"You owe ₹253\" that was **silent to every screen reader** on a page scoring 86 pass / 0 errors |"
+   ]
+  },
+  {
+   "id": "FA41",
+   "what": "What it checks (the mechanical subset of: 24 — semantics <div onClick with no role =",
+   "old": [
+    "| **24 — semantics** | `<div onClick>` with no `role` = ERROR (not focusable, not announced, not keyboard-operable) |"
+   ],
+   "new": [
+    "| **24 — semantics** | `<div onClick>` with no `role` = ERROR (not focusable, not announced, not keyboard-operable) |"
+   ]
+  },
+  {
+   "id": "FA42",
+   "what": "What it checks (the mechanical subset of: 25 — accessible names icon only <button / <a",
+   "old": [
+    "| **25 — accessible names** | icon-only `<button>`/`<a>` with no `aria-label` or visually-hidden text = ERROR; link text that names nothing (\"click here\", \"read more\") = WARN |"
+   ],
+   "new": [
+    "| **25 — accessible names** | icon-only `<button>`/`<a>` with no `aria-label` or visually-hidden text = ERROR; link text that names nothing (\"click here\", \"read more\") = WARN |"
+   ]
+  },
+  {
+   "id": "FA43",
+   "what": "What it checks (the mechanical subset of: 26 — heading order first heading below <h1 (html)",
+   "old": [
+    "| **26 — heading order** | first heading below `<h1>` (html) = WARN; a skipped level (`h2 → h4`) = WARN |"
+   ],
+   "new": [
+    "| **26 — heading order** | first heading below `<h1>` (html) = WARN; a skipped level (`h2 → h4`) = WARN |"
+   ]
+  },
+  {
+   "id": "FA44",
+   "what": "What it checks (the mechanical subset of: Markdown is treated as spec: only its colour tokens",
+   "old": [
+    "Markdown is treated as spec: only its colour **tokens** are contrast-checked; code-pattern rules are"
+   ],
+   "new": [
+    "Markdown is treated as spec: only its colour **tokens** are contrast-checked; code-pattern rules are"
+   ]
+  },
+  {
+   "id": "FA45",
+   "what": "What it checks (the mechanical subset of: skipped (so a DESIGN.md \"Don't: no transition: all \"",
+   "old": [
+    "skipped (so a `DESIGN.md` \"Don't: no `transition: all`\" line doesn't false-positive)."
+   ],
+   "new": [
+    "skipped (so a `DESIGN.md` \"Don't: no `transition: all`\" line doesn't false-positive)."
+   ]
+  },
+  {
+   "id": "FA46",
+   "what": "What it does NOT check (still human/judg: ## What it does NOT check (still human/judgment —",
+   "old": [
+    "## What it does NOT check (still human/judgment — by design)"
+   ],
+   "new": [
+    "## What it does NOT check (still human/judgment — by design)"
+   ]
+  },
+  {
+   "id": "FA47",
+   "what": "What it does NOT check (still human/judg: Archetype fit, visual hierarchy, layout matches archetype (Law 11),",
+   "old": [
+    "Archetype fit, visual hierarchy, layout-matches-archetype (Law 11), \"looks generic\", whether the"
+   ],
+   "new": [
+    "Archetype fit, visual hierarchy, layout-matches-archetype (Law 11), \"looks generic\", whether the"
+   ]
+  },
+  {
+   "id": "FA48",
+   "what": "What it does NOT check (still human/judg: sample was confirmed (Law 16). Those stay with /design",
+   "old": [
+    "sample was confirmed (Law 16). Those stay with `/design-system`'s stop-and-confirm. Some laws are"
+   ],
+   "new": [
+    "sample was confirmed (Law 16). Those stay with `/design-system`'s stop-and-confirm. Some laws are"
+   ]
+  },
+  {
+   "id": "FA49",
+   "what": "What it does NOT check (still human/judg: partial here (table header/cell alignment Law 20, caption tier",
+   "old": [
+    "partial here (table header/cell alignment Law 20, caption tier Law 3) — flagged as v1 follow-ups."
+   ],
+   "new": [
+    "partial here (table header/cell alignment Law 20, caption tier Law 3) — flagged as v1 follow-ups."
+   ]
+  },
+  {
+   "id": "FA50",
+   "what": "What it does NOT check (still human/judg: Accessibility (category J) is a floor, never a pass.",
+   "old": [
+    "**Accessibility (category J) is a floor, never a pass.** Laws 23–26 are the mechanically decidable"
+   ],
+   "new": [
+    "**Accessibility (category J) is a floor, never a pass.** Laws 23–26 are the mechanically decidable"
+   ]
+  },
+  {
+   "id": "FA51",
+   "what": "What it does NOT check (still human/judg: subset. Not checked, and not checkable from source: keyboard",
+   "old": [
+    "subset. **Not checked, and not checkable from source:** keyboard traps and tab order, focus management"
+   ],
+   "new": [
+    "subset. **Not checked, and not checkable from source:** keyboard traps and tab order, focus management"
+   ]
+  },
+  {
+   "id": "FA52",
+   "what": "What it does NOT check (still human/judg: across route changes, real screen reader output, alt text",
+   "old": [
+    "across route changes, real screen-reader output, alt-text *quality*, and meaning carried by colour"
+   ],
+   "new": [
+    "across route changes, real screen-reader output, alt-text *quality*, and meaning carried by colour"
+   ]
+  },
+  {
+   "id": "FA53",
+   "what": "What it does NOT check (still human/judg: alone. audit.py prints this list on every run, because",
+   "old": [
+    "alone. `audit.py` prints this list on every run, because a milestone that delegates its accessibility"
+   ],
+   "new": [
+    "alone. `audit.py` prints this list on every run, because a milestone that delegates its accessibility"
+   ]
+  },
+  {
+   "id": "FA54",
+   "what": "What it does NOT check (still human/judg: criterion to \"frontend audit passes with no errors\" is",
+   "old": [
+    "criterion to *\"frontend-audit passes with no errors\"* is relying on a check that cannot fail on most of"
+   ],
+   "new": [
+    "criterion to *\"frontend-audit passes with no errors\"* is relying on a check that cannot fail on most of"
+   ]
+  },
+  {
+   "id": "FA55",
+   "what": "What it does NOT check (still human/judg: what it appears to certify — and a check",
+   "old": [
+    "what it appears to certify — and a check like that stops anyone from looking."
+   ],
+   "new": [
+    "what it appears to certify — and a check like that stops anyone from looking."
+   ]
+  },
+  {
+   "id": "FA56",
+   "what": "How to use: ## How to use",
+   "old": [
+    "## How to use"
+   ],
+   "new": [
+    "## How to use"
+   ]
+  },
+  {
+   "id": "FA57",
+   "what": "run the audit over the UI + DESIGN.md - the start names both and the command (L3)",
+   "old": [
+    "1. After `/design-system` emits `DESIGN.md` and you've built screens (via `/new-component`), run the"
+   ],
+   "new": [
+    "1. Run the command the start printed (Step 0)."
+   ]
+  },
+  {
+   "id": "FA58",
+   "what": "the UI dirs + DESIGN.md, resolved by the start",
+   "old": [
+    "audit over the UI dir + `DESIGN.md`."
+   ],
+   "new": [
+    "UI in the project:",
+    "found - pass it in the same run, so the tokens resolve"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "FA59",
+   "what": "How to use: 2. Fix every ERROR (the floor is non negotiable);",
+   "old": [
+    "2. Fix every **ERROR** (the floor is non-negotiable); triage **WARN**. **A \"use a token\" fix is a fix only"
+   ],
+   "new": [
+    "2. Fix every **ERROR** (the floor is non-negotiable); triage **WARN**. **A \"use a token\" fix is a fix only"
+   ]
+  },
+  {
+   "id": "FA60",
+   "what": "How to use: when the token's class exists in the built CSS",
+   "old": [
+    "when the token's class exists in the built CSS** — search the build output for it. A utility class with"
+   ],
+   "new": [
+    "when the token's class exists in the built CSS** — search the build output for it. A utility class with"
+   ]
+  },
+  {
+   "id": "FA61",
+   "what": "How to use: no mapping to the token (Tailwind v4 without an",
+   "old": [
+    "no mapping to the token (Tailwind v4 without an `@theme` entry) emits no CSS, and the element ships"
+   ],
+   "new": [
+    "no mapping to the token (Tailwind v4 without an `@theme` entry) emits no CSS, and the element ships"
+   ]
+  },
+  {
+   "id": "FA62",
+   "what": "How to use: On a change to existing files, add baseline <git",
+   "old": [
+    "- **On a change to existing files, add `--baseline <git-ref>`** (`audit.py --baseline <ref> DESIGN.md <ui-dir>`):"
+   ],
+   "new": [
+    "- **On a change to existing files, add `--baseline <git-ref>`** (`audit.py --baseline <ref> DESIGN.md <ui-dir>`):"
+   ]
+  },
+  {
+   "id": "FA63",
+   "what": "How to use: only the findings this change ADDS are listed and",
+   "old": [
+    "only the findings this change ADDS are listed and counted toward the exit code; the findings already"
+   ],
+   "new": [
+    "only the findings this change ADDS are listed and counted toward the exit code; the findings already"
+   ]
+  },
+  {
+   "id": "FA64",
+   "what": "How to use: present at <ref are printed as one count. A",
+   "old": [
+    "present at `<ref>` are printed as one count. A bad ref or no git repository fails the run (exit 2),"
+   ],
+   "new": [
+    "present at `<ref>` are printed as one count. A bad ref or no git repository fails the run (exit 2),"
+   ]
+  },
+  {
+   "id": "FA65",
+   "what": "How to use: never a silent full pass. The whole file run",
+   "old": [
+    "never a silent full pass. The whole-file run stays the gate for a new screen and for `/dev-check`."
+   ],
+   "new": [
+    "never a silent full pass. The whole-file run stays the gate for a new screen and for `/dev-check`."
+   ]
+  },
+  {
+   "id": "FA66",
+   "what": "How to use: 3. It is a gate only where it runs",
+   "old": [
+    "3. It is a gate only where it runs without being remembered: `/foundation` wires the project copy into"
+   ],
+   "new": [
+    "3. It is a gate only where it runs without being remembered: `/foundation` wires the project copy into"
+   ]
+  },
+  {
+   "id": "FA67",
+   "what": "How to use: the commit hooks and CI ( exit 1 on",
+   "old": [
+    "the commit hooks and CI (`exit 1` on an ERROR blocks both; a WARN only reports). A project past"
+   ],
+   "new": [
+    "the commit hooks and CI (`exit 1` on an ERROR blocks both; a WARN only reports). A project past"
+   ]
+  },
+  {
+   "id": "FA68",
+   "what": "How to use: /foundation with no copy (the engine copy: line says",
+   "old": [
+    "`/foundation` with no copy (the `engine copy:` line says so) → wire it the same way."
+   ],
+   "new": [
+    "`/foundation` with no copy (the `engine copy:` line says so) → wire it the same way."
+   ]
+  },
+  {
+   "id": "FA-START",
+   "what": "one start command: engine, DESIGN.md, UI folders, the one audit command (P1, L3)",
+   "old": [],
+   "new": [
+    "**First turn, ONE command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase frontend-audit`**"
+   ]
+  },
+  {
+   "id": "FA-NOT",
+   "what": "what /frontend-audit must NOT do (P44)",
+   "old": [],
+   "new": [
+    "**Must NOT:** change `DESIGN.md` or a design decision, judge taste or archetype fit, or call 0 errors an"
+   ]
+  }
+ ],
+ "dropped": [
+  {
+   "old": "## Roadmap (v1 → v1.1)",
+   "reason": "the roadmap is a plan, not a rule; its follow-ups stay named in 'What it does NOT check' (Law 20, Law 3) and on the /frontend-audit ticket"
+  },
+  {
+   "old": "Config file for project-specific token pairs/ignore rules; table header/cell-alignment parsing",
+   "reason": "the roadmap is a plan, not a rule; its follow-ups stay named in 'What it does NOT check' (Law 20, Law 3) and on the /frontend-audit ticket"
+  },
+  {
+   "old": "(Law 20); caption-tier awareness (Law 3); generalise the existing `frontend_drift_detector.py` /",
+   "reason": "the roadmap is a plan, not a rule; its follow-ups stay named in 'What it does NOT check' (Law 20, Law 3) and on the /frontend-audit ticket"
+  },
+  {
+   "old": "`frontend_checkpoint_runner.py` patterns (RESPONSIVE/FORMS/SECURITY categories) into this one tool.",
+   "reason": "the roadmap is a plan, not a rule; its follow-ups stay named in 'What it does NOT check' (Law 20, Law 3) and on the /frontend-audit ticket"
+  }
+ ]
+}

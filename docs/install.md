@@ -8,7 +8,7 @@
 | Best for | new to product work — take the whole guided journey | you want everything, without the plugin system | you already have a process and want a few steps of it |
 | Call a skill as | `/product-playbook:vision` | `/vision` (the bare names used throughout this README) | `/vision` |
 | Updates | Automatic, once you enable it (step 3 below) | Nothing tracks the copy — re-run the installer | Same — re-run with the same `--only` |
-| Lives in | Claude Code's plugin cache, per scope | `~/.claude/commands/` (or `<project>/.claude/commands/`) | same as B |
+| Lives in | Claude Code's plugin cache, per scope | `~/.claude/skills/` (or `<project>/.claude/skills/`) | same as B |
 | Needs | Claude Code ≥ 2.0.70 | `bash` — on Windows, run from **Git Bash** | `bash` — on Windows, run from **Git Bash** |
 
 ### A. Plugin (recommended)
@@ -33,18 +33,30 @@ Rule files: each skill names them as `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` and `
 |---|---|
 | **Global** — one line, no clone | `curl -fsSL https://raw.githubusercontent.com/kish21/product-playbook/master/install.sh \| bash` |
 | **Global** — from a clone | `git clone https://github.com/kish21/product-playbook ~/product-playbook && cd ~/product-playbook && ./install.sh` |
-| **Project-level** — teammates get it on clone | `./install.sh --project /path/to/project` then commit `<project>/.claude/` |
+| **Project-level** — one project only, never committed | `./install.sh --project /path/to/project` (each teammate runs it; the playbook's save never commits the install) |
 | **Subset** — only the skills you name | `./install.sh --only build,ship` (remote: `curl -fsSL …/install.sh \| bash -s -- --only build,ship`) |
 
-What it puts where: the 22 skills → `~/.claude/commands/` (or `<project>/.claude/commands/`), plus the companions the skills read (`PRINCIPLES.md`, `MECHANISMS.md`, `MECHANISMS-ON-DEMAND.md`, `LESSONS.md`, `VISION.md`, `PRODUCT.md` template, `session_cost.py`) → `~/.claude/product-playbook/` (or `<project>/.claude/product-playbook/`). Each skill names its rule files by path. The installer rewrites those paths to this folder: a full path for a global install, and `.claude/product-playbook/…` for a project install, so the paths still work after a teammate clones.
+What it puts where: the 22 skills, each a `<name>/SKILL.md` folder → `~/.claude/skills/` (or `<project>/.claude/skills/`), plus the companions the skills read (`PRINCIPLES.md`, `MECHANISMS.md`, `MECHANISMS-ON-DEMAND.md`, `LESSONS.md`, `STATE-MODEL.md`, `CAPABILITIES.md`, `VISION.md`, the templates, the case files, `status.py`, `session_cost.py`) → `~/.claude/product-playbook/` (or `<project>/.claude/product-playbook/`). Each skill names its rule files by path. The installer rewrites those paths to this folder: a full path for a global install, and `.claude/product-playbook/…` for a project install, so the paths work wherever the project sits on disk.
 
 **Updating:** re-run the exact same command. It overwrites in place. There is no version check — if you want to be told about updates, use route A.
 
 #### C. Copy install, subset (`--only`)
 
-`--only` takes a comma-separated list of skill names — `./install.sh --only build,ship,drift-check`. It installs exactly those (flat skills and directory-form ones like `design-system`, with their `references/`) **plus the companions every skill reads** (`PRINCIPLES.md`, `MECHANISMS.md`, `MECHANISMS-ON-DEMAND.md`, `LESSONS.md`, `VISION.md`, the `PRODUCT.md` template, `session_cost.py`), which are never optional. It combines with `--project`. An unknown name installs nothing and prints the valid ones; `./install.sh --list` prints them on demand. Add more skills later by re-running with a new list — nothing already installed is removed.
+`--only` takes a comma-separated list of skill names — `./install.sh --only build,ship,drift-check`. It installs exactly those (each skill's folder, with its `references/` and engines) **plus the companions every skill reads** (`PRINCIPLES.md`, `MECHANISMS.md`, `MECHANISMS-ON-DEMAND.md`, `LESSONS.md`, `VISION.md`, the `PRODUCT.md` template, `session_cost.py`), which are never optional. It combines with `--project`. An unknown name installs nothing and prints the valid ones; `./install.sh --list` prints them on demand. Add more skills later by re-running with a new list — nothing already installed is removed.
 
-Skills stay runnable on their own, but a few **call other skills** when they are present — `/build` → `/code-review` and `/run`, `/ship` → `/security-review`, `/learn` → `/loop` or `/schedule`, `/eval` → `/enterprise-ai-audit` (AI products, optional). Those live outside this repo; if they are not installed, the composing skill runs without that step rather than failing.
+Skills stay runnable on their own, but a few **use your tool's own capabilities** — code review, security review, running the app, recurring checks. `CAPABILITIES.md` (installed beside the rules) names each tool's native way and the fallback; a run that uses a fallback says so in its close.
+
+### D. Cursor and Antigravity
+
+Both read skills as `<name>/SKILL.md` folders. The installer puts them where each tool looks and rewrites every path in them — Cursor and Antigravity never fill in Claude's plugin variable.
+
+| Scope | Command | Lands in |
+|---|---|---|
+| **Project** (both tools at once) | `./install.sh --project /path/to/project --tool cursor` | `<project>/.agents/skills/` + `<project>/.agents/product-playbook/` — commit `.agents/` |
+| **Global, Cursor** | `./install.sh --tool cursor` | `~/.cursor/skills/` |
+| **Global, Antigravity** | `./install.sh --tool antigravity` | `~/.gemini/config/skills/` |
+
+`--only` works the same way. On Windows run it from **Git Bash**. Call a skill as `/vision`, `/build`, …; each tool's way to review code, check security and run the app is in `CAPABILITIES.md` — and where a tool has no native way, the skill uses the fallback named there and tells you.
 
 ### Did it work?
 
@@ -53,5 +65,6 @@ Open a new Claude Code session and type `/playbook` (route A: `/product-playbook
 ### Uninstall
 
 - **A:** `/plugin uninstall product-playbook@product-playbook`, then `/plugin marketplace remove product-playbook`.
-- **B:** delete the 22 skill files/folders from `~/.claude/commands/` (or the project's) and the `product-playbook/` companions folder beside it.
+- **B:** delete the 22 skill folders from `~/.claude/skills/` (or the project's) and the `product-playbook/` companions folder beside it. An install made before the skills became folders also left them in `~/.claude/commands/` — re-running the installer removes those.
+- **D:** delete the 22 skill folders and the `product-playbook/` folder from the folder the installer named (`.agents/` in a project; `~/.cursor/` or `~/.gemini/config/` globally).
 

@@ -1,0 +1,175 @@
+{
+  "skill": "ship",
+  "base": "7244338",
+  "rules": [
+    {
+      "id": "SH01",
+      "what": "the rules: was 'open PRINCIPLES.md and MECHANISMS.md whole'; planned home: `next --phase ship` prints this phase's sections (PHASE_RULES['ship']); the close's print with `status.py release`; the load-bearing words stay",
+      "old": [
+        "> **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing: **reviews are DEEP not skims**, **fresh-eyes caller/cross-file"
+      ],
+      "new": [
+        "> **`status.py next --phase ship` prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** — apply them; never open the whole files (a situational companion only when a rule points into it). Load-bearing: **reviews are DEEP not skims**, **fresh-eyes caller/cross-file"
+      ]
+    },
+    {
+      "id": "SH02",
+      "what": "reads PRODUCT.md (all relevant sections) and the diff - planned: as `next` prints them (the diff's files, the ticket rows' reviews, the gates, #Project policy, CHANGELOG, #Deployment's rollback, the remote)",
+      "old": [
+        "- **Reads:** `PRODUCT.md` (all relevant sections), the diff."
+      ],
+      "new": [
+        "- **Reads:** what `next` prints — the diff, the reviews already run, the gates, `#Project policy`, the release record, `#Deployment`'s rollback."
+      ]
+    },
+    {
+      "id": "SH03",
+      "what": "one first message: `next --phase ship` + three files whole; read #Dev-complete/#Tests/#Evaluation + the diff, name each empty one, recommend its phase, an override is recorded on the release (--skipped) - planned: ONE first command prints them; kept",
+      "old": [
+        "- **One first message: run `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase ship` and read all of `PRINCIPLES.md`, `MECHANISMS.md`, `PRODUCT.md`.** Show its first line; close by its checklist.",
+        "- Read `#Dev-complete`, `#Tests`, `#Evaluation` and the diff. **Name each one that is empty** and"
+      ],
+      "new": [
+        "- **One first command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase ship`** — it prints the diff, the reviews already run, the gates and the rules; never open `PRODUCT.md` whole. Show its first line.",
+        "- `#Dev-complete`, `#Tests`, `#Evaluation` (the start prints each): **name each one that is not passed** and"
+      ]
+    },
+    {
+      "id": "SH04",
+      "what": "read #Project policy first - planned: the start prints its lines; the rule (declared once, applies here) stays",
+      "old": [
+        "- **Read `#Project policy` first, when the spine has one** (`MECHANISMS-ON-DEMAND.md` §Project policy): a project that wraps `/ship` in its own command declares its rules there once — never merge, no deploy, where releases are recorded, reviews already run in `/build` — and they apply here without the wrapper restating them."
+      ],
+      "new": [
+        "- **`#Project policy`** (the start prints it; `MECHANISMS-ON-DEMAND.md` §Project policy): a project that wraps `/ship` in its own command declares its rules there once — never merge, no deploy, where releases are recorded, reviews already run in `/build` — and they apply here without the wrapper restating them."
+      ]
+    },
+    {
+      "id": "SH05",
+      "what": "composed reviews are the costliest line: de-duplicate; read the ticket rows first; one subtask per session - planned: rules kept, the measured rationale shortened",
+      "old": [
+        "- **Composed reviews are the biggest line on that bill.** The cost rule below is not only about session",
+        "length: **the most expensive operation in the chain is the one most worth de-duplicating.** Read",
+        "the `STATUS.md` ticket rows before composing any review (Step 0).",
+        "- **One subtask per session:** ship this, then hand off — don't roll into the next subtask. This is also the **cost lever**: agent-session cost grows ~quadratically with length (every API call re-reads the full history), so a fresh session after the PR is materially cheaper than continuing — measured on a shipped project (97% of a month's token spend was cache re-reads from overlong sessions), not a vibe."
+      ],
+      "new": [
+        "- **The most expensive operation in the chain is the one most worth de-duplicating:** read the ticket rows (the start prints them) before composing any review.",
+        "- **One subtask per session:** ship this, then hand off — don't roll into the next subtask; a fresh session after the PR is the cost lever (every call re-sends the whole conversation)."
+      ]
+    },
+    {
+      "id": "SH06",
+      "what": "rollback taken from docs/deployment.md §6 if /deploy ran - planned: §7 (the template's Rollback section; §6 is Proof it works)",
+      "old": [
+        "4. **Rollout safety:** state the **rollback path** — **take it from `docs/deployment.md` §6 if `/deploy`"
+      ],
+      "new": [
+        "4. **Rollout safety:** state the **rollback path** — **take it from `docs/deployment.md` §7 if `/deploy`"
+      ]
+    },
+    {
+      "id": "SH07",
+      "what": "PR + handoff: Closes #N in the body + the release record; short handoff - planned: the PR opens AFTER `status.py release --dry-run` passes (#284 ship.md:86); a local-only project records `local-only: <branch> @ <sha>` (#284 ship.md:29)",
+      "old": [
+        "6. **PR + handoff:** open the PR — **`Closes #N`** goes in the **body**, not the title (a title keyword closes nothing) + the **release record**; write a short handoff (done / next / how to resume / blockers)."
+      ],
+      "new": [
+        "6. **PR + handoff:** after Step 3b's dry run passes, open the PR — **`Closes #N`** goes in the **body**, not the title (a title keyword closes nothing) + the **release record**; write a short handoff (done / next / how to resume / blockers). No remote (or `gh` signed out): no PR or issue — `--pr \"local-only: <branch> @ <sha>\"`."
+      ]
+    },
+    {
+      "id": "SH08",
+      "what": "record a release row with each round's scope and the gate count; a skipped test phase is said on the record - planned: `status.py release ... --dry-run` before the PR, `--commit` after; refused in code (ship_release_gaps)",
+      "old": [
+        "Record a release row — `status.py release --what \"<what shipped>\" --reviews \"<each round's scope and the gate count: R1 (diff) 4 findings · R2 skipped by the user: <reason> · gate ×1 <sha>>\" --skipped \"<none when the full chain ran; otherwise e.g. /test, /eval — <reason>>\" --docs \"<reconciled?>\" --record \"<the CHANGELOG entry, or n/a — releases recorded in <X>>\" --rollback \"<rollback / flag>\" --pr <link>` (`MECHANISMS.md` §Status). **A release whose test phase was skipped must say so on the release record** — an"
+      ],
+      "new": [
+        "--rollback \"<rollback / flag>\" --pr <link> --commit \"<one line>\"` (`MECHANISMS.md` §Status), after the same call with `--pr pending --dry-run` passed. **A release whose test phase was skipped must say so on the release record**"
+      ]
+    },
+    {
+      "id": "SH09",
+      "what": "self-verify: review/security/docs not done or a claim does not match -> STOP, do not open the PR - planned: it is the release --dry-run, run BEFORE the PR, so the stop can fire",
+      "old": [
+        "Check the boxes. **If review/security/docs aren't actually done, or a doc claim doesn't match the",
+        "code, STOP — do not open the PR.** Shipping a false claim is the exact failure to avoid."
+      ],
+      "new": [
+        "**Before the PR: `status.py release ... --pr pending --dry-run`** — every gap in one list, nothing written. **If review/security/docs aren't actually done, or a doc claim doesn't match the code, STOP — do not open the PR.** Shipping a false claim is the exact failure to avoid. A gap found after the PR opened: fix it on the same branch (the PR updates)."
+      ]
+    },
+    {
+      "id": "SH10",
+      "what": "close the loop - planned: the release call saves (--commit) and prints the rest of the close and the handoff; ship is filled by the release row (DERIVED), no `set ship filled`",
+      "old": [
+        "**Close the loop (`MECHANISMS.md` §Step 3b):** record the phase's state — `status.py set ship filled` (`MECHANISMS.md` §Status) — reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work — this project's repo, name the branch, commit on a yes, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff). **The close is the run's last message** — a composed review's report is input to it, never the close itself."
+      ],
+      "new": [
+        "the release row is the record (#ship is filled once it exists); `--commit` is the yes to *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work), and the call prints the rest of the close: reconcile any number against `#Vision`; **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not;",
+        "**What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next**, ending with its `Open a NEW conversation` line word for word. **The close is the run's last message** — a composed review's report is input to it, never the close itself."
+      ]
+    },
+    {
+      "id": "SH11",
+      "what": "handoff template claimed 'issue closed + board card moved to Done' while only the PR was open (#284 ship.md:94) - planned: claims only what was checked",
+      "old": [
+        "\"Shipped: reviewed, security-checked, docs reconciled, PR open, confidence recorded, **issue closed +",
+        "board card moved to Done**. **Start a fresh session** for the next subtask. After it lands, run"
+      ],
+      "new": [
+        "\"Shipped: reviewed, security-checked, docs reconciled, PR open, confidence recorded; **after the merge, the issue closed and the card moved — checked, not assumed** (Step 7). **Start a fresh session** for the next subtask. After it lands, run"
+      ]
+    },
+    {
+      "id": "SH12",
+      "what": "an override is recorded with the user's own reason via status.py bypass - kept word for word",
+      "old": [
+        "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from ship --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
+      ],
+      "new": [
+        "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from ship --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
+      ]
+    },
+    {
+      "id": "SH13",
+      "what": "security review on auth/data; for AI the OWASP LLM Top 10 - kept; next.69b adds the dependency scan the start names, its count in --reviews (#284 ship.md:33: the security checklist had no step)",
+      "old": [
+        "2. **Security:** apply Step 0 to this one too — a ticket row may already record a `/security-review`",
+        "over an unchanged auth/data surface. Otherwise run **`/security-review`** *if available* on auth/data, **inside a subagent** so its report returns as input and cannot end the run — otherwise your default security-audit pass over auth, capability tokens and data paths against `PRINCIPLES.md`'s production safeguards. For AI, run the OWASP LLM Top 10 / prompt-injection checklist."
+      ],
+      "new": [
+        "For AI, run the OWASP LLM Top 10 / prompt-injection checklist. Run the dependency scan the start names; its count goes in `--reviews`.",
+        "over an unchanged auth/data surface. Otherwise run **`/security-review`** *if available* on auth/data, **inside a subagent** so its report returns as input and cannot end the run — otherwise your default security-audit pass over auth, capability tokens and data paths against `PRINCIPLES.md`'s production safeguards. For AI, run the OWASP LLM Top 10 / prompt-injection checklist."
+      ]
+    },
+    {
+      "id": "SH14",
+      "what": "next.69b new (P44): what /ship must NOT do",
+      "old": [],
+      "new": [
+        "- **What this phase must NOT do:** start a new feature, or merge without the user's explicit word."
+      ]
+    },
+    {
+      "id": "SH15",
+      "what": "the countable gaps refused in code by `status.py release` (dry-run before the PR), the close printed after it",
+      "old": [],
+      "new": [
+        "def ship_release_gaps(st: \"Status\", a, base: Path) -> list[str]:",
+        "def ship_close_text(path: Path, today: str, commit: str | None) -> str:"
+      ],
+      "home": "tools/status.py"
+    }
+  ],
+  "dropped": [
+    {
+      "old": "Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.",
+      "why": "the reason, not a rule - the rule (record it with the user's own reason) is kept word for word (SH12)"
+    },
+    {
+      "old": "Check the boxes.",
+      "why": "no rule: the countable boxes are the release dry run's refusals; the transition guard is printed by the release call"
+    }
+  ]
+}

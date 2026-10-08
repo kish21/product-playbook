@@ -6,7 +6,7 @@
       "id": 0,
       "skill": "playbook",
       "prompt": "guide me through building a product",
-      "expected_output": "Orients from PRODUCT.md (empty -> proposes /vision; partial -> first unfilled phase); explains the journey in plain language; runs ONE phase at a time, pausing at each gate for confirmation; never skips a gate or auto-builds; writes nothing itself",
+      "expected_output": "Runs status.py route as its first call (no ls, no whole rule files) and orients from it (empty folder -> proposes /vision; partial -> first unfilled phase); explains the journey in plain language; asks one yes/no before invoking the phase; runs ONE phase per conversation, pausing at each gate for confirmation, and after the phase's close points to a new conversation instead of starting the next phase; never skips a gate or auto-builds; writes no PRODUCT.md section",
       "files": []
     },
     {
@@ -83,7 +83,7 @@
       "id": 8,
       "skill": "build",
       "prompt": "build the login feature",
-      "expected_output": "Declares security-in-DoD; reuse scan; verifies the LIVE path (not just units); /code-review on diff; prompts in YAML; no secret in code (fake keys in tests); single-responsibility (splits god-files); writes docs/features/* + PRODUCT.md#Build log with how-verified; flags if feature is OUT OF SCOPE",
+      "expected_output": "Declares security-in-DoD; reuse scan; verifies the LIVE path (not just units); /code-review on diff; prompts in YAML; no secret in code (fake keys in tests); single-responsibility (splits god-files); writes docs/features/* + a STATUS.md ticket row (status.py ticket) with how-verified; flags if feature is OUT OF SCOPE",
       "files": []
     },
     {
@@ -97,7 +97,7 @@
       "id": "dev-check-gate-fails-on-missing-evidence",
       "skill": "dev-check",
       "prompt": "everything on the plan is built, mark development complete so we can move to testing",
-      "expected_output": "FAILS the gate and stops rather than passing on the claim: names every core-scope feature with no #Build log row, no spot-run of the live path, or a 'done' recorded without HOW it was verified; checks the security DoD is actually present rather than promised; re-checks the built features against OUT-OF-SCOPE and flags creep; refuses to hand off to /test until each box is met with evidence, and writes the unmet items into PRODUCT.md#Dev-complete rather than leaving the section empty",
+      "expected_output": "FAILS the gate and stops rather than passing on the claim: names every core-scope feature with no STATUS.md ticket row, no spot-run of the live path, or a 'done' recorded without HOW it was verified; checks the security DoD is actually present rather than promised; re-checks the built features against OUT-OF-SCOPE and flags creep; refuses to hand off to /test until each box is met with evidence, and writes the unmet items into PRODUCT.md#Dev-complete rather than leaving the section empty",
       "files": []
     },
     {
@@ -125,7 +125,7 @@
       "id": 12,
       "skill": "ship",
       "prompt": "ship this feature and open a PR",
-      "expected_output": "Deep /code-review (traces callers) + /security-review + docs reconcile + CHANGELOG + security checklist (dep-vuln, CORS, cookie-auth, data-deletion) + confidence score + PR + handoff; STOPS if a doc claim doesn't match code; writes PRODUCT.md#Ship log",
+      "expected_output": "Deep /code-review (traces callers) + /security-review + docs reconcile + CHANGELOG + security checklist (dep-vuln, CORS, cookie-auth, data-deletion) + confidence score + PR + handoff; STOPS if a doc claim doesn't match code; records a STATUS.md release row (status.py release)",
       "files": []
     },
     {
@@ -139,14 +139,14 @@
       "id": 14,
       "skill": "drift-check",
       "prompt": "are we still on track or did we drift",
-      "expected_output": "Cross-checks built features vs Deferred/Non-goals (creep) + the inverse (unrecorded pivot), direction vs vision+metric, milestones + the concern-area checklist, and code↔docs; honest verdict; records confirmed drift in PRODUCT.md#Drift log (not #Learnings); does not advance the chain",
+      "expected_output": "Cross-checks built features vs Deferred/Non-goals (creep) + the inverse (unrecorded pivot), direction vs vision+metric, milestones + the concern-area checklist, and code↔docs; honest verdict; records confirmed drift as a STATUS.md drift row via status.py drift (not #Learnings); does not advance the chain",
       "files": []
     },
     {
       "id": 15,
       "skill": "drift-check",
       "prompt": "are we on track? (existing project: has CLAUDE.md + README, but NO PRODUCT.md)",
-      "expected_output": "Tier-2 spine resolution (PRINCIPLES.md): with no PRODUCT.md it resolves the spine from project docs (CLAUDE.md -> README -> docs/ -> AGENTS.md) and STATES which file it used as the spine; runs the normal drift check against that; on confirmed drift it reports to the user / offers to append to the project's log, and does NOT silently create a PRODUCT.md#Drift log",
+      "expected_output": "Tier-2 spine resolution (PRINCIPLES.md): with no PRODUCT.md it resolves the spine from project docs (CLAUDE.md -> README -> docs/ -> AGENTS.md) and STATES which file it used as the spine; runs the normal drift check against that; on confirmed drift it reports to the user / offers to append to the project's log, and does NOT silently create a PRODUCT.md or STATUS.md",
       "files": []
     },
     {
@@ -392,7 +392,7 @@
       "id": "scope-closes-the-loop",
       "skill": "scope",
       "prompt": "lock the scope",
-      "expected_output": "After writing #Scope, applies PRINCIPLES.md Step 3b: updates the Stage:/Last updated: header to this phase, reconciles any count/date/threshold it introduced against #Vision's north star and surfaces a contradiction instead of writing over it, and ends by suggesting a one-line commit message in the repo's existing convention",
+      "expected_output": "After writing #Scope, applies PRINCIPLES.md Step 3b: records the phase's state with status.py set scope filled, reconciles any count/date/threshold it introduced against #Vision's north star and surfaces a contradiction instead of writing over it, and ends by suggesting a one-line commit message in the repo's existing convention",
       "files": []
     },
     {
@@ -540,7 +540,7 @@
       "id": "adopt-infers-and-confirms",
       "skill": "adopt",
       "prompt": "we're halfway through building this — can you set the playbook up on it",
-      "expected_output": "Surveys the repo in Spine-resolution order (CLAUDE.md, README, docs/, AGENTS.md, CHANGELOG, package metadata, entry points, routes, tests, CI) and names the files it read; drafts PRODUCT.md filling ONLY what the repo evidences, tagging every inferred line '(inferred — confirm)'; leaves north star, riskiest assumption, business model and Non-goals EMPTY because code cannot supply them, and says so plainly rather than guessing; a Non-goal is never inferred from a missing feature; walks the owner section-by-section keep/correct/drop and writes nothing until that finishes; sets 'Stage: adopted <date>' with a provenance note and recommends the next skill from what is still empty",
+      "expected_output": "Surveys the repo in Spine-resolution order (CLAUDE.md, README, docs/, AGENTS.md, CHANGELOG, package metadata, entry points, routes, tests, CI) and names the files it read; drafts PRODUCT.md filling ONLY what the repo evidences, tagging every inferred line '(inferred — confirm)'; leaves north star, riskiest assumption, business model and Non-goals EMPTY because code cannot supply them, and says so plainly rather than guessing; a Non-goal is never inferred from a missing feature; walks the owner section-by-section keep/correct/drop and writes nothing until that finishes; writes a provenance note and records each confirmed section with status.py (set <phase> filled --note 'adopted <date>') and recommends the next skill from what is still empty",
       "files": []
     },
     {
@@ -561,7 +561,7 @@
       "id": "ship-gates-on-testing-not-just-eval",
       "skill": "ship",
       "prompt": "ship this feature",
-      "expected_output": "Reads #Dev-complete, #Tests AND #Evaluation — not #Evaluation alone — names every one that is empty and recommends the specific phase that fills it (/dev-check then /test then /eval); still allows shipping since standalone use is first-class, but records the skipped phases in the Ship log's Skipped column with a reason rather than leaving an empty section to imply it; treats the eval exception as bounded (docs/typo/revert only, nothing that changes product behaviour) instead of letting the shipper judge their own change 'small'",
+      "expected_output": "Reads #Dev-complete, #Tests AND #Evaluation — not #Evaluation alone — names every one that is empty and recommends the specific phase that fills it (/dev-check then /test then /eval); still allows shipping since standalone use is first-class, but records the skipped phases in the release row's --skipped with a reason rather than leaving an empty section to imply it; treats the eval exception as bounded (docs/typo/revert only, nothing that changes product behaviour) instead of letting the shipper judge their own change 'small'",
       "files": []
     },
     {
@@ -575,28 +575,28 @@
       "id": "eval-declined-run-leaves-a-trace",
       "skill": "eval",
       "prompt": "run /eval on this project",
-      "expected_output": "Finds #Tests (and #Dev-complete) empty, declines to measure, and — instead of leaving the repo byte-identical — writes ONE dated line at the top of #Evaluation (_Not run <date>: #Tests is empty — run /dev-check and /test first._) with every scaffold field left untouched, per MECHANISMS.md §Declined runs; the section still counts as UNFILLED so /playbook keeps routing to the missing phase, and a second declined run REPLACES that line rather than appending a second one",
+      "expected_output": "Finds #Tests (and #Dev-complete) empty, declines to measure, and — instead of leaving the repo byte-identical — records it with status.py set eval declined --reason '#Tests is empty' --gate test, with PRODUCT.md left untouched, per MECHANISMS.md §Declined runs; the section still counts as UNFILLED so /playbook keeps routing to the missing phase, and a second declined run REPLACES that note rather than appending a second one",
       "files": []
     },
     {
       "id": "eval-prior-gate-names-the-missing-phase",
       "skill": "eval",
       "prompt": "we finished the second feature this morning, evaluate how good the product is",
-      "expected_output": "Reads the spine BEFORE measuring and finds #Tests empty and #Dev-complete unchecked; names which phase is missing rather than scoring anyway, and recommends /dev-check then /test in that order; explains that a product mid-Build has no measurement baseline and that a score over an untested build would read as a quality verdict on unfinished work; still allows an explicit override for standalone use; records the stop as ONE dated _Not run_ line at the top of #Evaluation per MECHANISMS.md §Declined runs rather than filling the section; the north-star baseline check remains a separate second gate that fires once the prior phases are in place",
+      "expected_output": "Reads the spine BEFORE measuring and finds #Tests empty and #Dev-complete unchecked; names which phase is missing rather than scoring anyway, and recommends /dev-check then /test in that order; explains that a product mid-Build has no measurement baseline and that a score over an untested build would read as a quality verdict on unfinished work; still allows an explicit override for standalone use; records the stop with status.py set eval declined per MECHANISMS.md §Declined runs rather than filling the section; the north-star baseline check remains a separate second gate that fires once the prior phases are in place",
       "files": []
     },
     {
       "id": "playbook-reads-a-declined-run-note",
       "skill": "playbook",
       "prompt": "what's next? I think I already tried the evaluation step",
-      "expected_output": "Treats a section holding only a dated _Not run_ line as EMPTY — it stays the frontier and the phase that fills it is still the next phase — but names the earlier attempt instead of proposing it blind (/eval was tried on <date> and declined because #Tests was empty, so the missing phase is /test); distinguishes it from an Override line, which does count as filled and is surfaced rather than routed to",
+      "expected_output": "Runs status.py route and treats a declined phase as EMPTY — it stays the frontier and the phase that fills it is still the next phase — but names the earlier attempt instead of proposing it blind (/eval was tried on <date> and declined because #Tests was empty, so the missing phase is /test); distinguishes it from an overridden phase, which does count as done and is surfaced rather than routed to",
       "files": []
     },
     {
       "id": "validate-override-is-the-deliberate-skip-shape",
       "skill": "validate",
       "prompt": "we're not going to validate this, record that and move on",
-      "expected_output": "Records the skip as an Override <date>: <reason> line — the deliberate-skip shape of MECHANISMS.md §Declined runs, not a separate local rule — pressure-tested against #Vision first; keeps every experiment field present and marked '— not run (override <date>)' rather than blanking the section; unlike a _Not run_ note an override DOES count as filled (the phase is no longer owed) and /scope and /drift-check surface it every time they orient",
+      "expected_output": "Records the skip with status.py set validate overridden and the user's own reason — the deliberate-skip shape of MECHANISMS.md §Declined runs, not a separate local rule — pressure-tested against #Vision first; keeps every experiment field present and marked '— not run (override <date>)' rather than blanking the section; unlike a declined phase an override DOES count as done (the phase is no longer owed) and /scope and /drift-check surface it every time they orient",
       "files": []
     },
     {
@@ -624,28 +624,28 @@
       "id": "contracts-records-the-bypass-it-was-granted",
       "skill": "contracts",
       "prompt": "just write the schemas - I know foundation isn't set up, skip it, I'll wire the DB later this week",
-      "expected_output": "Warns that #Foundation is empty and offers /foundation first, then - because the user proceeds anyway - treats it as an OVERRIDE rather than a verbal yes: names the gate being bypassed, captures the reason in the user's own words ('I'll wire the DB later this week'), says it will be written down, and writes `Override <date>: <reason> - bypassed <gate>` at the top of #Contracts before continuing. Never advances on a spoken 'yes' that reaches no file",
+      "expected_output": "Warns that #Foundation is empty and offers /foundation first, then - because the user proceeds anyway - treats it as an OVERRIDE rather than a verbal yes: names the gate being bypassed, captures the reason in the user's own words ('I'll wire the DB later this week'), says it will be written down, and records it with `status.py bypass --from contracts --gate foundation --reason \"<the user's words>\"` before continuing. Never advances on a spoken 'yes' that reaches no file",
       "files": []
     },
     {
       "id": "playbook-surfaces-a-recorded-override-on-orient",
       "skill": "playbook",
       "prompt": "where are we?",
-      "expected_output": "Lists every `Override <date>: <reason> - bypassed <gate>` line found in the filled sections BEFORE proposing a next phase, quoting the gate and the user's own recorded reason, and offers the bypassed phase again - so a section written on unmet criteria is never silently indistinguishable from one whose gate held. Does not re-ask for a reason already recorded",
+      "expected_output": "Runs status.py route and lists every override and bypass it reports BEFORE proposing a next phase, quoting the gate and the user's own recorded reason, and offers the bypassed phase again - so a section written on unmet criteria is never silently indistinguishable from one whose gate held. Does not re-ask for a reason already recorded",
       "files": []
     },
     {
-      "id": "playbook-offer-states-the-sitting-and-the-warning",
+      "id": "playbook-offer-states-the-size-and-the-warning",
       "skill": "playbook",
       "prompt": "what's next? architecture and structure are done - it's a command-line tool",
-      "expected_output": "Offers /foundation alone or /foundation + /contracts + /tickets as one batch, and gives each option its sitting from §Sitting lengths with the playbook version it was measured on - /foundation's row for the single phase, the three rows added up for the batch - as agent working time plus the time the user takes to answer; says to start with room left on the plan, because a run a usage limit cuts off mid-review loses review steps; names no price and quotes no figure the table does not hold",
+      "expected_output": "Offers /foundation alone or /foundation + /contracts + /tickets as one batch, because status.py route prints `Batch: legal`, and says both are long ones (from its `Size:` line); says to start with room left on the plan, because a run a usage limit cuts off mid-review loses review steps; names no number of minutes and no price; ends with one question asking which to start",
       "files": []
     },
     {
-      "id": "playbook-says-not-measured-instead-of-estimating",
+      "id": "playbook-short-phase-offer-has-no-minutes",
       "skill": "playbook",
       "prompt": "every core feature is built - what now?",
-      "expected_output": "Offers /dev-check as the next phase and, because its row in §Sitting lengths reads `not measured yet`, says exactly that rather than estimating a length from similar phases; still gives the start-with-room-left warning; names no price",
+      "expected_output": "Offers /dev-check as the next phase, says it is a long one from status.py route's `Size:` line and gives the start-with-room-left warning; names no number of minutes (not even an estimate from similar phases) and no price; asks before invoking it",
       "files": []
     },
     {
@@ -715,7 +715,7 @@
       "id": "deploy-refuses-to-choose-a-host",
       "skill": "deploy",
       "prompt": "just deploy it wherever is easiest",
-      "expected_output": "Does not pick a host: if #Architecture records a runtime target it executes that one and says so; if it records none it warns, offers /architect first and allows a RECORDED override (Override <date>: <reason> - bypassed <gate>) rather than deploying to a host nobody chose, because that is how a project acquires infrastructure it cannot justify later",
+      "expected_output": "Does not pick a host: if #Architecture records a runtime target it executes that one and says so; if it records none it warns, offers /architect first and allows a RECORDED override (status.py bypass with the user's own reason) rather than deploying to a host nobody chose, because that is how a project acquires infrastructure it cannot justify later",
       "files": []
     },
     {
@@ -757,17 +757,17 @@
       "id": "ship-follows-the-projects-release-record-and-policy",
       "skill": "ship",
       "prompt": "ship it - note our CHANGELOG.md says it's retired, and our project policy says never merge",
-      "expected_output": "Reads #Project policy first and follows it without the user restating it: opens the PR and stops, never merging, and gives the post-merge tracker checks as commands in the close; reads the CHANGELOG's top lines, sees it is retired, and records n/a - releases recorded in <X> in the Ship log naming where, instead of adding an entry or recreating the file; never lets a policy skip a review of code no review has seen",
+      "expected_output": "Reads #Project policy first and follows it without the user restating it: opens the PR and stops, never merging, and gives the post-merge tracker checks as commands in the close; reads the CHANGELOG's top lines, sees it is retired, and records n/a - releases recorded in <X> in the release row's --record naming where, instead of adding an entry or recreating the file; never lets a policy skip a review of code no review has seen",
       "files": []
     },
     {
       "id": "build-security-review-does-not-end-the-run",
       "skill": "build",
       "prompt": "/build \"#9 host edits a party\"  (an auth/data surface: the host's staff link is the capability)",
-      "expected_output": "Runs /security-review inside a subagent so its report comes back as a result; records the verdict, then writes the feature doc and the Build log row, commits, and ends the run with the plain-language close (what just happened, what YOU do next) as the last message — never the security report.",
+      "expected_output": "Runs /security-review inside a subagent so its report comes back as a result; records the verdict, then writes the feature doc and the status.py ticket row, commits, and ends the run with the plain-language close (what just happened, what YOU do next) as the last message — never the security report.",
       "expectations": [
         "The security review runs inside a subagent, not inline in the main turn",
-        "Its verdict is recorded in the Build log row and the feature doc",
+        "Its verdict is recorded in the status.py ticket row and the feature doc",
         "The run continues after the report to the doc, the commit and the close",
         "The final message is the plain-language close, not the review report"
       ]
@@ -776,12 +776,12 @@
       "id": "build-review-fix-reruns-the-checks",
       "skill": "build",
       "prompt": "/build \"#9 host edits a party\"  (a UI ticket: /frontend-audit and /run ran clean; /code-review found a bug and an uncommitted script rewrote src/parties/PartyForm.tsx to fix it)",
-      "expected_output": "At Step 3b the uncommitted, scripted review fix counts as a code change, so it re-runs /frontend-audit and /run instead of citing them. A second review is not automatic: it tells the user what round 1 caught, then asks ONE question — review the files the fix touched, only? — with a recommendation and its reason. On yes it runs that scoped round and never a third; on no it records the skipped round and the reason in the Build log row.",
+      "expected_output": "At Step 3b the uncommitted, scripted review fix counts as a code change, so it re-runs /frontend-audit and /run instead of citing them. A second review is not automatic: it tells the user what round 1 caught, then asks ONE question — review the files the fix touched, only? — with a recommendation and its reason. On yes it runs that scoped round and never a third; on no it records the skipped round and the reason in the ticket row's --review.",
       "expectations": [
         "/frontend-audit and /run run again after the fix, before the close",
         "A second review is asked of the user, with a recommendation and its reason — never run automatically, never silently skipped",
         "If run, it is scoped to the files the fix touched, and there is never a third",
-        "A skipped round 2 is recorded in the Build log row with the reason",
+        "A skipped round 2 is recorded in the ticket row's --review with the reason",
         "Nothing about the fix is ruled unchanged because it is uncommitted or was made by a script"
       ]
     },
@@ -822,10 +822,10 @@
     {
       "id": "build-log-row-is-one-line",
       "skill": "build",
-      "prompt": "/build \"#14 export a report\"  (the fifth ticket of the milestone; PRODUCT.md#Build log already holds four entries, and the reviews found eleven things that were all fixed)",
-      "expected_output": "Appends ONE table row to #Build log — feature, DoD met, how verified in one line with the review rounds' scope, and the link to docs/features/<feature>.md — and puts the eleven findings, the defects and any Step 3c note in the feature doc. It finds the log's heading and its own ticket id with grep and never loads the existing rows.",
+      "prompt": "/build \"#14 export a report\"  (the fifth ticket of the milestone; STATUS.md already holds four ticket rows, and the reviews found eleven things that were all fixed)",
+      "expected_output": "Records ONE ticket row with status.py ticket — id, DoD met, how verified in one line, --runs, --review with the rounds' scope, and the link to docs/features/<feature>.md — and puts the eleven findings, the defects and any Step 3c note in the feature doc. A field past its limit is refused by status.py, and the detail goes to the feature doc.",
       "expectations": [
-        "The Build log gains exactly one table line",
+        "STATUS.md gains exactly one ticket row",
         "Findings, defects and round detail are in the feature doc, not the row",
         "The existing log is located with grep, not read into the conversation"
       ]
@@ -872,6 +872,19 @@
       "expectations": [
         "/frontend-audit runs again after the DESIGN.md edit, before the close",
         "The earlier clean audit is not cited as the UI evidence"
+      ]
+    },
+    {
+      "id": "validate-bar-is-measurable",
+      "skill": "validate",
+      "prompt": "The test: a shared Google Sheet linked from each household's group chat, nobody signs in. Pass = in at least 2 of 3 households, EVERY member marked at least 1 chore done in week 2.",
+      "expected_output": "Before the start date, says how each count in the bar is recorded and tied to a person; names that a Sheet edited without signing in logs edits as anonymous, so 'every member' cannot be counted as designed; recommends a fix (a name/date column, a per-person link, or a daily snapshot) and records it with the threshold; Step 3b refuses to hand off a bar the method cannot measure; while the test runs the phase stays running and is not marked filled",
+      "files": [],
+      "expectations": [
+        "Names the anonymous-edit problem (or equivalent: the method cannot show WHO ticked)",
+        "Recommends a concrete attribution fix before the start date",
+        "The recorded threshold says how each count is recorded",
+        "STATUS.md shows validate as running with a due date, not filled"
       ]
     }
   ]

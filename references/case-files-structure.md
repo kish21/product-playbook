@@ -44,3 +44,24 @@ function from the composition root, and add an import-graph check (`scripts/chec
 new `## Hub files` check read *every* backticked string under the heading as a path, so the first draft's
 prose (`/tickets`, `shared:`) failed the gate — the template now reads only the first backticked token of
 each table row or list item.
+
+## The tool nobody chose
+
+A `.pre-commit-config.yaml` scaffolded into a Node repo whose ADR chose lefthook makes the recorded trail
+describe a tool the repo does not use, and forces a Node contributor to install Python tooling to commit.
+Hence: every scaffolded tool matches `#Architecture`'s Dev tooling line.
+
+## The placeholder that booted
+
+`replace-me-with-32-plus-random-characters` is 48 characters and **passes** a `min(32)` check, so a copied
+`.env` boots the app on a signing key that is public in git. Hence `CHANGE_ME__<VAR>__CHANGE_ME`: a value no
+validator mistakes for a real one, rejected by name at boot.
+
+## The Makefile that passed on nothing
+
+A logged run on a second model scaffolded `make dev`, `make seed` and `make reset` as `@echo "wired in
+/foundation"` (exit 0), `make lint` running the structure check instead of the linters, and a golden eval test
+of `assertTrue(True)`: every command green, nothing tested. The same run left 5 of 6 modules without
+`tests/`, wrote no file convention, and recorded Alembic and a Render container with no `migrations/` or
+`Dockerfile`. The rules existed; only a check makes every model follow them, so `check_structure.py` now fails
+on each.

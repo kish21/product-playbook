@@ -1,0 +1,239 @@
+{
+  "skill": "eval",
+  "base": "7244338",
+  "rules": [
+    {
+      "id": "E01",
+      "what": "the rules: was 'open PRINCIPLES.md and MECHANISMS.md whole'; planned home: `next --phase eval` prints this phase's sections (PHASE_RULES['eval']), the close's sections print at `set eval filled` - the load-bearing words stay",
+      "old": [
+        "> **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them — load-bearing: **measure-first**, **evidence-based**, **eval/benchmark",
+        "> integrity (separate operational-failure from quality)**, **honest confidence score**, **surface gaps**."
+      ],
+      "new": [
+        "> **`status.py next --phase eval` prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** — apply them; never open the whole files (a situational companion only when a rule points into it); the close's sections print when `set eval filled` passes. Load-bearing here: **measure-first**, **evidence-based**, **eval/benchmark",
+        "integrity (separate operational-failure from quality)**, **honest confidence score**, **surface gaps**."
+      ]
+    },
+    {
+      "id": "E02",
+      "what": "reads #Vision, #Scope, #Plan, #Tests - planned: as `next` prints them (+ #Dev-complete and #Architecture's budget lines the start prints)",
+      "old": [
+        "- **Reads:** `PRODUCT.md#Vision`, `#Scope`, `#Plan` (the goal), `#Tests`."
+      ],
+      "new": [
+        "- **Reads:** `PRODUCT.md#Vision`, `#Scope`, `#Plan` (the goal), `#Tests`, `#Architecture`'s budget — as `next` prints them."
+      ]
+    },
+    {
+      "id": "E03",
+      "what": "'good' = #Vision's target + date; planned addition (#284 eval.md:26): a target readable only after launch is recorded `not yet readable` and the input metrics are measured now",
+      "old": [
+        "- [ ] A measurable definition of \"good\" tied to the vision/goal (a metric or a rubric) — **for a product with a north star, that definition IS `#Vision`'s target + date**, not a fresh rubric invented here. → `Is it good?`"
+      ],
+      "new": [
+        "**for a product with a north star, that definition IS `#Vision`'s target + date**, not a fresh rubric invented here; a target readable only after launch is recorded `not readable until <date>` and the input metrics are measured now. → `Is it good?`"
+      ]
+    },
+    {
+      "id": "E04",
+      "what": "one first message: `next --phase eval` + read PRINCIPLES, MECHANISMS, PRODUCT whole - planned: ONE first command, it prints the spine facts, fields and rules; never open those files whole (P1 P2)",
+      "old": [
+        "- **One first message: run `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase eval` and read all of `PRINCIPLES.md`, `MECHANISMS.md`, `PRODUCT.md`.** Show its first line; close by its checklist.",
+        "- Read `#Vision/#Scope/#Plan` for the goal and `#Tests` for what's covered."
+      ],
+      "new": [
+        "- **One first command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase eval`** — it prints the spine lines, the gates, the dataset, the `#Evaluation` fields and the rules; never open `PRODUCT.md` whole."
+      ]
+    },
+    {
+      "id": "E05",
+      "what": "gate on #Tests / #Dev-complete, offer /dev-check then /test, allow override, why - planned: kept; the start prints both phases' state so the run does not read the sections",
+      "old": [
+        "- **Gate on the phases that come before this one.** If `#Tests` is empty or `#Dev-complete` still has",
+        "unchecked boxes, **say which one is missing and offer the phase that fills it first** — `/dev-check`",
+        "then `/test` — but allow override (standalone use). A product mid-Build has nothing to evaluate, and",
+        "a score measured over an untested build reads as a quality verdict on work that was never claimed",
+        "finished."
+      ],
+      "new": [
+        "- **Gate on the phases that come before this one** (the start prints both). `#Tests` or `#Dev-complete` not passed → **say which one is missing and offer the phase that fills it first** — `/dev-check` then `/test` — but allow override (standalone use). A product mid-Build has nothing to evaluate, and a score measured over an untested build reads as a quality verdict on work that was never claimed finished."
+      ]
+    },
+    {
+      "id": "E06",
+      "what": "the baseline = #Vision's target + date, input metrics, guardrail, instrumentation line; a direction, not a target -> sharpen or /vision - planned: the start prints those #Vision lines; the sharpen rule stays in Step 0",
+      "old": [
+        "- Take the **target + date**, the",
+        "**input metrics** and the **guardrail** from `#Vision`'s north star — that is the measurement baseline, and",
+        "the **instrumentation line** says how to read it. If the north star is a direction rather than a target,",
+        "the goal is fuzzy: sharpen it with the user (or send them back to `/vision`) before measuring anything."
+      ],
+      "new": [
+        "- The **target + date**, the **input metrics** and the **guardrail** from `#Vision`'s north star are the measurement baseline, and the **instrumentation line** says how to read it (the start prints them). A direction rather than a target: the goal is fuzzy — sharpen it with the user (or send them back to `/vision`) before measuring anything."
+      ]
+    },
+    {
+      "id": "E07",
+      "what": "compose /enterprise-ai-audit if installed, else audit yourself and say which - planned: kept + REPORT ONLY (#284 §6: its fix step writes a Dockerfile, CI and code files unasked); /eval changes no product file (P44), `set` warns on one",
+      "old": [
+        "1. **Define \"good\":** the metric(s) or rubric that reflect the goal (e.g. accuracy, groundedness, latency, task success). For AI, compose **`/enterprise-ai-audit`** *if installed* — otherwise audit the same ground yourself and **say which you did** in the evidence line."
+      ],
+      "new": [
+        "For AI, compose **`/enterprise-ai-audit`** *if installed*, **report only** — its audit and its report, never its fix step (it writes a Dockerfile, CI and code files unasked) — otherwise audit the same ground yourself and **say which you did** in the evidence line.",
+        "- **What this phase must NOT do:** change product code, config or tests — a gap found is a finding for a ticket."
+      ]
+    },
+    {
+      "id": "E08",
+      "what": "fill #Evaluation: result + metrics, operational-failure count, confidence score - planned: the section file + `set eval filled --verdict pass|fail --section-from <file> --commit`, refused in code (eval_gaps)",
+      "old": [
+        "Fill `#Evaluation`: the measured result + metrics, operational-failure count (separated), and a",
+        "**confidence score** (solid / risky-untested / to-raise-it)."
+      ],
+      "new": [
+        "every `#Evaluation` field `next` printed — the measured result + metrics, operational-failure count (separated), and a **confidence score** (solid / risky-untested / to-raise-it)",
+        "`status.py set eval filled --verdict pass|fail --section-from <file> --commit \"<one line>\"`"
+      ]
+    },
+    {
+      "id": "E09",
+      "what": "report size, record test, one Read: line per companion - planned: `set` writes the size line and the Read: default; the record test stays",
+      "old": [
+        "**Measure what you wrote and receipt what you read** (`MECHANISMS-ON-DEMAND.md §Section is a record`, `MECHANISMS-ON-DEMAND.md §Read receipt`): report the section and file size in one line, then apply the record test to every field — reasoning moves into the companion, a tight answer stays whatever it weighs, never trim to a number; write one `Read:` line per companion opened, each quoting a fragment that occurs verbatim in that file. A pointer nobody can prove was followed is how a phase invents what the artefact would have said."
+      ],
+      "new": [
+        "`set` writes the size line and the `Read:` line; an input file you opened yourself gets a quote (`status.py quote <file> \"<words>\"`). Apply the record test to every field — reasoning moves into the companion, never trim to a number."
+      ]
+    },
+    {
+      "id": "E10",
+      "what": "close the loop: set eval filled --verdict, reconcile vs #Vision, save question, transition guard, four blocks, close is last - planned: confirm + save in ONE message with two options; `set ... --commit` saves and prints the rest of the close (CLOSE_STEPS['eval']) and the handoff",
+      "old": [
+        "**Close the loop (`MECHANISMS.md` §Step 3b):** record the phase's state — `status.py set eval filled --verdict pass|fail` (`MECHANISMS.md` §Status) — reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work — this project's repo, name the branch, commit on a yes, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff). **The close is the run's last message** — a composed skill's report is input to it, never the close itself."
+      ],
+      "new": [
+        "reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it)",
+        "*\"Anything to change? If not: Save this version of your project? (yes / no)\"* as \"Looks good - save (Recommended)\" · \"Change something\"",
+        "**run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not",
+        "**What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next**",
+        "**The close is the run's last message** — a composed skill's report is input to it, never the close itself."
+      ]
+    },
+    {
+      "id": "E11",
+      "what": "contradiction check heading - planned: done in round 2, before the yes; the close's step 3 confirms it",
+      "old": [
+        "## Step 3c — Contradiction check (before the gate closes)"
+      ],
+      "new": [
+        "## Step 3c — Contradiction check (in round 2, before the yes; the close's step 3 confirms it)"
+      ]
+    },
+    {
+      "id": "E12",
+      "what": "the principle gate: asserted not measured, no baseline, failures blended -> STOP; the countable half is refused in code (eval_gaps: baseline number, evidence line on a pass, operational count)",
+      "old": [
+        "Confirm: the number was **actually measured** against representative inputs (reproducible — show how);",
+        "it's compared to a **recorded baseline** and a regression **fails**; operational failures are counted",
+        "**separately** from quality. **If the result is asserted rather than measured, or failures are blended",
+        "into the quality number, STOP and fix it** — an un-measured or contaminated number is worse than none."
+      ],
+      "new": [
+        "**If the result is asserted rather than measured (reproducible — show how), not compared to a recorded baseline, or failures are blended into the quality number, STOP and fix it** — an un-measured or contaminated number is worse than none."
+      ]
+    },
+    {
+      "id": "E13",
+      "what": "next.69b new (P43): two question rounds, round 1 = every owner decision the start leaves open",
+      "old": [],
+      "new": [
+        "**Round 1, before measuring:** the start's numbered questions (inputs · baseline · a north star readable only after launch · a gate not passed)."
+      ]
+    },
+    {
+      "id": "E14",
+      "what": "the countable gaps refused in code, every problem in one list",
+      "old": [],
+      "new": [
+        "def eval_gaps(base: Path, st: \"Status\", verdict: str) -> list[str]:",
+        "gaps.append(\"--verdict pass with no `evidence:` line in #Evaluation"
+      ],
+      "home": "tools/status.py"
+    },
+    {
+      "id": "E15",
+      "what": "an override is recorded with the user's own reason, via status.py bypass - kept word for word",
+      "old": [
+        "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from eval --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
+      ],
+      "new": [
+        "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from eval --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
+      ]
+    },
+    {
+      "id": "E16",
+      "what": "measure on a representative set, reproducible; an aspirational latency budget gates the isolated layer; no single-digit-ms budget certified on a shared box - kept word for word",
+      "old": [
+        "2. **Measure** against a representative set; record the numbers + how they were produced (so they're reproducible). **Re-measuring an aspirational overhead/latency budget?** Gate the **isolated** layer's delta — *not* the end-to-end number a noisy carried baseline (an fsync tail, GC, a slow neighbour) swamps; a **negative or wildly variable p95** is the tell you're measuring noise, not the layer (a category error). And **don't certify a single-digit-ms budget on a shared/dev box** — re-measure on a dedicated target (Linux/SSD CI) before quoting a canonical number."
+      ],
+      "new": [
+        "2. **Measure** against a representative set; record the numbers + how they were produced (so they're reproducible). **Re-measuring an aspirational overhead/latency budget?** Gate the **isolated** layer's delta — *not* the end-to-end number a noisy carried baseline (an fsync tail, GC, a slow neighbour) swamps; a **negative or wildly variable p95** is the tell you're measuring noise, not the layer (a category error). And **don't certify a single-digit-ms budget on a shared/dev box** — re-measure on a dedicated target (Linux/SSD CI) before quoting a canonical number."
+      ]
+    },
+    {
+      "id": "E17",
+      "what": "the companion holds the reasoning; #Evaluation stays a RECORD - kept, shortened (the record test and no byte cap are in the exit criterion and MECHANISMS-ON-DEMAND.md §Section is a record, printed at the close)",
+      "old": [
+        "- **Companion:** `docs/evaluation.md` — the reasoning, workings and raw notes. `PRODUCT.md#Evaluation` stays a",
+        "RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay."
+      ],
+      "new": [
+        "- **Companion:** `docs/evaluation.md` — the reasoning, workings and raw notes; `#Evaluation` stays a RECORD.",
+        "Size is reported, never trimmed to."
+      ]
+    },
+    {
+      "id": "E18",
+      "what": "a re-run follows the RE-RUN line: one question listing what would change, never a silent overwrite; the dated superseded line is in MECHANISMS.md §Re-run semantics, printed by the start",
+      "old": [
+        "- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** a filled section → follow the `RE-RUN` line `next` prints: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line."
+      ],
+      "new": [
+        "- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** follow the `RE-RUN` line `next` prints — **one question listing what would change**, never a silent overwrite."
+      ]
+    },
+    {
+      "id": "E19",
+      "what": "stopping at an unmet gate records declined and changes nothing in PRODUCT.md - kept (the start prints the same command)",
+      "old": [
+        "- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** record it — `status.py set eval declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`."
+      ],
+      "new": [
+        "- **The gate is unmet and the run stops here (`MECHANISMS.md` §Declined runs):** `status.py set eval declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` — and change nothing in `PRODUCT.md`."
+      ]
+    },
+    {
+      "id": "E20",
+      "what": "a reversed decision keeps a dated superseded line - home: MECHANISMS.md §Re-run semantics, printed word for word by `next --phase eval`",
+      "old": [],
+      "new": [
+        "a `superseded <date>: <why>` line, including a recommendation the user reversed"
+      ],
+      "home": "references/mechanisms.md"
+    }
+  ],
+  "dropped": [
+    {
+      "old": "*(A real run stopped here correctly — on judgement, because the skill never asked.)*",
+      "why": "history, not a rule: the gate it describes is now asked by the skill and printed by the start"
+    },
+    {
+      "old": "Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.",
+      "why": "the reason, not a rule - /plan and /tickets dropped the same sentence; the rule itself (record it with the user's own reason) is kept word for word (E15)"
+    },
+    {
+      "old": "(This is the budget-*checking* half of `/architect`'s \"set it aspirational + re-measure here\".)",
+      "why": "a cross-reference, not a rule: /architect's own text says to set the budget aspirational and re-measure it in /eval"
+    }
+  ]
+}

@@ -97,3 +97,22 @@ Ship log says where it went, in words.
 The same run went through a wrapper: the project's own ticket command, which called `/build` and `/ship`. It
 had to restate "do not merge, do not deploy, do not re-run the deep review" every time, because nothing in
 the playbook let a project say so once. `#Project policy` is that place.
+
+## The gate that ran for every fix
+
+**Two logged `/ship` runs, 2026-09-22.** Both shipped a ticket whose `/build` had skipped its second review
+round, so `/ship`'s first review was the one nobody had run — and it earned its place: on one run it found a
+MEDIUM, a resumed job that could pay the paid judge twice for the same attempt.
+
+What followed had no bound. The first run reviewed its own fix (a third round: 18 minutes, 122k tokens,
+no blocking finding, three wording-level LOWs) and started the full gate six times — once before the fix
+the review then asked for, once after it, twice more after a failure that turned out to be its own
+background gate and a foreground test holding the same test-database file, once for the backend alone,
+and once at the end. Only the last one said anything about the tree that shipped. The second run did the
+opposite: it ran the gate, then made the fixes its review asked for, and opened the PR without running it
+again — the gate it cited was older than the code it vouched for. The two runs also wrote 25 patch scripts
+between them; `/ship` had no rule against it.
+
+**The rules:** the review Step 0 finds unrun still runs; a review of `/ship`'s own fixes is the user's call,
+asked once with a recommendation; no round 3. Tests while fixing are the files that import what changed;
+the full gate runs once, after the last fix; never two test runs at once.

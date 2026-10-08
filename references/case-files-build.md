@@ -593,7 +593,7 @@ The output was good — every guard the closes claimed had been triggered, every
 green, the schema matched the migrations, the pointers resolved. The bill was the problem. About 60 %
 of each derivation phase was **cache re-reads of a context that tool output had grown**: `pnpm run ci`
 logs pasted whole, files read back in full after every edit, Docker build output, three-screen test
-runs. `/build` Step 1 had said "bulky output to files, broad searches to subagents" since #31. Three
+runs. `/build` Step 1 had said "bulky output to files, broad searches to subagents" since a logged run. Three
 consecutive phases did not do it, because `/build` was not the skill running.
 
 The closes compounded it: `/design-system` estimated "$1.50–2.50" (real: ~$20); `/foundation` and
@@ -853,3 +853,22 @@ The audit's fix for a raw hex value is "use a token". On a logged build the obvi
 `bg-primary`. The project ran Tailwind v4 with no `@theme` entry mapping `--primary`, so `bg-primary` emitted
 no CSS at all. Following the audit's own advice would have shipped an element with no background: invisible,
 and passing every check. The class has to exist in the built CSS before the fix counts.
+
+## The suite that ran for every edit
+
+**A logged `/build`, 2026-09-22.** The skill said *"the affected files while you iterate, the full suite once
+at the gate"*. The run ran the full backend suite seven times — about 16 minutes of the build's 24 minutes of
+test and check commands — where the skill asked for two: the gate and the close. Its own words before each
+extra run show why: *"a test imports the helper straight from the service, which my earlier search missed"*,
+*"next I'll find every fake generator in the tests"*. After a change to a shared signature it could not say
+which tests were affected, so it ran all of them. After round 1's fixes it ran the full suite and then the
+close gate, which runs the same suite again. It had also switched off the test runner's cache, which is what
+re-runs only the failures.
+
+"Affected" was a judgement with no method, and it sat in the live-path step, two steps after the coding it
+governed; Step 3b's *"when unsure, re-run"* — written for the gate — read as the fallback. A rule a strong
+model breaks, a smaller model breaks sooner.
+
+**The rule:** name the method — the test files that import a module you changed, found by `grep -rl`, then
+only the failing tests — put it where the coding happens, keep the full suite to the gate and the close, and
+write the count in the `#Build log` row.

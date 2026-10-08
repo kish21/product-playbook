@@ -9,7 +9,7 @@ description: >
   Thinks like a 2026 senior designer and explains the why for a non-designer. Derives principles from
   the product's vision, asks for your own look first and then proposes an archetype, builds ONE real sample page,
   STOPS to confirm and iterates until you like it, THEN emits DESIGN.md. Spine-optional: runs standalone.
-  Reads PRINCIPLES.md + references/universal-laws.md (the enforced quality floor). Run /foundation next.
+  Run /foundation next.
 ---
 
 # `/design-system` — Phase 2 · Development · run as a **2026 senior product designer + mentor**
@@ -17,32 +17,24 @@ description: >
 > Part of **product-playbook**. Reads the spine (`PRODUCT.md`, or the project's existing docs — resolve
 > per `MECHANISMS.md` §Spine resolution); writes `DESIGN.md` + `PRODUCT.md#Design`.
 > **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
-> **This skill's OWN reference files are a DIFFERENT folder** — they live in `references/` **beside this SKILL.md** (`commands/design-system/references/`), not in the plugin-root `references/` named above. Both install routes put them there. Below, `archetypes.md` · `build-loop.md` · `craft.md` · `design-md-template.md` · `page-patterns.md` · `palettes.md` · `theme-studio.md` · `universal-laws.md` each mean that folder: open them by that path, and never look for them next to MECHANISMS.md.
-> **Open `PRINCIPLES.md` and `MECHANISMS.md` before the first step** (paths above; a situational companion only when a rule points into it), then apply them.
-> **Always enforces the quality floor** — load `references/universal-laws.md` (the 26 fixed UI laws) and
-> `PRINCIPLES.md` (*Accessibility (UI)* + 5-step spine). The look changes per product; the laws never do.
+> **This skill's OWN reference files are a DIFFERENT folder:** `R` = folder of `${CLAUDE_PLUGIN_ROOT}/commands/design-system/references/archetypes.md`, never the plugin-root `references/`. **Each turn's sections come in ONE call the start prints** (`--step foundations|sample|write`).
+> **`status.py next --phase design-system` prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** — apply them; never open the whole files (a situational companion only when a rule points into it); the close rules print at `set design-system filled`.
+> **Quality floor, every run:** `references/universal-laws.md` (26 fixed laws), printed by the `--step` calls;
+> `PRINCIPLES.md` *Accessibility (UI)* + its 5-step spine come printed. The look changes per product; the laws never do.
 
-> **Lens throughout: a brand-new, non-designer user.** Plain language, **decide FOR them with a clear
-> default + the why** (teach-mode), never a jargon matrix. They are here to *learn* design, not just
-> receive a file.
-
-> **You run as the designer; the laws are only your floor.** Reason in a senior designer's *order* —
-> **user + context → content priority & hierarchy → mobile-first → touch ergonomics → restraint →
-> tokens** (`references/craft.md` §Designer order) — and explain each move like a mentor. **Lead with the
-> design decision; cite the law as the guardrail**, never the other way round.
-
-> **What this skill is — and isn't** (`references/build-loop.md` §What this skill is — and isn't):
-> its edge is **real apps**, and it **reuses** shadcn/ui + 21st.dev rather than out-designing them.
-> **Honesty boundary (Law 19):** for a *simple* marketing/brochure page, say so and point the user to
-> Anthropic's `frontend-design` instead.
+> **The user is a non-designer.** Plain language; every choice is **a decided default + a one-line why**,
+> never a jargon matrix. Decide in this order: **user + context → content priority → mobile-first → touch
+> → restraint → tokens** (`references/craft.md` §Designer order). **Lead with the design decision; cite
+> the law as the guardrail.**
+> **A simple marketing/brochure page (Law 19):** point the user to Anthropic's `frontend-design`
+> (`references/build-loop.md` §What this skill is — and isn't); this skill is for real apps (shadcn/ui + 21st.dev).
 
 ## Contract
 - **Purpose:** principles → confirmed sample page → a concrete, archetype-correct `DESIGN.md` harness.
-- **Reads:** spine `#Vision`/`#Scope`/`#Architecture` (or discovers the vision if there's none);
-  every file in `references/` — universal-laws · archetypes · design-md-template · page-patterns ·
-  palettes · craft · theme-studio · build-loop.
+- **Reads:** spine `#Vision`/`#Scope`/`#Architecture` (or discovers the vision if there's none); the
+  references above, each at the step that names it.
 - **Writes:** `DESIGN.md` (9-section standard, shadcn CSS-variable tokens) · **the token stylesheet the
-  app actually loads** (`src/app/globals.css` or where `STRUCTURE.md` puts it) · one approved **sample page**
+  app loads** (`src/app/globals.css` or where `STRUCTURE.md` puts it) · one approved **sample page**
   · `PRODUCT.md#Design` (principles + archetype + token summary + paths).
 - **Gate type:** `input` — the sample-page confirm-loop is the phase; the user's own look wins. **Never batched** - skipping it fabricates the product's premise. (`STATE-MODEL.md` §2d)
 - **State model** (`STATE-MODEL.md` §2c): writes `#Design` · `declined` ✓ · `override` ✓ · `superseded` ✓
@@ -52,147 +44,123 @@ description: >
   - [ ] **4–6 design principles** derived from the product's purpose + audience, each with a plain-language *why*.
   - [ ] **The user was asked for their own reference BEFORE any archetype family was named**, and answered
     the 3-question picker themselves (a recommended answer offered for each). Proposing first and asking
-    second **fails this gate** — it anchors the answer. The user's own idea then wins over your proposal.
+    second **fails this gate**. The user's own idea wins over your proposal.
   - [ ] **Concrete foundations** chosen: font pairing (no default-only face), a real type scale with an
     archetype-correct base size, colour roles, spacing/density, depth — all from `archetypes.md`.
   - [ ] **ONE real sample page** built in the project's stack (or a standalone preview), **real content not
-    lorem**, reusing a shadcn/21st.dev primitive or two — then **STOP + confirm + iterate until approved.**
+    lorem**, with its empty, loading and error states and what `#Scope` asks it to show, in the owner's
+    language(s), self-hosted fonts, rendered at three widths with screenshots, reusing a
+    shadcn/21st.dev primitive or two — then **STOP + confirm + iterate until approved.**
   - [ ] `DESIGN.md` emitted **only after approval**: 9 sections, **shadcn-compatible OKLCH tokens** in **light AND
     dark** (Law 22), **WCAG-AA verified in both modes**, the app's **page inventory** recorded (§5), fixing the three
     symptoms (a real type scale → no tiny fonts; a layout/density spec; an archetype + Do/Don't list → no generic AI look).
   - [ ] **The tokens EXIST IN THE APP, not only in the spec** — every token `DESIGN.md` defines is written
     into the project's real stylesheet, that stylesheet is imported by the app's root entry, and its path
-    is recorded in `DESIGN.md` §2. `DESIGN.md` is a specification; **a specification is not a stylesheet**,
-    and a component written against tokens the app never defines renders unstyled while typecheck, lint
-    and the audit all stay green.
+    is recorded in `DESIGN.md` §2 (case file: The spec that styled nothing).
   - [ ] All **26 universal laws** satisfied (run the principle-gate, Step 6 self-check).
-
-> **Scope of this version: greenfield core loop** — brand re-skin is in; deep token-extraction, full
-> retrofit and the gallery are follow-ups (`references/build-loop.md` §Scope of this version). An
-> existing UI: say so, proceed greenfield for new screens.
 
 ---
 
 ## Step 0 — Find the vision (spine-optional) · detect mode · UI gate
 
-1. **Locate the vision (spine-first — `MECHANISMS.md` §Spine resolution):** `PRODUCT.md` exists → read
-   `#Vision` / `#Scope` / `#Architecture`, and say you are using it. **No spine at all → run the
+**First turn, ONE command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase design-system`** — all
+this step needs; never `PRODUCT.md` or a rule file whole. Show its first line.
+
+1. **Locate the vision (spine-first — `MECHANISMS.md` §Spine resolution):** say you use the spine
+   lines the start prints. **No spine at all → run the
    three-question vision-discovery in `references/build-loop.md` §Standalone vision discovery** and wait
-   for the answers; it is the minimum design can be derived from.
-2. **Detect mode (informational this version):** is there a `frontend/` / UI code already? If **yes** →
-   note *retrofit territory* but proceed **greenfield for new screens** (full retrofit is a follow-up).
-   No UI yet → clean **greenfield**.
-3. **UI gate (mirror the existing AI-product conditional):** ask/decide — *"does this product have or need
-   a user-facing UI?"* If the answer is **no** (pure backend/API/CLI/library) → **explain why a design
-   system doesn't apply, write nothing, and stop.** Hand back to `/foundation`.
+   for the answers.
+2. **Detect mode** (the start says): UI code exists → say *retrofit territory*, design new screens greenfield
+   (`references/build-loop.md` §Scope of this version); none → greenfield.
+3. **UI gate:** the start applies the UI flag; unknown → ask *"does this product have or need a user-facing UI?"* **No** (backend, API, CLI,
+   library) → **explain why a design system doesn't apply, write nothing, and stop.** Hand back to `/foundation`.
 4. **Re-running — `MECHANISMS.md` §Re-run semantics, in full.** The superseded archetype, palette or type
    pairing keeps its dated `superseded <date>: <why>` line; so does an archetype **you recommended and the
-   user reversed inside this run**, which is this phase's normal mode.
-5. **Stopping — `MECHANISMS.md` §Declined runs, in full.** One local rule: it does **not** apply to the UI
-   gate at (3). A backend product is not *owed* a design system, so it writes nothing at all — declining
-   and being inapplicable are different states.
+   user reversed inside this run**.
+5. **Stopping — `MECHANISMS.md` §Declined runs, in full**, except at the UI gate (3): a product with no UI
+   writes nothing at all — not a `declined` record.
 
-## Step 1 — Design principles FIRST (think like a 2026 senior designer)
+**Two rounds, ONE message or form each:** round 1 = Step 1 + Step 2.1–2; round 2 = Step 2.3–4 + Step 3; then
+the sample's confirm until approved.
 
-Before any colour or font, reason the way an experienced designer does *today*, grounded in the
-product's **purpose + audience**. Write **4–6 short principle statements**, each with its
-*why* in plain language (teach-mode). The levers, a worked example, and what a principle looks like when it is doing work:
-`references/build-loop.md` §Design principles. Show them; **let the user adjust**. They constrain every
-later token, and become `DESIGN.md` §1 and `PRODUCT.md#Design`.
+## Step 1 — Design principles FIRST
+
+Write **4–6 short principle statements** from the product's **purpose + audience**, each with its *why*
+in plain language — before any colour or font. Levers and a worked example: `references/build-loop.md`
+§Design principles. Show them; **let the user adjust**. They become `DESIGN.md` §1 and `PRODUCT.md#Design`.
+Under them, name what `#Scope` asks the screen to show; the sample carries each.
 
 ## Step 2 — Ask what they want, THEN propose
 
-**Opposite order to `/architect`'s** — for aesthetics the user's taste is the primary input, so you ask
-before you propose (`references/build-loop.md` §Why ask before proposing).
-
 1. **Before naming any family, ask for their own reference:** *"Do you have a look in mind — a product you
-   admire, or bold vs minimal?"* Ask it plainly and wait. A named reference is the strongest signal you
-   will get all session.
-2. **Run the 3-question picker WITH them** (`references/archetypes.md`) — read- vs scan-heavy · who uses
-   it and where · calm authority vs bold energy. They are questions about **their** product, so they
-   answer them; **offer a recommended answer to each** so it stays one short exchange.
+   admire, or bold vs minimal?"* Ask it plainly and wait (case file: The answer we anchored).
+2. **Run the 3-question picker WITH them** (`references/archetypes.md` §The 3-question picker, printed by the
+   start). They answer; **offer a recommended answer to each**. Same message: **interface language(s)**
+   (pre-filled from `#Scope`) and whether they switch; **fonts self-hosted** (decided under EU custody, else asked).
 3. **Now propose ONE of the 13 aesthetic families** as the default, with a plain-language why that
-   references what they just told you. **Say that there are 13 and where they are** — a picker that can
-   only show a shortlist must name the full set (`references/archetypes.md`), or "Other" asks a
-   non-designer to invent a family nobody showed them.
-4. **The user's idea/reference wins;** otherwise your proposal stands. Confirm the archetype before moving on.
+   references what they just told you. **Say that there are 13 and where they are** (`references/archetypes.md`):
+   a shortlist must name the full set, or "Other" asks a non-designer to invent a family nobody showed them.
+4. **The user's idea/reference wins;** otherwise your proposal stands. Confirm the archetype before moving on;
+   every confirm offers *"Keep as proposed (Recommended)"* first.
 
 ## Step 3 — Concrete foundations from the archetype
 
-From the chosen family's preset (in `archetypes.md`), decide the **concrete** values — the part the
-popular skills omit, and the fix for "fonts too small / artsy-but-wrong". **The full list, each decided
-value and its why, is in `references/build-loop.md` §Concrete foundations** — type pairing and scale,
-colour roles in OKLCH, density, depth, layout, motion tier, **light AND dark now** (Law 22). Give each as
-a **decided default + one-line why**; let the user tweak.
+From the chosen family's preset (`archetypes.md` §<the family> §How Step 3), decide
+each value in `references/build-loop.md` §Concrete foundations — type pairing and scale, colour roles in OKLCH, density, depth, layout, motion tier,
+**light AND dark now** (Law 22) — as a **decided default + one-line why**; let the user tweak.
 
 ## Step 4 — Build ONE sample page · STOP · iterate until liked  *(the non-negotiable loop)*
 
-Generate **a single, representative screen of THIS product** using the Step-3 foundations — in the
-project's stack if one exists, otherwise a **standalone preview HTML** the user can open in a browser.
-**Load `references/build-loop.md` §Build the sample page and follow it** — page inventory, the craft
-layer, mobile-first, the accessibility floor a preview does *not* escape, and the Theme Studio wiring.
+Build **one representative screen of THIS product** from the Step-3 foundations — in the project's stack,
+or a **standalone preview HTML** when there is no stack. **Follow `references/build-loop.md` §Build the
+sample page**.
 
-**The sample proves the LOOK, never the LOGIC.** Any numbers in it are illustrative: label them in the
-page ("illustrative figures — not the product's rules") and say so when you present it. This phase does
-not read `#Plan`, so its arithmetic has been checked against nothing — **do not copy sample logic into
-the product**; the real rules arrive with `/contracts` and `/build`.
+**The sample proves the LOOK, never the LOGIC.** Label any numbers in the page "illustrative figures — not
+the product's rules", say so when you present it, and **do not copy sample logic into the product** — the
+real rules arrive with `/contracts` and `/build` (case file: The sample that set a price).
 
-Then **STOP. Show it and confirm** — at **three widths, ~375px · 768px · desktop**, never desktop alone
-(Law 21). If they don't like it, ask what to change and **generate another; loop until they approve**.
-**Do not emit `DESIGN.md` until approved.** How to present it, what to compare, and what the Theme Studio
-lets the user finalize without a regenerate: `references/build-loop.md` §Confirm the sample.
+Then ONE turn runs the rendered check and the audit over the sample (the start's commands); fix every
+`[FAIL]`; `NOT RUN` is no result (the start says how). **STOP. Show it and confirm** — at **three widths, ~375px ·
+768px · desktop**, never desktop alone (Law 21) — in ONE message with two options: *"Looks good - save
+(Recommended)"* · *"Change something"*. Not liked → ask what to change, **generate another; loop until they
+approve**. **Do not emit `DESIGN.md` until approved** (`references/build-loop.md` §Confirm the sample).
 
 ## Step 5 — Emit `DESIGN.md` (only after approval)
 
-**Emit the tokens TWICE — as the spec and as the app's stylesheet.** `DESIGN.md` records the decision;
-the stylesheet is what the running product loads. Write both in this step, and follow
-`references/build-loop.md` §Emit the token stylesheet — where the file goes, the light/dark blocks, the
-root import, and the two-way check that the spec and the stylesheet define the same set. A design system
-that exists only as a document is a decision nothing executes.
-
-Load `references/design-md-template.md` and write **`DESIGN.md`**, filling all **9 sections** with the
-*concrete approved values* — replace every placeholder, ship nothing un-filled. The section list and the
-per-section rules (OKLCH shadcn-compatible tokens, light **and** dark, the page inventory, the AA
-re-check before writing) are in `references/build-loop.md` §Emit `DESIGN.md`.
-- **Audit timing — RUN the engine, never just cite it:** `python "${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py"`
-  — the installed engine; never search the plugin cache (a `$` left in the path: `/frontend-audit` §Which engine runs) — over
-  the approved sample at confirm-time and over `DESIGN.md` once emitted, never before approval (Law 16);
-  fix every `[FAIL]`, triage every `[WARN]`, and **claim no "passes the laws" you did not run the engine
-  to back** (`references/build-loop.md` §Audit timing).
+After approval, ONE message removes the Theme Studio and writes: **the tokens TWICE — as the
+spec and as the app's stylesheet**, following `references/build-loop.md` §Emit the token stylesheet; **`DESIGN.md`**
+from `references/design-md-template.md` §intro §The skeleton — **`## In short` first** (plain words; each principle
+with its `#Vision` line), then all **9 sections** with the
+*concrete approved values* — replace every placeholder, ship nothing un-filled. Per-section rules:
+`references/build-loop.md` §Emit `DESIGN.md`. And the `#Design` file.
+- **Audit — RUN the engine, never cite it:** `python "${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py"`
+  (never search the plugin cache) over the sample at confirm-time; `set` runs it over `DESIGN.md` and writes its
+  counts there — never type one (never before approval, Law 16); fix every `[FAIL]`, triage every `[WARN]`.
 
 ## Step 6 — Principle-gate self-check, then handoff
 
-**Before handing off, walk `references/universal-laws.md` and confirm all 26 hold** for the sample +
-`DESIGN.md` — its **§Self-check digest** names the ones that fail most often and what "holds" means for
-each. **If any law fails, STOP and fix it** — the floor is non-negotiable.
+**Walk `references/universal-laws.md` and confirm all 26 hold** for the sample + `DESIGN.md` (its
+**§Self-check digest** lists the ones that fail most). **A law fails → STOP and fix it.**
 
 ### Step 3b — close the loop (`MECHANISMS.md` §Step 3b)
-Update the spine's `Stage:` header to this phase and `Last updated:` to today; **reconcile every number this
-phase introduced against `#Vision`** (a type scale or density that cannot serve the audience the vision names is
-a contradiction, not a detail); and **offer to commit the change** (`MECHANISMS.md` §Commit the work — check the repo exists, name the
-branch, offer the message, push only if a remote exists and the user says so). Then **run the transition
-guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines (here, the
-`/frontend-audit` behind the sample) and report a verdict for every exit criterion — `UNVERIFIED` is a
-normal outcome, silence is not — and check the transition is legal. **Close in plain language**
-(`MECHANISMS.md` §Plain-language close): two or three sentences of *what just happened* with no playbook
-dialect, then a numbered *what YOU do next* — the user's own actions, dated where they are time-bound, or
-"Nothing — you're done".
+`status.py set design-system filled --section-from <file> --commit "<one line>"` (`MECHANISMS.md` §Status; no
+`--commit` on a no) refuses every gap the start lists in one list (fix what it names, never the check), then
+records, saves and prints the rest of the close. **Reconcile every number against `#Vision`**. The save question *"Save this version of your project? (yes / no)"*
+rode on the confirm's *"Looks good - save"* (`MECHANISMS.md` §Commit the work), never again. **The transition guard**
+(`MECHANISMS.md` §Step 3b, item 4): `set` re-ran this phase's own `evidence:` line (the rendered check) and the
+`/frontend-audit`; a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not.
+**Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff).
 
 ### Step 3c — contradiction check (`MECHANISMS.md` §Step 3c)
-Compare what this phase just produced against decisions already recorded — `#Vision` (who it is for, and the
-tone that implies), `#Scope` (a non-goal the design quietly assumes), `#Architecture` (the UI framework and
-component registry the tokens must actually work in). **On a conflict, name both sides, ask which wins, and
-update the loser** — fix the artefact, or add a dated `superseded by <phase>, <date> — <reason>` line to the
-earlier section. Never leave it standing in two places. Adding detail to an earlier decision is not a
-contradiction.
+Compare the result with what `set` names (`#Vision` · `#Scope` · `#Architecture`). **On a conflict, name both
+sides, ask which wins, and update the loser** (`MECHANISMS.md` §Step 3c). Adding detail to an earlier decision is
+not a contradiction.
 
-Then write `PRODUCT.md#Design` (principles + archetype + token summary + `DESIGN.md`/sample paths) and hand off:
+Then hand off:
 
-> "Design system agreed and captured in **`DESIGN.md`** (your build harness), proven on an approved
-> sample page. Next run **`/foundation`** to stand up the walking skeleton — alone, or as a **batch**
-> `/foundation` + `/contracts` + `/tickets` with one review at the end (`MECHANISMS-ON-DEMAND.md`
-> §Batch mode); the batch still stops wherever a phase asks you to confirm. When you build screens,
-> `/new-component` builds against these tokens (reusing shadcn/ui + 21st.dev), and a future
-> `/frontend-audit` will enforce `DESIGN.md` + the universal laws across the app."
+> "Design system agreed and captured in **`DESIGN.md`**, proven on an approved sample page. Next run
+> **`/foundation`** — alone, or as a **batch** `/foundation` + `/contracts` + `/tickets` with one review at
+> the end (`MECHANISMS-ON-DEMAND.md` §Batch mode). Screens are built with `/new-component` against these
+> tokens, and `/frontend-audit` checks them against `DESIGN.md` + the universal laws."
 
 Report a short **Confidence Score** vs the exit criteria (solid / risky-untested / to-raise-it).

@@ -16,7 +16,7 @@ the lanes wait on each other, and who starts what on day one. It replaces `docs/
 - **Written by `/tickets` alone.** A re-run rewrites it from the confirmed proposal; nothing else edits it —
   except a shape-changing `/structure` re-run, which rewrites the paths it moved and nothing else.
 - **One file for the whole backlog**, every milestone in it, in `#Plan` order.
-- **A stopped run** (`MECHANISMS.md` §Declined runs) leaves its one dated `_Not run …_` line at the top of
+- **A stopped run** (`MECHANISMS.md` §Declined runs) is recorded by `status.py` (`MECHANISMS.md` §Status), never as a line at the top of
   this file, and the next attempt replaces that line.
 
 ## §The sections, in order

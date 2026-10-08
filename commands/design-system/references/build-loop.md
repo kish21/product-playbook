@@ -41,7 +41,16 @@ Generate **a single, representative screen of THIS product** using the §Concret
   nav, all states). On a React stack the recommended means is **reuse a shadcn/ui + 21st.dev primitive or
   two**, re-skinned with the tokens — never re-author what the registry already solved.
 - **Real content from the product's domain — never lorem** (Law 18).
-- **Apply the craft layer (load `craft.md`).** Route the confirmed archetype through its index:
+- **Its states, not only its happy path:** the same screen also shows itself empty, loading and with an error (an
+  inline form error counts), each marked `data-state="empty"` · `"loading"` · `"error"`. Buttons say Verb + Noun
+  ("Approve reply", never "OK"); a destructive action has a confirm or an undo.
+- **What `#Scope` asks the screen to show** (the start lists them: an unexplained amount, a fake-data label, the
+  signed-in user …), each marked `data-must="<id>"`.
+- **In the interface language(s) the owner chose in round 1** (`lang="<code>"`; Dutch and French labels run ~30% longer
+  than English); 2+ that switch → every language's text in the page and a working switch.
+- **Fonts self-hosted** unless the owner chose a font service (`theme-studio.md` §Notes T5-7).
+- **Apply the craft layer (`craft.md` §Two rules §Archetype → bucket index §Audit & Theme-Studio notes, then the
+  bucket the index routes this archetype to — §Bucket A or §Bucket B).** Route the confirmed archetype through its index:
   **restraint families (Bucket A) get the precision signature and NO decorative motion** — adding scroll
   reveals/parallax/count-ups here breaks trust; **expressive families (Bucket B) WIRE THE REAL signature
   move(s)** for their tier — line-mask reveal, scrub parallax, count-up, spring-stagger, glass/WebGL hero —
@@ -67,15 +76,18 @@ Generate **a single, representative screen of THIS product** using the §Concret
   to a comment stub.
 - **Confirm on the user's real display:** subtle choices (canvas tint, status-label colour, table alignment)
   render differently across screens — pick **clearly visible** values and verify on the user's monitor, not just code.
-- **Ship it as an INTERACTIVE sample (the visualization moat):** inject `theme-studio.md` (the drop-in editor)
-  before `</body>`, wrap the page content in `<div id="ts_stage">…</div>`, size readable text in **rem** with
+- **Ship it as an INTERACTIVE sample (the visualization moat):** insert the Theme Studio (the drop-in editor)
+  before `</body>` with `theme_studio.py <sample.html> --preset
+  "Name|oklch(light)|oklch(dark)"` × 3–5 vetted accents for the archetype (`palettes.md` rows, light + dark) — it
+  writes the code and names what the page misses (the script is beside `SKILL.md`, which gives its path); never type the block out, and read `theme-studio.md` §intro
+  §Notes only. Wrap the page content in `<div id="ts_stage">…</div>`, size readable text in **rem** with
   `html { font-size: var(--font-size-base,16px) }`, define **every §2 token** in both modes (the export reads them
-  all), and replace the studio's `PRESETS` with 3–5 vetted accents for the archetype (`palettes.md` rows, light +
-  dark). Now the user **tweaks colour / theme / type-size / responsive LIVE, AA-guarded** —
+  all). Now the user **tweaks colour / theme / type-size / responsive LIVE, AA-guarded** —
   not "agent regenerates". Dev-only: stripped from the real build; only the finalized tokens persist.
   **For the studio to actually work:** give `#ts_stage` `container-type:inline-size` and write the page's responsive with
   **`@container` queries (not `@media`)** so the width buttons reflow (T5-1); use the `.light`/`.dark` **escape-hatch** dark
-  pattern (template §2) so manual mode beats the OS (T5-6); load the font via `<link>` in the preview (T5-7).
+  pattern (template §2) so manual mode beats the OS (T5-6); self-host the font (T5-7). Approved → `theme_studio.py
+  <sample> --remove`: the approved sample is the page as its users see it.
 
 ## §Design principles
 
@@ -105,10 +117,14 @@ to 94 tokens against the spec's 16 — most of the design system was invented by
 
 1. **Write the real file.** Path from `STRUCTURE.md` — `src/app/globals.css` for Next.js app-router,
    `src/styles/tokens.css` otherwise. Every token in `DESIGN.md` §2/§3, in the project's CSS convention
-   (shadcn CSS variables on `:root`), **light and dark both** (Law 22), in the same names the spec uses.
+   (shadcn CSS variables on `:root`), **light and dark both** (Law 22), in the same names the spec uses —
+   **the type scale included** (`--text-xs` … `--text-display`), so a component never needs a raw rem or px size.
 2. **Import it from the app's root entry** — the root layout / app entry / global stylesheet chain — and
    **verify the import resolves**, not that you wrote the line. An unimported stylesheet fails exactly the
-   way a missing one does.
+   way a missing one does. **No root entry yet** (it arrives with `/foundation`): record it —
+   `status.py open --from design-system --what "the root entry imports <stylesheet>" --clears "/foundation creates
+   the entry and imports it"`. `set design-system filled` refuses a stylesheet with neither (a sample under `docs/`
+   does not count), and an audit that checked 0 things unless `#Design` records the user's override.
 3. **Record the path in `DESIGN.md` §2** and in `PRODUCT.md#Design`, so `/new-component`, `/build` and
    `/frontend-audit` can resolve tokens against the app instead of against the spec.
 4. **Check both directions before the gate closes.** Every spec token exists in the stylesheet, and every
@@ -125,6 +141,22 @@ to 94 tokens against the spec's 16 — most of the design system was invented by
 Describe what they should see, and if you can, screenshot it and compare pixel-level: spacing, weight,
 exact colours, radius, alignment. **Three widths — ~375px (mobile), 768px (tablet), desktop.** A phone
 view that overflows, clips, or is a shrunk desktop is a fail (Law 21), not a detail to fix later.
+
+**Before showing it, run the rendered check** — `render_check.py`, beside the audit engine (`audit.py`'s folder):
+`python <that folder>/render_check.py <sample.html> --main "<the main action's visible text>" --shots <folder>`. It
+draws the page at the three widths, saves a screenshot of each in `<folder>`, and fails on: the main action below the
+first phone screen, a menu over 30% of it, small text over budget, drawn contrast under AA, sideways scroll. Fix every
+`[FAIL]`; its command and last line go in `#Design` as an `evidence:` line, which `set design-system filled` runs again.
+**`NOT RUN` is not a result:** install the renderer (`python -m pip install playwright` - it drives an installed Chrome
+or Edge; no browser at all: `python -m playwright install chromium`) and run it again; it cannot be installed → open
+the sample in your tool's own browser at 375, 768 and 1440 px, save the three screenshots in `<folder>` and record
+`evidence: screenshots <folder> (<tool>'s browser) · <date>`. `set` refuses NOT RUN and fewer than 3 screenshots
+unless the owner's override, with their reason, is recorded (2 of 4 logged runs stopped at NOT RUN; one shipped a
+phone screen that scrolled sideways).
+
+**Ask with two options** (a form where the tool has one): **"Looks good - save (Recommended)"** · **"Change
+something"**. A merged "Anything to change? If not: save? (yes / no)" was misread: the owner's "no" (no changes) was
+taken as "don't save".
 
 If the user doesn't like it, **ask what to change** — bolder / lighter / denser / different font /
 *"make it like <site>"* — and generate another. Loop until they approve; the loop is the phase.

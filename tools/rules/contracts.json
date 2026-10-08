@@ -1,0 +1,702 @@
+{
+ "skill": "contracts",
+ "base": "b33b6c4",
+ "rules": [
+  {
+   "id": "step0-reads",
+   "what": "Step 0 is ONE command (next.68): the spine lines, round 1, the steps and proofs, the shape and the rules",
+   "old": [
+    "- **One first message: run `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase contracts` and read all of `PRINCIPLES.md`, `MECHANISMS.md`, `PRODUCT.md`.** Show its first line; close by its checklist.",
+    "Read `#Scope/#Architecture/#Structure`."
+   ],
+   "new": [
+    "**One first command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase contracts`**",
+    "open no rule, reference or spine file whole after it"
+   ]
+  },
+  {
+   "id": "foundation-warn",
+   "what": "no #Foundation: warn, allow override",
+   "old": [
+    "If `#Foundation` isn't done, warn (you need a place to run migrations) but allow override."
+   ],
+   "new": [
+    "- If `#Foundation` isn't done, warn (you need a place to run migrations) but allow override."
+   ]
+  },
+  {
+   "id": "override-recorded",
+   "what": "an override is recorded with the user's own words, before continuing",
+   "old": [
+    "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from contracts --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
+   ],
+   "new": [
+    "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from contracts --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
+   ]
+  },
+  {
+   "id": "print-each-step",
+   "what": "one line printed as each step lands",
+   "old": [
+    "Print one line as each numbered step lands (`MECHANISMS-ON-DEMAND.md` §Context hygiene)."
+   ],
+   "new": [
+    "Print one line as each numbered step lands (`MECHANISMS-ON-DEMAND.md` §Context hygiene)."
+   ]
+  },
+  {
+   "id": "persistence-migration",
+   "what": "persistence schema via a migration, matching models and queries; now also checked: a migration file, no schema built by app code",
+   "old": [
+    "2. **Persistence schema** + a **migration**; confirm the schema matches the models and the queries."
+   ],
+   "new": [
+    "no migration file, or app code that builds the schema"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "seed-pinned",
+   "what": "a seed mirroring a code registry is pinned to it by a test (detail moves to contract-steps.md §2.)",
+   "old": [
+    "- **Seed data that mirrors a code registry must be PINNED to it by a test** (parse the seed migration, assert its rows are in lockstep with the registry constant). A seed is a copy of a code contract frozen in SQL — without the pin, the registry evolves and the DB silently offers keys the code no longer recognises, or misses ones it requires. *(Real instance: per-intent option seeds pinned to the active intent registry by a migration-parsing test — a registry rename now fails the build instead of orphaning seeded rows.)*"
+   ],
+   "new": [
+    "**Seed data that mirrors a code registry is pinned to it by a test.**"
+   ]
+  },
+  {
+   "id": "seed-pinned-detail",
+   "what": "the full seed rule, word for word, in the step file",
+   "home": "commands/contracts/references/contract-steps.md",
+   "old": [],
+   "new": [
+    "- **Seed data that mirrors a code registry must be PINNED to it by a test** (parse the seed migration, assert its rows are in lockstep with the registry constant). A seed is a copy of a code contract frozen in SQL — without the pin, the registry evolves and the DB silently offers keys the code no longer recognises, or misses ones it requires."
+   ]
+  },
+  {
+   "id": "api-contracts",
+   "what": "API/agent contracts with versioning; now exported to a committed file (checked)",
+   "old": [
+    "3. **API/agent contracts:** request/response (and, for AI, the typed output schema each step returns) — with a **versioning / back-compat** approach (`/v1`, additive-only)."
+   ],
+   "new": [
+    "exported contract file named, unless the versioning field says N/A"
+   ],
+   "home": "tools/status.py"
+  },
+  {
+   "id": "boundary-audit",
+   "what": "units/scale/shape on both sides; idempotency key on write paths",
+   "old": [
+    "4. **Boundary audit:** for each boundary, state the units/scale/shape both sides expect; reconcile mismatches now. For write/ingest paths define the **idempotency/natural key**."
+   ],
+   "new": [
+    "4. **Boundary audit:** for each boundary, state the units/scale/shape both sides expect; reconcile mismatches now. For write/ingest paths define the **idempotency/natural key**."
+   ]
+  },
+  {
+   "id": "parser-boundary",
+   "what": "a document another tool parses is a boundary: run the real parser (detail moves to contract-steps.md §4.)",
+   "old": [
+    "- **A document another tool PARSES is a boundary too — verify it by running the consumer's real parser on a filled example, not by reading the spec.** Template comments, placeholders and example paths are input to the parser as much as the fields are. (case file: The template the parser read differently)"
+   ],
+   "new": [
+    "**A document another tool PARSES is a boundary too.**"
+   ]
+  },
+  {
+   "id": "parser-boundary-detail",
+   "what": "the full parser rule, word for word, in the step file",
+   "home": "commands/contracts/references/contract-steps.md",
+   "old": [],
+   "new": [
+    "- **A document another tool PARSES is a boundary too — verify it by running the consumer's real parser on a filled example, not by reading the spec.** Template comments, placeholders and example paths are input to the parser as much as the fields are. (case file: The template the parser read differently)"
+   ]
+  },
+  {
+   "id": "fill-section",
+   "what": "what #Contracts records; now the (Agent) rows too",
+   "old": [
+    "Fill `#Contracts`: typed models/schemas/migrations · boundary units/scale · versioning · PII · tenant/idempotency keys."
+   ],
+   "new": [
+    "Fill `#Contracts`: typed models/schemas/migrations · boundary units/scale · versioning · PII · tenant/idempotency keys · (Agent) rows"
+   ]
+  },
+  {
+   "id": "prove-principles",
+   "what": "Step 3b proves each principle (now one verify.md § at a time)",
+   "old": [
+    "Walk this phase's principles and prove each:"
+   ],
+   "new": [
+    "**Prove each with `verify.md`, § by §:**"
+   ]
+  },
+  {
+   "id": "migration-applies",
+   "what": "the migration actually applies, and a column the code reads exists",
+   "old": [
+    "the migration **actually applies** and a column the code",
+    "reads exists (schema↔code — run it);"
+   ],
+   "new": [
+    "§Migration applies · §Schema matches code"
+   ]
+  },
+  {
+   "id": "migration-applies-detail",
+   "what": "how: from empty on the test datastore; the schema check; evidence names the command",
+   "home": "commands/contracts/references/verify.md",
+   "old": [],
+   "new": [
+    "Run the migrations **from empty on the isolated test datastore** `/foundation` provisioned",
+    "a test that reads, from the migrated database, every column the code reads"
+   ]
+  },
+  {
+   "id": "units-both-sides",
+   "what": "every boundary's units stated on both sides",
+   "old": [
+    "every boundary's **units/scale are stated on both sides**;"
+   ],
+   "new": [
+    "§Boundaries"
+   ]
+  },
+  {
+   "id": "units-both-sides-detail",
+   "what": "one test per boundary asserts its unit on both sides",
+   "home": "commands/contracts/references/verify.md",
+   "old": [],
+   "new": [
+    "One test per boundary asserts its unit on both sides"
+   ]
+  },
+  {
+   "id": "versioning",
+   "what": "public contracts have a versioning approach",
+   "old": [
+    "contracts have a **versioning** approach;"
+   ],
+   "new": [
+    "§Documented contract"
+   ]
+  },
+  {
+   "id": "keys-pii",
+   "what": "tenant key on persisted entities, idempotency key on write paths, PII classified",
+   "old": [
+    "persisted entities carry a **tenant key**; write paths have an",
+    "**idempotency key**; PII is classified."
+   ],
+   "new": [
+    "is named on a line of `#Contracts` with why"
+   ],
+   "home": "commands/contracts/references/contract-steps.md"
+  },
+  {
+   "id": "keys-pii-detail",
+   "what": "the tests that prove the keys and the PII classification",
+   "home": "commands/contracts/references/verify.md",
+   "old": [],
+   "new": [
+    "A test proves every persisted table carries the tenant key",
+    "each write path's idempotency/natural key is unique in the schema",
+    "PII: the classification is in `docs/contracts.md`"
+   ]
+  },
+  {
+   "id": "stop-on-mismatch",
+   "what": "schema/code disagreement or unstated units: stop and fix",
+   "old": [
+    "**If schema and code disagree, or a boundary's units are unstated,",
+    "STOP and fix it** — a scale mismatch across a boundary is a silent wrong-answer bug that looks healthy."
+   ],
+   "new": [
+    "**If schema and code disagree, or a boundary's units are unstated, STOP and fix it** — a scale mismatch across a boundary is a silent wrong-answer bug that looks healthy."
+   ]
+  },
+  {
+   "id": "measure-receipt",
+   "what": "report sizes, the record test, a Read receipt per companion",
+   "old": [
+    "**Measure what you wrote and receipt what you read** (`MECHANISMS-ON-DEMAND.md §Section is a record`, `MECHANISMS-ON-DEMAND.md §Read receipt`): report the section and file size in one line, then apply the record test to every field — reasoning moves into the companion, a tight answer stays whatever it weighs, never trim to a number; write one `Read:` line per companion opened, each quoting a fragment that occurs verbatim in that file."
+   ],
+   "new": [
+    "**Measure what you wrote and receipt what you read** (`MECHANISMS-ON-DEMAND.md §Section is a record`, `MECHANISMS-ON-DEMAND.md §Read receipt`): `set` reports the section and file size in one line; apply the record test to every field",
+    "write one `Read:` line per companion opened, each quoting a fragment that occurs verbatim in that file."
+   ]
+  },
+  {
+   "id": "context-lean",
+   "what": "long output to a scratch file, cite the file",
+   "old": [
+    "**Keep the context lean (`MECHANISMS-ON-DEMAND.md` §Context hygiene):** a command's output longer than a screen goes to a scratch file; read the tail or grep the verdict, and cite the file in the evidence line."
+   ],
+   "new": [
+    "**Keep the context lean (`MECHANISMS-ON-DEMAND.md` §Context hygiene):** a command's output over 30 lines goes to a scratch file; read the tail or grep the verdict, and cite the file in the evidence line."
+   ]
+  },
+  {
+   "id": "C01",
+   "what": "rule files opened by path, never searched",
+   "old": [
+    "**Rule files — open by path, never search:**"
+   ],
+   "new": [
+    "**Rule files — open by path, never search:**"
+   ]
+  },
+  {
+   "id": "C02",
+   "what": "the skill's own reference files are a different folder from the plugin-root references/",
+   "old": [],
+   "new": [
+    "**This skill's OWN reference files are a DIFFERENT folder"
+   ]
+  },
+  {
+   "id": "C03",
+   "what": "the phase's rule sections are printed, never the whole rule files",
+   "old": [],
+   "new": [
+    "prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** — apply them; never open the whole files"
+   ]
+  },
+  {
+   "id": "C04",
+   "what": "load-bearing principles of the phase",
+   "old": [
+    "**typed contracts not raw dict/text**",
+    "**migrations (never hand-edit schema)**",
+    "**schema↔code consistency**",
+    "**testable-by-construction**"
+   ],
+   "new": [
+    "**typed contracts not raw dict/text**",
+    "**migrations (never hand-edit schema)**",
+    "**schema↔code consistency**",
+    "**testable-by-construction**"
+   ]
+  },
+  {
+   "id": "C05",
+   "what": "purpose: lock the typed shapes before logic",
+   "old": [
+    "- **Purpose:** lock the typed shapes (models, schemas, migrations, API/agent contracts) before logic."
+   ],
+   "new": [
+    "- **Purpose:** lock the typed shapes (models, schemas, migrations, API/agent contracts) before logic."
+   ]
+  },
+  {
+   "id": "C06",
+   "what": "reads #Scope, #Architecture, #Structure",
+   "old": [
+    "- **Reads:** `PRODUCT.md#Scope`, `#Architecture`, `#Structure`."
+   ],
+   "new": [
+    "- **Reads:** `PRODUCT.md#Scope`, `#Architecture`, `#Structure`."
+   ]
+  },
+  {
+   "id": "C07",
+   "what": "writes the schemas in code and #Contracts as a record that points at them (binding pointer)",
+   "old": [
+    "the schemas **in code**",
+    "The section never restates the types — it points at them"
+   ],
+   "new": [
+    "the schemas **in code**",
+    "The section never restates the types — it points at them"
+   ]
+  },
+  {
+   "id": "C08",
+   "what": "gate type derivation, batchable, one review",
+   "old": [
+    "- **Gate type:** `derivation` — computable from `#Scope` + `#Architecture`."
+   ],
+   "new": [
+    "- **Gate type:** `derivation` — computable from `#Scope` + `#Architecture`."
+   ]
+  },
+  {
+   "id": "C09",
+   "what": "state model: writes #Contracts, declined/override/superseded",
+   "old": [
+    "writes `#Contracts` · `declined` ✓ · `override` ✓ · `superseded` ✓"
+   ],
+   "new": [
+    "writes `#Contracts` · `declined` ✓ · `override` ✓ · `superseded` ✓"
+   ]
+  },
+  {
+   "id": "C10",
+   "what": "companion docs/contracts.md holds the reasoning; the section stays a record",
+   "old": [
+    "- **Companion:** `docs/contracts.md` — the reasoning, workings and raw notes."
+   ],
+   "new": [
+    "- **Companion:** `docs/contracts.md` — the reasoning, workings and raw notes"
+   ]
+  },
+  {
+   "id": "C11",
+   "what": "what set contracts filled checks (C1-C7), not by reading",
+   "old": [],
+   "new": [
+    "- **Checked by `status.py set contracts filled`, not by reading**",
+    "every countable gap in ONE refusal, an earlier phase's failing check included"
+   ]
+  },
+  {
+   "id": "C12",
+   "what": "exit: core entities are typed models",
+   "old": [
+    "Core domain entities defined as **typed models** (not raw dicts/free text)."
+   ],
+   "new": [
+    "Core domain entities defined as **typed models** (not raw dicts/free text)."
+   ]
+  },
+  {
+   "id": "C13",
+   "what": "exit: persistence via a migration; schema matches what code reads/writes",
+   "old": [
+    "Persistence via a **migration** (never hand-edited schema); **schema matches what code reads/writes**."
+   ],
+   "new": [
+    "Persistence via a **migration** (never hand-edited schema); **schema matches what code reads/writes**."
+   ]
+  },
+  {
+   "id": "C14",
+   "what": "exit: every cross-boundary payload is a typed contract",
+   "old": [
+    "Every cross-boundary payload (API in/out, agent in/out) is a typed contract."
+   ],
+   "new": [
+    "Every cross-boundary payload (API in/out, agent in/out) is a typed contract."
+   ]
+  },
+  {
+   "id": "C15",
+   "what": "exit: units/scale/shape agreed on both sides; a unit captured at the source is carried",
+   "old": [
+    "**Units/scale/shape agreed on both sides** of each boundary"
+   ],
+   "new": [
+    "**Units/scale/shape agreed on both sides** of each boundary"
+   ]
+  },
+  {
+   "id": "C16",
+   "what": "exit: public API/agent contracts documented outside the code",
+   "old": [
+    "Public API/agent contracts are documented (e.g. an OpenAPI/schema export), not just in code."
+   ],
+   "new": [
+    "Public API/agent contracts are documented (e.g. an OpenAPI/schema export), not just in code."
+   ]
+  },
+  {
+   "id": "C17",
+   "what": "exit: Agent: yes - every AGENT.md §Contracts row recorded or N/A",
+   "old": [],
+   "new": [
+    "**`Agent: yes`: every AGENT.md §Contracts row** is recorded, or `N/A — <reason>`."
+   ]
+  },
+  {
+   "id": "C18",
+   "what": "exit: #Contracts is a record; size reported, never trimmed to",
+   "old": [
+    "`#Contracts` is a **RECORD**",
+    "Size is reported, never trimmed to."
+   ],
+   "new": [
+    "`#Contracts` is a **RECORD**",
+    "Size is reported, never trimmed to."
+   ]
+  },
+  {
+   "id": "C19",
+   "what": "exit: every companion opened is receipted with a verbatim quote",
+   "old": [
+    "**Every companion opened is receipted**"
+   ],
+   "new": [
+    "**Every companion opened is receipted**"
+   ]
+  },
+  {
+   "id": "C20",
+   "what": "brownfield: read existing models/migrations; extend, don't duplicate",
+   "old": [
+    "Brownfield: read existing models/migrations; extend, don't duplicate."
+   ],
+   "new": [
+    "Brownfield: read existing models/migrations; extend, don't duplicate."
+   ]
+  },
+  {
+   "id": "C21",
+   "what": "the open decisions are asked at Step 0, in one card, before any file is written; then unattended",
+   "old": [
+    "**Ask the open decisions NOW, in one card, before any file is written.**",
+    "Earlier sections carry items marked open for this phase (`#Scope` / `#Plan` / `#Architecture` — a tie-break rule, a retention choice); collect every one at Step 0, then run unattended and say so.",
+    "A question asked six minutes in stalls the rest of the phase behind it (37 minutes, on a live run)."
+   ],
+   "new": [
+    "**Ask the open decisions NOW, in one card, before any file is written**",
+    "then run unattended and say so"
+   ]
+  },
+  {
+   "id": "C22",
+   "what": "re-run: follow the RE-RUN line - one question listing what would change; superseded line",
+   "old": [
+    "**Re-running this phase (`MECHANISMS.md` §Re-run semantics):**"
+   ],
+   "new": [
+    "**Re-running this phase (`MECHANISMS.md` §Re-run semantics):**"
+   ]
+  },
+  {
+   "id": "C23",
+   "what": "gate unmet and the run stops: set contracts declined, nothing changed in PRODUCT.md",
+   "old": [
+    "`status.py set contracts declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>`"
+   ],
+   "new": [
+    "`status.py set contracts declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>`"
+   ]
+  },
+  {
+   "id": "C24",
+   "what": "typed contracts everywhere: the stack's type system, no raw dict/text across a boundary",
+   "old": [
+    "- **Typed contracts everywhere:** model the domain with the stack's type system; no raw dict/text across a boundary."
+   ],
+   "new": [
+    "- **Typed contracts everywhere:** model the domain with the stack's type system; no raw dict/text across a boundary."
+   ]
+  },
+  {
+   "id": "C25",
+   "what": "migrations only; verify a column the code reads exists",
+   "old": [
+    "- **Migrations only:** schema changes via migration files; **verify a column the code reads actually exists** (schema↔code)."
+   ],
+   "new": [
+    "- **Migrations only:** schema changes via migration files; **verify a column the code reads actually exists** (schema↔code)."
+   ]
+  },
+  {
+   "id": "C26",
+   "what": "agree units at each boundary; write the unit into the name when ambiguous",
+   "old": [
+    "write the unit into the field name/comment if ambiguous (e.g. `score_0_10`)"
+   ],
+   "new": [
+    "write the unit into the field name/comment if ambiguous (e.g. `score_0_10`)"
+   ]
+  },
+  {
+   "id": "C27",
+   "what": "work through the five steps of contract-steps.md",
+   "old": [],
+   "new": [
+    "**Work through the five in `contract-steps.md`, printing each step's § as you reach it**."
+   ]
+  },
+  {
+   "id": "C28",
+   "what": "1. domain models for the core-feature entities, typed and validated at construction",
+   "old": [
+    "1. **Domain models** for the core-feature entities (typed; validated at construction)."
+   ],
+   "new": [
+    "1. **Domain models** for the core-feature entities (typed; validated at construction)."
+   ]
+  },
+  {
+   "id": "C29",
+   "what": "5. safety on the data: PII classified, a tenant/owner key on every persisted entity",
+   "old": [
+    "5. **Safety on the data:** classify **PII/sensitive** fields (retention/N-A) and give every persisted entity its **tenant/owner key** (the isolation seam)."
+   ],
+   "new": [
+    "5. **Safety on the data:** classify **PII/sensitive** fields (retention/N-A) and give every persisted entity its **tenant/owner key** (the isolation seam)."
+   ]
+  },
+  {
+   "id": "C30",
+   "what": "close the loop: set filled, reconcile numbers against #Vision, save question, transition guard, four-block close",
+   "old": [
+    "**Close the loop (`MECHANISMS.md` §Step 3b):**",
+    "`UNVERIFIED` is a normal outcome, silence is not",
+    "**What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next**",
+    "record the phase's state — `status.py set contracts filled` (`MECHANISMS.md` §Status) —",
+    "and **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work — this project's repo, name the branch, commit on a yes, push only if a remote exists and the user says so).",
+    "Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion",
+    "**Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name:",
+    "(ends with the handoff)."
+   ],
+   "new": [
+    "**Close the loop (`MECHANISMS.md` §Step 3b):**",
+    "`UNVERIFIED` is a normal outcome, silence is not",
+    "`set contracts filled --section-from <file> --commit \"<one line>\"`",
+    "\"Looks good - save (Recommended)\"",
+    "`MECHANISMS.md` §Commit the work",
+    "cites the evidence lines this run ran (a line whose files changed since: run it again)",
+    "(`MECHANISMS.md` §Plain-language close) ends with its `Open a NEW conversation` line word for word",
+    "Save this version of your project? (yes / no)"
+   ]
+  },
+  {
+   "id": "C31",
+   "what": "Step 3c: check against #Architecture (datastore, migrations approach) and #Scope; name both sides, ask, update the loser",
+   "old": [
+    "here: `#Architecture` (datastore · migrations approach) and `#Scope`",
+    "**name both sides, ask which wins, and update the loser**"
+   ],
+   "new": [
+    "here: `#Architecture` (datastore · migrations approach) and `#Scope`",
+    "**name both sides, ask which wins, and update the loser**"
+   ]
+  },
+  {
+   "id": "C32",
+   "what": "Step 3c: adding detail to an earlier decision is not a contradiction",
+   "old": [
+    "Adding detail to an earlier decision is not a contradiction."
+   ],
+   "new": [
+    "Adding detail to an earlier decision is not a contradiction."
+   ]
+  },
+  {
+   "id": "C33",
+   "what": "handoff: /tickets next, then /build; /ship per release",
+   "old": [
+    "Next run **`/tickets`**",
+    "`/ship` is per release, not per project."
+   ],
+   "new": [
+    "Next run **`/tickets`**",
+    "`/ship` is per release, not per project."
+   ]
+  },
+  {
+   "id": "C34",
+   "what": "the close printed by set: reconcile units and numbers, the four blocks, a legal transition (moved from the skill text into the close `set` prints - one source, P41)",
+   "home": "tools/status.py",
+   "old": [
+    "reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it)",
+    "and check the transition is legal"
+   ],
+   "new": [
+    "every unit and number against #Architecture and #Vision",
+    "What just happened · What I skipped or couldn't do · Test this yourself · What YOU do next",
+    "is not a legal transition"
+   ]
+  },
+  {
+   "id": "C35",
+   "what": "the open items earlier sections left for this phase are printed as round-1 questions",
+   "home": "tools/status.py",
+   "old": [],
+   "new": [
+    "left for /contracts in the spine",
+    "a question asked mid-run stalls the rest behind it"
+   ]
+  },
+  {
+   "id": "C36",
+   "what": "round 1: outside callers, tenant key, retention, currency - the owner's (P43)",
+   "home": "tools/status.py",
+   "old": [],
+   "new": [
+    "1. Who calls it from outside the app",
+    "2. Whose data is kept apart from whose",
+    "3. How long is each kind of personal data kept",
+    "4. Only if money moves or is capped"
+   ]
+  },
+  {
+   "id": "C37",
+   "what": "what the phase must not do (P44)",
+   "old": [],
+   "new": [
+    "- **Must NOT:** write product logic (a declared route returns 501 until `/build`)"
+   ]
+  },
+  {
+   "id": "C38",
+   "what": "round 2: the frozen table, a Step 3c clash, one confirm-and-save question; --dry-run first",
+   "old": [],
+   "new": [
+    "**Round 2, ONE message:**",
+    "`set contracts filled --section-from <file> --dry-run`; fix every gap."
+   ]
+  },
+  {
+   "id": "C39",
+   "what": "a folder this phase adds is drawn in STRUCTURE.md's map (a logged-project replay was refused for docs/contracts/)",
+   "old": [],
+   "new": [
+    "A folder this phase adds goes into STRUCTURE.md's map in the same message."
+   ]
+  },
+  {
+   "id": "C40",
+   "what": "money never a float - pay words, a currency in the name, a float value in code or config; a rate is not money",
+   "home": "commands/contracts/references/contract-steps.md",
+   "old": [],
+   "new": [
+    "or given a float value in code or config",
+    "A rate is not money"
+   ]
+  },
+  {
+   "id": "C41",
+   "what": "the tenant key on the sentence that says tenant; an idempotency key is not a tenant key",
+   "home": "commands/contracts/references/contract-steps.md",
+   "old": [],
+   "new": [
+    "on the sentence that says tenant",
+    "an idempotency key in the same field is not a tenant key"
+   ]
+  },
+  {
+   "id": "C42",
+   "what": "docs/contracts.md reader-first: Overview + ONE diagram, PII table, owner's answers (P42)",
+   "home": "tools/status.py",
+   "old": [],
+   "new": [
+    "the reader's part first: `## Overview` (3-5 plain sentences, then ONE ```mermaid",
+    "`## PII` (a table: field · why kept · how long · deletion path)",
+    "`## Owner's answers` (round 1, word for word)"
+   ]
+  }
+ ],
+ "dropped": [
+  {
+   "old": "Advancing on unmet criteria is the more consequential of warn-vs-override, so it is the one that leaves a trace: without it a later reader cannot tell a gate that held from a gate that was waved through.",
+   "why": "the reason, not a rule; MECHANISMS.md §Declined runs, printed by `status.py rules contracts`, carries it"
+  },
+  {
+   "old": "A pointer nobody can prove was followed is how a phase invents what the artefact would have said.",
+   "why": "the reason, not a rule; MECHANISMS-ON-DEMAND.md §Read receipt carries it, and set contracts filled checks the quotes"
+  },
+  {
+   "old": "Same commands, same verdicts, a fraction of the tokens.",
+   "why": "the reason, not a rule; MECHANISMS-ON-DEMAND.md §Context hygiene carries it"
+  }
+ ],
+ "extended": "2026-10-04: C01-C33 pin every rule of the next.67 text (ccb69b0) the first inventory did not cover - base lines kept verbatim until now, and rules added after b33b6c4 (old: [])"
+}

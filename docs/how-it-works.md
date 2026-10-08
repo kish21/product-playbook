@@ -131,7 +131,7 @@ This is the journey at full resolution — every skill, what it writes, and when
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="diagrams/journey-dark.svg">
-  <img alt="The playbook journey: three tiers over six phases. Tier 1 Product thinking — /vision, /validate, /scope, /plan — then an evidence gate: a named user and job-to-be-done, a measured experiment, ONE core feature, non-goals. Tier 2 Engineering discipline — /architect, /structure, /design-system (UI only), /foundation, /contracts, /tickets, /build, /dev-check — then an evidence gate: it runs end to end, every feature's definition-of-done met with how it was verified. Tier 3 Shipping and learning — /test, /eval, /ship, /learn — then an evidence gate: measured against a baseline, security-reviewed with a rollback path, metric instrumented." src="diagrams/journey-light.svg">
+  <img alt="The playbook journey: three tiers over six phases. Tier 1 Product thinking — /vision, /validate (optional), /scope, /plan — then an evidence gate: a named user and job-to-be-done, a measured experiment when /validate runs, ONE core feature, non-goals. Tier 2 Engineering discipline — /architect, /structure, /design-system (UI only), /foundation, /contracts, /tickets, /build, /dev-check — then an evidence gate: it runs end to end, every feature's definition-of-done met with how it was verified. Tier 3 Shipping and learning — /test, /eval, /ship, /learn — then an evidence gate: measured against a baseline, security-reviewed with a rollback path, metric instrumented." src="diagrams/journey-light.svg">
 </picture>
 
 <sub>Diagram source: <a href="diagrams/journey.mmd"><code>docs/diagrams/journey.mmd</code></a> (regenerate with <code>sh tools/render-diagrams.sh</code>).</sub>
@@ -152,8 +152,8 @@ This is the journey at full resolution — every skill, what it writes, and when
 |---|---|---|---|---|
 | **Start** | `/playbook` | Guided entry-point that orchestrates phases | Routes only | You are starting fresh or unsure of the next step |
 | **Product** | `/vision` | Sharpens who it's for, the problem, and the job they need done — vs the market | `PRODUCT.md` -> **Vision** | Starting a brand-new project |
-| **Start** | `/adopt` | Brings an **existing, half-built** project in: drafts an INFERRED `PRODUCT.md` from the repo (docs, package metadata, routes, tests, CI), tags every inferred line, and confirms it with you section by section before writing | `PRODUCT.md` (`Stage: adopted`) | You already have code but no spine |
-| **Product** | `/validate` | Tests the riskiest assumption with the cheapest real-world experiment BEFORE code — threshold set in advance, measured result, proceed / pivot / **kill** | `PRODUCT.md` -> **Validation** | Right after `/vision`, before any scoping or code |
+| **Start** | `/adopt` | Brings an **existing, half-built** project in: drafts an INFERRED `PRODUCT.md` from the repo (docs, package metadata, routes, tests, CI), tags every inferred line, and confirms it with you section by section before writing | `PRODUCT.md` + `STATUS.md` | You already have code but no spine |
+| **Product** | `/validate` | Tests the riskiest assumption with the cheapest real-world experiment BEFORE code — threshold set in advance, measured result, proceed / pivot / **kill** | `PRODUCT.md` -> **Validation** | Optional: only when you ask, after `/vision` and before scoping or code (an empty `#Validation` is normal) |
 | **Product** | `/scope` | Locks down **one** core feature; lists Deferred and Non-goals | `PRODUCT.md` -> **Scope** | Defining MVP / fighting feature creep |
 | **Product** | `/plan` | Core-first milestones + concern-area checklists | `PRODUCT.md` -> **Plan** | Creating the roadmap |
 | **Dev** | `/architect` | Chooses stack, records ADRs, wraps externals in adapters | `PRODUCT.md` -> **Architecture** | Before writing any code |
@@ -203,7 +203,7 @@ The waitlist app from the README, skill by skill: what you type, what it asks or
 | Skill | You type | It asks / does | It writes | It prevents |
 |---|---|---|---|---|
 | 💡 `/vision` | `/vision I want to build a walk-in waitlist for small restaurants …` | Who exactly is the user? What job are they hiring this for? Which one number says it worked? Checks the current-year market. | One-sentence vision · the user (*host of a 40-seat restaurant on a Friday night*) · north star (*80 % of walk-ins seated without chasing, by March*) · the **riskiest assumption** (*guests scan a code instead of giving a name*) | Every later "should we add X?" having no answer |
-| 🔎 `/validate` | `/validate` | What is the cheapest real-world test, and what counts as a pass — *set before running it*? | The experiment (*paper QR on the door, one Friday, pass mark 60 % scan*) · the measured result · **proceed / pivot / kill**. Slow result → later phases run *provisionally* | Building something nobody wanted |
+| 🔎 `/validate` *(optional)* | `/validate` | What is the cheapest real-world test, and what counts as a pass — *set before running it*? | The experiment (*paper QR on the door, one Friday, pass mark 60 % scan*) · the measured result · **proceed / pivot / kill**. Slow result → later phases run *provisionally* | Building something nobody wanted |
 | ✂️ `/scope` | `/scope` | Which single behaviour delivers the value? | **THE core feature** (*guest joins the queue, is told when the table is ready*) · deferred items, each with its trigger · **non-goals**: reservations, payments, menus, accounts | Scope creep — every later skill checks this list; reopening a non-goal is recorded with a date and reason |
 | 🗺️ `/plan` | `/plan` | Sequences the scope, core first | Milestones with a testable exit each — M1 *guest gets a text, laptop demo* · M2 *host seats the queue* · M3 *one real Friday night* | Milestones that are wishes |
 
@@ -228,9 +228,9 @@ The waitlist app from the README, skill by skill: what you type, what it asks or
 |---|---|---|---|---|
 | 🧪 `/test` | `/test` | Unit (mocked) · integration (real seams) · regression · **adversarial** (wrong host token, double claim on the last table, prompt injection if there is an LLM) | The suite + `#Tests` | Functions that pass while the product fails |
 | 📊 `/eval` | `/eval` | Is it actually *good*, measured against `/plan`'s criteria? Operational failures separated from quality | `#Evaluation` with an honest confidence score (AI products: `/enterprise-ai-audit` optional) | "It works" without a number |
-| 🚢 `/ship` | `/ship` | Fresh-eyes `/code-review` · `/security-review` · docs reconciled to reality · rollback path | The PR · `#Ship log` · a handoff note · *"start a new session"* | Shipping what the docs no longer describe |
+| 🚢 `/ship` | `/ship` | Fresh-eyes `/code-review` · `/security-review` · docs reconciled to reality · rollback path | The PR · a `STATUS.md` release row · a handoff note · *"start a new session"* | Shipping what the docs no longer describe |
 | 📈 `/learn` | `/learn` | Did the north star move after the real Friday night? Short retro | `#Learnings` · the next cycle, back to `/scope` or `/plan` · `/loop` or `/schedule` to re-measure | Deciding what is next from feeling, not evidence |
-| 🛑 `/drift-check` *(any time)* | `/drift-check` | Are we still building the vision? Features that were non-goals, docs that no longer match code | A report · a dated `#Drift log` row on confirmed drift; never advances the chain | Drift nobody noticed |
+| 🛑 `/drift-check` *(any time)* | `/drift-check` | Are we still building the vision? Features that were non-goals, docs that no longer match code | A report · a `STATUS.md` drift row on confirmed drift; never advances the chain | Drift nobody noticed |
 
 ---
 
@@ -266,7 +266,7 @@ Every product runs the spine above. A few skills switch on or off depending on w
 | **Chain architect → structure** | say **yes** when `/architect` offers it at its first step | The stack and the folder shape in one session, every question kept. |
 | **Log one bug mid-build** | `/product-playbook:tickets "Bug: …"` | One issue against the file that owns it, on the board. Backlog untouched. |
 | **Bring in an existing repo** | `/product-playbook:adopt` | Inferred `PRODUCT.md`, confirmed section by section. |
-| **Check for drift** | `/product-playbook:drift-check` | A report; a dated row in `#Drift log` if anything is confirmed. |
+| **Check for drift** | `/product-playbook:drift-check` | A report; a `STATUS.md` drift row if anything is confirmed. |
 | **Re-measure after launch** | `/learn` sets it up | Uses Claude Code's `/loop` or `/schedule` to re-check the metric on a cadence. |
 
 **Claude Code skills it calls:** `/code-review` (in `/build` and `/ship`) · `/security-review` (in `/ship`, and on any auth or data change) · `/run` (to drive the app in `/build` and `/test`) · `/loop` and `/schedule` (in `/learn`). If your harness names one differently, any equivalent satisfies the gate and the record says which was used. A gate is never skipped for a missing command, and never silently.

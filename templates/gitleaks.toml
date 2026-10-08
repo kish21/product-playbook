@@ -1,0 +1,21 @@
+# gitleaks config (copied by /foundation): the default rules, plus an allowlist for ONLY the documented fakes.
+# A real key anywhere still fails the hook and CI - .env.example included: it is the file people paste keys into,
+# so it is allowlisted by its placeholder VALUES below, never by its path.
+#
+# Scan what git holds, never the working folder: `gitleaks git` (CI, full history) and
+# `gitleaks git --staged` / `gitleaks protect --staged` (the commit hook). `gitleaks dir .` also reads the
+# gitignored `.env`, `.venv/` and `node_modules/`, and reports keys that are never committed.
+title = "project secret scan"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Documented placeholders and test fakes only (PRINCIPLES.md §Secrets never get pushed)"
+paths = [
+  '''(^|/)(\.venv|venv|node_modules|\.git)/''',
+]
+regexes = [
+  '''CHANGE_ME__[A-Z0-9_]+__CHANGE_ME''',   # the placeholders /structure wrote to .env.example
+  '''(sk|pk|key)-(ant-)?fake-[A-Za-z0-9-]+''', # obviously-fake test keys: name each new fake family here
+]
