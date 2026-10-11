@@ -1,15 +1,6 @@
 ---
 name: design-system
-description: >
-  Phase 2 (Development) of product-playbook — design the product's UI BEFORE building screens. Turns
-  "I don't know what it should look like" into agreed design principles + a confirmed sample page + a
-  concrete, archetype-correct DESIGN.md (shadcn-compatible tokens) that every later build step reuses.
-  Use after /structure when the product has a user-facing UI, or run /design-system "design the UI",
-  "what should it look like", "make a design system", "my UI looks AI-generated / fonts too small".
-  Thinks like a 2026 senior designer and explains the why for a non-designer. Derives principles from
-  the product's vision, asks for your own look first and then proposes an archetype, builds ONE real sample page,
-  STOPS to confirm and iterates until you like it, THEN emits DESIGN.md. Spine-optional: runs standalone.
-  Run /foundation next.
+description: UI products - set the visual rules and write DESIGN.md.
 ---
 
 # `/design-system` — Phase 2 · Development · run as a **2026 senior product designer + mentor**
@@ -96,7 +87,8 @@ Under them, name what `#Scope` asks the screen to show; the sample carries each.
    admire, or bold vs minimal?"* Ask it plainly and wait (case file: The answer we anchored).
 2. **Run the 3-question picker WITH them** (`references/archetypes.md` §The 3-question picker, printed by the
    start). They answer; **offer a recommended answer to each**. Same message: **interface language(s)**
-   (pre-filled from `#Scope`) and whether they switch; **fonts self-hosted** (decided under EU custody, else asked).
+   (pre-filled from `#Scope`) and whether they switch; **fonts self-hosted** (decided under EU custody, else asked); and
+   *"What is this sample for?"* (the end user's main screen · a demo / presenter view · both - the start marks one Recommended).
 3. **Now propose ONE of the 13 aesthetic families** as the default, with a plain-language why that
    references what they just told you. **Say that there are 13 and where they are** (`references/archetypes.md`):
    a shortlist must name the full set, or "Other" asks a non-designer to invent a family nobody showed them.
@@ -112,7 +104,8 @@ each value in `references/build-loop.md` §Concrete foundations — type pairing
 ## Step 4 — Build ONE sample page · STOP · iterate until liked  *(the non-negotiable loop)*
 
 Build **one representative screen of THIS product** from the Step-3 foundations — in the project's stack,
-or a **standalone preview HTML** when there is no stack. **Follow `references/build-loop.md` §Build the
+or a **standalone preview HTML** when there is no stack. Which screen: round 1's *"What is this sample for?"* — the
+end user's main screen, or a presenter view of how the product decides. **Follow `references/build-loop.md` §Build the
 sample page**.
 
 **The sample proves the LOOK, never the LOGIC.** Label any numbers in the page "illustrative figures — not
@@ -121,15 +114,15 @@ real rules arrive with `/contracts` and `/build` (case file: The sample that set
 
 Then ONE turn runs the rendered check and the audit over the sample (the start's commands); fix every
 `[FAIL]`; `NOT RUN` is no result (the start says how). **STOP. Show it and confirm** — at **three widths, ~375px ·
-768px · desktop**, never desktop alone (Law 21) — in ONE message with two options: *"Looks good - save
-(Recommended)"* · *"Change something"*. Not liked → ask what to change, **generate another; loop until they
+768px · desktop**, never desktop alone (Law 21) — in ONE message with two options: *"Looks good
+(Recommended)"* · *"Change something"* - a looks-good is the go-ahead to write and save. Not liked → ask what to change, **generate another; loop until they
 approve**. **Do not emit `DESIGN.md` until approved** (`references/build-loop.md` §Confirm the sample).
 
 ## Step 5 — Emit `DESIGN.md` (only after approval)
 
 After approval, ONE message removes the Theme Studio and writes: **the tokens TWICE — as the
 spec and as the app's stylesheet**, following `references/build-loop.md` §Emit the token stylesheet; **`DESIGN.md`**
-from `references/design-md-template.md` §intro §The skeleton — **`## In short` first** (plain words; each principle
+from `references/design-md-template.md` §intro §The skeleton — **`## 0. In short` first** (plain words; each principle
 with its `#Vision` line), then all **9 sections** with the
 *concrete approved values* — replace every placeholder, ship nothing un-filled. Per-section rules:
 `references/build-loop.md` §Emit `DESIGN.md`. And the `#Design` file.
@@ -143,18 +136,19 @@ with its `#Vision` line), then all **9 sections** with the
 **§Self-check digest** lists the ones that fail most). **A law fails → STOP and fix it.**
 
 ### Step 3b — close the loop (`MECHANISMS.md` §Step 3b)
-`status.py set design-system filled --section-from <file> --commit "<one line>"` (`MECHANISMS.md` §Status; no
-`--commit` on a no) refuses every gap the start lists in one list (fix what it names, never the check), then
-records, saves and prints the rest of the close. **Reconcile every number against `#Vision`**. The save question *"Save this version of your project? (yes / no)"*
-rode on the confirm's *"Looks good - save"* (`MECHANISMS.md` §Commit the work), never again. **The transition guard**
+`status.py set design-system filled --section-from <file> --commit "<one line>"` (`MECHANISMS.md` §Status)
+refuses every gap the start lists in one list (fix what it names, never the check), then
+records, saves and prints the rest of the close. **Reconcile every number against `#Vision`**. No save question: the record call saves (`--no-commit` only when the user said not to save) - the confirm's
+*"Looks good"* was the go-ahead (`MECHANISMS.md` §Commit the work). **The transition guard**
 (`MECHANISMS.md` §Step 3b, item 4): `set` re-ran this phase's own `evidence:` line (the rendered check) and the
 `/frontend-audit`; a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not.
 **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff).
 
 ### Step 3c — contradiction check (`MECHANISMS.md` §Step 3c)
-Compare the result with what `set` names (`#Vision` · `#Scope` · `#Architecture`). **On a conflict, name both
-sides, ask which wins, and update the loser** (`MECHANISMS.md` §Step 3c). Adding detail to an earlier decision is
-not a contradiction.
+Compare the result with what `set` names (`#Vision` · `#Scope` · `#Architecture`). **On a conflict** (this replaces
+`MECHANISMS.md` §Step 3c items 2-3), **name both sides on a line of their own, ask nothing, never edit an earlier
+phase's record or document**: `status.py open --from design-system --what "Clash: <both sides>" --clears "/<that
+phase> decides"`. Adding detail to an earlier decision is not a contradiction.
 
 Then hand off:
 

@@ -219,7 +219,7 @@
     "- Read `PRODUCT.md#Vision`. If the **riskiest assumption** is missing or vague (\"people will like it\"),"
    ],
    "new": [
-    "`#Vision` as the start prints it: if the **riskiest assumption** is missing or vague (\"people will like it\"),"
+    "`#Vision` as the start prints it: no **riskiest assumption** → the start's ONE options question"
    ]
   },
   {
@@ -229,7 +229,7 @@
     "warn: \"`/vision` looks incomplete — there is nothing testable to validate.\" Offer to run `/vision`"
    ],
    "new": [
-    "warn: \"`/vision` looks incomplete — there is nothing testable to validate.\" Offer to run `/vision`"
+    "(`/vision` first,"
    ]
   },
   {
@@ -239,17 +239,17 @@
     "first, but allow override (standalone use): ask the user to state the assumption now."
    ],
    "new": [
-    "first, but allow override (standalone use): ask the user to state the assumption now."
+    "\"now\" is an override, recorded by the `status.py bypass` line it prints"
    ]
   },
   {
    "id": "VA25",
-   "what": "Step 0 — Context + prior-gate check: An override is RECORDED, never a verbal \"yes\" (",
+   "what": "an unmet #Vision gate: ONE options question, recorded with a fixed reason - never typed (2.3, gate cascade rule)",
    "old": [
     "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from validate --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
    ],
    "new": [
-    "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from validate --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
+    "reason — **never a typed reason** (the gate cascade rule, `MECHANISMS.md` §Declined runs)."
    ]
   },
   {
@@ -288,7 +288,7 @@
     "- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** a filled section → follow the `RE-RUN` line `next` prints: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line."
    ],
    "new": [
-    "- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** a filled section → follow the `RE-RUN` line `next` prints: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line."
+    "- **A re-run or a stop:** the start prints its line only when the case is real (a `RE-RUN` line; a stop: `status.py set validate declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>`, nothing in `PRODUCT.md` changed)."
    ]
   },
   {
@@ -298,7 +298,7 @@
     "- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** record it — `status.py set validate declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`."
    ],
    "new": [
-    "- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** record it — `status.py set validate declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`."
+    "`status.py set validate declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>`, nothing in `PRODUCT.md` changed)."
    ]
   },
   {
@@ -362,7 +362,7 @@
     "- Speak in **plain language**; end with **one recommendation**, not a menu of research methods."
    ],
    "new": [
-    "Round 2 gives **one recommendation**"
+    "Then **one recommendation**"
    ]
   },
   {
@@ -377,13 +377,13 @@
   },
   {
    "id": "VA37",
-   "what": "ask in two rounds (P37) - was: one block at a time",
+   "what": "ONE question round, options with Recommended + Other (2.3; was: two rounds)",
    "old": [
     "Ask one block at a time; wait for answers."
    ],
    "new": [
-    "**Two rounds, each ONE message or form**",
-    "**round 1, questions 1–4; round 2, the recommendation below"
+    "**ONE question round, ONE message or form**",
+    "questions 1–4, each as options with one *(Recommended)* and *Other*"
    ]
   },
   {
@@ -573,7 +573,7 @@
     "answer into a number + a time box. Write both down now. If the user cannot name a failing result,"
    ],
    "new": [
-    "answer into a number + a time box. Write both down now. If the user cannot name a failing result,"
+    "answer into a number + a time box: offer bars as options. If the user picks no failing result,"
    ]
   },
   {
@@ -583,7 +583,7 @@
     "the experiment is theatre — say so and keep asking."
    ],
    "new": [
-    "the experiment is theatre — say so and keep asking."
+    "the experiment is theatre — say so in the recommendation and write the strictest bar offered into `Pass/fail threshold`; no extra question (the close's *\"Change anything?\"* is where they change it)."
    ]
   },
   {
@@ -638,12 +638,12 @@
   },
   {
    "id": "VA63",
-   "what": "one recommendation (experiment + threshold + time box), confirmed with two options",
+   "what": "one recommendation (experiment + threshold + time box), written and saved - no confirm turn (2.3)",
    "old": [
     "Give **one recommendation** (experiment + threshold + time box); get a yes/no."
    ],
    "new": [
-    "Round 2 gives **one recommendation**: experiment + threshold (dated, with how each count is recorded) + time box + due date."
+    "Then **one recommendation**: experiment + threshold (dated, with how each count is recorded) + time box + due date."
    ]
   },
   {
@@ -938,12 +938,12 @@
   },
   {
    "id": "VA93",
-   "what": "Step 3b — Self-verify (the evidence gate: status.py set validate overridden reason \"<the user's own words (with the section file, so the override record is checked)",
+   "what": "skipping the test: ONE options question; the option's words are the --reason (2.3, never typed)",
    "old": [
     "`status.py set validate overridden --reason \"<the user's own words>\" --gate validate` — and the"
    ],
    "new": [
-    "`status.py set validate overridden --reason \"<the user's own words>\" --gate validate --section-from <file>` — and the"
+    "run as `status.py set validate overridden --reason \"<the chosen option's words>\" --gate validate --section-from <file>`, and the"
    ]
   },
   {
@@ -963,7 +963,7 @@
     "**First, pressure-test the reason against `#Vision`** — one comparison, not an interrogation: does it fit the"
    ],
    "new": [
-    "**First, pressure-test the reason against `#Vision`** — one comparison, not an interrogation: does it fit the"
+    "**First, pressure-test the reason (an *Other* one above all) against `#Vision`** — one comparison: does it fit the"
    ]
   },
   {
@@ -1028,12 +1028,12 @@
   },
   {
    "id": "VA102",
-   "what": "close the loop: filled only on a result, the save is round 2's answer, transition guard, four blocks ending in the printed handoff",
+   "what": "close the loop: filled only on a result, the record call saves (no save question), transition guard, four blocks",
    "old": [
     "**Close the loop (`MECHANISMS.md` §Step 3b):** record the phase's state — `status.py set validate filled` only once a measured result and verdict are recorded (`--note \"<result vs bar>\"`); while the experiment runs, the state stays `running` (`MECHANISMS.md` §Status) — reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work — this project's repo, name the branch, commit on a yes, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff)."
    ],
    "new": [
-    "**Close the loop (`MECHANISMS.md` §Step 3b):** record the phase's state — `status.py set validate filled` only once a measured result and verdict are recorded (`--note \"<result vs bar>\"`); while the experiment runs, the state stays `running` (`MECHANISMS.md` §Status) — reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it); the save was round 2's answer (`MECHANISMS.md` §Commit the work: `--commit` on a yes). Then **run the transition guard**",
+    "the record call saves — no save question (`MECHANISMS.md` §Commit the work)",
     "**What YOU do next**, ending with the `Open a NEW conversation` line the record call printed, word for word."
    ]
   },
@@ -1150,8 +1150,19 @@
    "what": "one message writes the companion and the section file, then one record call (P25)",
    "old": [],
    "new": [
-    "**ONE message, then ONE record call**, both as the start prints them."
+    "**ONE message, then ONE record call**, both as the start prints them: `docs/validation.md` opening with `## 1. In short` — the bet, the test and its bar, the result or when it is due, in 3-5 plain sentences."
    ]
+  },
+  {
+   "id": "VA28b",
+   "what": "the re-run rule itself (one question listing each change, never a silent overwrite) is the RE-RUN line the start prints when #Validation is filled (an edge case prints only when real)",
+   "old": [
+    "**one question listing what would change**, never a silent overwrite"
+   ],
+   "new": [
+    "listing each concrete change, the gaps marked (Recommended). Nothing differs: say so and stop."
+   ],
+   "home": "tools/status.py"
   }
  ],
  "dropped": []

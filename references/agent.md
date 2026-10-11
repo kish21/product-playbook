@@ -9,7 +9,7 @@
 ## §Architect — the ten agent decisions
 
 Record each as one line in `#Architecture`'s **(Agent)** field, with its provenance (`user-chosen` or `default
-taken, not user-chosen`). Rows 1, 2 and 6 are load-bearing: each also gets an ADR file.
+taken, not user-chosen`). Rows 1, 2 and 6 are load-bearing: each is also a decision block in `docs/architecture.md` §Decisions.
 
 1. **Framework.** One search for **this year's** agent frameworks **in the project's language**. Then **show
    the user a table of 3–4 options before recommending** (what fits this product · what it costs to run ·
@@ -69,8 +69,7 @@ shape these live in the agent's own module (e.g. `app/agent/`); a module that ac
 its action behind its own service, and the agent calls that service.
 
 **Folders to create** (inside the agent's module): `tools/` · `guards/` · `adapters/` · `tests/`, plus
-`evals/agent/` (or the project's eval folder). Two logged runs read "guards" as a file in one and a folder in
-the other: the home is the name below, not a choice. The rows marked *file* are planned files in those folders.
+`evals/agent/` (or the project's eval folder): the home is the name below, not a choice. The rows marked *file* are planned files in those folders.
 
 | # | Part | Home | What goes there |
 |---|---|---|---|

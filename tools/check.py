@@ -137,21 +137,43 @@ OVERRIDE_PHRASES = ("allow override", "an override", "continue if the user wants
 # Since the status switch the recorded form is the `status.py bypass` command (MECHANISMS.md §Status), which
 # stamps the date and refuses a missing reason - the same trace, now written by a script.
 OVERRIDE_RECORD = ("status.py bypass", "Declined runs")
-OVERRIDE_REASON = ("reason in the user's own words", "reason in the user's words")
+# 2.1: an options question records the reason the user picked (a fixed reason text), never a typed one
+OVERRIDE_REASON = ("reason in the user's own words", "reason in the user's words", "never a typed reason",
+                   "the reason as options (Other = the user's own words)")
 
 
 def fail(msg: str) -> None:
     errors.append(msg)
 
 
+class SkillPath(type(Path())):
+    """A SKILL.md whose full path lives in `references/full.md` beside it (/build's lean run loads only
+    SKILL.md; the full path is opened on `Mode: full`). Its text, for every check, is the two together: a rule moved
+    behind the pointer is still the skill's rule."""
+
+    def read_text(self, *args, **kwargs) -> str:
+        text = super().read_text(*args, **kwargs)
+        full = self.parent / "references" / "full.md"
+        if self.name == "SKILL.md" and full.is_file():
+            text += "\n" + Path(full).read_text(*args, **kwargs)
+        # 2.4: the cases a normal run never meets live in references/edge-cases.md, opened only when real. Its
+        # Step 0 bullets are read back INTO Step 0, where the checks that read Step 0 look for them.
+        edge = self.parent / "references" / "edge-cases.md"
+        if self.name == "SKILL.md" and edge.is_file():
+            body = Path(edge).read_text(*args, **kwargs).split("\n## Step 0", 1)[-1].split("\n", 1)[-1]
+            m = re.search(r"(?m)^## Step 1\b", text)
+            text = (text[:m.start()] + body.strip("\n") + "\n\n" + text[m.start():]) if m else text + "\n" + body
+        return text
+
+
 def skill_files() -> dict[str, Path]:
-    """name -> path: flat commands/*.md AND directory-form commands/<name>/SKILL.md."""
+    """name -> path: flat commands/*.md AND directory-form commands/<name>/SKILL.md (with its references/full.md)."""
     out: dict[str, Path] = {}
     for p in (ROOT / "commands").glob("*.md"):
         out[p.stem] = p
     for p in (ROOT / "commands").iterdir():
         if p.is_dir() and (p / "SKILL.md").exists():
-            out[p.name] = p / "SKILL.md"
+            out[p.name] = SkillPath(p / "SKILL.md")
     return out
 
 
@@ -357,7 +379,7 @@ def main() -> int:
     check_rule_inventory()
     # 56. the rules a four-tool test run (Claude, Cursor, Antigravity; three models) showed were model-dependent
     check_cross_model_rules()
-    # 57. a skill carries its own first command (status.py next) and its own close (four blocks, the save question)
+    # 57. a skill carries its own first command (status.py next) and its own close (four blocks, no save question)
     check_skill_carries_its_steps(files)
     # 58. a printed command runs in PowerShell too: no &&, tail, grep, export
     check_shell_neutral()
@@ -367,6 +389,32 @@ def main() -> int:
     check_description_next_matches_handoff(files)
     # 61. the release phases (/eval /learn /ship /deploy): one start command, the close refused in code
     check_releaseops_close()
+    # 62. the documents a person reads number every heading, checked on the templates the skills write from
+    check_numbered_templates()
+    # 63. /architect writes each fact once and no ADR on a first run (owner 2026-10-07)
+    check_architect_written_once()
+    # 64. /vision, /scope, /plan: one fields file renders docs/<phase>.md and the PRODUCT.md section
+    check_phase_fields()
+    # 65. every skill description is ONE line of at most 15 words (they ride on every call of every phase)
+    check_short_descriptions(files)
+    # 82. /ship, /dev-check, /test (2.4): reviews in helpers, the security receipt, starts and closes sized to the run
+    check_checking_phases_24()
+    # 78. the feature-doc template and its example number every heading
+    check_numbered_feature_docs()
+    # 70. /architect's research runs in a helper on every tool, with a fallback (/ A3)
+    check_architect_research_helper()
+    # 71. /architect and /structure keep the unusual cases in references/edge-cases.md, opened only when real
+    check_setup_edge_cases()
+    # 72. 2.4 /architect + /structure behaviour: separators, waive, Cursor start file, short close, doc warnings
+    check_setup_24()
+    # 86. the documents /eval /learn /validate /deploy write for a person open with a summary, numbered by the script
+    check_companion_summaries(files)
+    # 74. the 2.4 setup fixes: audit rules + config, numbered setup documents, folders drawn by set, root STATUS.md
+    check_setup_fcd_24()
+    # 75. the DESIGN.md skeleton numbers every heading (`## 0. In short`), as `set design-system filled` asks
+    check_design_skeleton_numbered()
+    # 66. the early phases in three owner turns, the options rule everywhere, a 6-line close, /adopt's PRODUCT.md
+    check_early_24()
 
     return done(len(cmds))
 
@@ -1161,9 +1209,10 @@ def check_lanes_and_board(files: dict[str, Path]) -> None:
                  f"every field set is invisible on the lane view the team actually reads")
     m = re.search(r"^### 3A\.1\b(.*?)^### 3A\.2", text, re.MULTILINE | re.DOTALL)
     step = " ".join((m.group(1) if m else "").split())
-    if not m or "print the whole proposal" not in step or "confirmed again" not in step:
-        fail("tickets Step 3A.1 does not print the whole proposal before asking for a yes, or does not "
-             "re-confirm a set that changed after it - a confirmation of a count is not a confirmation of a list")
+    # 2.1: no confirm turn - the tickets are written and saved, and the close prints the whole list
+    if not m or "prints the whole result" not in step or "runs the `set` again" not in step:
+        fail("tickets Step 3A.1 does not print the whole written list in the close, or does not rewrite and record "
+             "again on a change - a list never shown is a list nobody checked")
     template = (ROOT / "templates" / "feature_ticket_template.md").read_text(encoding="utf-8")
     for heading in TEMPLATE_HEADINGS:
         if heading not in template:
@@ -1457,7 +1506,7 @@ def check_architect_search_bound(files: dict[str, Path]) -> None:
 
 # /vision's search record (#252), as (token, region, what losing it means).
 VISION_SEARCH_TOKENS = (
-    ("Record every search in `docs/vision.md`", "vision Step 2", "the rule that every search is written down"),
+    ("Record every search in the `searches` field", "vision Step 2", "the rule that every search is written down"),
     ("query · what it settled", "vision Step 2", "the line shape - a list of queries does not say which "
      "comparable each one verified"),
     ("No count on searches", "vision Step 2", "the ruling that searches are not counted - a bound cuts the "
@@ -1466,7 +1515,7 @@ VISION_SEARCH_TOKENS = (
     ("Every search the market read ran is recorded in `docs/vision.md`", "vision exit criteria",
      "the exit criterion the record is held to"),
     ("named without a search", "vision exit criteria", "the exit criterion marking a comparable nobody searched"),
-    ("against the search list in `docs/vision.md`", "vision Step 3b", "Step 3b checking the named comparables "
+    ("against your `searches` field", "vision Step 3b", "Step 3b checking the named comparables "
      "against the list - without it, 'not from memory' is an assertion"),
 )
 # A count or limit on /vision's searches, in more wordings than a copy of /architect's rule would use. A number
@@ -2156,7 +2205,11 @@ PLAYBOOK_RUN = (
     ("Step 2", "what's done (`Done:`), what's next, why", "the offer's three plain lines: done, next, why"),
     ("Step 2", "**The user already named a goal**", "routing a goal the user named, with no extra question"),
     ("Step 1", "only when `route` prints `Map: show it`", "the map shown only on a first visit"),
-    ("Step 2", "Start `/<phase>` now? (yes / later)", "the one question that ends the offer"),
+    ("Step 2", "a) Start `/<phase>` now (Recommended) · b) Later · c) Other", "the one question that ends the offer, "
+     "as options with one Recommended and Other (a bare yes / later is the yes/no the rules ban)"),
+    ("Step 2", "a) Run `/foundation` alone (Recommended", "the batch offer's Recommended option"),
+    ("Step 2", "open the `vision` skill's SKILL.md", "the fallback for a tool with no skill call, when the idea starts "
+     "`/vision` in the same reply"),
     ("Step 2", "only on the user's yes", "invoking the phase only on the user's yes"),
     ("Step 2", "After the phase's close, this conversation is done", "one phase per conversation"),
     ("Step 2", "Never invoke the next phase in this conversation", "the ban on starting the next phase here"),
@@ -2410,15 +2463,23 @@ def plan_example_faults(example: str) -> list[str]:
     if not day1 or "Seat" not in day1[0]:
         faults.append("no Day 1 table with a Seat column")
     else:
-        seen = set()
+        # One row per seat the user named: no seatless "next free seat" row, no seat twice, and
+        # every lane it names is a lane. A lane nobody sits in on day one is taken when a seat frees up.
+        seats: list[str] = []
         for row in day1[1:]:
-            if len(row) > 1:
-                seen.add(row[1])
+            seat = row[0] if row else ""
+            if not re.fullmatch(r"[A-Z]{1,3}\d+", seat):
+                faults.append(f"day-1 row {row!r} has no seat - list only the seats the user named")
+            seats.append(seat)
+            if len(row) > 1 and row[1] not in lanes:
+                faults.append(f"day-1 row {row!r} names {row[1]!r}, which is not a lane")
             for tid in EPIC_TICKET_ID.findall(row[2] if len(row) > 2 else ""):
                 if tid in waiting:
                     faults.append(f"day 1 starts {tid}, which waits for a merge - it cannot start on day one")
-        if seen != lanes:
-            faults.append(f"the Day 1 table covers lanes {sorted(seen)}, not every lane {sorted(lanes)}")
+        if len(set(seats)) != len(seats):
+            faults.append(f"the Day 1 table lists a seat twice: {seats}")
+        if "when a seat frees up" not in example.lower():
+            faults.append("no 'when a seat frees up' line under the Day 1 table")
     ticket_lane: dict[str, str] = {}
     for milestone in re.findall(r"^## M\d+\b.*?(?=^## |\Z)", example, re.MULTILINE | re.DOTALL):
         for row in table_rows(milestone)[1:]:
@@ -2523,7 +2584,7 @@ def check_epic_plan(files: dict[str, Path]) -> None:
 
 # Check 37 (#260). The verification companion's two halves.
 VERIFY_READ_BACKS = ("Structure mirrored + idempotent.", "Epics are parents, read back.",
-                     "Bodies are their files, read back.", "The board reads back set.",
+                     "Bodies are their files, read back.", "The board reads back as planned.",
                      "Dependencies are links, read back.")
 # Every check verification.md held when #260 split it (16), plus the two #249 added and the two #279 added. A check
 # may be reworded only by editing this list in the same change, so a dropped check is a visible diff, never a silent one.
@@ -3018,7 +3079,7 @@ def copy_install_one(bash: str, tool: str, folder: str, tmp: Path, subprocess) -
             if PROJECT_ROOT_NOTE not in text or RULES_FALLBACK in text:
                 fail(f"copy install {where}'s rule-files line does not say where the project root is - its "
                      f"paths are relative, and an agent may start in a subfolder")
-    for tool_file in ("session_cost.py", "status.py", "VERSION"):
+    for tool_file in ("session_cost.py", "status.py", "board.py", "VERSION"):
         if not (support / tool_file).is_file():
             fail(f"copy install ({tool}): {tool_file} is not installed")
     # Cursor lists Claude Code's installed skills beside these, same names and descriptions: a logged test run
@@ -3319,6 +3380,170 @@ def check_status_engine() -> None:
         fail("tools/status.py misbehaves (tools/test_status.py): " + " | ".join((p.stdout + p.stderr).split("\n")))
 
 
+DESCRIPTION_WORDS = 15
+
+
+# 86 (2.4,  + R5 of   ). An output review found these documents opened with the workings and left the
+# result for last; plain's opened with the answer (P42, reader first). The record call refuses a missing summary and
+# numbers the headings (tools/test_releaseops_close.py, tools/test_support_v2.py); this keeps the instructions that
+# produce the summary, and the save that is never skipped, in the skills, the starts and the template.
+COMPANION_SUMMARY = (
+    ("commands/eval/SKILL.md", "`docs/evaluation.md` (opening with `## 1. In short`"),
+    ("commands/learn/SKILL.md", "`docs/learnings.md` (opening with `## 1. In short`"),
+    ("tools/status.py", "docs/evaluation.md opens with `## In short`"),
+    ("tools/status.py", "docs/learnings.md opens with `## In short`"),
+    ("tools/status.py", "docs/validation.md (opening with `## In short`"),
+    ("tools/status.py", "`**In short:**` line first"),
+    ("tools/status.py", "companion_prep(base, \"docs/deployment.md\", a)"),
+    ("tools/status.py", "companion_prep(prod.resolve().parent, OWN_COMPANION[\"Validation\"], a)"),
+)
+SAVED_ON_A_NO = "no `--commit` on a no"  # `set` saves unless --no-commit: dropping --commit saved against a "no"
+
+
+def check_companion_summaries(files: dict[str, Path]) -> None:
+    """86. The documents /eval, /learn, /validate and /deploy write open with a summary a newcomer reads first, and
+    the skills never tell a run that leaving out --commit means "do not save". Shown red by removing the template's
+    `**In short:**` line and by putting the old save wording back."""
+    for rel, want in COMPANION_SUMMARY:
+        if want not in (ROOT / rel).read_text(encoding="utf-8"):
+            fail(f"{rel} lost {want!r} - the phase's document then opens with its workings, not its result")
+    tpl = (ROOT / "templates" / "deployment.md").read_text(encoding="utf-8")
+    first = re.search(r"(?m)^## ", tpl)
+    if not re.search(r"(?m)^\*\*In short:\*\*", tpl[:first.start() if first else len(tpl)]):
+        fail("templates/deployment.md has no `**In short:**` line above section 1 - the reader's summary comes first")
+    for name in sorted(files):  # every skill: the same wording saved against a no in /architect too
+        if SAVED_ON_A_NO in files[name].read_text(encoding="utf-8"):
+            fail(f"commands/{name}/SKILL.md says {SAVED_ON_A_NO!r} - the record call saves unless --no-commit, so a "
+                 f"run that follows it saves against the user's no")
+
+
+def check_short_descriptions(files: dict[str, Path]) -> None:
+    """65. A skill's description is what every tool sends with EVERY call to choose a skill: the 22 long ones were
+    ~2,900 tokens per call of every phase on a logged run (owner 2026-10-06). One line, at most 15 words: what the
+    skill does and when; phase numbers and feature lists live in the skill body. Shown red with the old texts."""
+    for name, path in sorted(files.items()):
+        head = path.read_text(encoding="utf-8").split("\n---", 1)[0]
+        m = re.search(r"(?m)^description:[ \t]*(.*)$", head)
+        if not m or m.group(1).strip() in ("", ">", ">-", "|"):
+            fail(f"{path.relative_to(ROOT).as_posix()}: the description is not ONE line (`description: <text>`)")
+        elif len(m.group(1).split()) > DESCRIPTION_WORDS:
+            fail(f"{path.relative_to(ROOT).as_posix()}: the description has {len(m.group(1).split())} words - at most "
+                 f"{DESCRIPTION_WORDS}, one line: what the skill does and when to run it")
+
+
+# 82 (2.4,    ): what the checking phases must keep. Each token is where the rule lives; the typed-reason
+# phrase is the owner's ruling (every question is options, never a reason typed in the user's own words).
+CHECKING_24 = (
+    ("commands/ship/SKILL.md", "**Run both reviews at once, by the start's `The order:` line**",
+     "/ship's deep review at once with the security helper (owner 2026-10-09)"),
+    ("tools/status.py", "SHIP_REVIEW_ROUTE = {", "/ship's per-tool review route (each tool starts its reviewers its way)"),
+    ("commands/dev-check/SKILL.md", "--security-from <file>", "/dev-check's close passing the security helper's table"),
+    ("tools/status.py", "def security_receipt_gaps(", "the security receipt check"),
+    ("tools/status.py", "def verify_skip(", "the checking phases' starts printing only the rules the run needs"),
+    ("tools/status.py", "VERIFY_CLOSE_PHASES = (\"dev-check\", \"test\", \"ship\")", "the checking phases' short close"),
+    ("tools/status.py", "board_line(st.base, t, \"In Review\")", "the release moving the card to In Review"),
+)
+TYPED_REASON = "reason in the user's own words"
+
+
+def check_checking_phases_24() -> None:
+    """82. Shown red by removing each token, and by putting the typed-reason phrase back into /dev-check."""
+    for rel, token, what in CHECKING_24:
+        if token not in (ROOT / rel).read_text(encoding="utf-8"):
+            fail(f"{rel} lost {what} (expected {token!r})")
+    for name in ("ship", "dev-check", "test"):
+        if TYPED_REASON in (ROOT / "commands" / name / "SKILL.md").read_text(encoding="utf-8"):
+            fail(f"commands/{name}/SKILL.md asks for a {TYPED_REASON!r} - every question is options with one "
+                 f"(Recommended) and Other; the override's reason is the answer picked")
+
+
+ARCH_HELPER_TOOLS = ("claude", "cursor", "antigravity", "codex")
+
+
+def check_architect_research_helper() -> None:
+    """70. A logged /architect's 7 searches + 10 page opens grew the main context 67K -> 83K, re-sent on every later
+    call; on another tool the search results were 49% of the run (/ A3, owner 2026-10-09: in 2.4). The
+    research runs in a helper with its own context: the brief ships, every tool has a route (or the stated fallback),
+    the skill names the brief, and the run report counts the helper as the research. Shown red by deleting the brief."""
+    brief = ROOT / "agents" / "architect-research.md"
+    if not brief.is_file() or "name: architect-research" not in brief.read_text(encoding="utf-8"):
+        fail("agents/architect-research.md is missing (or not named architect-research) - /architect's research "
+             "helper brief; the installer copies agents/*.md where each tool looks for its agents")
+    sys.path.insert(0, str(ROOT / "tools"))
+    import status as status_engine  # noqa: E402
+    routes = getattr(status_engine, "ARCH_HELPER_ROUTE", {})
+    lost = [t for t in ARCH_HELPER_TOOLS if t not in routes]
+    if lost:
+        fail(f"status.py ARCH_HELPER_ROUTE has no route for {', '.join(lost)} - each tool starts the helper its way")
+    skill = (ROOT / "commands" / "architect" / "SKILL.md").read_text(encoding="utf-8")
+    if "agents/architect-research.md" not in skill or "A tool with no helper runs the two turns itself" not in skill:
+        fail("commands/architect/SKILL.md Step 1 does not name the research helper's brief and its fallback")
+    if "def architect_rows(" not in (ROOT / "tools" / "run_report.py").read_text(encoding="utf-8"):
+        fail("tools/run_report.py does not count /architect's research helper (architect_rows)")
+
+
+# 71. The cases a normal first run never meets (owner 2026-10-06): opened only when real, never carried in the
+# skill text on every call. (skill, words that must have left SKILL.md, words edge-cases.md must hold)
+SETUP_EDGE = (
+    ("architect", ("An override is RECORDED", "A NARROW run", "Chain mode is never asked", "Re-running this phase",
+                   "The gate is unmet and the run stops here"), ("status.py waive --from architect", "A NARROW run")),
+    ("structure", ("An override is RECORDED", "A shape-changing re-run", "Stopping at an unmet gate"),
+     ("status.py waive --from structure", "A shape-changing re-run")),
+)
+
+
+def check_setup_edge_cases() -> None:
+    """71. /architect and /structure carry the normal path; the unusual cases live in references/edge-cases.md beside
+    the skill, named by ONE pointer line in Step 0. Shown red on the 2.3 texts (the cases inline in Step 0)."""
+    for skill, gone, held in SETUP_EDGE:
+        own = (ROOT / "commands" / skill / "SKILL.md").read_text(encoding="utf-8")  # the file alone, not SkillPath
+        edge = ROOT / "commands" / skill / "references" / "edge-cases.md"
+        if "references/edge-cases.md" not in own:
+            fail(f"commands/{skill}/SKILL.md has no pointer to references/edge-cases.md")
+        still = [g for g in gone if g in own]
+        if still:
+            fail(f"commands/{skill}/SKILL.md still carries an unusual case on every call: {', '.join(still)} - it "
+                 f"belongs in references/edge-cases.md")
+        text = edge.read_text(encoding="utf-8") if edge.is_file() else ""
+        lost = [h for h in held if h not in text]
+        if lost:
+            fail(f"commands/{skill}/references/edge-cases.md lacks {', '.join(lost)}")
+
+
+def check_setup_24() -> None:
+    """72. tools/test_setup_24.py: the 2.4 /architect + /structure fixes, each shown red then green."""
+    import subprocess
+    p = subprocess.run([sys.executable, str(ROOT / "tools" / "test_setup_24.py")], capture_output=True,
+                       text=True, encoding="utf-8", errors="replace")
+    if p.returncode != 0:
+        fail("2.4 /architect + /structure fixes misbehave (tools/test_setup_24.py): "
+             + " | ".join((p.stdout + p.stderr).split("\n"))[-1500:])
+
+
+def check_phase_fields() -> None:
+    """64. tools/test_fields.py: the model types each fact once - the required-field check refuses every gap
+    in one list and leaves nothing behind, both files render from the same fields with numbered headings, PRODUCT.md
+    holds only finished phases in the phases' order, prose estimates warn, an old project's PRODUCT.md is never
+    rewritten, and a start prints only the rule sections its run needs."""
+    import subprocess
+    p = subprocess.run([sys.executable, str(ROOT / "tools" / "test_fields.py")], capture_output=True, text=True,
+                       encoding="utf-8", errors="replace")
+    if p.returncode != 0:
+        fail("the phase fields misbehave (tools/test_fields.py): " + " | ".join((p.stdout + p.stderr).split("\n")))
+
+
+def check_early_24() -> None:
+    """66. tools/test_early_24.py (batch 2.4,      ): /vision's drafts are options inside round 2
+    and /playbook asks for the idea on a fresh folder (3 owner turns, not 6); the shared Communication rule asks
+    options, never a yes/no; a document phase's close is 6 lines; the starts print the edge cases only when true;
+    /adopt writes only the sections it filled."""
+    import subprocess
+    p = subprocess.run([sys.executable, str(ROOT / "tools" / "test_early_24.py")], capture_output=True, text=True,
+                       encoding="utf-8", errors="replace")
+    if p.returncode != 0:
+        fail("the early phases misbehave (tools/test_early_24.py): " + " | ".join((p.stdout + p.stderr).split("\n")))
+
+
 def check_structure_template() -> None:
     """53b. templates/check_structure.py against tools/test_check_structure.py: a logged run on a second model left
     modules without tests/, no file convention, recorded decisions with no home, print-only tasks and an
@@ -3367,14 +3592,23 @@ def check_foundation_tools() -> None:
 
 
 def check_build_tools() -> None:
-    """53f. commands/build/gate.py + wirecut.py against tools/test_build_tools.py: a logged build spent ~40 of its 120
-    calls on one check per call and 13 wire cuts made by hand, each call re-sending a 200k-token conversation."""
+    """53f. commands/build/gate.py + wirecut.py + featuredoc.py against tools/test_build_tools.py: a logged build spent
+    ~40 of its 120 calls on one check per call and 13 wire cuts made by hand, each call re-sending a 200k-token
+    conversation; a later one wrote a feature doc its owner could not read - the close gate now refuses a
+    top half with code names in it, shown red on that shape and green on templates/feature-doc-example.md."""
     import subprocess
     p = subprocess.run([sys.executable, str(ROOT / "tools" / "test_build_tools.py")], capture_output=True,
                        text=True, encoding="utf-8", errors="replace")
     if p.returncode != 0:
-        fail("commands/build/gate.py or wirecut.py misbehaves (tools/test_build_tools.py): "
+        fail("commands/build/gate.py, wirecut.py or featuredoc.py misbehaves (tools/test_build_tools.py): "
              + " | ".join((p.stdout + p.stderr).split("\n")))
+    # the board card moved and read back, a ticket picked when none is named, the lean SKILL.md without the full
+    # path, the security line quiet on the template's DoD, /build's own close, per-edit commands, LOW findings filed
+    p = subprocess.run([sys.executable, str(ROOT / "tools" / "test_build_close.py")], capture_output=True,
+                       text=True, encoding="utf-8", errors="replace")
+    if p.returncode != 0:
+        fail("/build's start or close misbehaves (tools/test_build_close.py): "
+             + " | ".join(l for l in (p.stdout + p.stderr).split("\n") if l.startswith(("  x", "FAIL"))))
 
 
 def check_render_check() -> None:
@@ -3432,12 +3666,40 @@ def check_design_close() -> None:
 
 
 CROSS_MODEL_RULES = (
-    ("commands/vision/SKILL.md", "**never draft who it's for, the problem, why now, the riskiest assumption or the "
-     "business model**", "facts only the user knows are never drafted (a run drafted the problem and why now)"),
+    # 2.4 wording review: the options rule named no exception while /vision's one open question exists; and round 2
+    # can hold 9+ drafted choices, so "a second form for the rest" undercounts the forms a 4-per-form tool needs
+    ("PRINCIPLES.md", "except /vision's one open question, \"What's your idea?\", when the user gave none",
+     "the one named exception to the options rule (an open question the rule did not allow)"),
+    ("commands/vision/SKILL.md", "one form per 4 questions, all in the same reply",
+     "round 2's forms counted per 4 questions, not 'a second form' (round 2 can hold 9+ choices)"),
+    ("commands/vision/SKILL.md", "3 options, the Recommended one first, + Other",
+     "the Recommended option is one of the 3, listed first (not a fourth option)"),
+    #  (owner-approved rewrite, 2026-10-06): never DECIDE these - additions are proposed as options, only picked
+    # ones go in (the old "never draft" rule kept the owner's answers intact but blocked enriching them)
+    ("commands/vision/SKILL.md", "**Never decide who it's for, the problem, why now, the riskiest assumption or the "
+     "business model**", "facts only the user knows are never decided for them (a run drafted the problem and why now)"),
+    ("commands/vision/SKILL.md", "only what the user picks goes in", "proposed additions go in only when picked"),
+    ("commands/vision/SKILL.md", "**Every question: 2–4 options + Recommended (first, one-line reason) + Other**",
+     "every question is a pick-from-options question (the user types only when no option fits)"),
+    ("commands/vision/SKILL.md", "if the input\ncontains an answer, quote it under `From your brief:` instead of asking",
+     "a pasted brief is read, not re-asked (round 1 asked three things the brief answered)"),
+    ("commands/vision/SKILL.md", "**Never ask for a\nresearchable fact**", "research questions go to the market check"),
+    ("commands/vision/SKILL.md", "**Your first tool call, before you write round 1, starts the research helper",
+     "the helper starts before round 1 is written (a late start kept the owner waiting ~2 min)"),
+    ("commands/vision/SKILL.md", "script lays out `docs/vision.md`", "docs/vision.md is written from its template"),
+    ("commands/scope/SKILL.md", "**Which of these should stay OUT of the first version? You decide later or never for "
+     "each next.**", "the temptations question says which way a tick goes"),
+    ("commands/scope/SKILL.md", "**Who builds the first version, and how long do you have?**",
+     "capacity is asked before the scope is fixed"),
+    ("commands/scope/SKILL.md", "**Each temptation from question 3 is its own question:**",
+     "the owner sorts each temptation"),
+    ("commands/plan/SKILL.md", "**The AI model and its cost are chosen at `/architect`**",
+     "/plan never assumes a paid AI API (the plan clashed with the owner's free local model)"),
+    ("commands/plan/SKILL.md", "**Both directions:**", "every #Scope in-now item has a milestone"),
     ("commands/vision/SKILL.md", "its line on the search list starts `why now ·`",
      "why now is found by text on the search list (a run stated it as fact and passed its own gate)"),
     ("commands/vision/SKILL.md", "the search list has no line starting `why now ·`", "the 3b stop for why now"),
-    ("commands/vision/SKILL.md", "one row each in the `## North-star terms` table",
+    ("commands/vision/SKILL.md", "one row each in the `terms` field",
      "the term -> number table (two of three models left terms undefined)"),
     ("commands/vision/SKILL.md", "north-star terms table has no number", "the 3b stop for the table"),
     ("commands/vision/SKILL.md", "Leave `UI` alone: `/architect` decides it",
@@ -3455,10 +3717,23 @@ CROSS_MODEL_RULES = (
     # From /plan in the same test: a non-Claude run asked nothing on an input gate, called every judged row
     # VERIFIED at 95%, and receipted its own output. Plus the agent track, built before /architect.
     # next.65: asked in two rounds, never drafted before round 1's answers
-    ("commands/plan/SKILL.md", "**Round 1: these three together; draft no milestone or date before the answers**",
+    ("commands/plan/SKILL.md", "**Round 1: these together; draft no milestone or date before the answers**",
      "an input gate names its questions (a run invented a 4-6 week timeline)"),
-    ("commands/architect/SKILL.md", "**Round 1: ask these in ONE message, numbered as written, and recommend nothing "
-     "before the answers**", "the constraints /architect chooses against are asked, not assumed - in one round (P37)"),
+    # 2.4 review: "the question form" named a section of a file the skill never listed; the tool is named instead
+    ("commands/architect/SKILL.md", "**Round 1: all questions in ONE turn**, through your question tool",
+     "the constraints /architect chooses against are asked, not assumed - in one round (P37)"),
+    # 2.3 (a logged run 2026-10-07): round 1 came as 8 plain-text questions with no Recommended option, and
+    # "EUR 0 to start" silently picked a free local model, then a second question asked which side wins
+    ("commands/architect/SKILL.md", "**Every question: 2–4 options, ONE marked (Recommended) with its reason in one "
+     "line, plus Other.**", "/architect's questions are the option form with one Recommended"),
+    ("commands/architect/SKILL.md", "**Free or paid model is the user's choice**",
+     "the model is asked as its own question, never inferred from the budget"),
+    ("commands/architect/SKILL.md", "**The user's answer this run wins:**",
+     "no 'which side wins?' question for a choice the user just made; the save writes the #Plan note"),
+    ("tools/status.py", 'lines[at] = lines[at].rstrip() + f" — superseded {today} by /architect: {note}"',
+     "the script writes /architect's #Plan note - never an edit tool on PRODUCT.md"),
+    ("tools/status.py", 'st.rows["Open items"].append([new_open_id(st), today, "architect"',
+     "/architect's open items go into STATUS.md before its save, so the commit takes them"),
     # next.67 (A1, P43): 3 of 4 logged runs set identity N/A or sent the pilot's AI calls outside the EU unasked
     ("commands/architect/SKILL.md", "**5.** where the data must be processed, including what is sent to the AI model",
      "where the data and the AI calls are processed is the owner's answer, not a default"),
@@ -3546,11 +3821,137 @@ CROSS_MODEL_RULES = (
     ("templates/check_structure.py", '"## Where decisions live"', "every recorded decision has a home on disk (H1)"),
     ("commands/structure/SKILL.md", "**`## Where decisions live`**", "/structure writes the decisions table (H1)"),
     # The /structure re-run kept replaced rows in the map as superseded lines: two homes for guards, a dead loop.py.
-    ("commands/structure/SKILL.md", "A replaced map row is deleted; its dated `superseded` line goes under `## Changes`",
+    ("commands/structure/references/edge-cases.md",  # 2.4: a re-run's rules, opened only on a re-run
+     "A replaced map row is deleted; its dated `superseded` line goes under `## Changes`",
      "STRUCTURE.md shows only the current tree; history goes under ## Changes (S1)"),
     ("commands/design-system/references/design-md-template.md", "**`DESIGN.md` holds only the current tokens.**",
      "DESIGN.md holds only the current tokens (S1)"),
+    # 2.1: a logged first build failed its structure check on an undrawn docs/features/ and edited
+    # STRUCTURE.md itself; its feature doc was unreadable to the owner; plain Claude made fake data that could never
+    # be real (failing IBAN checksums, "(fictional)" names) and hash-pinned a seeded output, the playbook did neither.
+    ("templates/structure.md", "| `docs/features/` | If you are adding a built ticket's feature doc",
+     "docs/features/ in the map from day one, so scaffold makes it and the first build's structure check passes"),
+    ("commands/build/SKILL.md", "`## 1.` In short · `2.` What you can do now · `3.` What it protects you from",
+     "the feature doc's top half for the owner (templates/feature-doc.md; gate.py --close checks it)"),
+    ("commands/build/gate.py", "if not feature_docs_plain():", "the close gate checking the feature doc's top half"),
+    ("commands/build/references/full.md", "generated data: **identifiers invalid by construction**",
+     "fake data that can never be real, in the security DoD"),
+    ("templates/feature_ticket_template.md", "**If this ticket generates or seeds data:**",
+     "the ticket's DoD line for generated data: invalid by construction, tested, a seeded output hash-pinned"),
 )
+
+
+# 78 (feature docs). /build writes docs/features/<feature>.md from templates/feature-doc.md, with the example
+# beside it: both number every heading (`## 1. In short` ... `### 5.4 Review`). featuredoc.py and status.py read the
+# headings with or without the number, and an unnumbered doc written before 2.4 is warned about, never refused.
+FEATURE_DOC_TEMPLATES = ("templates/feature-doc.md", "templates/feature-doc-example.md")
+
+
+def check_numbered_feature_docs() -> None:
+    """78. The feature-doc template and its example number every `##`/`###` heading. Shown red by removing
+    one number from the template."""
+    sys.path.insert(0, str(ROOT / "tools"))
+    import status as status_engine  # noqa: E402
+    for rel in FEATURE_DOC_TEMPLATES:
+        path = ROOT / rel
+        if not path.is_file():
+            fail(f"{rel} is missing - /build writes the feature doc from it")
+            continue
+        bad = status_engine.unnumbered_headings(path.read_text(encoding="utf-8"))
+        if bad:
+            fail(f"{rel}: heading(s) without a number (`## 1. In short`, `### 5.4 Review`): {', '.join(bad[:3])}")
+
+
+# 62. Templates of documents a person reads, whose skills write from them: every `##`/`###` heading numbered.
+# The machine-read records (PRODUCT.md, STATUS.md, AGENTS.md) keep their fixed names; architecture/structure/feature
+# docs are parsed by heading name in status.py and check_structure.py, so they join this list with their parsers.
+NUMBERED_TEMPLATES = ("templates/vision.md", "templates/scope.md", "templates/plan.md", "templates/deployment.md",
+                      "templates/architecture.md", "templates/tests.md",
+                      "templates/structure.md")  # 2.4: its parsers read both forms
+
+
+def check_setup_fcd_24() -> None:
+    """74. tools/test_setup_fcd_24.py (2.4,      ): the audit warns on table alignment, the caption
+    tier, nine anti-patterns, form labels and page security, and its .frontend-audit.json never skips an ERROR; the
+    runbook, docs/contracts.md and DESIGN.md are refused with an unnumbered heading and only warned on prose; a folder
+    /foundation or /contracts adds is drawn in STRUCTURE.md by `set`; a write command from a sub-folder uses the
+    project root's STATUS.md; the setup phases' close never restates the document. Red on the 2.3 code, case by case."""
+    import subprocess
+    p = subprocess.run([sys.executable, str(ROOT / "tools" / "test_setup_fcd_24.py")], capture_output=True,
+                       text=True, encoding="utf-8", errors="replace")
+    if p.returncode != 0:
+        fail("the 2.4 setup fixes misbehave (tools/test_setup_fcd_24.py): "
+             + " | ".join((p.stdout + p.stderr).strip().splitlines()))
+
+
+DESIGN_SKELETON = ROOT / "commands" / "design-system" / "references" / "design-md-template.md"
+
+
+def check_design_skeleton_numbered() -> None:
+    """75. DESIGN.md is written from the skeleton in design-md-template.md, and `set design-system filled` refuses an
+    unnumbered heading: the skeleton numbers each one - `## 0. In short` first, so sections 1-10 keep the
+    numbers every later phase cites (§2 the stylesheet, §5 the page inventory). Shown red by removing the 0."""
+    sys.path.insert(0, str(ROOT / "tools"))
+    import status as status_engine  # noqa: E402
+    text = DESIGN_SKELETON.read_text(encoding="utf-8")
+    m = re.search(r"(?s)## The skeleton.*?```markdown\n(.*?)\n```\n", text)
+    if not m:
+        fail(f"{DESIGN_SKELETON.relative_to(ROOT).as_posix()}: no ```markdown skeleton under `## The skeleton`")
+        return
+    bad = status_engine.unnumbered_headings(m.group(1))
+    if bad:
+        fail(f"the DESIGN.md skeleton has heading(s) without a number (`## 0. In short`, `## 1. ...`): "
+             f"{', '.join(bad[:3])}")
+
+
+def check_numbered_templates() -> None:
+    """62. A reader, a reviewer or an agent points at "section 7" (the owner's ruling, ). `set vision|scope|plan
+    filled` refuses an unnumbered heading in the written document; this keeps the templates they are written from
+    numbered too. Shown red by removing one number."""
+    sys.path.insert(0, str(ROOT / "tools"))
+    import status as status_engine  # noqa: E402
+    for rel in NUMBERED_TEMPLATES:
+        path = ROOT / rel
+        if not path.is_file():
+            fail(f"{rel} is missing - a phase writes its document from it")
+            continue
+        bad = status_engine.unnumbered_headings(path.read_text(encoding="utf-8"))
+        if bad:
+            fail(f"{rel}: heading(s) without a number (`## 1. ...`, `### 2.1 ...`, `## Appendix A — ...`): "
+                 f"{', '.join(bad[:3])}")
+
+
+# 63 (owner 2026-10-07). An instruction to write ADR files on a first run: a logged run's 4 ADRs repeated
+# decisions D1-D5 of docs/architecture.md (~5K chars typed twice), were "not clear at all", and no later phase reads them.
+DAY_ONE_ADR = re.compile(r"(?i)\brecord\s+\d\s*[–-]\s*\d\s+ADRs|\bas ADRs\b|\bADR files?\b[^.\n]{0,40}\bone per\b|"
+                         r"\balso gets? an ADR\b|\bkey ADRs\b|\bgets? (?:an|its own) ADR file\b|as FILES, one per decision")
+ARCH_WRITTEN_ONCE = (
+    ("commands/architect/SKILL.md", "`status.py set architect filled --from-fields <file>`",
+     "/architect saves ONE fields file; the script renders the record and the document"),
+    ("templates/product-architecture.md", "## Fields", "the fields /architect writes, printed by `status.py fields`"),
+    ("tools/status.py", "def arch_set_from_fields(", "the renderer of /architect's fields"),
+    ("tools/status.py", "### change {i}", "a changed decision is the one path to an ADR file"),
+)
+
+
+def check_architect_written_once() -> None:
+    """63. /architect writes each fact once: its skill saves a fields file the script renders, and no skill,
+    reference or template tells a run to write an ADR file on a first run. Shown red on the 2.2 texts:
+    "Record 2–4 ADRs", "as ADRs", "each also gets an ADR file", "key ADRs"."""
+    files = [*sorted((ROOT / "commands").rglob("*.md")), *sorted((ROOT / "references").rglob("*.md")),
+             *sorted((ROOT / "templates").glob("*.md"))]
+    for f in files:
+        if f.name.startswith("case-files") or f.name == "adr.md":  # history, and the change-ADR's own template
+            continue
+        for i, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
+            m = DAY_ONE_ADR.search(line)
+            if m:
+                fail(f"{f.relative_to(ROOT).as_posix()}:{i} tells a run to write ADRs ({m.group(0)!r}) - day-one "
+                     f"decisions live in docs/architecture.md §Decisions; an ADR only when a decision changes")
+    for rel, token, what in ARCH_WRITTEN_ONCE:
+        path = ROOT / rel
+        if not path.is_file() or token not in path.read_text(encoding="utf-8"):
+            fail(f"{rel} lost {what} (expected {token!r})")
 
 
 def check_cross_model_rules() -> None:
@@ -3606,9 +4007,9 @@ def check_skill_carries_its_steps(files: dict[str, Path]) -> None:
         if m:
             fail(f"{where} still summarises the close as two blocks ({m.group(0)[:60]!r}...) - MECHANISMS.md "
                  f"§Plain-language close has four")
-        if "§Commit the work" in text and SAVE_QUESTION not in flat:
-            fail(f"{where} commits its work but never writes the save question {SAVE_QUESTION!r} - 'offer to "
-                 f"commit' was read as a line of text, not a question")
+        if SAVE_QUESTION.split("?")[0] in flat:  # 2.1: the record call saves; a save turn cost a turn a phase
+            fail(f"{where} still asks the save question {SAVE_QUESTION!r} - every phase saves in its record call "
+                 f"(a 17-phase run needed 58 owner turns vs plain's 27); the close asks \"Change anything?\"")
 
 
 def check_rule_inventory() -> None:

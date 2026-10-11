@@ -29,7 +29,7 @@
     "- **Writes:** one component file (path confirmed with the user)."
    ],
    "new": [
-    "- **Writes:** one component file (path confirmed with the user)."
+    "- **Writes:** one component file, at the path its ticket's Target Files or `STRUCTURE.md` names, and commits it."
    ]
   },
   {
@@ -39,7 +39,7 @@
     "- **Gate type:** `derivation` — the component is computable from `DESIGN.md`'s tokens plus the chosen ticket; the only preference in it (the file path) is confirmed, not invented. Batchable - several components may be built and reviewed together. Writes no spine section, so it declares no state model. (`STATE-MODEL.md` §2d)"
    ],
    "new": [
-    "- **Gate type:** `derivation` — the component is computable from `DESIGN.md`'s tokens plus the chosen ticket; the only preference in it (the file path) is confirmed, not invented. Batchable - several components may be built and reviewed together. Writes no spine section, so it declares no state model. (`STATE-MODEL.md` §2d)"
+    "- **Gate type:** `derivation` — the component is computable from `DESIGN.md`'s tokens plus the chosen ticket; the file path comes from the ticket or `STRUCTURE.md`, never invented. One component per run. Writes no spine section, so it declares no state model. (`STATE-MODEL.md` §2d)"
    ]
   },
   {
@@ -240,7 +240,7 @@
     "4. Show the scoped menu and ask which one to build:"
    ],
    "new": [
-    "4. Show that menu and ask which one to build:"
+    "4. Show that menu as text, then ONE options question - the first pending one *(Recommended)*, the next two pending, *Other - type any name from the menu*:"
    ]
   },
   {
@@ -260,7 +260,7 @@
     "Which should we build next?"
    ],
    "new": [
-    "Which should we build next?"
+    "4. Show that menu as text, then ONE options question"
    ]
   },
   {
@@ -270,7 +270,7 @@
     "**Three constraints that keep this honest:**"
    ],
    "new": [
-    "**Three constraints that keep this honest:**"
+    "**Three constraints:**"
    ]
   },
   {
@@ -280,7 +280,7 @@
     "- **Discovery is a fallback, never a dependency.** The playbook is *sequential but standalone*: with no"
    ],
    "new": [
-    "- **Discovery is a fallback, never a dependency.** The playbook is *sequential but standalone*: with no"
+    "- **Discovery is a fallback.**"
    ]
   },
   {
@@ -290,7 +290,7 @@
     "`docs/issues/` or no active milestone, **say so in one line and continue from a plain description**. Never"
    ],
    "new": [
-    "`docs/issues/` or no active milestone, **say so in one line and continue from a plain description**. Never"
+    "With no `docs/issues/` or no active milestone, **say so in one line and continue"
    ]
   },
   {
@@ -300,7 +300,7 @@
     "an error, never a dead end."
    ],
    "new": [
-    "an error, never a dead end."
+    "from a plain description** - never an error."
    ]
   },
   {
@@ -490,7 +490,7 @@
     "private one.** A component written to token names the project never defines does not error: CSS"
    ],
    "new": [
-    "private one** (an undefined `var()` is dropped silently — the exit criteria say why)."
+    "private one** (an undefined `var()` is dropped silently)."
    ]
   },
   {
@@ -520,7 +520,7 @@
     "1. **File location** — put it where `STRUCTURE.md` says components live (e.g. `components/<Name>.tsx`). Ask if unsure; never invent a new components root."
    ],
    "new": [
-    "1. **File location** — put it where `STRUCTURE.md` says components live (e.g. `components/<Name>.tsx`). Ask if unsure; never invent a new components root."
+    "1. **File location** — the ticket's Target Files, else where `STRUCTURE.md` says components live. Neither names one → ask as options; never invent a new components root."
    ]
   },
   {
@@ -640,7 +640,7 @@
     "comment naming why** — **never as a default across every input**. A blanket suppression silences genuine"
    ],
    "new": [
-    "comment naming why** — **never as a default across every input**. A blanket suppression silences genuine"
+    "**never as a default across every input**: a blanket one hides real bugs (clock values, locale drift)."
    ]
   },
   {
@@ -650,7 +650,7 @@
     "mismatches (clock/random values, locale drift, branch divergence) that are real bugs. `/test`'s"
    ],
    "new": [
-    "mismatches (clock/random values, locale drift, branch divergence) that are real bugs. `/test`'s"
+    "a blanket one hides real bugs (clock values, locale drift)"
    ]
   },
   {
@@ -670,7 +670,7 @@
     "- Full TypeScript component with correct prop types"
    ],
    "new": [
-    "- Full TypeScript component with correct prop types"
+    "Full TypeScript component, typed props, export at the bottom"
    ]
   },
   {
@@ -680,7 +680,7 @@
     "- Export at bottom (`export default` or named export)"
    ],
    "new": [
-    "- Export at bottom (`export default` or named export)"
+    "export at the bottom"
    ]
   },
   {
@@ -690,7 +690,7 @@
     "- No comments unless the WHY is non-obvious"
    ],
    "new": [
-    "- No comments unless the WHY is non-obvious"
+    "a comment only for a WHY the code cannot show."
    ]
   },
   {

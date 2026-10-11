@@ -6,14 +6,16 @@ logged lean build's review helper sat idle four minutes waiting for a reviewer i
 
 **Who runs what, both at once:** on Claude Code the build conversation runs `/code-review` directly (it starts its own
 reviewer) while ONE helper runs the security review; on a tool without `/code-review` (`CAPABILITIES.md` §Code review)
-the helper runs both. Neither waits for the other.
+the helper runs both. Neither waits for the other. The helper is the playbook's `build-reviewer` agent (brief
+`agents/build-reviewer.md`, installed where each tool looks for its agents); the build start's `Reviewer:` line names
+your tool's way to start it.
 
 ## Helper prompt
 
 Fill in the `<…>` and give the helper exactly this (it has no other context):
 
 > Review ticket `<ticket id>` of the project at `<absolute path>`, branch `<branch>`, committed range
-> `<base>...HEAD` (`git diff <base>...HEAD`) — the `<security review | code and security review>`. Its definition of
+> `<base>...HEAD` (`git diff <base>...HEAD`) — the `<code review | security review | code and security review>`. Its definition of
 > done: `<the DoD lines>`. Rules: `<absolute path of this file>` §In the helper — open it first. Change no file.
 > Return ONLY the findings table (severity · file:line · what would go wrong for a user) and one line per changed
 > code file saying what you checked there — or CLEAN and those lines — plus anything you could not do.
@@ -23,7 +25,7 @@ Fill in the `<…>` and give the helper exactly this (it has no other context):
 - **Every check that guards access (an owner's email, a token, a tenant, a limit) is read for the value MISSING, EMPTY and SUPPLIED BY THE MODEL**, not only for a wrong one — a logged build checked the email only when one was given, so no email meant any order's tracking, and let an email the model supplied replace the session's. A check that runs only when its input is present fails open.
 - **Round 1.** The review runs **BEFORE the push, the PR and the close**, so its verdict lands in the record. **Report, never fix** — the build conversation fixes every finding inside the ticket's files, each with its proof, and **commits the fixes locally** before any round 2.
 - **The code review runs directly** (`CAPABILITIES.md` §Code review) — it starts its own reviewer; wrapping it in another helper reads the diff twice (`run_report` flags it).
-- **Run `/security-review` inside a subagent — this helper IS that subagent**, so run it as your own work: invoked in the build conversation it takes over the turn and ends it on its report; here, its report is your answer. Never start another agent for it and wait. (case file: The review that ended the run again)
+- **The `build-reviewer` agent has no tool that starts a review command:** it reviews the diff by hand against `PRINCIPLES.md` §Production safeguards and says so on the route line — it never calls one. **A helper whose tool list starts commands (the Skill tool) runs `/security-review` inside a subagent — this helper IS that subagent**, so run it as your own work: invoked in the build conversation it takes over the turn and ends it on its report; here, its report is your answer. Never start another agent for it and wait. (case file: The review that ended the run again)
 - **The base, with or without a remote:** `git merge-base HEAD <default branch>`. When the security review command cannot find its base, review `git diff <base>...HEAD` against `PRINCIPLES.md` §Production safeguards by hand and say in the table which ran — and why, from what `git remote -v` printed NOW (the build start prints it), never from an older note.
 - **A tool without an independent reviewer** (no helper agents): the security review goes to **another tool** — the build conversation asks the user the exact question `status.py ticket` prints; its review is recorded as `another tool: <name>`. Never recommend approving your own security review.
 - ⚠️ **If you cannot invoke it, ASK the user to run it, or do the deep pass by hand and say which you did** — see `PRINCIPLES.md`, *Composed skills*.

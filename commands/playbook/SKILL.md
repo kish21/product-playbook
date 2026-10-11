@@ -1,12 +1,6 @@
 ---
 name: playbook
-description: >
-  The guided entry-point for product-playbook — run this to be walked through building a product
-  phase-by-phase instead of remembering each skill. Use when starting fresh and unsure where to begin,
-  or run /playbook "start", "guide me", "build a product", "what's next". Reads where the project stands
-  (STATUS.md, or the folder itself on a first visit) and proposes the next phase; runs ONE phase per
-  conversation, pausing at each gate for your confirmation. It orchestrates the other skills — it does NOT
-  auto-build or skip gates.
+description: Start here - shows where the project stands and runs the next phase.
 ---
 
 # `/playbook` — guided orchestrator · run as a **calm guide**
@@ -15,7 +9,7 @@ description: >
 > **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > **`status.py route` (Step 0) prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** — apply them;
 > never open the whole files (a situational companion only when a rule points into it) — load-bearing here:
-> **plain-language communication**, **one recommendation + confirm**, **never bypass a gate**.
+> **plain-language communication**, **options with one Recommended**, **never bypass a gate**.
 
 > **What this is (and isn't):** a single "start here" that runs the phases in order and keeps you
 > oriented. It is an **orchestrator, not an autopilot** — every phase still asks you its questions and
@@ -37,9 +31,9 @@ description: >
   file reads: it looks at the folder itself). It prints the rules above, every skill in order, then `Where:`,
   `Next:`, `Size:`, `Batch:` (only when legal), `Map:` and every note. It finds the **first unfilled / incomplete phase** in order: Vision → Validate (optional) → Scope → Plan → Architect → Structure → **Design (if UI)** →
   Foundation → Contracts → Tickets → Build → Dev-check → Test → Eval → Ship → Learn. That's the next phase.
-  *(Design = run `/design-system`, skipped when `STATUS.md` says `UI: no`; Validate = `/validate`, only when the user asks — never the next phase by itself. Build stays
-  the next phase while a milestone in `TICKETS.md` has unrecorded tickets; Dev-check, Test and Eval stay it until
-  their verdict is `pass`. `/deploy` is never the next phase by itself: it runs when a milestone needs a real URL,
+  *(Design = run `/design-system`, skipped when `STATUS.md` says `UI: no`; Validate = `/validate`, only when the user asks — never the next phase by itself. Each ticket
+  loops: `/build <ticket>` → `/ship <ticket>` (its PR) → merge → `/build` the seat's next ticket; `/dev-check` once
+  every ticket of the milestone is built and shipped. Dev-check, Test and Eval stay next until their verdict is `pass`. `/deploy` is never the next phase by itself: it runs when a milestone needs a real URL,
   else `/test` follows `/dev-check`.)*
 - **No `STATUS.md`:** `route` names the start — a fresh folder → **`/vision`**; existing code or a `PRODUCT.md`
   with no `STATUS.md` → **`/adopt`**, which drafts or confirms the spine with the owner (entering straight at
@@ -76,18 +70,23 @@ control. `Map: skip it` → no map; the list still routes a goal the user names 
    line: *"`/<phase>` is a short one: questions and one section of your product document"*, or for a long one
    *"`/<phase>` is a long one: it writes and checks project files. Start it with room left on your plan: a run a
    usage limit cuts off mid-review loses review steps."* Never a number of minutes, never a price — what a run
-   costs depends on the user's plan. Last line: *"Start `/<phase>` now? (yes / later)"*.
-   - **Offer a batch only when `route` prints `Batch: legal`** (`MECHANISMS-ON-DEMAND.md` §Batch mode): *"Run
-     `/foundation` alone, or `/foundation` + `/contracts` + `/tickets` as one batch? The batch still stops where
-     a phase asks you to confirm; one commit per phase, one review at the end."* A batch is long. The user's
-     choice is a choice, not a default.
+   costs depends on the user's plan. Last line: *"a) Start `/<phase>` now (Recommended) · b) Later · c) Other"*.
+   - **A fresh folder (`Where: a fresh start`) → the last line asks for the idea instead:** *"What's your idea?
+     Paste it here, a line or a whole brief (or say later)."* The idea is the yes: invoke `/vision` with the
+     user's words as its input, so `/vision` starts its research and round 1 in that same reply (one owner turn
+     saved). A tool with no skill call: open the `vision` skill's SKILL.md
+     (`CAPABILITIES.md` §Where the skills are installed) and run its Step 0 now.
+   - **Offer a batch only when `route` prints `Batch: legal`** (`MECHANISMS-ON-DEMAND.md` §Batch mode): *"a) Run
+     `/foundation` alone (Recommended: a review after each phase) · b) `/foundation` + `/contracts` + `/tickets`
+     as one batch (it stops where a phase asks you to confirm; one commit per phase, one review at the end) ·
+     c) Other"*. A batch is long; the user's choice is a choice, not a default.
    - **The user already named a goal** (`/playbook <text>`, or the reply): route it, no extra question — a new
      idea → `/vision` with their words as its input; a bug → `/tickets "<the bug>"`; changing scope → `/scope`
      (a re-run); "something feels off" → `/drift-check`; "continue" → the next phase.
 2. **Invoke that phase's skill only on the user's yes** (e.g. run `/vision`), in this conversation. *Later* → say
    *"Run `/playbook` again when you're ready"* and stop.
-3. The phase asks its questions and does its work. When it reaches its **exit gate**, surface the result and
-   **pause** — confirm with the user that it's right before continuing. **Never advance past an unmet gate.**
+3. The phase asks its questions and does its work; its last round's answers are the go-ahead, so it saves and its
+   close asks *"Change anything?"* - add no confirm question of your own. **Never advance past an unmet gate.**
 4. **After the phase's close, this conversation is done.** No second `route` call:
    the offer is the last item of its *What YOU do next* (`MECHANISMS.md` §Plain-language close) — the `Open a NEW
    conversation and type: /<next>` line the phase's close printed, word for word — or *"open a new conversation

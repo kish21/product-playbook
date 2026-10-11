@@ -22,6 +22,7 @@ What it checks, in both directions:
     caught at the next commit
   * no `superseded` line outside `## Changes`: the map shows only the current tree, so a builder never
     sees two homes for one part (a replaced row is deleted; its dated line goes under `## Changes`)
+A heading may carry its number (`## 2. Modules`): it is read like `## Modules`.
 
 A drawn-but-uncreated folder is silent doc<->code drift; an undrawn folder on disk is a layout decision
 nobody recorded. Reading 25 folders by eye is slower and less reliable than this, and it turns a
@@ -97,11 +98,11 @@ def hub_files(structure_md):
     fail the gate - only what the section actually lists as a hub is verified.
     """
     text = read_text(structure_md)
-    m = re.search(r"^##\s+Hub files.*?$(.*?)(?=^##\s|\Z)", text, re.MULTILINE | re.DOTALL)
-    if not m:
+    body = section(text, "## Hub files", loose=True)
+    if body is None:
         return None
     paths = set()
-    for line in m.group(1).splitlines():
+    for line in body.splitlines():
         row = re.match(r"^\s*(?:\||[-*])\s*`([^`\n]+)`", line)
         if row:
             paths.add(row.group(1))
@@ -121,9 +122,16 @@ LISTING = {"help", "default", "list"}
 FAILS = re.compile(r"(?:&&|;|\|\|)\s*(?:@?exit\s+[1-9]|false\b)")
 
 
-def section(text, heading):
-    """The body under a `## heading` line, or None when the heading is absent."""
-    m = re.search(r"^" + re.escape(heading) + r"\s*$(.*?)(?=^##\s|\Z)", text, re.MULTILINE | re.DOTALL)
+# a heading's number, as the playbook's documents write it: `## 2. Modules`, `## 2) Modules`, `## 2 Modules`
+NUMBER = r"(?:\d+(?:\.\d+)*[.)]?\s+)?"
+
+
+def section(text, heading, loose=False):
+    """The body under a `## heading` line (numbered or not), or None when the heading is absent. `loose`: the
+    heading may have more words after the name."""
+    name = re.escape(heading[3:] if heading.startswith("## ") else heading)
+    m = re.search(r"^##\s+" + NUMBER + name + (r"[^\n]*$" if loose else r"\s*$") + r"(.*?)(?=^##\s|\Z)", text,
+                  re.MULTILINE | re.DOTALL)
     return m.group(1) if m else None
 
 
@@ -227,6 +235,30 @@ def disk_folders(root):
     return names
 
 
+# never walked even for a drawn name: installed dependencies and git's own files
+HEAVY = {".git", ".venv", "venv", "node_modules", "__pycache__"}
+
+
+def hidden_folders(root):
+    """Folder names on disk inside a hidden or ignored folder (`.github/workflows/`): the walk leaves them out of the
+    layout, so drawing one is fine and never "drawn but not on disk" (a logged run was refused for `.github/`)."""
+    names = set()
+    for dirpath, dirnames, _ in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in HEAVY]
+        inside = os.path.relpath(dirpath, root) != "." and any(
+            p in IGNORE or p.startswith(".") for p in os.path.relpath(dirpath, root).split(os.sep))
+        names.update(d for d in dirnames if inside or d in IGNORE or d.startswith("."))
+    return names
+
+
+def modules(body):
+    """The modules under `## Modules`: a row that names a sub-folder of another listed module (`app/x/tests/`,
+    `app/x/adapters/`) or a test folder describes that module, it is not a module of its own."""
+    paths = first_paths(body)
+    return [m for m in paths if m.rsplit("/", 1)[-1] not in TEST_DIRS
+            and not any(m != o and m.startswith(o.rstrip("/") + "/") for o in paths)]
+
+
 def folder_paths(root, names):
     """Where each named folder sits on disk, as a path from the root ('scripts/frontend-audit')."""
     out = []
@@ -250,14 +282,14 @@ def main(argv):
         return 2
     # the playbook's status folder may be drawn or not; either way it is not a layout mismatch
     own = {"status"} | set(os.listdir(os.path.join(root, "status"))) if playbook_folder(root, root, "status") else set()
-    missing = sorted(drawn - disk - own)   # drawn in the map, absent on disk
+    missing = sorted(drawn - disk - own - hidden_folders(root))   # drawn in the map, absent on disk
     unmapped = sorted(disk - drawn)  # on disk, absent from the map
     hubs = hub_files(structure_md)
     lost = [h for h in (hubs or []) if not os.path.exists(os.path.join(root, h))]
 
     text = read_text(structure_md)
     problems = [f"no `{h}` section in {structure_md}" for h in SECTIONS if section(text, h) is None]
-    for mod in first_paths(section(text, "## Modules")):
+    for mod in modules(section(text, "## Modules")):
         if not os.path.isdir(os.path.join(root, mod)):
             problems.append(f"module {mod}/ is listed under ## Modules but not on disk")
         elif not any(os.path.isdir(os.path.join(root, mod, t)) for t in TEST_DIRS):

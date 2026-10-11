@@ -16,6 +16,11 @@
 > Fill the skeleton with the **concrete** values chosen in Steps 2–3 (archetype presets). Two worked
 > examples follow — one **enterprise** (Data-Dense Pro), one **consumer** (Playful) — so the contrast is
 > visible. **Replace every `<…>`; ship no placeholders.**
+>
+> **Readable by Google's open DESIGN.md format too:** `set design-system filled` writes a YAML front matter block
+> (`name`, `colors`, `typography`, `rounded`) above the title, rendered from the token stylesheet, so a tool that
+> reads that format (`npx @google/design.md lint DESIGN.md`) gets the same values. Never type or edit it: `set`
+> rewrites it on every close, so the front matter and the stylesheet cannot disagree.
 
 ---
 
@@ -25,12 +30,15 @@
 # DESIGN.md — <Product> design system
 _Archetype: <family> · derived by /design-system on <date> · approved sample: <path>_
 
-## In short
-<3–5 plain sentences a newcomer reads first: who uses the screens, where, what the look must make easy, and the
-owner's decisions (their own reference, the interface languages, self-hosted fonts). Screenshots: <shots folder>.>
+## 0. In short
+<3–5 plain sentences a newcomer reads first, no design words: who uses the screens, where, what the look must make
+easy, what the sample is for (the end user's screen or a demo), and the owner's decisions (their own reference, the
+interface languages, self-hosted fonts).>
 
-**Principles** — each traced to the line it comes from:
-1. <principle> — <why, in plain words> (#Vision: "<the words>")
+![The approved sample on a phone](<shots folder>/<sample>-375.png) ![On a desktop](<shots folder>/<sample>-1280.png)
+
+**Principles**, each traced to the line it comes from:
+1. <principle>: <why, in plain words> (#Vision: "<the words>")
 2. … (4–6 in all; #Scope lines count too)
 
 ## 1. Visual Theme
@@ -97,6 +105,7 @@ owner's decisions (their own reference, the interface languages, self-hosted fon
 - **Pages this app needs (each page TYPE gets its own layout, same tokens/laws):** <from the vision — e.g.
   login (centered card) · dashboard (sidebar + data) · billing (plans / invoice table) · settings (form sections) ·
   landing (hero + sections)>. Per-type layout patterns: see `references/page-patterns.md`.
+- **Core flow:** <screen → action → screen …, what the user sees after the main action, an error and an undo>
 
 ## 6. Depth & Elevation  (Law 9)
 - **Ladder:** base (`--background`) → raised `--shadow-sm` → floating `--shadow-lg`.
@@ -129,6 +138,13 @@ owner's decisions (their own reference, the interface languages, self-hosted fon
   (e.g. reach for GSAP/Three.js) without re-confirming, and gate any Tier ≥ 1 motion behind
   `prefers-reduced-motion`**; obey the universal laws. `/new-component` builds against this;
   `/frontend-audit` enforces it.
+
+## 10. Accessibility  (required when `#Scope` has the accessibility baseline in now; PRINCIPLES.md Accessibility)
+- **Target:** <WCAG 2.2 AA> · **Checked by:** <the audit + render_check (contrast, sizes); by hand: keyboard, screen reader>
+- **Keyboard:** <tab order follows the reading order; every action reachable; focus ring `--ring`, never removed>
+- **Screen reader:** <landmarks (header/nav/main); live regions for loading and toasts; labels on icon buttons>
+- **Motion and zoom:** <`prefers-reduced-motion` honoured; usable at 200% zoom and 320px wide>
+- **Languages:** <`lang` on the page and on every switched text; right-to-left mirrored when one is>
 ```
 
 ---

@@ -1,19 +1,13 @@
 ---
 name: structure
-description: >
-  Phase 2 (Development), step 2 of product-playbook — the FIRST thing you build. Choose the project's
-  SHAPE (domain modules by default, or layers) and explain what each folder is for and why, plus the
-  root scaffolding every project needs — agent instructions, ignore rules, .env.example, secret-scan,
-  commit hooks, a task runner — using the TOOLS #Architecture chose, and a prompts/ YAML folder for AI.
-  Use when starting to code, or run /structure "set up the project", "folder structure", "where does
-  this go". Writes STRUCTURE.md + the Structure section of PRODUCT.md. Run /foundation next.
+description: Lay out the folders and what each one is for.
 ---
 
 # `/structure` — Phase 2 · Development ② · run as a **senior engineer**
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution); writes `STRUCTURE.md`.
 > **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` · AGENT.md = `${CLAUDE_PLUGIN_ROOT}/references/agent.md`, only when `Agent: yes` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
-> **This skill's OWN reference files are a DIFFERENT folder** — they live in `references/` **beside this SKILL.md** (`commands/structure/references/`), not in the plugin-root `references/` named above. Both install routes put them there. Below, `choosing-the-shape.md` · `layered-shapes.md` · `root-scaffolding.md` each mean that folder: open them by that path, and never look for them next to MECHANISMS.md.
+> **This skill's OWN reference files are a DIFFERENT folder** — they live in `references/` **beside this SKILL.md** (`commands/structure/references/`), not in the plugin-root `references/` named above. Both install routes put them there. Below, `choosing-the-shape.md` · `layered-shapes.md` · `root-scaffolding.md` · `edge-cases.md` each mean that folder: open them by that path, and never look for them next to MECHANISMS.md.
 > **`status.py next --phase structure` prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** — apply them; never open the whole files (a situational companion only when a rule points into it); the rest of the close prints when `set structure filled` passes. Load-bearing here:
 > **modular/single-responsibility**, **layered sub-packages**, **intention-revealing naming**,
 > **prompts externalized to `prompts/` YAML**, **no-hardcoding (secrets→`.env`, knobs→config)**,
@@ -77,12 +71,8 @@ description: >
 - **First turn, ONE command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase structure`** — and, in the same message, open `references/choosing-the-shape.md` and `${CLAUDE_PLUGIN_ROOT}/templates/structure.md`. Read nothing else whole: the start prints `#Architecture` whole and the rest this phase derives from. Show its first line; close by its checklist.
 - **The Dev tooling line decides every scaffolding file**, and **the recorded runtime target decides what infra is appropriate at all** — **no `docker-compose.yml` for a target that does not use one** (managed-serverless data, a PaaS, an embedded datastore). Open an ADR only when a line of `#Architecture` points into it and you need more; quote it in a `Read:` line.
 - `#Architecture` empty (the start says so) → warn and offer `/architect` first (allow override). Running standalone, detect the stack from the repo and pick tooling that fits it — then record the choice so the next phase inherits it.
-- **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate, ask for the **reason in the user's own words**, and record it — `status.py bypass --from structure --gate <gate> --reason "<the user's own words>"` (`MECHANISMS.md` §Status) — before continuing. Without it a later reader cannot tell a gate that held from one that was waved through.
 - Brownfield (the start lists the code): read the existing tree; propose a clean target layout + a migration note — don't blindly move files.
-- **Re-running — `MECHANISMS.md` §Re-run semantics, in full.** Filled → follow `next`'s `RE-RUN` line: one question listing the changes. A replaced map row is deleted; its dated `superseded` line goes under `## Changes`.
-- **A shape-changing re-run after `/tickets` rewrites every path — named AND planned files — in `docs/issues/*.md` and `TICKETS.md`, closes the finding, then commits it as a `path rewrite` and syncs the open issues (`/tickets`' `publishing.md` §A path rewrite reaches GitHub); lanes, order and owners stay.** Stale paths send the next builder to recreate the emptied folder; the close counts the issues synced. (case file: The move that came a phase late)
-- **A file moved from a shared folder into a lane carries its imports with it — check the import graph, not just the tree.** Hand cross-lane needs across in the composition root and enforce the arrows with a check beside `check_structure.py`; a failure names the allowed imports. (case file: The move that came a phase late)
-- **Stopping at an unmet gate — `MECHANISMS.md` §Declined runs, in full.** `status.py set structure declined --reason "<what was missing>" --gate <phase>` (`MECHANISMS.md` §Status), nothing in `PRODUCT.md` touched; the section stays unfilled so `/playbook` still routes here.
+- **Anything unusual — an override, a re-run (a shape change after `/tickets` included), stopping at an unmet gate, a refusal the user says does not apply:** open `references/edge-cases.md` (beside this SKILL.md) for that case; a normal first run never opens it.
 
 ## Step 1 — Principles
 Printed by the start (the architecture bar, the safeguards that decide a file): apply them.
@@ -111,20 +101,21 @@ trees, the layered `config/` pattern, the AI sub-packages `agents/` · `pipeline
 the same across the tree.
 
 ## Step 3 — Write it, in order (big writes last)
-1. **Decide and ask first** — the shape, modules, homes, any question, first.
+1. **Decide and ask first** — the shape, modules, homes, any question, first; a question goes through your question tool (4 per call: more in several calls in that same message), else numbered options: 2–4 options, ONE (Recommended) with its reason, Other last.
 2. Write every folder and starter file in **ONE call**: ONE bundle outside the repo: `STRUCTURE.md` + only
    what the product's decisions shape, then `status.py scaffold
    --from <bundle>`; **it writes the standard files — never type them**. Write **`STRUCTURE.md`** (one line per folder — *what goes here and why*, plain language) with **five
 sections, each a table with one backticked path per row** (backtick paths only: `check_structure.py` reads a
 backticked name such as `LLMProvider` as a name): `## Modules` (each has its own `tests/`) · `## Inside a module`
 (the file convention) · `## Where does a new file go?` · **`## Where decisions live`** (each `#Architecture` row
-with an on-disk result → its path, created now: migration tool → `migrations/`, container → `Dockerfile`,
-each vendor → its adapter) · `## Hub files` (files every lane touches by one line). `#Structure` (the fields
+with an on-disk result → its path, created now: migration tool → `migrations/`, a container the
+runtime uses → `Dockerfile`, each vendor → its adapter) · `## Hub files` (files every lane touches by one line). `#Structure` (the fields
 the start prints) goes in a scratch file outside the repo: the summary + the prompts location (AI).
 3. **Then make it run, in ONE call:** `status.py prove "<lock>" "<install>" "<lint>" "<smoke test>"` (printed
-by the start) — it stops at the first failure; paste the evidence lines it prints into `#Structure`.
-4. ONE message: layout, Step 3c clash, save question as "Looks good - save (Recommended)" /
-   "Change something". A yes → ONE call: `set structure filled --section-from <file> --commit "<line>"`.
+by the start) — it stops at the first failure; paste the evidence lines it prints into `#Structure`; it writes
+the `## Checks you run` results.
+4. ONE call, no save question: `set structure filled --section-from <file> --commit "<line>"`; the close shows the
+   layout and any Step 3c clash and asks "Change anything?".
 
 **Never run** a type checker, a secret-scan sweep, a separate lint, test or `check_structure.py` run, a second
 `prove` after a pass, or a `--dry-run` before the save: `prove` and `set` run every check counted here.
@@ -135,16 +126,18 @@ by the start) — it stops at the first failure; paste the evidence lines it pri
 2. **`status.py set structure filled --section-from <file>`** — it runs the structure check (map vs tree in
    **both** directions) and every countable exit criterion, and names every gap in ONE refusal; fix them all,
    then run it once more (`--commit` saves only a pass). Never check by hand what it checks.
-3. It then prints the rest of the close, in order — reconcile, **Step 3c** (below), the save question *"Save this
-   version of your project? (yes / no)"* (`MECHANISMS.md` §Commit the work; asked in Step 3: a yes was `--commit`; else ONE call, `status.py save -m
+3. It then prints the rest of the close, in order — reconcile, **Step 3c** (below), no save question
+   (`MECHANISMS.md` §Commit the work; `--commit` saved; a save the user asks for later: ONE call, `status.py save -m
    "<one line>"`), the **transition guard**
-   (`MECHANISMS.md` §Step 3b: a verdict per exit criterion, VERIFIED only for what that `set` counted or a command
-   you ran checked; UNVERIFIED is a normal outcome), and the close (`MECHANISMS.md` §Plain-language close): **What
-   just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next**, ending with its
-   `Open a NEW conversation` line word for word.
+   (`MECHANISMS.md` §Step 3b; UNVERIFIED is a normal outcome) on ONE line: `Checked by the save: <what set counted> - judged, not checked: <the
+   wording and quality criteria>`, and the close (`MECHANISMS.md` §Plain-language close), 8 lines in this order: the
+   guard line · `Saved (commit <hash>).` · one line each, `STRUCTURE.md` linked, never restated: **What
+   just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** · then its
+   last two lines word for word: `Change anything? If not:` and the `Open a NEW conversation` line.
 
 ### Step 3c — Contradiction check (before the gate closes)
-Per `MECHANISMS.md` §Step 3c, check what this phase produced against decisions **already recorded** — here `#Architecture`, **especially its Dev tooling line**: every scaffolding file must be the tool recorded there (a run once scaffolded `.pre-commit-config.yaml` into a Node repo whose ADR chose lefthook, and nothing noticed). On a conflict **name both sides, ask which wins, update the loser**. Carry any decision still OPEN forward (§Step 3c item 4). Adding detail to an earlier decision is not a contradiction.
+Per `MECHANISMS.md` §Step 3c, check what this phase produced against decisions **already recorded** — here `#Architecture`, **especially its Dev tooling line**: every scaffolding file must be the tool recorded there. On a conflict (this replaces `MECHANISMS.md` §Step 3c items 2-3), **name both sides on a line of their own** in the close, ask nothing, and **never edit an earlier phase's record or
+document**: record it as an open item, `status.py open --from structure --what "Clash: <both sides>" --clears "/<that phase> decides"`. Carry any decision still OPEN forward (§Step 3c item 4). Adding detail to an earlier decision is not a contradiction.
 
 ## Step 4 — Handoff
 "Clean structure + root scaffolding in place and explained in `STRUCTURE.md`.

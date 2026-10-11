@@ -1,6 +1,6 @@
 ---
 name: new-component
-description: Create a new React frontend component in the token vocabulary DESIGN.md records. Use when building any UI component — buttons, cards, forms, modals, tables, or page sections. Reads DESIGN.md (falling back to shadcn defaults) so the component's tokens actually exist in the project, and enforces interactive states, motion and typography rules.
+description: UI products - build one component against DESIGN.md.
 ---
 
 # `/new-component` — build one component against the recorded design system
@@ -19,9 +19,9 @@ $ARGUMENTS
 ## Contract
 - **Purpose:** one React component, written in **the token vocabulary this project actually uses**.
 - **Reads:** `DESIGN.md` (tokens · type scale · motion · depth ladder) and `PRODUCT.md#Design`; `STRUCTURE.md` for where components live.
-- **Writes:** one component file (path confirmed with the user).
+- **Writes:** one component file, at the path its ticket's Target Files or `STRUCTURE.md` names, and commits it.
 - **Must NOT:** build more than one component, invent a token or a components folder, edit `DESIGN.md` or the stylesheet.
-- **Gate type:** `derivation` — the component is computable from `DESIGN.md`'s tokens plus the chosen ticket; the only preference in it (the file path) is confirmed, not invented. Batchable - several components may be built and reviewed together. Writes no spine section, so it declares no state model. (`STATE-MODEL.md` §2d)
+- **Gate type:** `derivation` — the component is computable from `DESIGN.md`'s tokens plus the chosen ticket; the file path comes from the ticket or `STRUCTURE.md`, never invented. One component per run. Writes no spine section, so it declares no state model. (`STATE-MODEL.md` §2d)
 - **Exit criteria:**
   - [ ] Invoked bare, the **pending components for the active milestone are offered** (built vs pending) and exactly **one** is chosen; with no tickets, it falls back to a description and says why.
   - [ ] **Every `var(--token)` the component references resolves IN THE APP** — checked mechanically against
@@ -32,6 +32,7 @@ $ARGUMENTS
     output that was never emitted, not something to improvise here.
   - [ ] No raw hex, no literal font string, no invented token name. A token this component needs but `DESIGN.md` lacks is a **gap to raise**, not one to improvise.
   - [ ] Every interactive element has **hover · focus-visible · active**; focus is never suppressed without a visible replacement.
+  - [ ] A component that shows data has its **empty · loading · error** states, each with a visible message.
   - [ ] Motion animates `transform`/`opacity` only — never `transition: all`, never a layout/paint property.
   - [ ] Typed props; no `font-size` below the floor `DESIGN.md` sets (12px absolute minimum).
   - [ ] **`/frontend-audit` reports 0 errors** on the file — the gate `/build` runs. Necessary, not sufficient: it checks the tokens that *are* defined, not the ones you referenced.
@@ -47,20 +48,18 @@ The tickets already record every UI file a milestone needs (`/tickets` derives e
 
 1-3. The start resolves the milestone from `docs/issues/`, takes each ticket's **Target files** with the
    reading `/build` already does (no second parser), and marks what exists on disk.
-4. Show that menu and ask which one to build:
+4. Show that menu as text, then ONE options question - the first pending one *(Recommended)*, the next two pending, *Other - type any name from the menu*:
 
 ```
 Current scope: [M1-DASH-03] Dashboard experience
 - [x] button.tsx            (built)
 - [ ] input.tsx             (pending)
 - [ ] dashboard-summary.tsx (pending)
-Which should we build next?
 ```
 
-**Three constraints that keep this honest:**
-- **Discovery is a fallback, never a dependency.** The playbook is *sequential but standalone*: with no
-  `docs/issues/` or no active milestone, **say so in one line and continue from a plain description**. Never
-  an error, never a dead end.
+**Three constraints:**
+- **Discovery is a fallback.** With no `docs/issues/` or no active milestone, **say so in one line and continue
+  from a plain description** - never an error.
 - **One component per invocation.** There is no "generate all pending" path, deliberately: `/build` builds
   one thing against a definition-of-done, and a batch generator in a leaf skill routes around that gate and
   emits N files nothing has reviewed.
@@ -83,11 +82,11 @@ The names below are **examples, not the contract**. Where `DESIGN.md` records a 
    ladder** from there too.
 2. **No `DESIGN.md`** → say so plainly, recommend **`/design-system`**, and fall back to the **shadcn
    defaults above** — the vocabulary `/design-system` emits and the ecosystem shares. **Never invent a
-   private one** (an undefined `var()` is dropped silently — the exit criteria say why).
+   private one** (an undefined `var()` is dropped silently).
 3. **A brownfield project with its own tokens** → use the project's names and record where you found them.
 
 ## Rules — the intent is fixed, the token names come from Step 0
-1. **File location** — put it where `STRUCTURE.md` says components live (e.g. `components/<Name>.tsx`). Ask if unsure; never invent a new components root.
+1. **File location** — the ticket's Target Files, else where `STRUCTURE.md` says components live. Neither names one → ask as options; never invent a new components root.
 2. **No raw hex** — every colour is a token from Step 0.
 3. **No raw fonts** — use the project's font variables/constants from `DESIGN.md`. Never write `'Inter'`, `system-ui`, or any literal font string.
 4. **Theme context** — use the project's own theme hook if `isDark`/theme state is needed. Don't import theme from an unrelated module.
@@ -100,14 +99,11 @@ The names below are **examples, not the contract**. Where `DESIGN.md` records a 
 10. **Third-party DOM injection** — form and auth surfaces receive attributes and nodes from password
     managers, autofill and accessibility extensions before the framework hydrates. Where your framework
     offers a hydration-mismatch escape hatch, apply it **to the specific element that receives them, with a
-    comment naming why** — **never as a default across every input**. A blanket suppression silences genuine
-    mismatches (clock/random values, locale drift, branch divergence) that are real bugs. `/test`'s
+    comment naming why** — **never as a default across every input**: a blanket one hides real bugs (clock values, locale drift). `/test`'s
     real-user-environment class is what proves the surface actually survives it.
 
 ## Output format
-- Full TypeScript component with correct prop types
-- Export at bottom (`export default` or named export)
-- No comments unless the WHY is non-obvious
+Full TypeScript component, typed props, export at the bottom; a comment only for a WHY the code cannot show.
 
 ## Before you hand it back — verify, don't assert
 **Both in one run** — pass `DESIGN.md` alongside the component, or the token check cannot run:
@@ -124,6 +120,7 @@ The names below are **examples, not the contract**. Where `DESIGN.md` records a 
    "unverified"). Auditing it against `DESIGN.md` passes on a token the running app does not have —
    the spec then does the job the stylesheet should, which is the failure this check exists to catch.
 2. **0 errors overall** on that same run.
+3. **Commit the one file** - the start prints the two git calls (never `git add -A`: other work stays yours).
 
 A token this component genuinely needs but `DESIGN.md` doesn't define is a **contradiction between the
 component and the recorded design system**: name both sides and take it back to `/design-system` to be

@@ -260,9 +260,10 @@
    ],
    "new": [
     "Build **one representative screen of THIS product** from the Step-3 foundations — in the project's stack,",
-    "or a **standalone preview HTML** when there is no stack. **Follow `references/build-loop.md` §Build the",
-    "sample page**."
+    "or a **standalone preview HTML** when there is no stack.",
+    "**Follow `references/build-loop.md` §Build the sample page**."
    ],
+   "next23": "2.3: the screen is the one round 1's \"What is this sample for?\" chose (main screen or presenter view)",
    "was": [
     "Generate **a single, representative screen of THIS product** using the Step-3 foundations — in the",
     "project's stack if one exists, otherwise a **standalone preview HTML** the user can open in a browser.",
@@ -367,7 +368,7 @@
     "a contradiction); **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work)."
    ],
    "new": [
-    "The save question *\"Save this version of your project? (yes / no)\"* rode on the confirm's *\"Looks good - save\"* (`MECHANISMS.md` §Commit the work), never again."
+    "the confirm's\n*\"Looks good\"* was the go-ahead"
    ],
    "was": [
     "a contradiction, not a detail); and **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work — this project's repo, name the branch, commit on a yes, push only if a remote exists and the user says so). Then **run the transition"
@@ -387,7 +388,7 @@
    ],
    "new": [
     "Compare the result with what `set` names (`#Vision` · `#Scope` · `#Architecture`).",
-    "**On a conflict, name both sides, ask which wins, and update the loser** (`MECHANISMS.md` §Step 3c)"
+    "**On a conflict** (this replaces"
    ],
    "was": [
     "Compare what this phase just produced against decisions already recorded — `#Vision` (who it is for, and the",
@@ -461,8 +462,8 @@
     "**Note the page inventory first**",
     "**Apply the craft layer",
     "**Build it mobile-first and responsive (Law 21):**",
-    "This does NOT exempt it from Law 15",
-    "**Ship it as an INTERACTIVE sample (the visualization moat):**"
+    "Law 15 still holds",
+    "**Ship it as an INTERACTIVE sample:**"
    ],
    "was": [],
    "next68": "next.68: build-loop's 'load the font via <link> in the preview (T5-7)' and theme-studio.md T5-7 are replaced by self-hosted fonts (no third-party request) unless the owner chose a font service (recorded); the Theme Studio is removed from the approved sample (theme_studio.py --remove)"
@@ -998,7 +999,7 @@
     "Record the phase's state — `status.py set design-system filled` (`MECHANISMS.md` §Status); **reconcile every number this"
    ],
    "new": [
-    "`status.py set design-system filled --section-from <file> --commit \"<one line>\"` (`MECHANISMS.md` §Status; no",
+    "`status.py set design-system filled --section-from <file> --commit \"<one line>\"` (`MECHANISMS.md` §Status)",
     "then records, saves and prints the rest of the close."
    ]
   },
@@ -1019,7 +1020,7 @@
     "a contradiction); **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work). Then **run the transition"
    ],
    "new": [
-    "The save question *\"Save this version of your project? (yes / no)\"* rode on the confirm's *\"Looks good - save\"* (`MECHANISMS.md` §Commit the work), never again."
+    "the confirm's\n*\"Looks good\"* was the go-ahead"
    ],
    "was68": [
     "the merged yes/no save question -> the confirm's first option (a logged run read 'no' as 'don't save')"
@@ -1160,7 +1161,7 @@
    "what": "the save question inside the sample's confirm, word for word",
    "old": [],
    "new": [
-    "with two options: *\"Looks good - save (Recommended)\"* · *\"Change something\"*"
+    "with two options: *\"Looks good\n(Recommended)\"* · *\"Change something\"*"
    ],
    "next68": "next.68 (a logged run read the owner's 'no' to the merged question as 'don't save'): the confirm offers two options, 'Looks good - save (Recommended)' / 'Change something'; every confirm offers 'Keep as proposed (Recommended)' first. Home: SKILL.md Step 4 + the start (tools/status.py)",
    "was68": [
@@ -1352,10 +1353,10 @@
   },
   {
    "id": "N16",
-   "what": "DESIGN.md opens with ## In short: plain words, each principle traced to its #Vision line",
+   "what": "DESIGN.md opens with ## In short: plain words, each principle traced to its #Vision line (2.4, numbered `## 0. In short`, so §1-§10 keep their numbers)",
    "old": [],
    "new": [
-    "**`## In short` first** (plain words; each principle",
+    "**`## 0. In short` first** (plain words; each principle",
     "with its `#Vision` line)"
    ]
   },
@@ -1425,7 +1426,7 @@
    "what": "the step printer",
    "old": [],
    "new": [
-    "def design_step_text(phase: str, step: str, family: str | None)"
+    "def design_step_text(phase: str, step: str, family: str | None"
    ],
    "home": "tools/status.py"
   },

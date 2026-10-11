@@ -1,35 +1,27 @@
-# ADR-NNNN — <the decision, as a statement>
+# ADR-NNNN — <what the decision is now, as a statement>
 
-- **Status:** `accepted` <!-- proposed | accepted | superseded by ADR-NNNN (<date>) | reversed (<date>) -->
+<!-- Written ONLY when a decision already recorded in docs/architecture.md §Decisions changes (owner, 2026-10-07): never
+on a first /architect run - day-one decisions live in §Decisions and as one line each in PRODUCT.md#Architecture.
+`status.py set architect filled --from-fields` writes this file from a `### change D<n>` field (was · now · why ·
+affects) and adds `Superseded: ADR-NNNN (<date>)` to that decision; a run never writes it by hand. -->
+
+- **Status:** accepted
 - **Date:** `<YYYY-MM-DD>`
-- **Phase:** `<the skill that recorded it — usually /architect>`
-- **Provenance:** `<user-chosen | default taken, not user-chosen>`
+- **Changes:** `D<n>` of docs/architecture.md §Decisions
 
-## Decision
+## What it was
 
-One or two sentences. State it as a rule someone can obey or break, not as a topic:
-*"The share link IS the authorization model — high-entropy ids, no enumeration, `noindex`"*, not
-*"we discussed authorization"*.
+The recorded decision, as it read before this change.
 
-## Why
+## What it is now
 
-The constraint set this was optimised against — reliability · operational burden · team size · cost ·
-compatibility · maturity · lock-in — and which of them decided it. Name the one that would have to change
-for this decision to change.
+The new decision, stated as a rule someone can obey or break.
 
-## What was rejected, and why it lost
+## Why it changed
 
-The expensive thing to reconstruct in a year is not what was chosen, it is **why the other option lost**.
-One line per rejected alternative.
+What happened (an answer, a measurement, a price, a milestone) and which constraint decided it.
 
-## Consequences
+## What this affects
 
-What this makes easy, what it makes hard, and **what breaks if someone ignores it**. This is the part an
-agent reads before editing the code — a rule whose consequence is stated survives a refactor; a bare
-instruction does not.
-
-## Superseding
-
-A reversal does not delete this file. Set `status: superseded by ADR-NNNN` here, with the date, and state
-the reason in the new ADR. Being individually supersedable is the whole point of one file per decision —
-it is what a paragraph buried in a 73KB spine could never do.
+The parts of the code, the documents and the later phases that change with it - what breaks if someone keeps the old
+decision.

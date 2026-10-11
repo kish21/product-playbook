@@ -68,6 +68,9 @@ named moves its recipe lists. Never exceed the tier cap (that's the `archetypes.
 
 For enterprise, data, trust, chat and retail UIs, decorative motion **erodes** the product's credibility.
 The signature is restraint executed precisely — what a senior designer ships for Linear / Stripe / Mercury.
+**Restraint limits motion and decoration, never content:** a timeline, a confidence chart against its
+threshold, an evidence panel or a decision log is content — show it when `#Vision`'s idea needs it (`page-patterns.md`
+§Presenter / explainer view).
 
 **Positive craft (do these — this is what reads as "designed"):**
 - **Hairline structure:** 1px borders + generous, consistent whitespace carry the layout; separation by

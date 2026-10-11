@@ -49,8 +49,8 @@ Generate **a single, representative screen of THIS product** using the §Concret
 - **In the interface language(s) the owner chose in round 1** (`lang="<code>"`; Dutch and French labels run ~30% longer
   than English); 2+ that switch → every language's text in the page and a working switch.
 - **Fonts self-hosted** unless the owner chose a font service (`theme-studio.md` §Notes T5-7).
-- **Apply the craft layer (`craft.md` §Two rules §Archetype → bucket index §Audit & Theme-Studio notes, then the
-  bucket the index routes this archetype to — §Bucket A or §Bucket B).** Route the confirmed archetype through its index:
+- **Apply the craft layer (`craft.md`: the bucket its §Archetype → bucket index routes this archetype to — §Bucket A
+  or §Bucket B — and §Audit & Theme-Studio notes; `--step sample --family <N>` prints both).**
   **restraint families (Bucket A) get the precision signature and NO decorative motion** — adding scroll
   reveals/parallax/count-ups here breaks trust; **expressive families (Bucket B) WIRE THE REAL signature
   move(s)** for their tier — line-mask reveal, scrub parallax, count-up, spring-stagger, glass/WebGL hero —
@@ -61,33 +61,35 @@ Generate **a single, representative screen of THIS product** using the §Concret
   are reusable, but derive the *voice* (fonts/palette/texture) **for this product** — never clone one
   exemplar's identity. Every **expressive** page earns **≥1 signature moment**; **restraint** pages earn none.
 - **Note the page inventory first** (which page TYPES this app needs — auth, dashboard, billing, settings, landing…
-  from the vision; see `page-patterns.md`), then build the *most representative* one (a dashboard's main
-  view, the consumer app's home — not a login). The other pages' patterns get recorded in `DESIGN.md` §5 — we don't build them all now.
-- **Build it mobile-first and responsive (Law 21):** design the **phone view first** — lead with the user's
+  from the vision; see `page-patterns.md`), then build the screen round 1's **"What is this sample for?"** chose:
+  - **the end user's main screen** → the core feature's main view (a dashboard's main view, the consumer app's
+    home — not a login);
+  - **a demo / presenter view** → `page-patterns.md` §Presenter / explainer view: the input over time, the
+    decision with its evidence against the threshold, the end user's view in a device frame
+    (`data-view="end-user"`), the decision log. A logged run drew one customer card for a product shown to a jury;
+    the sample without the playbook drew the presenter view, and the owner preferred it;
+  - **both** → the presenter view, its device frame being the end user's main screen.
+  The other pages' patterns get recorded in `DESIGN.md` §5 with the core flow — we don't build them all now.
+- **Every action `#Scope` gives the user keeps its own control** (`page-patterns.md` §Microcopy rules W7): approve,
+  ignore and "not relevant" are 3 buttons; one "hide" button for two of them removes a guardrail #Scope kept.
+- **Build it mobile-first and responsive (Law 21):** design the **phone view first** (a presenter view: the wide
+  screen first, then its phone stack in the §Presenter order) — lead with the user's
   #1 mobile job (content priority), collapse the archetype's layout (sidebar → drawer, table → stacked cards,
   detail → sheet, KPIs reflow), tap targets ≥44px — *then* scale up to tablet/desktop. Never a fixed desktop
   grid that can't collapse.
-- **Preview caveat:** a standalone preview (no stack) **can't import shadcn/21st.dev** (they're React) — say
-  so. This does NOT exempt it from Law 15: the **floor is accessible components, not the library**, so any
-  interactive primitive in the preview (button/input/dialog/menu) **still ships focus-visible + ARIA +
-  keyboard nav** via vanilla — don't hand-roll an inaccessible one and call it "just a preview." Mirror the
-  `DESIGN.md` tokens exactly. **For an expressive archetype the preview still ships real motion** — load
-  GSAP/Framer from a CDN (the wrapper in `craft.md`), gated behind `prefers-reduced-motion`; do not fall back
-  to a comment stub.
+- **Preview caveat:** a standalone preview (no stack) **can't import shadcn/21st.dev** (React) — say so. Law 15
+  still holds: every button/input/dialog/menu ships focus-visible + ARIA + keyboard nav in vanilla, the tokens mirror
+  `DESIGN.md` exactly, and **an expressive archetype still ships real motion** (GSAP/Framer from a CDN, the
+  `craft.md` wrapper, gated behind `prefers-reduced-motion`) — never a comment stub.
 - **Confirm on the user's real display:** subtle choices (canvas tint, status-label colour, table alignment)
   render differently across screens — pick **clearly visible** values and verify on the user's monitor, not just code.
-- **Ship it as an INTERACTIVE sample (the visualization moat):** insert the Theme Studio (the drop-in editor)
-  before `</body>` with `theme_studio.py <sample.html> --preset
-  "Name|oklch(light)|oklch(dark)"` × 3–5 vetted accents for the archetype (`palettes.md` rows, light + dark) — it
-  writes the code and names what the page misses (the script is beside `SKILL.md`, which gives its path); never type the block out, and read `theme-studio.md` §intro
-  §Notes only. Wrap the page content in `<div id="ts_stage">…</div>`, size readable text in **rem** with
-  `html { font-size: var(--font-size-base,16px) }`, define **every §2 token** in both modes (the export reads them
-  all). Now the user **tweaks colour / theme / type-size / responsive LIVE, AA-guarded** —
-  not "agent regenerates". Dev-only: stripped from the real build; only the finalized tokens persist.
-  **For the studio to actually work:** give `#ts_stage` `container-type:inline-size` and write the page's responsive with
-  **`@container` queries (not `@media`)** so the width buttons reflow (T5-1); use the `.light`/`.dark` **escape-hatch** dark
-  pattern (template §2) so manual mode beats the OS (T5-6); self-host the font (T5-7). Approved → `theme_studio.py
-  <sample> --remove`: the approved sample is the page as its users see it.
+- **Ship it as an INTERACTIVE sample:** insert the Theme Studio with `theme_studio.py <sample.html> --preset
+  "Name|oklch(light)|oklch(dark)"` × 3–5 accents for the archetype (`palettes.md` rows, light + dark) — the script
+  (beside `SKILL.md`) writes the block and names what the page misses; never type it out. The user then tweaks colour,
+  theme, text size and width LIVE, AA-guarded. For the studio to work: content in `<div id="ts_stage">`, rem text,
+  every §2 token in both modes, `@container` queries, the `.light`/`.dark` escape hatch, a self-hosted font
+  (`theme-studio.md` §Notes T5-1, T5-6, T5-7). Approved → `theme_studio.py <sample> --remove`: the approved sample is
+  the page as its users see it.
 
 ## §Design principles
 
@@ -149,20 +151,30 @@ first phone screen, a menu over 30% of it, small text over budget, drawn contras
 `[FAIL]`; its command and last line go in `#Design` as an `evidence:` line, which `set design-system filled` runs again.
 **`NOT RUN` is not a result:** install the renderer (`python -m pip install playwright` - it drives an installed Chrome
 or Edge; no browser at all: `python -m playwright install chromium`) and run it again; it cannot be installed → open
-the sample in your tool's own browser at 375, 768 and 1440 px, save the three screenshots in `<folder>` and record
+the sample in your tool's own browser at 375, 768 and 1280 px, save them in `<folder>` as `<sample>-375.png`,
+`-768.png`, `-1280.png` and record
 `evidence: screenshots <folder> (<tool>'s browser) · <date>`. `set` refuses NOT RUN and fewer than 3 screenshots
 unless the owner's override, with their reason, is recorded (2 of 4 logged runs stopped at NOT RUN; one shipped a
 phone screen that scrolled sideways).
 
-**Ask with two options** (a form where the tool has one): **"Looks good - save (Recommended)"** · **"Change
-something"**. A merged "Anything to change? If not: save? (yes / no)" was misread: the owner's "no" (no changes) was
-taken as "don't save".
+**Ask with two options** (a form where the tool has one), after one line that names the file and the panel:
+*"Open <the sample's absolute path> in your browser. The Theme Studio button (bottom right) changes colour, fonts,
+text size, corners and light or dark, at phone, tablet and desktop width - try it before you answer; Export copies
+the tokens."* Then **"I tried it - looks good
+(Recommended)"** · **"Change something"** (e.g. bolder · quieter · denser · roomier · another font · like `<a site>`).
+A logged owner approved without ever opening the panel: the question never said where it was. A looks-good is the
+go-ahead to write and save - no separate save question. A merged yes/no
+question was misread: the owner's "no" (no changes) was taken as "don't save".
 
-If the user doesn't like it, **ask what to change** — bolder / lighter / denser / different font /
-*"make it like <site>"* — and generate another. Loop until they approve; the loop is the phase.
+If the user doesn't like it, **ask what to change** — the named moves: bolder · quieter · denser · roomier ·
+another font · *"make it like <site>"* — and generate another. Loop until they approve; the loop is the phase.
 
 The **Theme Studio** lets the user finalize colour, type size, theme and roundness *themselves*, and
 **Export** the tokens. Only *structural* changes — layout, content — need a regenerate from you.
+
+**The screenshots show the approved page:** `theme_studio.py <sample> --remove` runs first after approval; `set design-system
+filled` re-runs `render_check.py` with the evidence line's `--shots` folder, so the 3 screenshots are retaken without
+the studio button (a logged run kept screenshots with the button over the phone controls).
 
 ## §Standalone vision discovery
 
@@ -179,8 +191,11 @@ The **Theme Studio** lets the user finalize colour, type size, theme and roundne
 ## §Emit `DESIGN.md`
 
 **The 9 sections, in order:** *1 Visual Theme · 2 Color & Roles · 3 Typography · 4 Components ·
-5 Layout · 6 Depth/Elevation · 7 Motion · 8 Do's & Don'ts · 9 Responsive & Agent Guide.* Every one is
-filled with the concrete approved values — a placeholder that ships is a section that was never decided.
+5 Layout · 6 Depth/Elevation · 7 Motion · 8 Do's & Don'ts · 9 Responsive & Agent Guide* — and **10 Accessibility**
+when `#Scope` has the accessibility baseline in now (`set` refuses its absence then; a logged DESIGN.md had WCAG only
+under colour). Every one is filled with the concrete approved values — a placeholder that ships is a section that was
+never decided. `## 0. In short` shows the phone and desktop screenshots as images; §5 holds the core flow
+(`page-patterns.md` §Flows across screens).
 
 - Tokens are **shadcn/ui-compatible CSS variables in OKLCH** (rebrand = change values; plugs into
   shadcn/21st.dev with no theme provider/build step).
@@ -226,3 +241,6 @@ tools omit. It does **not** out-design the ecosystem on palettes/components — 
 is in; **deep** image/code token-extraction, full retrofit (rewrite existing pages),
 and the component-gallery page are documented follow-ups (`/frontend-audit` is the separate enforcement skill).
 If an existing UI is detected, say so and proceed greenfield for new screens.
+
+**Testing with real users** is not this phase: a 5-user task test of the built screens belongs to `/validate` (before
+building) or `/test` (after); say so in the close's *What YOU do next* when the owner asks how users will find it.

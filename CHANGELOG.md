@@ -5,6 +5,38 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-11
+
+### Changed — fewer turns, helpers for research and review, team planning, and fixes from runs on four tools
+
+**In short.** 2.1 makes the phases shorter to run and harder to get wrong. A saved vision takes three of your turns,
+every question is a set of options, research and code review run in separate helpers, `/tickets` plans for a team
+with rule files per module, and the setup phases stop asking you to hand-edit their documents. Every phase was run
+on Claude Code, Codex, Cursor and Antigravity, and what those runs found is fixed here.
+
+**What changed for you**
+- **Shorter early phases.** `/vision` saves in three of your turns (the idea, round 1, round 2). `/vision`, `/scope`
+  and `/plan` close in six lines, and every question is options with one Recommended choice and Other.
+- **Helpers do the heavy reading.** `/vision` and `/architect` research in a helper and bring back a short summary
+  with links. `/build` gets an independent reviewer with a fresh context. `/ship` runs its reviews at the same time.
+- **/tickets plans for a team.** `TICKETS.md` shows each seat's load, a team that changes size is re-seated with
+  `publish.py --reseat`, and each module gets its own agent rule file for the tool you use.
+- **/architect records the UI component source** (a component library, or plain CSS on purpose), and
+  `/design-system` builds on it instead of adding a library of its own.
+- **No hand edits in the setup phases.** `/structure`'s check runner writes its results without breaking the
+  document's headings and records the line that shows each result; `/foundation` and `/contracts` draw the folders
+  they add in `STRUCTURE.md` themselves. A check that does not fit your project is waived in one call with your reason.
+- **Documents for people open with the answer.** Phase documents open with a short summary, their headings are
+  numbered, and long sentences are flagged.
+- **Open items save themselves.** An open item recorded after its phase was saved is committed straight away.
+- **Starts fit every tool.** Each phase's start fits on a long install path; Cursor and Antigravity read long starts
+  from a file once. On Antigravity, `/design-system` waits for your approval of the sample before it writes or saves.
+- **/dev-check proves its security review ran**, and `/ship` moves the card to In Review when the pull request is
+  recorded.
+
+**Upgrading from 2.0.** Run the installer again (`install.sh --tool <tool>`, or `--project <folder>`). Your
+`PRODUCT.md`, `STATUS.md` and `status/` are read as they are; nothing to migrate.
+
 ## [2.0.0] - 2026-10-08
 
 ### Changed — every skill rebuilt: one start, at most two question rounds, the record checked in code, and STATUS.md for teams

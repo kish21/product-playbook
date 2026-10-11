@@ -29,6 +29,9 @@ the language was picked silently and the owner found out at the output.
 
 A real spine cited `ADR-1…ADR-5` 18 times across four sections with no `docs/adr/` anywhere: the vocabulary
 without the mechanism. The playbook has a `superseded` state and nothing per decision to attach it to.
+Later (2.3) a logged run showed the opposite failure: four day-one ADR files repeated the document's decisions and
+no later phase read them. Day-one decisions now live in `docs/architecture.md` §Decisions; a file is written only when
+one changes, by the script, from a `### change D<n>` field.
 
 ## Other lessons behind one-line rules
 

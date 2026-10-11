@@ -21,7 +21,7 @@ from collections import Counter
 
 # The playbook release this engine shipped in. tools/check.py (check 5) holds it equal to the release,
 # so a project copy can say which checks it carries.
-ENGINE_VERSION = "2.0.0"
+ENGINE_VERSION = "2.1.0"
 
 # ---------- colour math ----------------------------------------------------
 
@@ -178,7 +178,7 @@ def has_viewport(path, text, depth=0):
             here = up
     return not DOCUMENT.search(text)  # a fragment is not a page
 
-def audit_text(path, text, findings):
+def audit_text(path, text, findings, right_classes=frozenset(), pairs=()):
     # Law 7 + 22 — COMPUTED contrast on every fg/surface pair, in BOTH light and dark modes.
     root = collect_tokens(_block(text, ":root")) or collect_tokens(text)
     dark_raw = _block(text, ".dark")
@@ -190,7 +190,7 @@ def audit_text(path, text, findings):
     checked_any = False
     for mode, tokens in modes:
         status_findings(path, mode, tokens, decorative, findings)
-        for fg, bg in PAIRS:
+        for fg, bg in [*PAIRS, *pairs]:
             if fg in tokens and bg in tokens:
                 ratio = contrast(tokens[fg], tokens[bg])
                 if ratio is None:
@@ -230,6 +230,11 @@ def audit_text(path, text, findings):
     # T2-A: the dev-only Theme Studio block is stripped for the production build — don't audit its own
     # chrome (its colour-input hex literal, the palette-emoji entity, its small panel labels).
     text = re.sub(r"<!--[^>]*\bTHEME STUDIO\b.*?/THEME STUDIO[^>]*-->", "", text, flags=re.S | re.I)
+    anti_pattern_findings(path, text, findings)
+    table_findings(path, text, findings, right_classes)
+    caption_tier_findings(path, text, findings)
+    form_findings(path, text, findings)
+    security_findings(path, text, findings)
 
     # Law 14 — no raw hex outside :root token declarations (component code)
     body = re.sub(r":root\s*\{.*?\}", "", text, flags=re.S)
@@ -373,6 +378,253 @@ def a11y_findings(path, text, findings):
                                  f"heading level jumps h{a} -> h{b} - the outline has a hole in it"))
                 break
 
+# The generic-AI tells a script can see (after Impeccable's deterministic rules): WARN only - each has a rare
+# legitimate use, and a person decides.
+EMOJI = re.compile("[\U0001F300-\U0001FAFF\u2600-\u27BF]")
+PURE_BLACK = re.compile(r"(?i)(?:background(?:-color)?|--background|--card)\s*:\s*(?:#000(?:000)?\b|black\b|"
+                        r"oklch\(\s*0%?\s+0\s+0)")
+GRADIENT = re.compile(r"(?i)(?:linear|radial|conic)-gradient\(([^;{}]*)")
+
+
+def anti_pattern_findings(path, text, findings):
+    """AP1 emoji used as an icon in a button or link · AP2 an untinted pure-black surface · AP3 the purple-blue
+    gradient (two oklch stops with hues 250-320)."""
+    for m in re.finditer(r"(?is)<(button|a)\b[^>]*>(.*?)</\1>", text):
+        if EMOJI.search(re.sub(r"<[^>]+>", "", m.group(2))):
+            findings.append(("WARN", "AP1-emoji-icon", path,
+                             "an emoji as the icon of a button or link - it renders differently on every system "
+                             "and reads out as its name; use an SVG icon with aria-hidden"))
+            break
+    if PURE_BLACK.search(text):
+        findings.append(("WARN", "AP2-pure-black", path,
+                         "an untinted pure-black surface - tint it toward the palette's hue (oklch(0.15 0.01 <hue>))"))
+    for m in GRADIENT.finditer(text):
+        hues = [float(h) for h in re.findall(r"oklch\(\s*[\d.]+%?\s+[\d.]+\s+([\d.]+)", m.group(1))]
+        if sum(250 <= h <= 320 for h in hues) >= 2:
+            findings.append(("WARN", "AP3-purple-gradient", path,
+                             "a purple-blue gradient - the generic AI look (Law 5: one dominant + ONE accent)"))
+            break
+    # AP4 bounce / elastic easing: an overshooting cubic-bezier (a y value outside 0..1) or a bounce/elastic name
+    for m in re.finditer(r"cubic-bezier\(\s*([-\d.]+)\s*,\s*([-\d.]+)\s*,\s*([-\d.]+)\s*,\s*([-\d.]+)\s*\)", text):
+        if not 0 <= float(m.group(2)) <= 1 or not 0 <= float(m.group(4)) <= 1:
+            findings.append(("WARN", "AP4-bounce-easing", path,
+                             f"{m.group(0)} overshoots - a bouncy easing reads as a toy in an app; ease-out "
+                             "(cubic-bezier(0.2, 0, 0, 1)) settles without a bounce"))
+            break
+    else:
+        if BOUNCE.search(text):
+            findings.append(("WARN", "AP4-bounce-easing", path,
+                             "a bounce or elastic easing - it reads as a toy in an app; use an ease-out curve"))
+    # AP5 a thick coloured stripe down one side of a card, alert or list item (a quote's rule is fine)
+    for sel, body in css_rules(text):
+        w = re.search(r"border-(?:left|inline-start)\s*:\s*([\d.]+)(px|rem)\s+solid\s+([^;]+)", body)
+        if w and float(w.group(1)) * (16 if w.group(2) == "rem" else 1) >= 3 \
+                and not re.search(r"(?i)blockquote|quote", sel) and "--border" not in w.group(3):
+            findings.append(("WARN", "AP5-side-stripe", path,
+                             f"`{sel.strip()[:40]}` has a {w.group(1)}{w.group(2)} coloured stripe down one side - a "
+                             "generic AI tell; mark the state with a dot, an icon or the card's own tint"))
+            break
+    # AP6 a text column wider than ~80 characters is hard to read (45-75 is the comfortable measure)
+    for m in re.finditer(r"max-width\s*:\s*([\d.]+)ch\b", text):
+        if float(m.group(1)) > 80:
+            findings.append(("WARN", "AP6-line-length", path,
+                             f"max-width: {m.group(1)}ch - lines over ~80 characters tire the eye; 60-75ch for text"))
+            break
+    # AP7 a card inside a card: two borders and two paddings for one group
+    if path.lower().endswith((".html", ".htm", ".tsx", ".jsx", ".vue", ".svelte")) and nested_card(text):
+        findings.append(("WARN", "AP7-nested-cards", path,
+                         "a card inside a card - two borders and two paddings for one group; use spacing or a "
+                         "divider inside the outer card"))
+    # AP8 grey text on a coloured fill: the muted grey loses its contrast on the accent
+    fills = r"var\(\s*--(?:primary|accent|destructive|success|warning|info)\s*\)"
+    if any(re.search(rf"background(?:-color)?\s*:\s*{fills}", b) and
+           re.search(r"(?<![\w-])color\s*:\s*var\(\s*--muted-foreground\s*\)", b) for _, b in css_rules(text)) or \
+            re.search(r"(?s)class(?:Name)?=[\"'{][^\"'}]*\bbg-(?:primary|accent|destructive)\b[^\"'}]*"
+                      r"\btext-muted-foreground\b", text):
+        findings.append(("WARN", "AP8-grey-on-colour", path,
+                         "muted grey text on a coloured fill - use the fill's own --*-foreground token"))
+    # AP9 an untinted grey: a neutral token with no chroma at all (tint it toward the palette's hue)
+    greys = sorted({k for k, v in _TOKEN_RE.findall(text) if untinted_grey(v)})  # light and dark blocks alike
+    if greys:
+        findings.append(("WARN", "AP9-untinted-grey", path,
+                         f"{len(greys)} untinted grey token(s) ({', '.join(sorted(greys)[:3])}) - a grey with no hue "
+                         "looks dead beside the accent; give it a chroma of ~0.005-0.02 at the palette's hue"))
+
+
+BOUNCE = re.compile(r"(?i)\b(?:ease(?:In|Out|InOut)?(?:Bounce|Elastic|Back)|bounce\.(?:in|out)|elastic\.(?:in|out)|"
+                    r"back\.out|easeOutBack|animate-bounce)\b")
+
+
+def css_rules(text):
+    """(selector, declarations) of every innermost CSS rule - flat enough for these heuristics, nested @media included."""
+    return [(m.group(1).strip(), m.group(2)) for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", text)
+            if not m.group(1).strip().startswith("@")]
+
+
+def untinted_grey(value):
+    """A colour with no hue that is neither white nor black: oklch(L 0 H) or a #rgb whose three channels are equal."""
+    m = _OKLCH_RE.search(value)
+    if m:
+        return float(m.group(2)) == 0 and 0.05 < float(m.group(1).rstrip("%")) < 0.995
+    m = re.fullmatch(r"\s*#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})\s*", value)
+    if m:
+        hx = m.group(1) if len(m.group(1)) == 6 else "".join(c * 2 for c in m.group(1))
+        return hx[0:2] == hx[2:4] == hx[4:6] and hx[0:2].lower() not in ("00", "ff")
+    return False
+
+
+_TAG_RE = re.compile(r"<(/?)([A-Za-z][\w.-]*)((?:[^>\"'{]|\"[^\"]*\"|'[^']*'|\{[^}]*\})*)>")
+VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"}
+
+
+def is_card(name, attrs):
+    """`<Card>` (a component) or an element whose class list holds the word `card`."""
+    if name == "Card":
+        return True
+    m = re.search(r"\bclass(?:Name)?\s*=\s*[\"'{]([^\"'}]*)", attrs)
+    return bool(m and re.search(r"(?<![\w-])card(?![\w-])", m.group(1)))
+
+
+def nested_card(text):
+    """True when a card opens while another card is still open (a tag stack, lenient like a browser)."""
+    stack = []
+    for m in _TAG_RE.finditer(re.sub(r"(?s)<!--.*?-->|<(script|style)\b.*?</\1>", "", text)):
+        close, name, attrs = m.group(1), m.group(2), m.group(3)
+        if close:
+            for i in range(len(stack) - 1, -1, -1):
+                if stack[i][0] == name:
+                    del stack[i:]
+                    break
+            continue
+        if name.lower() in VOID or attrs.rstrip().endswith("/"):
+            continue
+        card = is_card(name, attrs)
+        if card and any(c for _, c in stack):
+            return True
+        stack.append((name, card))
+    return False
+
+
+# --- Law 20 (table alignment), Law 3 (caption tier), forms and security ----
+NUMERIC_CELL = re.compile(r"^[\s€$£¥+\-−(]*\d[\d.,\s  ]*%?\)?\s*(?:€|EUR|USD|GBP|kr|x)?\s*$")
+RIGHT = re.compile(r"(?i)text-(?:right|end)\b|text-align\s*:\s*(?:right|end)|align\s*=\s*[\"']?right|\bnum(?:eric)?\b|"
+                   r"tabular")
+
+
+def cell_align(attrs, right_classes):
+    """'right' when the cell is right-aligned by its own attributes, its style or a class some stylesheet aligns right."""
+    if RIGHT.search(attrs):
+        return "right"
+    m = re.search(r"\bclass(?:Name)?\s*=\s*[\"'{]([^\"'}]*)", attrs)
+    if m and set(m.group(1).split()) & right_classes:
+        return "right"
+    if re.search(r"(?i)text-center\b|text-align\s*:\s*center|align\s*=\s*[\"']?center", attrs):
+        return "center"
+    return "left"
+
+
+def right_aligned_classes(texts):
+    """Class names a stylesheet in the set aligns right (`.num { text-align: right }`)."""
+    out = set()
+    for text in texts:
+        for sel, body in css_rules(text):
+            if re.search(r"text-align\s*:\s*(?:right|end)", body):
+                out |= set(re.findall(r"\.([\w-]+)", sel))
+    return out
+
+
+def table_findings(path, text, findings, right_classes):
+    """Law 20: a header aligned unlike its column's cells, and a column of numbers that is not right-aligned."""
+    if not path.lower().endswith((".html", ".htm", ".tsx", ".jsx", ".vue", ".svelte")):
+        return
+    seen = set()  # one finding per rule per file: the first table that shows it
+    for table in re.findall(r"(?is)<table\b.*?</table>", text):
+        head, cols = [], {}
+        for row in re.findall(r"(?is)<tr\b[^>]*>(.*?)</tr>", table):
+            if "colspan" in row.lower():
+                continue
+            cells = re.findall(r"(?is)<(th|td)\b([^>]*)>(.*?)</\1>", row)
+            if cells and all(c[0].lower() == "th" for c in cells) and not head:
+                head = [cell_align(a, right_classes) for _, a, _ in cells]
+                continue
+            for i, (_, a, inner) in enumerate(cells):
+                cols.setdefault(i, []).append((cell_align(a, right_classes),
+                                               re.sub(r"<[^>]+>|\{[^}]*\}", "", inner).strip()))
+        for i, cells in sorted(cols.items()):
+            aligns = {a for a, _ in cells}
+            values = [v for _, v in cells if v]
+            if len(values) >= 2 and all(NUMERIC_CELL.match(v) for v in values) and aligns != {"right"}:
+                if "num" not in seen:
+                    findings.append(("WARN", "Law20-numeric-align", path,
+                                     f"table column {i + 1} holds numbers ({ascii(values[0][:12])} ...) but is not "
+                                     "right-aligned with tabular figures - the digits do not line up"))
+                seen.add("num")
+            elif head and i < len(head) and len(aligns) == 1 and head[i] not in aligns and "head" not in seen:
+                findings.append(("WARN", "Law20-header-align", path,
+                                 f"table column {i + 1}: the header is {head[i]}-aligned over {next(iter(aligns))}-"
+                                 "aligned cells - a header and its cells share one alignment"))
+                seen.add("head")
+
+
+CAPTION_SEL = re.compile(r"(?i)\b(?:th|caption|label|legend|kbd|code|small|sup|sub)\b|overline|eyebrow|badge|chip|tag|"
+                         r"meta|caption|hint|footnote|num|tabular|mono|kicker")
+
+
+def caption_tier_findings(path, text, findings):
+    """Law 3: 12-13px is the caption tier - uppercase labels, overlines, table headers, numerals. Body text is >= 14."""
+    for sel, body in css_rules(text):
+        m = re.search(r"font-size\s*:\s*([0-9.]+)(px|rem|em)\b", body)
+        if not m:
+            continue
+        px = float(m.group(1)) * (16 if m.group(2) in ("rem", "em") else 1)
+        if 12 <= px < 14 and not CAPTION_SEL.search(sel) and "uppercase" not in body and "tabular" not in body \
+                and not sel.startswith(":root"):
+            findings.append(("WARN", "Law3-caption-tier", path,
+                             f"`{sel[:40]}` sets {m.group(1)}{m.group(2)} (~{px:.0f}px) body text - 12-13px is the "
+                             "caption tier (uppercase labels, overlines, table headers, numerals); body text >= 14px"))
+            return
+
+
+def form_findings(path, text, findings):
+    """FORMS: an input, select or textarea no label names - a placeholder vanishes as you type and is not a label."""
+    if not path.lower().endswith((".html", ".htm", ".tsx", ".jsx", ".vue", ".svelte")):
+        return
+    labelled = set(re.findall(r"(?:\bfor|htmlFor)\s*=\s*[\"'{]+([\w-]+)", text))
+    for m in re.finditer(r"(?is)<(input|select|textarea)\b([^>]*)>", text):
+        attrs = m.group(2)
+        if re.search(r"(?i)type\s*=\s*[\"']?(?:hidden|submit|button|reset|image)\b", attrs) or \
+                re.search(r"aria-label(?:ledby)?\s*=", attrs):
+            continue
+        idm = re.search(r"\bid\s*=\s*[\"'{]+([\w-]+)", attrs)
+        if idm and idm.group(1) in labelled:
+            continue
+        before = text[:m.start()]
+        if before.rfind("<label") > before.rfind("</label>"):
+            continue  # wrapped in its <label>
+        findings.append(("WARN", "Forms-label", path,
+                         f"a <{m.group(1)}> no label names (a placeholder is not a label) - add <label for> or "
+                         "aria-label"))
+        return
+
+
+def security_findings(path, text, findings):
+    """SECURITY: what a page can do to its user - a new tab that can steer the opener, a javascript: link, raw HTML."""
+    if not path.lower().endswith((".html", ".htm", ".tsx", ".jsx", ".vue", ".svelte")):
+        return
+    for m in re.finditer(r"(?is)<a\b([^>]*)>", text):
+        if re.search(r"target\s*=\s*[\"'{]+_blank", m.group(1)) and not re.search(r"noopener|noreferrer", m.group(1)):
+            findings.append(("WARN", "Security-blank-target", path,
+                             "a link opens a new tab with no rel=\"noopener noreferrer\" - the new page can steer this one"))
+            break
+    if re.search(r"(?i)href\s*=\s*[\"'{]+\s*javascript:", text):
+        findings.append(("WARN", "Security-js-url", path, "a javascript: link - use a <button> with a handler"))
+    raw = re.search(r"dangerouslySetInnerHTML|\bv-html\s*=|\{@html\b|\.innerHTML\s*=(?!=)|\|\s*safe\b", text)
+    if raw:
+        findings.append(("WARN", "Security-raw-html", path,
+                         f"raw HTML is put into the page ({raw.group(0).strip()}) - only text that is escaped or "
+                         "sanitised first (a user's text here runs as script)"))
+
+
 def check_token_refs(defined, refs, findings):
     """Law 14b - a referenced token that nothing defines.
 
@@ -489,12 +741,14 @@ def engine_copy_notes():
                          f"in place, so hooks and CI do not run the released checks. Refresh: copy {here} over it.")
     return notes
 
-def scan(texts):
+def scan(texts, config=None):
     """{path: text} -> findings. One function for the live tree and for its --baseline copy."""
     findings = []
     defined, refs = set(), {}
+    right = right_aligned_classes(texts.values())
+    pairs = tuple(tuple(x) for x in (config or {}).get("pairs", ()))
     for p, text in texts.items():
-        audit_text(p, text, findings)
+        audit_text(p, text, findings, right, pairs)
         a11y_findings(p, text, findings)
         # Law 14b is cross-file by nature: `audit.py DESIGN.md frontend/` must resolve a component's
         # tokens against the DESIGN.md in the same run, so collect across the whole file set first.
@@ -534,6 +788,52 @@ def parse_args(argv):
         rest.append(a); i += 1
     return ref, rest
 
+CONFIG_NAME = ".frontend-audit.json"
+
+
+def load_config():
+    """The project's `.frontend-audit.json`, from this folder up to the git root: {"pairs": [["--fg", "--bg"], ...]}
+    adds foreground/surface token pairs to the contrast check; {"ignore": ["AP9", "Law23-live-region:src/legacy/*"]}
+    skips WARN findings by rule id (or its prefix), optionally only for files matching a glob. An ERROR is never
+    skipped. -> (config, its folder) or ({}, None); a file that is not that shape raises RuntimeError (exit 2)."""
+    here = os.path.abspath(".")
+    while True:
+        f = os.path.join(here, CONFIG_NAME)
+        if os.path.isfile(f):
+            import json
+            try:
+                cfg = json.load(open(f, encoding="utf-8"))
+            except ValueError as e:
+                raise RuntimeError(f"{f} is not valid JSON ({e})")
+            ok = isinstance(cfg, dict) and set(cfg) <= {"pairs", "ignore"} \
+                and isinstance(cfg.get("pairs", []), list) and isinstance(cfg.get("ignore", []), list) \
+                and all(isinstance(x, list) and len(x) == 2 and all(isinstance(t, str) and t.startswith("--") for t in x)
+                        for x in cfg.get("pairs", [])) \
+                and all(isinstance(x, str) and x.strip() for x in cfg.get("ignore", []))
+            if not ok:
+                raise RuntimeError(f"{f}: expected {{\"pairs\": [[\"--fg\", \"--bg\"]], \"ignore\": [\"<rule>\" or "
+                                   f"\"<rule>:<glob>\"]}}")
+            return cfg, here
+        if os.path.isdir(os.path.join(here, ".git")) or os.path.dirname(here) == here:
+            return {}, None
+        here = os.path.dirname(here)
+
+
+def ignored(finding, cfg, where):
+    """True for a WARN the config's ignore list names (never an ERROR)."""
+    import fnmatch
+    level, law, path = finding[0], finding[1], finding[2]
+    if level != "WARN":
+        return False
+    rel = os.path.relpath(os.path.abspath(path), where).replace(os.sep, "/") if where else path
+    for item in cfg.get("ignore", []):
+        rule, _, pat = item.partition(":")
+        if (law == rule or law.startswith(rule + "-") or law.split("-")[0] == rule) and (
+                not pat or fnmatch.fnmatch(rel, pat)):
+            return True
+    return False
+
+
 def main(argv):
     if argv[:1] == ["--version"]:
         print(f"frontend-audit engine {ENGINE_VERSION}"); return 0
@@ -550,14 +850,20 @@ def main(argv):
             texts[p] = open(p, encoding="utf-8", errors="ignore").read()
         except OSError:
             continue
-    findings = scan(texts)
+    try:
+        cfg, where = load_config()
+    except (RuntimeError, OSError) as e:
+        print(f"frontend-audit: {e}"); return 2
+    findings = scan(texts, cfg)
+    skipped = [f for f in findings if ignored(f, cfg, where)]
+    findings = [f for f in findings if f not in skipped]
     already = None
     if ref:
         # Diff-scoped: a finding counts only if the same file had fewer of it at `ref`. Matched as a multiset
         # on (level, law, file, message) - messages carry no line numbers, so an edit above a finding does not
         # make it "new", while a second copy of the same raw hex does.
         try:
-            old = scan(baseline_texts(ref, list(texts)))
+            old = [f for f in scan(baseline_texts(ref, list(texts)), cfg) if not ignored(f, cfg, where)]
         except (RuntimeError, OSError) as e:
             print(f"frontend-audit: {e} - run without --baseline for the whole-file audit"); return 2
         budget = Counter(old)
@@ -579,6 +885,9 @@ def main(argv):
     # ASCII-only output — portable across OSes / terminals (no PYTHONUTF8 needed).
     title = f"=== frontend-audit engine {ENGINE_VERSION} "
     print(title + "=" * max(3, 60 - len(title)))
+    if where:
+        print(f"  config {os.path.join(where, CONFIG_NAME)}: {len(cfg.get('pairs', []))} extra token pair(s); "
+              f"{len(skipped)} warn(s) skipped by its ignore list (an ERROR is never skipped)")
     if already is not None:
         print(f"  baseline {ref}: only findings NEW since then are listed and counted.")
         print(f"  already present at {ref} (not listed): {already['ERROR']} error | {already['WARN']} warn")
@@ -590,10 +899,11 @@ def main(argv):
             ("Law12", "motion"), ("Law1", "font"),
             ("Law3", "type-floor"), ("Law13", "focus"), ("Law21", "responsive"), ("Law22", "theming"),
             ("Law23", "live-regions"), ("Law24", "semantics"), ("Law25", "accessible-names"),
-            ("Law26", "heading-order")]
+            ("Law26", "heading-order"), ("Law20", "table-alignment"), ("AP", "anti-patterns"), ("Forms", "forms"),
+            ("Security", "security")]
     roll = []
     for tag, name in LAWS:
-        cat = [f for f in findings if f[1].startswith(tag + "-")]
+        cat = [f for f in findings if re.match(r"AP\d+-" if tag == "AP" else re.escape(tag) + "-", f[1])]
         e = sum(1 for f in cat if f[0] == "ERROR"); w = sum(1 for f in cat if f[0] == "WARN")
         roll.append(f"{name}:{'FAIL' if e else ('warn' if w else 'ok')}")
     print("-" * 60)

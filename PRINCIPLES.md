@@ -49,7 +49,7 @@
   real value; under production (`NODE_ENV`/`APP_ENV`) there is **no override**.
 - **Tests never touch the developer's or production data** — an integration suite runs against an
   **isolated, disposable datastore** (a separate URL, or per-test transaction rollback); sharing the dev
-  one is not an option, because "real boundaries" plus a teardown hook is a truncate away from real data.
+  one is ruled out: "real boundaries" plus a teardown hook is a truncate away from real data.
   The isolation is enforced by a **fail-closed bootstrap**, not a convention: if the target it was handed
   is the dev or production one, the suite **refuses to run**, names both, and exits non-zero. A destructive
   hook must never be one copied `.env` away from the real thing.
@@ -77,8 +77,10 @@
 
 ## Communication
 
-- Explain in **plain, non-technical language**; wait for confirmation before changing things.
-- Prefer **one clear recommendation + yes/no** over a jargon matrix.
+- Explain in **plain, non-technical language**; the user's answers are the go-ahead to change things.
+- **Every question is options:** 2–4, one **(Recommended)** first, plus **Other** - never a bare yes/no;
+  more than 4 questions: several question-tool calls in one message, 4 each
+  - except /vision's one open question, "What's your idea?", when the user gave none.
 - **Honesty always** — surface gaps, failures, uncertainty plainly.
 - **Readable documents** — Markdown structure: a heading per topic, paragraphs of 4 sentences at most, sub-bullets
   for a field over 2 lines, a table for 3+ alike items. Labels, `evidence:`, `Read:` stay verbatim; no raw HTML, no LaTeX
@@ -155,7 +157,7 @@ Exit criteria:
 - **Prior-gate check (Step 0):** confirm the previous phase's exit criteria were met. If they were not,
   **warn, name the missing phase and offer it first** — standalone/jump-in is first-class, so a gate is a
   gate and never a wall. Proceeding anyway is an **override, and an override is recorded, never verbal**:
-  it names the gate being bypassed, captures **the reason in the user's own words**, and is recorded with
+  it names the gate being bypassed, captures **the reason as options (Other = the user's own words)**, and is recorded with
   `status.py bypass` (`MECHANISMS.md` §Status). A *warning* is
   informational and needs no ceremony; an *override* advances the project on unmet criteria — the more
   consequential of the two — so it is the one that must leave a trace. **One rule, one home:** the form and

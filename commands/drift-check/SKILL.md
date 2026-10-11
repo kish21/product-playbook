@@ -1,12 +1,6 @@
 ---
 name: drift-check
-description: >
-  Cross-cutting skill of product-playbook — run ANYTIME. Checks whether the product is still building
-  the vision or has drifted: scope creep (features built that are OUT OF SCOPE), vision misalignment,
-  and code↔docs drift. Use when you suspect creep, before a milestone, or run /drift-check "are we
-  on track", "did we drift", "scope creep", "is this still the plan". Reports against the project
-  spine (PRODUCT.md, or the project's existing docs / inferred-from-code — see MECHANISMS.md
-  §Spine resolution). Does not advance the phase chain.
+description: Anytime - check for scope creep or drift from the vision.
 ---
 
 # `/drift-check` — Cross-cutting · run as a **skeptical reviewer**
@@ -24,7 +18,7 @@ description: >
 ## Contract
 - **Purpose:** detect and surface scope creep, vision drift, and code↔docs drift — early.
 - **Reads:** the resolved spine's Vision, Scope (Deferred + Non-goals), Plan (concern-area checklist), the `STATUS.md` ticket rows; the codebase + docs. (`PRODUCT.md#…` when it exists; otherwise the equivalent sections of the resolved doc, per MECHANISMS.md §Spine resolution.)
-- **Writes:** a drift report to the user + a `status.py drift` row in `STATUS.md` on any confirmed drift (never `/learn`'s `#Learnings`); does NOT advance the chain. **If there is no `PRODUCT.md`, do not create one** — report to the user and, if the project keeps a log/CHANGELOG, offer to append the drift note there.
+- **Writes:** a drift report to the user + a `status.py drift` row in `STATUS.md` on any confirmed drift (never `/learn`'s `#Learnings`); does NOT advance the chain. **If there is no `PRODUCT.md`, do not create one** — report only; the close's **What YOU do next** names `/adopt` to create a `PRODUCT.md`.
 - **Must NOT:** change code, cut a feature, edit or create `PRODUCT.md`, or call a claim met without re-running its evidence.
 - **State model** (`STATE-MODEL.md` §2c): writes a `STATUS.md` drift row · `declined` ✓ · `override` n/a — cross-cutting, it gates on nothing · `superseded` n/a — append-only log: one entry per run
 - **Exit criteria:**
@@ -35,6 +29,18 @@ description: >
     verdicts — `VERIFIED` · `PARTIALLY VERIFIED` · `UNVERIFIED` · `CONTRADICTED` (`STATE-MODEL.md` §2g).
     A claim with no evidence is **reported, never silently passed**. → `STATUS.md Drift: Drift found`
   - [ ] A clear verdict: on-track, or a specific list of drifts + a recommended cut/correction. → `STATUS.md Drift: Recommendation`
+
+## Step 0 — Resolve the spine, then build context
+- **First turn, ONE command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase drift-check`** — it resolves the spine and prints what the check compares, the section sizes, every `evidence:` line (a gone artefact is CONTRADICTED), stalled gates, missing agent files and the rules; never the rule files or `PRODUCT.md` whole. Show its first line.
+- **Resolve the spine first** (MECHANISMS.md §Spine resolution): `PRODUCT.md` if present; else the
+  project's own docs (`CLAUDE.md` → `README.md` → `docs/` → `AGENTS.md`); else (code only) an
+  **INFERRED** picture from code + package metadata. **Say which the start resolved.**
+- Tier 1: `#Plan` via `status.py section PRODUCT.md Plan` (the start printed `#Vision`/`#Scope`); Tier 2: the
+  docs it named. Build the picture of what was *supposed* to be built.
+- **Verify against the real code/docs** — don't assume the spine is current; reconcile it with what's actually there.
+- **Code-only (Tier 3):** there is no recorded intent, so **true scope/vision drift cannot be
+  judged** — do not invent a baseline and grade against it. You may still sanity-check the code's
+  internal consistency; then jump to Step 3 and recommend bootstrapping a spine.
 
 ## Step 0b — Claim-to-evidence pass (re-verify, don't re-read)
 
@@ -77,18 +83,6 @@ feels exempt (`LESSONS.md`). Read the spine's own stated rules — thresholds, n
 counts — and ask of each: *does this repository satisfy it?* That list is free, specific to this project,
 and nobody else will ever run it.
 
-## Step 0 — Resolve the spine, then build context
-- **First turn, ONE command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase drift-check`** — it resolves the spine and prints what the check compares, the section sizes, every `evidence:` line (a gone artefact is CONTRADICTED), stalled gates, missing agent files and the rules; never the rule files or `PRODUCT.md` whole. Show its first line.
-- **Resolve the spine first** (MECHANISMS.md §Spine resolution): `PRODUCT.md` if present; else the
-  project's own docs (`CLAUDE.md` → `README.md` → `docs/` → `AGENTS.md`); else (code only) an
-  **INFERRED** picture from code + package metadata. **Say which the start resolved.**
-- Tier 1: `#Plan` via `status.py section PRODUCT.md Plan` (the start printed `#Vision`/`#Scope`); Tier 2: the
-  docs it named. Build the picture of what was *supposed* to be built.
-- **Verify against the real code/docs** — don't assume the spine is current; reconcile it with what's actually there.
-- **Code-only (Tier 3):** there is no recorded intent, so **true scope/vision drift cannot be
-  judged** — do not invent a baseline and grade against it. You may still sanity-check the code's
-  internal consistency; then jump to Step 3 and recommend bootstrapping a spine.
-
 ## Step 1 — Apply principles
 - **Vision-alignment is top priority:** the test for every feature is "does this serve the vision?"
 - **Scope discipline:** anything built that's in OUT-OF-SCOPE (without its trigger having fired) is creep.
@@ -97,13 +91,13 @@ and nobody else will ever run it.
 ## Step 2 — Check for drift
 > Each phase now runs its own **Step 3c** contradiction check before its gate closes (`MECHANISMS.md` §Step 3c), so a contradiction *between* two spine sections should be rare and dated. This sweep is what catches the ones that escaped — and a conflict you find here that carries **no `superseded by` line** means a phase skipped its Step 3c: report that as drift in its own right.
 
-1. **Scope creep:** list features in the code/build log not justified by `#Scope`; flag anything built that's a **Non-goal** or a **Deferred** item whose trigger never fired. Also flag the inverse: a deliberate pivot the spine never recorded → recommend updating `#Scope`/`#Vision`, not cutting code.
+1. **Scope creep, both ways:** list features in the code/build log not justified by `#Scope`; flag anything built that's a **Non-goal** or a **Deferred** item whose trigger never fired. Then the reverse: a core or in-scope item with no code and no done ticket was **dropped**. A deliberate pivot the spine never recorded → recommend updating `#Scope`/`#Vision`, not cutting code.
 2. **The spine's own size — a signal, not a verdict.** There is **no byte cap** on `PRODUCT.md` or any
    section (`PRINCIPLES.md`, `MECHANISMS-ON-DEMAND.md §Section is a record`). Report the file size and
    name the largest sections (*"`#Vision` is the largest section at 5.1KB — worth a look"*), then apply
    the **record test** to the ones you name: a field holding *reasoning* rather than a decision, evidence
    line or pointer is the finding, and the fix is to move that reasoning into its companion
-   (`docs/<phase>.md`, `docs/adr/*`, `docs/runbook.md`, `STRUCTURE.md`, `DESIGN.md`, `docs/features/*`,
+   (`docs/<phase>.md`, `docs/architecture.md`, `docs/runbook.md`, `STRUCTURE.md`, `DESIGN.md`, `docs/features/*`,
    `src/schemas/*`) — never to trim the answer. A big section made of tight required answers is not a
    finding.
 3. **A stalled `running` gate.** A section in the `running` state (`STATE-MODEL.md` §2a) **past its
@@ -114,7 +108,7 @@ and nobody else will ever run it.
 5. **Table-stakes drift:** re-read `#Scope`'s table-stakes list. An item marked **in-scope now** that was
    never built is drift of the most expensive kind — it surfaces at ship time as "we can't launch without
    this". An item marked **Deferred** whose **trigger has now fired** is the same finding with a date on it.
-6. **Plan / concern-area drift:** milestones skipped or reordered off core-first? Re-read `#Plan`'s concern-area checklist — any "now" still unbuilt, any "next" overdue?
+6. **Plan / concern-area drift:** milestones skipped or reordered off core-first? Re-read `#Plan`'s concern-area checklist — any "now" still unbuilt, any "next" overdue? **Architecture drift:** code against `docs/architecture.md` §Decisions and any `docs/adr/*`: a contradiction with no `superseded by` line.
 7. **Doc drift:** grep the docs' **concrete** claims — paths, flags, model names, field names, stage lists — against the code, and flag each that no longer holds. Prose re-reading finds nothing; a stale instruction is worse than none because it gets followed. If the `STATUS.md` ticket rows are stale vs the code, flag that as drift too.
 8. **Agent instructions that are ABSENT, before any check for rot.** A filled spine and **no**
    `CLAUDE.md` / `AGENTS.md` at all is the emptiest possible case, and it passed silently: every
@@ -130,19 +124,16 @@ and nobody else will ever run it.
    ever check it. This is the **no-hardcoding rule aimed at documentation**: a re-typed constant in a
    doc is the same defect as a magic number in source, minus the compiler. So cite the source of
    truth (`see platform.yaml llm.*`, `see schemas/brief.py`) instead of restating its values, and
-   where a claim must be stated, pin it with a **parity test** that reads both sides. *(Real
-   instance: in a 21-skill audit, 14 were stale and **every** model/storage error was a re-typed
-   config value; the only two skills that survived were the two that pointed at a doc rather than
-   restating it.)*
+   where a claim must be stated, pin it with a **parity test** that reads both sides.
 
 ## Step 3 — Report + record
 Give an honest verdict: **on-track**, or a specific list of drifts. For each, recommend a **cut**, a
-**deliberate re-scope** (add to Scope with a trigger), or a **fix**. On any confirmed drift, write a
-`status.py drift --found "<drift>" --rec "<cut / re-scope+trigger / fix>"` row **when a `PRODUCT.md` exists**; otherwise report
-to the user and offer to append to the project's log/CHANGELOG — never silently create a `PRODUCT.md`.
-One message ends the report: *"Record these drifts? Looks good - record (Recommended)"* / *"Change something"*;
-on a yes, every `status.py drift` row in that one message. No phase write — it's a check, not a stage; the last
-line is the one the start (or `drift`) printed, word for word.
+**deliberate re-scope** (add to Scope with a trigger), or a **fix**. **When a `PRODUCT.md` exists**, record every
+confirmed drift in ONE call, no question first: `status.py drift --found "<drift 1>" --rec "<cut / re-scope+trigger /
+fix>" --found "<drift 2>" --rec "<...>"` - it saves `STATUS.md` and its rows only, never your other changes. Otherwise
+report only - the close's **What YOU do next** names `/adopt` to create a `PRODUCT.md`; never create one yourself. The
+close asks *"Change anything?"*. No phase write — it's a check, not a stage; the last line is the one `drift` (or the
+start) printed, word for word.
 
 **Tier-3 (code-only) verdict:** say plainly *"no spine doc exists, so I can't assess scope/vision
 drift — there's no recorded intent to compare against."* Give the INFERRED summary, then recommend

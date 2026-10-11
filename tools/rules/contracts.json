@@ -31,7 +31,8 @@
     "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from contracts --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
    ],
    "new": [
-    "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from contracts --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
+    "**An override is RECORDED, never a verbal \"yes\"**: the **reason in the user's own words**",
+    "`status.py bypass --from contracts --gate <gate> --reason \"<the user's own words>\"` before continuing"
    ]
   },
   {
@@ -51,9 +52,9 @@
     "2. **Persistence schema** + a **migration**; confirm the schema matches the models and the queries."
    ],
    "new": [
-    "no migration file, or app code that builds the schema"
+    "`set contracts filled` refuses a project with no migration file, or with app code that builds the schema"
    ],
-   "home": "tools/status.py"
+   "home": "commands/contracts/references/contract-steps.md"
   },
   {
    "id": "seed-pinned",
@@ -459,20 +460,25 @@
    "id": "C22",
    "what": "re-run: follow the RE-RUN line - one question listing what would change; superseded line",
    "old": [
-    "**Re-running this phase (`MECHANISMS.md` §Re-run semantics):**"
+    "**Re-running this phase (`MECHANISMS.md` §Re-run semantics):**",
+    "a filled section → follow the `RE-RUN` line `next` prints: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line."
    ],
    "new": [
-    "**Re-running this phase (`MECHANISMS.md` §Re-run semantics):**"
+    "a re-run follows its `RE-RUN` line: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line.",
+    "(`MECHANISMS.md` §Re-run semantics, §Declined runs)"
    ]
   },
   {
    "id": "C23",
    "what": "gate unmet and the run stops: set contracts declined, nothing changed in PRODUCT.md",
    "old": [
-    "`status.py set contracts declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>`"
+    "`status.py set contracts declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>`",
+    "- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** record it —",
+    "(`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`."
    ],
    "new": [
-    "`status.py set contracts declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>`"
+    "`status.py set contracts declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>`",
+    "and nothing changes in `PRODUCT.md`"
    ]
   },
   {
@@ -550,23 +556,25 @@
     "**Close the loop (`MECHANISMS.md` §Step 3b):**",
     "`UNVERIFIED` is a normal outcome, silence is not",
     "`set contracts filled --section-from <file> --commit \"<one line>\"`",
-    "\"Looks good - save (Recommended)\"",
+    "Then ONE message, no save question",
     "`MECHANISMS.md` §Commit the work",
     "cites the evidence lines this run ran (a line whose files changed since: run it again)",
     "(`MECHANISMS.md` §Plain-language close) ends with its `Open a NEW conversation` line word for word",
-    "Save this version of your project? (yes / no)"
+    "and asks *\"Change anything?\"*"
    ]
   },
   {
    "id": "C31",
-   "what": "Step 3c: check against #Architecture (datastore, migrations approach) and #Scope; name both sides, ask, update the loser",
+   "what": "Step 3c: check against #Architecture (datastore, migrations approach) and #Scope; name both sides, ask, update the loser - 2.3 (owner, ): a clash is named on its own line and recorded as an open item; an earlier phase's record or document is never edited",
    "old": [
     "here: `#Architecture` (datastore · migrations approach) and `#Scope`",
-    "**name both sides, ask which wins, and update the loser**"
+    "**name both sides, ask which wins, and update the loser**",
+    "Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Architecture` (datastore · migrations approach) and `#Scope` — types for an entity no scoped feature needs, or a schema that bypasses the recorded migration path. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction."
    ],
    "new": [
     "here: `#Architecture` (datastore · migrations approach) and `#Scope`",
-    "**name both sides, ask which wins, and update the loser**"
+    "**name both sides on a line of its own** and ask nothing",
+    "**never an earlier phase's record or document** — record the clash as an open item: `status.py open --from contracts"
    ]
   },
   {
@@ -640,7 +648,7 @@
    "what": "round 2: the frozen table, a Step 3c clash, one confirm-and-save question; --dry-run first",
    "old": [],
    "new": [
-    "**Round 2, ONE message:**",
+    "The close shows a table of what was frozen",
     "`set contracts filled --section-from <file> --dry-run`; fix every gap."
    ]
   },
@@ -649,7 +657,7 @@
    "what": "a folder this phase adds is drawn in STRUCTURE.md's map (a logged-project replay was refused for docs/contracts/)",
    "old": [],
    "new": [
-    "A folder this phase adds goes into STRUCTURE.md's map in the same message."
+    "A folder this phase adds is drawn in STRUCTURE.md's map by `set` - never edit the map by hand."
    ]
   },
   {
@@ -674,13 +682,13 @@
   },
   {
    "id": "C42",
-   "what": "docs/contracts.md reader-first: Overview + ONE diagram, PII table, owner's answers (P42)",
+   "what": "docs/contracts.md reader-first: Overview + ONE diagram, PII table, owner's answers (P42) - 2.3: numbered headings; the personal-data table is accepted by its columns, any heading",
    "home": "tools/status.py",
    "old": [],
    "new": [
-    "the reader's part first: `## Overview` (3-5 plain sentences, then ONE ```mermaid",
-    "`## PII` (a table: field · why kept · how long · deletion path)",
-    "`## Owner's answers` (round 1, word for word)"
+    "the reader's part first, every `##` numbered: `## 1. Overview` (3-5 plain sentences, then ONE ```mermaid",
+    "`## 3. Personal data` (a table: field · why kept · how long · deletion path)",
+    "`## 4. Owner's answers` (round 1, word for word)"
    ]
   }
  ],
@@ -698,5 +706,6 @@
    "why": "the reason, not a rule; MECHANISMS-ON-DEMAND.md §Context hygiene carries it"
   }
  ],
- "extended": "2026-10-04: C01-C33 pin every rule of the next.67 text (ccb69b0) the first inventory did not cover - base lines kept verbatim until now, and rules added after b33b6c4 (old: [])"
+ "extended": "2026-10-04: C01-C33 pin every rule of the next.67 text (ccb69b0) the first inventory did not cover - base lines kept verbatim until now, and rules added after b33b6c4 (old: [])",
+ "note": " 2.4: Step 0's re-run, override and stop rules are one line (the start names the case when it is real); same rules, same commands. A folder the phase adds is drawn by `set` (a logged run)."
 }

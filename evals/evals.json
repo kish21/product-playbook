@@ -354,6 +354,20 @@
       "files": []
     },
     {
+      "id": "vision-brief-not-re-asked",
+      "skill": "vision",
+      "prompt": "/vision Here is the challenge brief: a regional bank with about 2 million app customers wants a vision and a proof of concept for personalisation that notices life moments (moving house, a new job, a baby) and offers the right next step. Guiding questions: 1. who is it for? 2. what problem does it solve? 3. how would AI help? 4. what is the business case? 5. what would a first proof of concept show?",
+      "expected_output": "Starts the research helper as its first tool call, before writing round 1. Round 1 quotes what the brief already answers under 'From your brief:' (the customers, the kind of product, the problem) and asks 0 questions the brief answers and 0 research questions (never 'how do banks solve this today', competitors, prices or rules - the market check finds those). Every question it does ask is 2-4 options built from the brief with a Recommended one first and its reason, plus Other; the user can answer with letters only. The drafts message offers the vision sentence, the name and the job-to-be-done as 3 options + Recommended each. docs/vision.md has numbered headings, a diagram, a 'Brief point | Our answer' table with one row per guiding question, In scope / Out of scope lists and open questions",
+      "files": []
+    },
+    {
+      "id": "vision-proposes-enrichments-as-options",
+      "skill": "vision",
+      "prompt": "/vision who it's for: retail customers at their life moments",
+      "expected_output": "Never adds segments, the people inside the company who use it, the scale, root causes or other risks on its own; offers them as options (2-4, Recommended first, plus Other) built from the brief, the answers and the research. Only what the user picks goes into docs/vision.md and #Vision, recorded under the owner's answers as 'picked: <option text>'; an option the user did not pick never appears. A number question also offers 'I don't know yet - work it out in <phase>' and never pre-selects an example value",
+      "files": []
+    },
+    {
       "id": "validate-override-contradicts-vision",
       "skill": "validate",
       "prompt": "skip the validation — it's just for personal use",
@@ -372,6 +386,13 @@
       "skill": "plan",
       "prompt": "sequence the milestones for this",
       "expected_output": "Gives every milestone a four-risks row naming which of value/usability/feasibility/viability it retires and the observable that proves it; cites a passing #Validation entry as evidence for an already-retired value risk rather than repeating it; places a usability checkpoint before anything goes public and writes it as a milestone EXIT CRITERION (five people attempting the core task unaided), not a nice-to-have",
+      "files": []
+    },
+    {
+      "id": "plan-whole-plan-one-round",
+      "skill": "plan",
+      "prompt": "/plan (scope is filled with Capacity: solo, ~20 h a week, 3 weeks; table stakes: accessibility baseline in now, error states in now)",
+      "expected_output": "Asks ONE round of options: confirms the capacity from #Scope instead of asking it from scratch, the start date, the order after the core, and every number nobody gave (testers, the demo date) with an 'I don't know yet' option; a second round only for a question an answer raised. Never schedules a paid AI API or an API key (the model and its cost are chosen at /architect). Every #Scope in-now item, including the accessibility baseline and the error states, sits in a milestone's exit criterion. docs/plan.md is the whole plan with numbered headings: what the demo will and will NOT prove, the timeline, each milestone with dates, what it delivers, its exit criterion, its risk and Needs, schedule risks and a buffer, and one Open items list instead of '(proposed)' scattered through the text",
       "files": []
     },
     {
@@ -656,6 +677,13 @@
       "files": []
     },
     {
+      "id": "scope-capacity-and-done-when",
+      "skill": "scope",
+      "prompt": "/scope (the vision is filled: a waitlist that texts guests when the table is ready)",
+      "expected_output": "Round 1 asks, as options with a Recommended one, the core feature, the smallest set around it, 'Which of these should stay OUT of the first version? You decide later or never for each next.' and who builds the first version and how long there is. Round 2 shows each temptation as its own question (later + proposed trigger / never / in now), the table stakes, a Done when for each in-scope item and whether the list fits the capacity. #Scope records Capacity and `<item> - done when <check>`; a number carried from #Vision says where it came from; docs/scope.md has numbered headings, the core feature in one clear sentence with one concrete example, a core-loop diagram and the week-by-week shape",
+      "files": []
+    },
+    {
       "id": "dev-check-verification-batch-stops-on-red",
       "skill": "dev-check",
       "prompt": "run the checkpoint and keep going through the tests if it's fine",
@@ -788,7 +816,7 @@
     {
       "id": "build-shows-what-the-reviews-caught",
       "skill": "build",
-      "prompt": "/build \"#14 export a report\"  (round 1 is back: the code review found nine things and the security review found that another account's reports could be downloaded by guessing an id; all fixed and tested)",
+      "prompt": "/build \" export a report\"  (round 1 is back: the code review found nine things and the security review found that another account's reports could be downloaded by guessing an id; all fixed and tested)",
       "expected_output": "Before anything else runs, tells the user what the reviews caught: how many, and the ones that mattered most in one plain sentence each saying what would have gone wrong for a user — another account's reports could have been downloaded by guessing a number — never the jargon name of the defect; that they are fixed and tested; and the measured time and cost so far (or 'not measured'). Because the fixes touched an auth/data surface it recommends a second, scoped review and says why, and leaves the choice to the user. It repeats what was caught in the close.",
       "expectations": [
         "The user is shown what round 1 caught in plain language, not just a count or a defect name",
@@ -811,7 +839,7 @@
     {
       "id": "build-dod-gap-is-never-deferred",
       "skill": "build",
-      "prompt": "/build \"#12 rate a submitted photo\"  (an AI feature; the security review finds that words drawn inside an uploaded image can steer the model, and the fix lives in prompts/rating.v1.yaml — a file this ticket never changed)",
+      "prompt": "/build \" rate a submitted photo\"  (an AI feature; the security review finds that words drawn inside an uploaded image can steer the model, and the fix lives in prompts/rating.v1.yaml — a file this ticket never changed)",
       "expected_output": "Does not treat the finding as outside the ticket: prompt-injection defence is a line of this feature's DoD, so it fixes it now (a new pinned prompt version plus an adversarial test) or stops and asks the user — it is never deferred as a ticket while the feature is reported done.",
       "expectations": [
         "The finding is matched against the DoD before the changed-files test is applied",
@@ -822,7 +850,7 @@
     {
       "id": "build-log-row-is-one-line",
       "skill": "build",
-      "prompt": "/build \"#14 export a report\"  (the fifth ticket of the milestone; STATUS.md already holds four ticket rows, and the reviews found eleven things that were all fixed)",
+      "prompt": "/build \" export a report\"  (the fifth ticket of the milestone; STATUS.md already holds four ticket rows, and the reviews found eleven things that were all fixed)",
       "expected_output": "Records ONE ticket row with status.py ticket — id, DoD met, how verified in one line, --runs, --review with the rounds' scope, and the link to docs/features/<feature>.md — and puts the eleven findings, the defects and any Step 3c note in the feature doc. A field past its limit is refused by status.py, and the detail goes to the feature doc.",
       "expectations": [
         "STATUS.md gains exactly one ticket row",
@@ -833,7 +861,7 @@
     {
       "id": "build-flake-attribution-is-one-traceback",
       "skill": "build",
-      "prompt": "/build \"#14 export a report\"  (the full suite fails once, then passes unchanged; the traceback shows it died in the test harness's setup deleting a temp file, before any test ran — a file this ticket never touched)",
+      "prompt": "/build \" export a report\"  (the full suite fails once, then passes unchanged; the traceback shows it died in the test harness's setup deleting a temp file, before any test ran — a file this ticket never touched)",
       "expected_output": "Treats it as FLAKY and OUTSIDE from the one traceback: records name, error and N of M, files it with /tickets, names it in the close and carries on — it does not run the suite again to characterise the flake, and does not re-run until green.",
       "expectations": [
         "The flake is attributed from the traceback already in hand",
@@ -844,7 +872,7 @@
     {
       "id": "build-dead-reviewer-is-rerun-once",
       "skill": "build",
-      "prompt": "/build \"#14 export a report\"  (the security review came back; the code-review subagent was killed by a usage limit and returned nothing)",
+      "prompt": "/build \" export a report\"  (the security review came back; the code-review subagent was killed by a usage limit and returned nothing)",
       "expected_output": "Does not guess the missing findings and does not proceed as if the review were clean: re-runs the code review once with the same scope, and if it dies again stops and tells the user.",
       "expectations": [
         "The lost review's findings are not invented or assumed empty",
@@ -855,7 +883,7 @@
     {
       "id": "build-names-the-archetype-and-walks-the-checks",
       "skill": "build",
-      "prompt": "/build \"#16 block a listing that breaks the rules\"  (a feature whose whole job is to say no; its verdict is cached on the listing row)",
+      "prompt": "/build \" block a listing that breaks the rules\"  (a feature whose whole job is to say no; its verdict is cached on the listing row)",
       "expected_output": "Declares the DoD with `Archetype: gate` (and the trust-boundary cluster, for the cached verdict), tells the user in one plain sentence what kind of feature this is and what that makes it careful about, and opens references/feature-archetypes.md §Gates before writing code rather than applying it from memory. At Step 4 it opens references/live-path-checks.md — as on every build — walks the checks whose trigger matches, and the feature doc carries both lines: `Archetype: gate → §Gates opened` and `Live-path checks walked: …` naming them.",
       "expectations": [
         "The DoD names the archetype, and the user is told in plain words what kind of feature this is",

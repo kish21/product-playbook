@@ -6,58 +6,51 @@
 
 ## §Lanes are modules — group first, slice second
 
-**Never assume one builder.** A backlog written as one chain — every ticket needing the one before it —
-gives a second person, or a second agent, nothing to start until the first finishes; and a backlog grouped
-by module costs a solo builder nothing, because solo simply means every seat is theirs. So the grouping
-is always there, the user decides per lane who sits in it, and a lane can be handed to a friend or a second
-agent without re-planning. (case file: The fifteen-step recipe)
+**Never assume one builder.** A backlog written as one chain gives a second person, or a second agent, nothing
+to start until the first finishes; a backlog grouped by module costs a solo builder nothing (every seat is
+theirs), and a lane can be handed to a friend or a second agent without re-planning. (case file: The
+fifteen-step recipe)
 
-1. **A lane is a module.** Read the module folders `STRUCTURE.md` draws (`queue/`, `parties/`, `notify/`)
-   and make one lane per module, named after the folder. Layered shape (no module folders) → one lane per
-   feature, and say so. **A lane is never a technology layer** (`backend`, `ui`).
-2. **Every ticket carries `Lane` (its module) and `Owner`** — the role that owns the lane, `Senior` by
-   default; the user re-assigns lanes to `Junior` on the board, never in the tickets. Owner follows the
-   files, not the difficulty.
-3. **Order inside a lane, parallel across lanes.** The tickets of one lane are ordered by `Depends On`;
-   two lanes may run side by side. Where a ticket in lane X needs a ticket in lane Y, write it as a
-   **coordination point** in `TICKETS.md` — not only inside the ticket — in one of two kinds (§Waiting or
-   building against): *"`M1-TEXT-01` (notify) waits for `M1-HOST-02` (queue) to merge"*, or *"`M1-HOST-01`
-   (queue) builds against `M1-PARTY-01` (parties)"*.
+1. **A lane is a module.** One lane per module folder `STRUCTURE.md` draws (`queue/`, `parties/`), named after
+   the folder. Layered shape (no module folders) → one lane per feature, and say so. **A lane is never a
+   technology layer** (`backend`, `ui`).
+2. **Every ticket carries `Lane` (its module) and `Owner`** — the role that owns the lane, `Senior` unless round 1
+   named a Junior lane. Owner follows the files, not the difficulty.
+3. **Order inside a lane, parallel across lanes.** A lane's tickets are ordered by `Depends On`; lanes run side
+   by side. A ticket that needs another lane's ticket is a **coordination point** in `TICKETS.md`, of one of two
+   kinds (§Waiting or building against) - the script writes them from each ticket's depends and builds.
 4. **Hub files.** A file named by tickets in two or more lanes (the route registry, the config loader, the
-   dependency manifest) is a **hub file**: list them in `TICKETS.md` so `/build` treats a change
-   there as a one-line merge. Three or more hub files, or a
-   handler/store folder shared by every module, is a structure finding — say so, and point at `/structure`.
-5. **The parallel table** goes into `TICKETS.md` and into the close: lane · owner · tickets in
-   order · which lanes can run at once · hub files. That table is the answer to "can two people work on
-   this?", and it must exist before anyone asks.
+   dependency manifest) is a **hub file**: list it under hubs, so `/build` treats a change there as a one-line
+   merge. A one-line registry `STRUCTURE.md` names under `## Hub files` is normal, however many there are. A hub
+   file is a **structure finding** — say so, and point at `/structure` — only when a ticket needs more than a
+   one-line change there, or `STRUCTURE.md`'s `## Hub files` does not name it (`set` warns), or a handler/store
+   folder is shared by every module.
+5. **The parallel table** (lane · owner · seat · epics · which lanes run at once) is in `TICKETS.md` and the
+   close: the answer to "can two people work on this?", before anyone asks.
 
-The plan lives in `TICKETS.md` (`tickets-md.md`); the live map is the **Delivery Board** (`publishing.md`
-§The Delivery Board): Lane and Owner are also board fields, `Seat` is the chair actually working (a person or
-an agent instance, one by default), and `Status` moves as work happens — on the board, never in `TICKETS.md`.
+The plan lives in `TICKETS.md` (`tickets-md.md`); the live map is the **Delivery Board** (`publishing.md` §The
+Delivery Board), where `Status` moves — never in `TICKETS.md`.
 
 ## §Epics — milestone → epic → ticket
 
-A backlog as big as its behaviours is too long to read as one list, so the tickets of a milestone are grouped
-the way a product team writes them: **group by module, slice by visible behaviour, assign by role.**
+The tickets of a milestone are grouped the way a product team writes them: **group by module, slice by visible
+behaviour, assign by role.** **Every milestone is ticketed in one run** (owner, 2026-10-08): the full lane and
+seat plan for the whole product is the point; ticketing only the next milestone was proposed and declined.
 
-1. **An epic is one feature of one milestone, inside one lane.** Its tickets are that module's behaviours for
-   that milestone, so the epic's owner is the lane's owner. A feature that needs behaviour in two modules is
-   two epics, one per lane, joined by a coordination point — never one epic whose tickets sit in two lanes.
-   A milestone may hold several epics in the same lane.
-2. **Epic-scoped IDs.** An epic gets a short uppercase code for its name (`PARTY` for *Parties join the
-   list*), unique inside its milestone. The epic is `[M<milestone>-<EPIC>]`; its tickets are
-   `[M<milestone>-<EPIC>-<nn>]`, numbered from `01` in build order — `[M1-PARTY-01]`, `[M1-PARTY-02]`. The
-   milestone prefix keeps a code reusable across milestones, and the pair keeps every ID unique, which is
-   what dedup matches on. `SLICE`, `TICK` and `ADHOC` are never an epic code: the first two are the IDs a
-   backlog published before epics still carries (`publishing.md` §An earlier backlog), the third is Mode B's.
-3. **A re-run keeps every code.** An epic already in `TICKETS.md` or on GitHub keeps its code and its
-   numbering; a new ticket in it takes the next free `nn` across `docs/issues/` and the fetched issues.
-   Minting a second code for an existing epic is how a re-run publishes a duplicate epic.
-4. **An epic is a GitHub parent issue and its tickets are its sub-issues** (`publishing.md` §Epics are parent
-   issues). GitHub allows 100 sub-issues under one parent; an epic that would need more is a slicing finding
-   — split the epic.
-5. **The proposal is shown as the hierarchy:** milestone, then each epic (ID · name · lane · owner), then its
-   tickets in order. The strategy is still chosen per milestone, and every epic of that milestone uses it.
+1. **An epic is one feature of one milestone, inside one lane**, so its owner is the lane's owner. A feature
+   that needs two modules is two epics joined by a coordination point — never one epic in two lanes. A
+   milestone may hold several epics in one lane.
+2. **Epic-scoped IDs.** An epic gets a short uppercase code (`PARTY` for *Parties join the list*), unique in
+   its milestone: the epic is `[M<milestone>-<EPIC>]`, its tickets `[M<milestone>-<EPIC>-<nn>]` from `01` in
+   build order. The pair keeps every ID unique, which is what dedup matches on. `SLICE`, `TICK` (a backlog
+   published before epics, `publishing.md` §An earlier backlog) and `ADHOC` (Mode B) are never an epic code.
+3. **A re-run keeps every code**: an epic in `TICKETS.md` or on GitHub keeps its code and numbering; a new
+   ticket takes the next free `nn` across `docs/issues/` and the fetched issues (a second code for one epic
+   publishes a duplicate epic).
+4. **An epic is a GitHub parent issue, its tickets its sub-issues** (`publishing.md` §Epics are parent issues);
+   past GitHub's 100 sub-issues, split the epic.
+5. **The close shows the hierarchy:** milestone, each epic (ID · name · lane · owner), its tickets in order;
+   every epic of a milestone uses that milestone's strategy.
 
 ## §Waiting or building against — the two kinds of dependency
 
@@ -152,7 +145,8 @@ ID: epic-scoped, `[M<milestone>-<EPIC>-<nn>]` (§Epics) — the layer tickets of
   cannot live in one layer — otherwise it becomes a dumping ground and the same work is counted twice.
 
 ## §Per-ticket content (both strategies)
-Fill the provisioned `feature_ticket.md` template for each ticket:
+What each ticket's entry in the fields file carries — `set tickets filled --from-fields` renders it into the
+`feature_ticket.md` template's shape:
 - **ID + title:** `[M<milestone>-<EPIC>-<nn>]` (§Epics), then the concern in plain words.
   The `M<milestone>-<EPIC>` prefix is what keeps IDs unique across milestones; without it, dedup misfires on re-run.
 - **Epic:** `[M<milestone>-<EPIC>] <epic name>` — published as this ticket's parent issue.
@@ -163,6 +157,7 @@ Fill the provisioned `feature_ticket.md` template for each ticket:
   **The list is the boundary**, so it must name **everything `/build` will write**: the code, its tests, *and*
   `docs/features/<feature>.md`. **Never list `PRODUCT.md`, `CHANGELOG.md`, `STRUCTURE.md` or `TICKETS.md`** —
   the spine and the plan are shared — each phase writes its own rows, and a ticket never lists them.
+- **Exit criterion:** the `#Plan` exit criterion it serves, by the number the start prints (`M1.2`).
 - **Inputs → outputs:** the typed contract this ticket consumes and the one it exposes, named from `#Contracts`.
 - **Depends on:** the ticket IDs whose *merge* it waits for (§Waiting or building against) — each becomes a
   *blocked by* link. `None` is a valid answer.
@@ -176,7 +171,7 @@ Fill the provisioned `feature_ticket.md` template for each ticket:
   tests written and passing for everything this ticket touches · feature doc updated.
 - **Verification command:** the exact command a reviewer runs to see it work.
 
-Write each to `docs/issues/<id>_<slug>.md`, then the plan to `TICKETS.md` (`tickets-md.md`), verify, and only
-then publish the non-duplicates with `gh issue create`, each ticket file as its body, unchanged (`publishing.md`
+`set` writes each to `docs/issues/<id>_<slug>.md`, then the plan to `TICKETS.md` (`tickets-md.md`), verifies, and only
+then the engine publishes the non-duplicates with `gh issue create`, each ticket file as its body, unchanged (`publishing.md`
 §An issue body is its ticket file).
 

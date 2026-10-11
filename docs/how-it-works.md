@@ -156,7 +156,7 @@ This is the journey at full resolution — every skill, what it writes, and when
 | **Product** | `/validate` | Tests the riskiest assumption with the cheapest real-world experiment BEFORE code — threshold set in advance, measured result, proceed / pivot / **kill** | `PRODUCT.md` -> **Validation** | Optional: only when you ask, after `/vision` and before scoping or code (an empty `#Validation` is normal) |
 | **Product** | `/scope` | Locks down **one** core feature; lists Deferred and Non-goals | `PRODUCT.md` -> **Scope** | Defining MVP / fighting feature creep |
 | **Product** | `/plan` | Core-first milestones + concern-area checklists | `PRODUCT.md` -> **Plan** | Creating the roadmap |
-| **Dev** | `/architect` | Chooses stack, records ADRs, wraps externals in adapters | `PRODUCT.md` -> **Architecture** | Before writing any code |
+| **Dev** | `/architect` | Chooses stack, records the decisions, wraps externals in adapters | `PRODUCT.md` -> **Architecture** | Before writing any code |
 | **Dev** | `/structure` | Scaffolds directory layout + root scaffolding; `app/prompts/` for AI | File tree + `STRUCTURE.md` | The first coding step |
 | **Dev** | `/design-system` | (UI products) Derives design principles -> confirmed sample page -> archetype-correct `DESIGN.md` (shadcn tokens). Kills the generic AI look; fixes too-small fonts | `DESIGN.md` + sample page + `PRODUCT.md` -> **Design** | Before building any screens |
 | **Dev / UI** | `/frontend-audit` | (UI products) Mechanically enforces the design-system laws — a real OKLCH->WCAG contrast engine + token/motion/font/responsive checks; CI-friendly | Pass/warn/error scorecard (exits non-zero on error) | After building or changing UI, or in CI |
@@ -211,7 +211,7 @@ The waitlist app from the README, skill by skill: what you type, what it asks or
 
 | Skill | You type | It asks / does | It writes | It prevents |
 |---|---|---|---|---|
-| 🏗️ `/architect` | `/architect` | Budget? Where will it run? Who maintains it? Benchmarks current-year options. Offers to **chain into `/structure`** | The stack and key decisions as ADRs — runtime target, commit-hook tool, every external (the SMS provider) behind an adapter | A vendor SDK welded into business logic |
+| 🏗️ `/architect` | `/architect` | Budget? Where will it run? Who maintains it? Benchmarks current-year options. Continues into `/structure` when asked | The stack and key decisions, written once (no day-one ADRs) — runtime target, commit-hook tool, every external (the SMS provider) behind an adapter | A vendor SDK welded into business logic |
 | 📁 `/structure` | `/structure` | Draws the folder shape | One module per thing the product does (`queue/`, `notify/`, `host/`), each with its routes, store and tests · root scaffolding (agent instructions, `.env.example`, secret-scan, hooks, task runner) · `prompts/` if there is an LLM · `STRUCTURE.md` | "Where does this go?" having no answer |
 | 🎨 `/design-system` *(UI only)* | `/design-system` | What look do *you* want? Proposes an archetype, builds **one real sample page**, stops until you like it | `DESIGN.md` — the tokens every later screen reuses | The generic AI look, too-small fonts |
 | 🧱 `/foundation` | `/foundation` | Builds the walking skeleton | Dependencies · config loader · structured logging · DB wired · lint and hooks · CI that mirrors the production boot. A placeholder secret **refuses to boot, by name** | Config that silently does nothing |

@@ -5,14 +5,19 @@ these steps locally counts as "verified locally" - never "green on CI" - and an 
 a real remote. The steps run from the workflow file itself, so the check and the CI cannot drift apart.
 
     python ci_local.py [--workflow .github/workflows/ci.yml] [--job <name>] [--skip "<regex>"] [--only "<regex>"]
-                       [--keep-going] [--list] [--here]
+                       [--keep-going] [--list] [--here] [--with-changes]
 
 - Runs in a CLEAN CHECKOUT of HEAD (a temporary git worktree), as a CI runner does: uncommitted work is not in it,
-  and nothing a step writes lands in your folder. --here runs in this folder instead.
+  and nothing a step writes lands in your folder. --here runs in this folder instead. --with-changes adds this
+  folder's uncommitted changes and new files to the checkout - what the phase's one save will commit - so a phase
+  never commits half its work just to replay CI (a logged run did, and its save became two commits).
 - Refuses to run when a step would get a database URL from your .env: CI uses throwaway credentials, and a local
   replay must never migrate, seed or test your development data.
 - Runs every `run:` step of the job in order, with the workflow's and job's plain `env:` values, in bash.
-- A `uses:` step (checkout, setup-python, ...) is listed as covered by this machine, not run.
+- A `uses:` step (checkout, setup-python, ...) is listed as covered by this machine, not run - but its version is
+  checked first: `owner/repo@ref` must be a tag, branch or commit the action's repository has (a logged workflow
+  used `astral-sh/setup-uv@v10`, which does not exist, and CI failed at that step on every push since setup).
+  No network: the line says "not checked". --no-action-check skips it.
 - A `services:` block (postgres, redis) is listed: point the steps at a local one through env, or --skip them.
 - Each step's output goes to a log in the temp folder; a failed step prints its last lines.
 Exit: 0 = every run step passed · 1 = a step failed (or nothing ran) · 2 = the workflow could not be read.
@@ -129,16 +134,68 @@ def dev_databases(project: Path) -> dict[str, str]:
     return out
 
 
-def clean_checkout(project: Path) -> Path | None:
+def clean_checkout(project: Path, with_changes: bool = False) -> Path | None:
     """A detached worktree of HEAD in the temp folder: what a CI runner checks out, and nothing it writes lands in
-    the developer's folder. None when this is not a git repo with a commit."""
+    the developer's folder. None when this is not a git repo with a commit. `with_changes`: plus the uncommitted
+    changes and the new files git does not ignore (what the next save commits)."""
     r = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=project, capture_output=True, text=True)
     if r.returncode != 0:
         return None
     where = Path(tempfile.mkdtemp(prefix="ci_local-tree-"))
     r = subprocess.run(["git", "worktree", "add", "--detach", "-q", str(where), "HEAD"], cwd=project,
                        capture_output=True, text=True)
-    return where if r.returncode == 0 else None
+    if r.returncode != 0:
+        return None
+    if with_changes:
+        diff = subprocess.run(["git", "diff", "HEAD", "--binary"], cwd=project, capture_output=True).stdout
+        if diff.strip():
+            subprocess.run(["git", "apply", "--whitespace=nowarn"], cwd=where, input=diff, capture_output=True)
+        new = subprocess.run(["git", "ls-files", "--others", "--exclude-standard", "-z"], cwd=project,
+                             capture_output=True).stdout.decode("utf-8", "replace").split("\0")
+        for rel in (n for n in new if n):
+            dest = where / rel
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(project / rel, dest)
+    return where
+
+
+USES = re.compile(r"(?m)^\s*-?\s*uses:\s*['\"]?([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+)(?:/[^@\s'\"]*)?@([^\s'\"#]+)")
+
+
+def action_refs(text: str) -> list[tuple[str, str]]:
+    """Every `uses: owner/repo[/path]@ref` of a workflow, once each (local `./` and `docker://` actions have none)."""
+    return list(dict.fromkeys((m.group(1), m.group(2)) for m in USES.finditer(text)))
+
+
+def remote_refs(repo: str, timeout: float = 20) -> set[str] | None:
+    """The tag and branch names of github.com/<repo>, or None when they cannot be read (no network, no git)."""
+    try:
+        r = subprocess.run(["git", "ls-remote", "--tags", "--heads", f"https://github.com/{repo}"],
+                           capture_output=True, text=True, timeout=timeout,
+                           env={**os.environ, "GIT_TERMINAL_PROMPT": "0"})
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    if r.returncode != 0:
+        return None if not re.search(r"(?i)not found|repository .* does not exist", r.stderr) else set()
+    return {re.sub(r"^refs/(?:tags|heads)/|\^\{\}$", "", l.split("\t")[-1]) for l in r.stdout.splitlines() if l}
+
+
+def missing_actions(text: str, lister=remote_refs) -> tuple[list[str], list[str]]:
+    """(the `owner/repo@ref` pins that do not exist, the ones not checked). A full commit SHA is never refused."""
+    bad, unknown, seen = [], [], {}
+    for repo, ref in action_refs(text):
+        if re.fullmatch(r"[0-9a-f]{40}", ref):
+            continue
+        if repo not in seen:
+            seen[repo] = lister(repo)
+        refs = seen[repo]
+        if refs is None:
+            unknown.append(f"{repo}@{ref}")
+        elif ref not in refs:
+            near = sorted((r for r in refs if re.fullmatch(r"v?\d+(?:\.\d+)*", r)),
+                          key=lambda r: [int(x) for x in re.findall(r"\d+", r)])
+            bad.append(f"{repo}@{ref}" + (f" (its newest tag: {near[-1]})" if near else ""))
+    return bad, unknown
 
 
 def bash() -> str | None:
@@ -162,6 +219,10 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--keep-going", action="store_true")
     ap.add_argument("--list", action="store_true", help="print the steps, run nothing")
     ap.add_argument("--here", action="store_true", help="run in this folder instead of a clean checkout of HEAD")
+    ap.add_argument("--with-changes", dest="with_changes", action="store_true",
+                    help="the clean checkout plus this folder's uncommitted changes (what the next save commits)")
+    ap.add_argument("--no-action-check", dest="no_action_check", action="store_true",
+                    help="do not check that each `uses:` version exists (it needs the network)")
     a = ap.parse_args(argv)
     wf_path = Path(a.workflow) if a.workflow else next(iter(sorted(Path(".github/workflows").glob("*.y*ml"))), None)
     if wf_path is None or not wf_path.is_file():
@@ -172,6 +233,14 @@ def main(argv: list[str]) -> int:
     except Exception as e:  # noqa: BLE001 - an unreadable workflow is reported, never guessed at
         print(f"REFUSED - cannot read {wf_path.as_posix()}: {e}", file=sys.stderr)
         return 2
+    if not a.no_action_check and not a.list and os.environ.get("PLAYBOOK_ACTION_CHECK", "on") != "off":
+        bad, unknown = missing_actions(wf_path.read_text(encoding="utf-8", errors="replace"))
+        if bad:
+            print(f"FAIL - action version(s) that do not exist, so CI fails at that step on GitHub: {', '.join(bad)} - "
+                  f"pin a tag the action has, then run this again")
+            return 1
+        print("actions: every `uses:` version exists" if not unknown else
+              f"actions: not checked (no network): {', '.join(unknown[:6])}")
     jobs = wf["jobs"]
     names = [a.job] if a.job else list(jobs)
     sh = bash()
@@ -184,14 +253,16 @@ def main(argv: list[str]) -> int:
     dev = dev_databases(project)
     tree = None
     if not a.list and not a.here:
-        tree = clean_checkout(project)
+        tree = clean_checkout(project, a.with_changes)
         if tree is None:
             print("REFUSED - no commit to check out: commit first (CI runs what is committed), or pass --here",
                   file=sys.stderr)
             return 2
         head = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=project, capture_output=True,
                               text=True).stdout.strip()
-        print(f"clean checkout of {head} in {tree.as_posix()} (uncommitted changes are not in it - as on CI)")
+        print(f"clean checkout of {head} in {tree.as_posix()} " + (
+            "plus this folder's uncommitted changes (what the save will commit)" if a.with_changes else
+            "(uncommitted changes are not in it - as on CI)"))
     try:
         return run_jobs(a, wf, wf_path, names, sh, logdir, tree or project, dev)
     finally:

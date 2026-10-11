@@ -17,7 +17,7 @@ file to point *at*:
 
 | Section | Companion |
 |---|---|
-| `#Architecture` | `docs/adr/*` |
+| `#Architecture` | `docs/architecture.md` (and `docs/adr/*` only for a decision that changed) |
 | `#Structure` | `STRUCTURE.md` |
 | `#Design` | `DESIGN.md` |
 | `#Foundation` | `docs/runbook.md` |

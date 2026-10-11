@@ -13,7 +13,8 @@ the lanes wait on each other, and who starts what on day one. It replaces `docs/
   column, no checkbox, no done mark, no progress count, no issue state. A plan that tracks status goes stale
   the day a ticket merges and nobody edits it; one that never tracks it cannot. `/build` never writes
   `TICKETS.md`, and no ticket lists it in its Target Files.
-- **Written by `/tickets` alone.** A re-run rewrites it from the confirmed proposal; nothing else edits it —
+- **Written by `/tickets` alone** — rendered by `set tickets filled --from-fields` from the fields file, never typed.
+  A re-run renders it again from the fields; nothing else edits it —
   except a shape-changing `/structure` re-run, which rewrites the paths it moved and nothing else.
 - **One file for the whole backlog**, every milestone in it, in `#Plan` order.
 - **A stopped run** (`MECHANISMS.md` §Declined runs) is recorded by `status.py` (`MECHANISMS.md` §Status), never as a line at the top of
@@ -24,14 +25,17 @@ the lanes wait on each other, and who starts what on day one. It replaces `docs/
 1. **A one-line header** saying the file is the plan and naming where status lives (the board's title).
 2. **One section per milestone**, named from `#Plan`: a table of its epics — epic ID and name · lane · owner ·
    tickets in build order (ID and title). A milestone with no tickets gets one line saying why (`slicing.md`).
-3. **Lanes** — the parallel table (`slicing.md` §Lanes are modules): lane · owner · epics · which lanes run at
-   the same time.
-4. **Coordination points** — every cross-lane dependency, one line each, in its kind: *waits for … to merge*
+3. **Lanes** — the parallel table (`slicing.md` §Lanes are modules): lane · owner · seat · epics · which lanes
+   run at the same time. **Seat** works that lane (§Seats) and is stamped on its cards.
+4. **Seat load** — each seat's operator, ticket count and lanes; the PRs a person reviews for agent seats; the
+   longest chain of waits (the tickets that merge one after another however many seats there are). An idle seat,
+   or one seat carrying twice another's tickets, is a warning in `set`'s output.
+5. **Coordination points** — every cross-lane dependency, one line each, in its kind: *waits for … to merge*
    (that ticket's `Depends On`) or *builds against …* (its `Builds against`).
-5. **Hub files** — each with the lanes that touch it.
-6. **The flow graph** (§The flow graph).
-7. **Day 1 — who starts what** (§Day 1).
-8. **Handed to later phases** — each `#Plan` item a later phase owns, with the point it runs at.
+6. **Hub files** — each with the lanes that touch it.
+7. **The flow graph** (§The flow graph).
+8. **Day 1 — who starts what** (§Day 1).
+9. **Handed to later phases** — each `#Plan` item a later phase owns, with the point it runs at.
 
 ## §The flow graph
 
@@ -46,17 +50,28 @@ prefix keeps a module called `end` from breaking the parser), an arrow is `lane_
 `lane_a -.->|"label"| lane_b`, one per line. GitHub renders Mermaid with a pinned version that has rejected
 newer syntax, and a graph that does not render is a code block nobody reads. Say the legend in one line under it.
 
+## §Seats — one per person or agent the user named
+
+The seats come from the number round 1's answer gave, never a default list: *"2 developers"* → `SR1`, `SR2`;
+*"3 seniors and 2 juniors"* → `SR1`–`SR3`, `JR1`–`JR2`; alone → `SR1`. Every lane gets exactly one seat in the
+Lanes table (a seat may work several lanes; split the lanes so the seats carry about the same number of
+tickets), and the publish engine reads that table: `"seats"` lists them all and each epic carries its lane's
+`"seat"` (`publishing.md` §The Delivery Board). **What each seat is** - its type (`SR` senior, `JR` junior) and its
+operator (a person, an agent, or an agent a person operates) - is round 1's answer, written once in the fields file
+(`{"id": "JR1", "operator": "agent+person"}`); the script renders it into the Lanes table's **Seat type** and
+**Operator** columns, and publishing puts it in the board's Seat option description.
+
 ## §Day 1 — who starts what
 
-One row per lane: the **Seat** that sits there (`SR1` unless the user named seats at the proposal), the lane,
-the ticket that seat starts on day one, and why it does not wait. **A day-1 ticket has no `Depends On`** — it
-may build against a contract, never wait for a merge. A lane with nothing startable on day one gets a row
-saying what it waits for, so a spare seat knows not to sit there yet. It is the starting plan, not a live
-one: after day one, who sits where is the board's Seat field.
+**One row per seat** the user named — no seatless *"next free seat"* row: the **Seat**, its lane, its day-one
+ticket and why it does not wait. **A day-1 ticket has no `Depends On`** (it may build against a contract) and
+is in the current milestone. Under the table, one line: **when a seat frees up, it takes the next startable
+ticket on the board**, its own lanes first. With agent seats, one more line: each agent seat works in its own
+`git worktree` folder and branch, so two seats never share a working copy.
 
 ## §Example
 
-An invented waitlist app with three module lanes, two seats named at the proposal:
+An invented waitlist app with three module lanes, two developers named in round 1 (`SR1`, `SR2`):
 
 ````markdown
 # Tickets — Waitlist
@@ -74,11 +89,11 @@ An invented waitlist app with three module lanes, two seats named at the proposa
 
 ## Lanes
 
-| Lane | Owner | Epics | Runs alongside |
-|---|---|---|---|
-| parties | Senior | `M1-PARTY` | queue, notify |
-| queue | Senior | `M1-HOST` | parties |
-| notify | Senior | `M1-TEXT` | parties |
+| Lane | Owner | Seat | Seat type | Operator | Epics | Runs alongside |
+|---|---|---|---|---|---|---|
+| parties | Senior | SR1 | senior | person | `M1-PARTY` | queue, notify |
+| queue | Senior | SR2 | senior | agent, a person reviews its PRs | `M1-HOST` | parties |
+| notify | Senior | SR2 | senior | agent, a person reviews its PRs | `M1-TEXT` | parties |
 
 ## Coordination points
 
@@ -108,7 +123,9 @@ Solid arrow: wait for the merge. Dotted arrow: build against the contract — a 
 |---|---|---|---|
 | SR1 | parties | `M1-PARTY-01` guest adds their party | depends on nothing |
 | SR2 | queue | `M1-HOST-01` host sees the queue | builds against `M1-PARTY-01` with a stub |
-| — | notify | nothing on day one | `M1-TEXT-01` waits for `M1-HOST-02` to merge |
+
+When a seat frees up, it takes the next startable ticket on the board — `M1-TEXT-01` (notify, SR2's lane)
+once `M1-HOST-02` merges.
 
 ## Handed to later phases
 

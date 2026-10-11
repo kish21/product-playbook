@@ -9,7 +9,7 @@
     "If `PRODUCT.md` exists, read `#Vision`; you are refining"
    ],
    "new": [
-    "`PRODUCT.md` exists → read `#Vision`; you are refining it."
+    "`PRODUCT.md` exists → `next` prints `#Vision`; you are refining it."
    ]
   },
   {
@@ -31,21 +31,22 @@
     "If neither, start fresh from the bundled `PRODUCT.md` template"
    ],
    "new": [
-    "Neither → start from the template `${CLAUDE_PLUGIN_ROOT}/templates/PRODUCT.md`"
+    "- Neither → `set vision filled --from-fields` makes `PRODUCT.md`"
    ]
   },
   {
    "id": "V04",
-   "what": "re-run: show what changes, ask first, date a reversal",
+   "what": "re-run: show what changes, ask first, date a reversal (2.4: printed by `next` only on a re-run; the rule lives in MECHANISMS.md §Re-run semantics)",
    "old": [
     "**show what would change and ask before replacing it**",
     "- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** if the section is already filled,",
     "and leave a reversed decision in place with a dated `superseded <date>: <why>` line."
    ],
    "new": [
-    "**show what would change and ask before replacing it**; a reversed decision keeps a dated `superseded <date>: <why>` line",
-    "Already filled → **re-run** (`MECHANISMS.md` §Re-run semantics)"
-   ]
+    "**compare the section against the current rules first, and ask ONE question listing each concrete change**",
+    "a `superseded <date>: <why>` line"
+   ],
+   "home": "references/mechanisms.md"
   },
   {
    "id": "V05",
@@ -60,17 +61,17 @@
   },
   {
    "id": "V06",
-   "what": "a stopped run is recorded as declined via status.py, PRODUCT.md untouched",
+   "what": "a stopped run is recorded as declined via status.py, PRODUCT.md untouched (2.4: printed by `next` when the run stops; MECHANISMS.md §Declined runs)",
    "old": [
     "record that it stopped (`MECHANISMS.md` §Declined runs)",
     "- **If the gate is unmet and the run stops here,",
     "record it — `status.py set vision declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`."
    ],
    "new": [
-    "`status.py set vision declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>`",
-    "change nothing in `PRODUCT.md`",
-    "**The run stops with the gate unmet** (`MECHANISMS.md` §Declined runs)"
-   ]
+    "`status.py set <phase> declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>`",
+    "touches nothing in `PRODUCT.md`"
+   ],
+   "home": "references/mechanisms.md"
   },
   {
    "id": "V07",
@@ -98,13 +99,13 @@
   },
   {
    "id": "V09",
-   "what": "plain language, one recommendation with a yes that also records and saves (next.65)",
+   "what": "plain language; every question is 2-4 options + Recommended + Other (owner 2026-10-06; was one recommendation with a yes)",
    "old": [
     "Speak in **plain language**; end with **one recommendation**",
     "Give **one clear recommendation** on the crispest framing; get a yes/no. Keep it plain — no jargon."
    ],
    "new": [
-    "Give **one recommendation** on the framing"
+    "**Every question: 2–4 options + Recommended (first, one-line reason) + Other**"
    ]
   },
   {
@@ -114,9 +115,9 @@
     "Ask these one block at a time; wait for answers. Keep it short — a newcomer should not feel interrogated."
    ],
    "new": [
-    "**Ask each round in ONE message**",
-    "so a\nnewcomer does not feel interrogated",
-    "and wait for the answers"
+    "**Ask each round in ONE message or form**",
+    "Tell the user what to expect: two rounds of questions",
+    "and wait (7 single-question turns re-sent the whole conversation each time)"
    ]
   },
   {
@@ -131,7 +132,7 @@
    "new": [
     "**one-sentence vision — the world this creates once it works**, not what the product is",
     "(\"nobody stands at the door guessing the wait\", not \"an app for a waitlist\")",
-    "1. **In one line, what is this product and who is it for?**"
+    "1. **Who is it for, and what does it make possible?**"
    ]
   },
   {
@@ -147,12 +148,13 @@
   },
   {
    "id": "V13",
-   "what": "ask how people solve it today and what fails",
+   "what": "how it is solved today is researched, never asked: a table from the findings the user picks from",
    "old": [
     "3. **How do people solve this today, and why is that not good enough?**"
    ],
    "new": [
-    "3. **How do people solve this today, and what fails about that?**"
+    "**Never ask for a researchable fact** (how it is solved today, competitors, prices, rules): the market check finds it.",
+    "Then **How it is solved today** as a table from"
    ]
   },
   {
@@ -161,11 +163,12 @@
    "old": [
     "the **north star, in five parts**. Ask for them together; a bare",
     "direction is the usual answer and is not yet a metric:",
-    "4. **How will you know it's working?** —"
+    "4. **How will you know it's working?** —",
+    "5. **What's the riskiest assumption** this depends on? And is it **free, paid, or internal**?"
    ],
    "new": [
     "the **north star: ask for all five parts in one block** (a bare direction is the usual first answer and is not yet a metric)",
-    "4. **How will you know it's working?** —"
+    "3. **How will you know it's working?** —"
    ]
   },
   {
@@ -200,7 +203,7 @@
     "the owner confirms or changes it."
    ],
    "new": [
-    "marked `(proposed)`, and the owner confirms or changes it"
+    "**offer only a part the owner left out**, as options marked `(proposed)`"
    ]
   },
   {
@@ -233,8 +236,8 @@
    ],
    "new": [
     "**No count on searches:** a search for what users complain about is where a sharpening insight comes from.",
-    "`<name> · no search — <where the name came from>`. (case file: The search list nobody could check)",
-    "A comparable named without a search gets its own line:"
+    "`<name> · no search — <where the name came from>` (or `Not searched · <gap>`). (case file: The search list nobody could check)",
+    "A comparable named without a search gets its own line, no link needed:"
    ]
   },
   {
@@ -244,7 +247,7 @@
     "Frame the problem as a **job-to-be-done** (\"when <situation>, I want to <motivation>, so I can <outcome>\")."
    ],
    "new": [
-    "Frame the **job-to-be-done**: \"when <situation>, I want to <motivation>, so I can <outcome>\"."
+    "**job-to-be-done** (\"when <situation>, I want to <motivation>, so I can <outcome>\")"
    ]
   },
   {
@@ -267,8 +270,8 @@
     "business model. Record it: `status.py flag --ai yes|no` (`MECHANISMS.md` §Status)."
    ],
    "new": [
-    "Fill every `#Vision` field `next` printed",
-    "`set vision filled --section-from <file> --ai yes|no --agent yes|no"
+    "## Step 3 — Write ONE fields file; the script renders both documents",
+    "`set vision filled --from-fields <file> --ai yes|no --agent yes|no"
    ]
   },
   {
@@ -281,7 +284,7 @@
     "record where it came from."
    ],
    "new": [
-    "Check every named comparable **against the search list in `docs/vision.md`**: a search settled it, or it has its own no-search line; a name on neither → search it, or record where it came from."
+    "Check every named comparable **against your `searches` field**: a search settled it, or it has its own no-search line; a name on neither → search it, or record where it came from."
    ]
   },
   {
@@ -302,7 +305,7 @@
   },
   {
    "id": "V26",
-   "what": "the size line from set; a quote for another companion opened (next.65)",
+   "what": "the size line from set; a quote for another companion opened (next.65) - on the fields path, the `read` field",
    "old": [
     "**Measure what you wrote and receipt what you read**",
     "report the section and file size in one line, then apply the record test to every field",
@@ -312,12 +315,12 @@
    ],
    "new": [
     "(`MECHANISMS-ON-DEMAND.md §Section is a record`, `MECHANISMS-ON-DEMAND.md §Read receipt`)",
-    "another companion you opened gets a quote"
+    "another companion you opened gets a quote in the `read` field"
    ]
   },
   {
    "id": "V27",
-   "what": "close: set filled --commit on the drafts' yes, transition guard, plain close; reconcile + save question moved into the drafts message (next.65)",
+   "what": "close: set filled --commit on the drafts' yes, transition guard, plain close; reconcile + save question moved into the drafts message (next.65); --from-fields (one fields file renders both documents)",
    "old": [
     "record the phase's state — `status.py set vision filled`",
     "reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it)",
@@ -332,9 +335,9 @@
     "(`MECHANISMS.md` §Plain-language close):"
    ],
    "new": [
-    "`set vision filled --section-from <file>",
+    "`set vision filled --from-fields <file>",
     "**run the transition guard**",
-    "\"Anything to change? If not: Save this version of your project? (yes / no)\""
+    "No save question: round 2's answers are the go-ahead to write and save"
    ]
   },
   {
@@ -427,7 +430,7 @@
    "new": [
     "Recorded whether this is an **AI product** (uses LLMs) and an **agent** (acts on its own)",
     "flags the AI-security layer downstream. → `STATUS.md header: AI product`",
-    "6. **Will it use AI?** no · an AI feature (writes text a person uses) · an **agent**",
+    "5. **Will it use AI?** no · an AI feature (writes text a person uses) · an **agent**",
     "--ai yes|no --agent yes|no",
     "records the AI flag"
    ]
@@ -447,35 +450,35 @@
   },
   {
    "id": "V36",
-   "what": "3c keeps its heading; it now runs in the drafts message (next.65)",
+   "what": "3c keeps its heading; it runs in round 2 with the drafts (no drafts turn)",
    "old": [
     "## Step 3c — Contradiction check"
    ],
    "new": [
-    "## Step 3c — Contradiction check (in the drafts message, before the yes; the close's step 3 confirms it)"
+    "## Step 3c — Contradiction check (in round 2 with the drafts, before the yes; the close's step 3 confirms it)"
    ]
   },
   {
    "id": "V40",
-   "what": "the companion's job and PRODUCT.md#Vision stays a record (next.57: a founder's document)",
+   "what": "the companion's job and PRODUCT.md#Vision stays a record (next.57: a founder's document) - still a record (exit criteria), each fact typed once (one fields file renders both documents)",
    "old": [
     "`docs/vision.md` — the reasoning, workings, raw notes and the search list.",
     "`PRODUCT.md#Vision` stays a",
     "RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay."
    ],
    "new": [
-    "**the document a founder reads** (Step 3)",
-    "`PRODUCT.md#Vision` stays a RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay."
+    "**the document a founder reads**, rendered from the same fields as `PRODUCT.md#Vision` (Step 3)",
+    "`#Vision` is a **RECORD** — every field is a decision, evidence line or pointer"
    ]
   },
   {
    "id": "V41",
-   "what": "Step 3 writes the record (next.57: docs/vision.md once, then PRODUCT.md)",
+   "what": "Step 3 writes the record (next.57: docs/vision.md once, then PRODUCT.md); one fields file, the script renders docs/vision.md and PRODUCT.md",
    "old": [
     "## Step 3 — Write back to `PRODUCT.md`"
    ],
    "new": [
-    "## Step 3 — Write `docs/vision.md` once, then `PRODUCT.md`"
+    "## Step 3 — Write ONE fields file; the script renders both documents"
    ]
   }
  ],

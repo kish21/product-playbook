@@ -40,7 +40,7 @@
 ## §AI runtime config
 
 7. **If it's an AI product:** decide **prompt-versioning**, an **eval harness**, **LLM
-   tracing/observability** — and the **model runtime config**, as ADRs (don't let them emerge). The
+   tracing/observability** — and the **model runtime config**, as decisions (don't let them emerge). The
    runtime config is the one that was missing and the one the budget depends on: **model id · thinking /
    reasoning effort · `max_tokens` · timeout · streaming · retry and refusal fallback · prompt caching**.
    Current frontier models run adaptive thinking **by default** and thinking bills as output, so a budget
@@ -60,8 +60,8 @@
   routes on **time-to-first-working-result including review wait**, not code effort. Unapproved apps tend
   to fail *silently* (a shipped video product hit this: YouTube force-privates uploads).
 
-## §Legacy ADRs — a spine that already has inline ADRs
+## §Legacy ADRs — a spine that already has ADRs
 
-**A spine with inline legacy ADRs** keeps their
-numbers: the first file takes the next one (`docs/adr/0011-…`), a legacy ADR moves to a file only when
-it is edited or superseded, and `#Architecture` says where the file ADRs start.
+**A spine with legacy ADRs** (inline, or files from an older playbook) keeps them and their numbers. The decisions they
+hold become `D<n>` blocks in the fields file; a legacy ADR changes only through `### change D<n>`, and the ADR the save
+writes takes the next free number (`docs/adr/0011-…`). No new ADR is written for a decision that did not change.

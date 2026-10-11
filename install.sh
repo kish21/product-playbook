@@ -215,12 +215,13 @@ cp "${ROOT}/templates"/* "${SUPPORT}/templates/"
 cp "${ROOT}/tools/session_cost.py" "${SUPPORT}/session_cost.py"
 cp "${ROOT}/tools/status.py" "${SUPPORT}/status.py"
 cp "${ROOT}/tools/run_report.py" "${SUPPORT}/run_report.py"
+cp "${ROOT}/tools/board.py" "${SUPPORT}/board.py"   # the one card mover /build and /ship's land.py share
 cp "${ROOT}/tools/engine.sha256" "${SUPPORT}/ENGINE.sha256"   # status.py refuses a checker edited after install
 # the helper agents' briefs (/vision's research helper): read from here by any tool, and installed below where the
 # tool looks for its own agents
 mkdir -p "${SUPPORT}/agents"
 cp "${ROOT}/agents"/*.md "${SUPPORT}/agents/"
-echo "  ✓ companions → ${SUPPORT} (PRINCIPLES.md · MECHANISMS.md · MECHANISMS-ON-DEMAND.md · LESSONS.md · CASE-FILES-BUILD.md · case files · STATE-MODEL.md · CAPABILITIES.md · AGENT.md · VISION.md · PRODUCT.md · templates/ · session_cost.py · status.py · run_report.py)"
+echo "  ✓ companions → ${SUPPORT} (PRINCIPLES.md · MECHANISMS.md · MECHANISMS-ON-DEMAND.md · LESSONS.md · CASE-FILES-BUILD.md · case files · STATE-MODEL.md · CAPABILITIES.md · AGENT.md · VISION.md · PRODUCT.md · templates/ · session_cost.py · status.py · run_report.py · board.py)"
 
 # 3) Point every plugin path at the file just installed.
 #    Skills name the plugin's paths (`${CLAUDE_PLUGIN_ROOT}/…`), which Claude Code fills in only for a plugin;

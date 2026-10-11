@@ -120,7 +120,9 @@ def test_validate(fails: list[str]) -> None:
         ts.scope_ready(d)
         val_heading(d)
         git_init(d)
-        (d / "docs" / "validation.md").write_text("# Validation\n\nWhy a hand-run trial.\n\n## Owner's answers\n\n"
+        (d / "docs" / "validation.md").write_text("# Validation\n\n## In short\n\nWe test whether guests answer a "
+                                                  "text within 10 minutes. The bar is 60% of 34 parties.\n\n"
+                                                  "Why a hand-run trial.\n\n## Owner's answers\n\n"
                                                   "1. Guests answer a text.\n", encoding="utf-8")
         src = Path(t) / "validation-section.md"
 
@@ -130,7 +132,7 @@ def test_validate(fails: list[str]) -> None:
 
         code, out = ts.run(d, "next", "--phase", "validate")
         for want in ("/validate start", "the riskiest assumption: guests answer a text", "===== PRINCIPLES.md =====",
-                     "Looks good - save (Recommended)", "- **Pass/fail threshold (written BEFORE the result):**",
+                     "no confirm or save question", "- **Pass/fail threshold (written BEFORE the result):**",
                      "set validate running --due"):
             if code or want not in out:
                 fails.append(f"next --phase validate should print {want!r}: {out[-300:]!r}")
@@ -324,7 +326,7 @@ def test_adopt(fails: list[str]) -> None:
         code, out = ts.run(d, "next", "--phase", "adopt")
         for want in ("README says: Neighbours lend", "pyproject.toml", "entry points: app.py", "/tools (app.py)",
                      "/reservations", "tests: tests", ".github/workflows", "_Adopted <YYYY-MM-DD> from:",
-                     "Looks good - save (Recommended)", "===== MECHANISMS.md ====="):
+                     "no confirm or save question", "===== MECHANISMS.md ====="):
             if code or want not in out:
                 fails.append(f"next --phase adopt should print {want!r}: {out[-400:]!r}")
         ts.ag_start_fits(d, "adopt", fails)
@@ -359,7 +361,7 @@ def test_adopt(fails: list[str]) -> None:
             fails.append(f"adopt recorded the wrong rows: {[st.state(p) for p in ('vision', 'scope', 'architect', 'test', 'plan')]}")
         # re-adopting: a filled section is never overwritten; an empty one is filled
         code, out = ts.run(d, "next", "--phase", "adopt")
-        if "STOP: PRODUCT.md exists" not in out or "#Plan" not in out:
+        if "STOP: PRODUCT.md exists" not in out or "#Structure" not in out:
             fails.append(f"the start over an existing PRODUCT.md should stop and list its empty sections: {out[-300:]!r}")
         src.write_text(ADOPT_DRAFT.replace("instead of buying them", "and share ladders"), encoding="utf-8")
         code, out = ts.run(d, "set", "adopt", "filled", "--section-from", str(src))
@@ -381,6 +383,93 @@ def test_adopt(fails: list[str]) -> None:
         fails.append("/adopt Step 0 should be the one start command, never whole-file reads")
     if "one at a time" in text:
         fails.append("/adopt confirms one section at a time - two rounds, each ONE message (P37)")
+
+
+def test_side_ops_24(fails: list[str]) -> None:
+    """2.4 (#54, #63, #62, #47, #53, #60): /adopt's draft is the sections a repo evidences, never the template copied
+    whole - the start prints each section's field names, the record writes the title and policy, the provenance and
+    only the drafted sections (a missing section is added to an existing PRODUCT.md, an unknown one refused); /adopt's
+    and /deploy's rounds say how to ask more than 4 questions; the /validate and /drift-check starts print
+    §Spine resolution only without PRODUCT.md, and /validate §Re-run semantics only on a re-run; docs/validation.md is
+    numbered when the record saves. Each shown red alone."""
+    import test_status as ts
+    with tempfile.TemporaryDirectory() as t:
+        d = Path(t) / "proj"
+        for rel, body in ADOPT_REPO.items():
+            (d / rel).parent.mkdir(parents=True, exist_ok=True)
+            (d / rel).write_text(body, encoding="utf-8")
+        git_init(d)
+        code, out = ts.run(d, "next", "--phase", "adopt")
+        for want in ("never the template copied whole", "## Vision: Vision | In plain words",
+                     "## Scope: THE core feature | Capacity", "more than 4 questions"):
+            if want not in out:
+                fails.append(f"the /adopt start lacks {want!r}")
+        if "templates/PRODUCT.md" in out:
+            fails.append("the /adopt start still points at the whole PRODUCT.md template")
+        if "## §Spine resolution" not in out:
+            fails.append("the /adopt start on a repo with no PRODUCT.md should print §Spine resolution")
+        src = Path(t) / "adopt-draft.md"
+        src.write_text(ADOPT_DRAFT.replace("## Tests\n", "## Overview\n- **What:** tools\n\n## Tests\n"),
+                       encoding="utf-8")
+        code, out = ts.run(d, "set", "adopt", "filled", "--section-from", str(src), "--product", "Toolshed",
+                           "--dry-run")
+        if "`## Overview` is not a PRODUCT.md section" not in out:
+            fails.append(f"a draft section PRODUCT.md does not have should be a gap: {out.strip()[:300]!r}")
+        src.write_text(ADOPT_DRAFT, encoding="utf-8")
+        code, out = ts.run(d, "set", "adopt", "filled", "--section-from", str(src), "--product", "Toolshed")
+        prod = (d / "PRODUCT.md").read_text(encoding="utf-8") if (d / "PRODUCT.md").is_file() else ""
+        heads = re.findall(r"(?m)^## (\S+)", prod)
+        if code or heads != ["Project", "Vision", "Scope", "Architecture", "Tests"]:
+            fails.append(f"an adopted PRODUCT.md holds the policy and only the drafted sections, in order: {heads} "
+                         f"{out.strip()[-300:]!r}")
+        if "_Adopted 2026-10-06 from: README.md" not in prod or "# PRODUCT — Toolshed" not in prod:
+            fails.append(f"the adopted PRODUCT.md lacks its title or provenance line: {prod[:300]!r}")
+        code, out = ts.run(d, "next", "--phase", "adopt")
+        if "#Structure" not in out or "## §Spine resolution" in out:
+            fails.append(f"over an existing PRODUCT.md the start lists a missing #Structure as empty and leaves §Spine "
+                         f"resolution out: {out[-400:]!r}")
+        code, out = ts.run(d, "next", "--phase", "drift-check")
+        if "## §Spine resolution" in out:
+            fails.append("the /drift-check start prints §Spine resolution although PRODUCT.md exists")
+        # a PRODUCT.md made by #63 (title + policy only) gets the drafted sections added, never silently nothing
+        e = Path(t) / "header-only"
+        for rel, body in ADOPT_REPO.items():
+            (e / rel).parent.mkdir(parents=True, exist_ok=True)
+            (e / rel).write_text(body, encoding="utf-8")
+        git_init(e)
+        (e / "PRODUCT.md").write_text(status.product_header("Toolshed"), encoding="utf-8")
+        code, out = ts.run(e, "set", "adopt", "filled", "--section-from", str(src), "--product", "Toolshed")
+        prod = (e / "PRODUCT.md").read_text(encoding="utf-8")
+        if code or "## Vision" not in prod or "a member reserves a tool" not in prod:
+            fails.append(f"adopt over a header-only PRODUCT.md should add the drafted sections: {out.strip()[-300:]!r}")
+        # /validate: the start's rules follow the run's facts
+        v = Path(t) / "val"
+        v.mkdir()
+        ts.scope_ready(v)
+        val_heading(v)
+        git_init(v)
+        code, out = ts.run(v, "next", "--phase", "validate")
+        for banned in ("## §Spine resolution", "## §Re-run semantics", "## §Declined runs"):
+            if banned in out:
+                fails.append(f"a first /validate on a project with PRODUCT.md should not print {banned!r}")
+        if "the one question round" not in status.START_HOLDS["validate"] or "two rounds" in \
+                status.RELEASEOPS_HOLDS["eval"] + status.RELEASEOPS_HOLDS["learn"] + status.RELEASEOPS_HOLDS["deploy"]:
+            fails.append("the Antigravity start files still describe two question rounds")
+        (v / "docs").mkdir(exist_ok=True)
+        (v / "docs" / "validation.md").write_text("# Validation\n\n## In short\n\nWe test whether guests answer a "
+                                                  "text.\n\n## Why a hand-run trial\n\nIt watches the action.\n\n"
+                                                  "## Owner's answers\n\n1. Guests answer a text.\n", encoding="utf-8")
+        src.write_text(val_record(), encoding="utf-8")
+        code, out = ts.run(v, "set", "validate", "running", "--section-from", str(src), "--due", "2026-10-20",
+                           "--reason", "34 parties texted · pass: 60% come back")
+        doc = (v / "docs" / "validation.md").read_text(encoding="utf-8")
+        if code or "## 2. Why a hand-run trial" not in doc or "## 3. Owner's answers" not in doc:
+            fails.append(f"a saved /validate record numbers docs/validation.md's headings: {code} {out[-300:]!r}")
+    if "ask once more" in skill("validate"):
+        fails.append("/validate still asks the bar question a second time (an extra turn)")
+    for name in ("eval", "learn"):
+        if "no `--commit` on a no" in skill(name):
+            fails.append(f"/{name} says to drop --commit on a no - `set` saves unless --no-commit (saved against a no)")
 
 
 # ---- /frontend-audit and /new-component -----------------------------------------------------------------------------
@@ -492,7 +581,8 @@ def test_learnings(fails: list[str]) -> None:
         for ph in ("frontend-audit", "new-component"):
             outs[ph] = ts.run(u, "next", "--phase", ph)[1]
         # P23: a desk check (rung 1) counts products found, each with its page - a realistic record must pass
-        (d / "docs" / "validation.md").write_text("# Validation\n\n## Owner's answers\n\n1. Do they pay today?\n",
+        (d / "docs" / "validation.md").write_text("# Validation\n\n## In short\n\nA desk check: do owners pay for "
+                                                  "this today?\n\n## Owner's answers\n\n1. Do they pay today?\n",
                                                   encoding="utf-8")
         (d / "docs" / "validation").mkdir()
         (d / "docs" / "validation" / "2026-10-06-desk.md").write_text("| tool | price | page |\n", encoding="utf-8")
@@ -522,6 +612,214 @@ def test_learnings(fails: list[str]) -> None:
             fails.append(f"{ph}'s start does not print audit.py's arguments and exit codes (W32)")
 
 
+# ---- 2.3 (#47 #53 #54 #55 #56): the side skills on the 2.1/2.2 patterns -------------------------------------------
+def committed(d: Path) -> list[str]:
+    return subprocess.run(["git", "show", "--name-only", "--format=", "HEAD"], cwd=d, capture_output=True,
+                          encoding="utf-8").stdout.split()
+
+
+def test_sideskills_23(fails: list[str]) -> None:
+    """No save question and no typed reason: /drift-check records every drift in ONE call and saves only STATUS.md
+    and its rows (the user's own unfinished file stays out); /adopt saves unasked, only PRODUCT.md and STATUS.md;
+    /validate's unmet gate and skipped test are options with a fixed reason. Plain's side-skill prompts ask for the
+    layout at phone, tablet and desktop, a component's empty/loading/error states and a commit: the starts print them."""
+    import test_status as ts
+    with tempfile.TemporaryDirectory() as t:
+        d = Path(t) / "proj"
+        d.mkdir()
+        ts.scope_ready(d)
+        val_heading(d)
+        git_init(d)
+        subprocess.run(["git", "add", "-A"], cwd=d, capture_output=True)
+        subprocess.run(["git", "commit", "-q", "-m", "base"], cwd=d, capture_output=True)
+        (d / "docs" / "vision.md").write_text("# Vision\n", encoding="utf-8")
+        code, out = ts.run(d, "next", "--phase", "drift-check")
+        for want in ("The human docs to hold against the code (Step 2 item 7): docs/vision.md", "scoped but dropped",
+                     "ONE call records and saves every drift", "Change anything?"):
+            if code or want not in out:
+                fails.append(f"drift start should print {want!r}: {out[-400:]!r}")
+        if "Record these drifts?" in out:
+            fails.append("drift start still asks a save question (\"Record these drifts?\")")
+        (d / "notes.txt").write_text("the user's own unfinished work\n", encoding="utf-8")
+        code, out = ts.run(d, "drift", "--found", "a", "--rec", "b", "--found", "c")
+        if code == 0 or "each --found needs its own --rec" not in out:
+            fails.append(f"unpaired --found/--rec should be refused: {out.strip()[:300]!r}")
+        code, out = ts.run(d, "drift", "--found", "a booking page was built; it is a Non-goal", "--rec", "cut it",
+                           "--found", "online booking was scoped and dropped", "--rec", "re-scope with a trigger")
+        st = ts.status.Status.load(d / "STATUS.md")
+        files = committed(d)
+        if code or len(st.rows["Drift"]) != 2 or "saved: commit" not in out or "Open a NEW conversation" not in out:
+            fails.append(f"two drifts in one call should be recorded, saved and handed off: {out.strip()[-400:]!r}")
+        elif "notes.txt" in files or len([f for f in files if "drift" in f]) != 2:
+            fails.append(f"the drift save should hold STATUS.md and its rows only, never the user's file: {files}")
+    text = skill("drift-check")
+    if "Record these drifts?" in text or text.index("## Step 0 —") > text.index("## Step 0b"):
+        fails.append("/drift-check: a save question left, or Step 0 not first")
+    # /adopt: saves unasked, and only what it wrote
+    with tempfile.TemporaryDirectory() as t:
+        d = Path(t) / "proj"
+        for rel, body in ADOPT_REPO.items():
+            (d / rel).parent.mkdir(parents=True, exist_ok=True)
+            (d / rel).write_text(body, encoding="utf-8")
+        git_init(d)
+        subprocess.run(["git", "add", "-A"], cwd=d, capture_output=True)
+        subprocess.run(["git", "commit", "-q", "-m", "base"], cwd=d, capture_output=True)
+        code, out = ts.run(d, "next", "--phase", "adopt")
+        for want in ("ONE question round", "Keep every inferred line (Recommended)", "Don't know yet - leave it empty"):
+            if code or want not in out:
+                fails.append(f"adopt start should print {want!r}: {out[-400:]!r}")
+        if "round 2" in out:
+            fails.append("adopt start still names a round 2")
+        (d / "app.py").write_text(ADOPT_REPO["app.py"] + "\n# half-done edit\n", encoding="utf-8")
+        src = Path(t) / "draft.md"
+        src.write_text(ADOPT_DRAFT, encoding="utf-8")
+        code, out = ts.run(d, "set", "adopt", "filled", "--section-from", str(src), "--product", "Toolshed")
+        files = committed(d)
+        if code or "saved: commit" not in out:
+            fails.append(f"adopt with no --commit should still save (#62): {out.strip()[-300:]!r}")
+        elif "app.py" in files or "PRODUCT.md" not in files:
+            fails.append(f"the adopt save should hold PRODUCT.md and STATUS.md only, never the user's edit: {files}")
+    if "round 2" in skill("adopt") or "--commit \"<one line>\"" in skill("adopt"):
+        fails.append("/adopt SKILL.md still names a round 2 or a --commit to remember")
+    # /validate: the gate cascade rule
+    with tempfile.TemporaryDirectory() as t:
+        d = Path(t) / "proj"
+        d.mkdir()
+        ts.scope_ready(d)
+        val_heading(d)
+        prod = d / "PRODUCT.md"
+        code, out = ts.run(d, "next", "--phase", "validate")
+        if code or "Skip it: already shown elsewhere" not in out or "the reason is the chosen option's words" not in out:
+            fails.append(f"validate start should offer the skip as options, never a typed reason: {out[-400:]!r}")
+        prod.write_text(re.sub(r"(?m)^- \*\*Riskiest assumption[^\n]*\n", "", prod.read_text(encoding="utf-8")),
+                        encoding="utf-8")
+        code, out = ts.run(d, "next", "--phase", "validate")
+        if code or "Run /vision first (Recommended)" not in out or status.VALIDATE_NO_BET not in out:
+            fails.append(f"validate with no riskiest assumption should ask ONE options question: {out[-400:]!r}")
+    text = skill("validate")
+    for bad in ("Round 2", "round 2's answer", "Two rounds", "the user's own words"):
+        if bad in text:
+            fails.append(f"/validate SKILL.md still says {bad!r} (one round, no save question, no typed reason)")
+    # /frontend-audit and /new-component: what plain is asked for
+    with tempfile.TemporaryDirectory() as t:
+        d = Path(t) / "proj"
+        d.mkdir()
+        ui_repo(d)
+        code, out = ts.run(d, "next", "--phase", "frontend-audit")
+        if code or "render_check.py" not in out or "375 / 768 / 1280" not in out or "NOT RUN" not in out:
+            fails.append(f"frontend-audit start should print the 3-width layout check: {out[-400:]!r}")
+        code, out = ts.run(d, "next", "--phase", "new-component")
+        for want in ("src/components/reserve-card.tsx (Recommended)", "empty, loading and error",
+                     "git commit -m", "never `git add -A`"):
+            if code or want not in out:
+                fails.append(f"new-component start should print {want!r}: {out[-400:]!r}")
+    if "empty · loading · error" not in skill("new-component"):
+        fails.append("/new-component's exit criteria lack the data states (empty, loading, error)")
+    if "20 laws" in skill("frontend-audit"):
+        fails.append("/frontend-audit says 20 laws; /design-system sets 26")
+
+
+def test_review_23(fails: list[str]) -> None:
+    """The 2.3 wording review, side skills. /adopt and /drift-check save unasked, so a project folder inside a
+    PARENT repo must not commit PRODUCT.md into the parent (save_commit refused that case; save_paths did not). A
+    no-git save tells the user one plain line - never an unformatted `offer git init` question. /new-component's menu
+    question holds at most 4 options (Claude's question tool takes 4). /frontend-audit says who starts the app."""
+    import test_status as ts
+    with tempfile.TemporaryDirectory() as t:
+        parent = Path(t)
+        git_init(parent)
+        (parent / "README.md").write_text("# outer repo\n", encoding="utf-8")
+        subprocess.run(["git", "add", "-A"], cwd=parent, capture_output=True)
+        subprocess.run(["git", "commit", "-q", "-m", "outer"], cwd=parent, capture_output=True)
+        d = parent / "proj"
+        for rel, body in ADOPT_REPO.items():
+            (d / rel).parent.mkdir(parents=True, exist_ok=True)
+            (d / rel).write_text(body, encoding="utf-8")
+        src = parent / "draft.md"
+        src.write_text(ADOPT_DRAFT, encoding="utf-8")
+        code, out = ts.run(d, "set", "adopt", "filled", "--section-from", str(src), "--product", "Toolshed")
+        log = subprocess.run(["git", "log", "--oneline"], cwd=parent, capture_output=True, encoding="utf-8").stdout
+        if code or "PARENT folder" not in out or len(log.splitlines()) != 1:
+            fails.append(f"adopt inside a parent repo should not commit there and should say so: {out.strip()[-300:]!r}"
+                         f" / parent log: {log!r}")
+    with tempfile.TemporaryDirectory() as t:
+        d = Path(t) / "proj"
+        for rel, body in ADOPT_REPO.items():
+            (d / rel).parent.mkdir(parents=True, exist_ok=True)
+            (d / rel).write_text(body, encoding="utf-8")
+        src = Path(t) / "draft.md"
+        src.write_text(ADOPT_DRAFT, encoding="utf-8")
+        code, out = ts.run(d, "set", "adopt", "filled", "--section-from", str(src), "--product", "Toolshed")
+        if code or "offer `git init` once" in out or "Run `git init` to keep versions" not in out:
+            fails.append(f"a no-git save should print one plain line for the user, no offer: {out.strip()[-300:]!r}")
+    with tempfile.TemporaryDirectory() as t:
+        d = Path(t) / "proj"
+        d.mkdir()
+        ui_repo(d)
+        tk = d / "docs" / "issues" / "M1-UI-03_more.md"
+        tk.write_text("# [M1-UI-03] More\n\n## Target Files\n" + "".join(
+            f"- `src/components/extra-{i}.tsx`\n" for i in range(5)), encoding="utf-8")
+        code, out = ts.run(d, "next", "--phase", "new-component")
+        q = next((l for l in out.splitlines() if "ONE options question" in l), "")
+        if code or "(Recommended)" not in q or "Other - type any name from the menu" not in q \
+                or "the other pending ones" in q or q.count(".tsx") > 3:
+            fails.append(f"new-component's menu question should hold at most 4 options: {q!r}")
+        code, out = ts.run(d, "next", "--phase", "frontend-audit")
+        if code or "Never start a server in the foreground" not in out or "Start your app, then run " \
+                "/frontend-audit again" not in out:
+            fails.append(f"frontend-audit should say who starts the app: {out[-500:]!r}")
+        (d / "package.json").write_text('{"scripts": {"dev": "vite --port 5173"}}', encoding="utf-8")
+        code, out = ts.run(d, "next", "--phase", "frontend-audit")
+        if code or "start --cmd \"npm run dev\" --port 5173" not in out or "stop --port 5173" not in out:
+            fails.append(f"a project with a dev recipe should get the background start/stop pair: {out[-600:]!r}")
+
+
+def test_review_24_ops_side(fails: list[str]) -> None:
+    """2.4 wording review (ops, side). /validate with no riskiest assumption prints the declined line for the stop
+    (the skill said it did; it never did, so the stop went unrecorded) and that line records; the skill writes the
+    strictest bar into the record (not a "(Recommended)" label) and names the `## 1. In short` opening `set` requires.
+    "trigger" is a plain word in docs/learnings.md and docs/deployment.md (/learn asks a trigger per deferred item) -
+    no playbook-word warning there; docs/scope.md still warns. templates/deployment.md says what it means in plain
+    words. Each shown red before the fix."""
+    import test_status as ts
+    with tempfile.TemporaryDirectory() as t:
+        d = Path(t) / "proj"
+        d.mkdir()
+        ts.scope_ready(d)
+        val_heading(d)
+        prod = d / "PRODUCT.md"
+        prod.write_text(re.sub(r"(?m)^- \*\*Riskiest assumption[^\n]*\n", "", prod.read_text(encoding="utf-8")),
+                        encoding="utf-8")
+        code, out = ts.run(d, "next", "--phase", "validate")
+        line = 'set validate declined --reason "#Vision has no riskiest assumption" --gate vision'
+        if code or line not in out:
+            fails.append(f"validate with no riskiest assumption should print the declined line for the stop: "
+                         f"{out[-500:]!r}")
+        code, out = ts.run(d, "set", "validate", "declined", "--reason", "#Vision has no riskiest assumption",
+                           "--gate", "vision")
+        if code or "declined" not in (d / "STATUS.md").read_text(encoding="utf-8"):
+            fails.append(f"the printed declined line should record the stop: {out.strip()[-300:]!r}")
+    text = skill("validate")
+    if "as *(Recommended)*; no extra question" in text or "strictest bar offered into `Pass/fail threshold`" not in text:
+        fails.append("/validate Step 2 item 3 should write the strictest bar into `Pass/fail threshold`, not a label")
+    step3 = text[text.find("## Step 3 "):text.find("## Step 3b")]
+    if "opening with `## 1. In short`" not in step3:
+        fails.append("/validate Step 3 should say docs/validation.md opens with `## 1. In short`")
+    doc = "# Learnings\n\n## 1. In short\n\nWe keep the digest. The trigger to revisit it is 50 users.\n"
+    for rel, warn in (("docs/learnings.md", False), ("docs/deployment.md", False), ("docs/scope.md", True)):
+        with tempfile.TemporaryDirectory() as t:
+            (Path(t) / rel).parent.mkdir(parents=True)
+            (Path(t) / rel).write_text(doc, encoding="utf-8")
+            got = any("playbook words" in w for w in status.companion_warnings(Path(t), rel))
+            if got != warn:
+                fails.append(f"{rel}: the word 'trigger' should {'' if warn else 'not '}warn as a playbook word")
+    dep = " ".join((ROOT / "templates" / "deployment.md").read_text(encoding="utf-8").split())
+    for bad in ("milestone check had not passed", "fails open, without a sound", "DNS still spreading",
+                "stranger can trigger"):
+        if bad in dep:
+            fails.append(f"templates/deployment.md still says {bad!r} - say it in plain words")
+
+
 def main() -> int:
     for stream in (sys.stdout, sys.stderr):
         try:
@@ -535,6 +833,10 @@ def main() -> int:
     test_adopt(fails)
     test_frontend_audit_and_new_component(fails)
     test_learnings(fails)
+    test_sideskills_23(fails)
+    test_review_23(fails)
+    test_side_ops_24(fails)
+    test_review_24_ops_side(fails)
     for f in fails:
         print(f"  x {f}")
     print("OK - the support skills' starts and closes behave" if not fails else f"FAIL - {len(fails)} test(s)")

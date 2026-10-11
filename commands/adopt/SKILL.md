@@ -1,12 +1,6 @@
 ---
 name: adopt
-description: >
-  Entry skill of product-playbook (cross-cutting — run ANYTIME). Brings an existing, half-built project
-  into the playbook by drafting an INFERRED PRODUCT.md from what the repo actually contains — docs,
-  package metadata, entry points, routes, tests, CI — then walking the owner through a confirm-loop
-  before writing anything. Use when a project already has code but no spine, or run /adopt "adopt this
-  project", "we already started", "set up the playbook on an existing repo", "create a PRODUCT.md from
-  what we have". Writes PRODUCT.md with a provenance note. Run the recommended next phase after.
+description: Code exists but no PRODUCT.md - draft it from the repo, then confirm.
 ---
 
 # `/adopt` — bring an existing project into the playbook · run as a **careful archaeologist**
@@ -17,7 +11,7 @@ description: >
 > **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
 > **`status.py next --phase adopt` prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** — apply them; never open the whole files (a situational companion only when a rule points into it). Load-bearing: **no assumptions / verify against the real code**, **honesty
 > (label what is inferred; never fabricate)**, **docs must match reality**, **plain-language
-> communication**, **one clear recommendation + yes/no**.
+> communication**, **one clear recommendation as options**.
 
 ## Contract
 - **Purpose:** turn an existing repo into a confirmed `PRODUCT.md`, without inventing anything.
@@ -30,7 +24,7 @@ description: >
 - **Exit criteria:**
   - [ ] **Every inferred line is tagged `(inferred — confirm)`** until the owner confirms it. A finished
         `PRODUCT.md` contains **no un-tagged claim that was not confirmed**.
-  - [ ] **A section with no evidence stays empty.** Never a guess dressed as a record — an empty section
+  - [ ] **A section with no evidence is left out.** Never a guess dressed as a record — a missing section
         correctly means "this phase's exit criteria are not met yet".
   - [ ] The owner walked the **confirm-loop** (keep / correct / drop) before anything was written. This
         skill **stops**; it does not auto-write.
@@ -56,10 +50,10 @@ description: >
 - **Evidence beats inference:** an explicit "not doing" list in a README is a real Non-goal; a feature
   that merely doesn't exist is **not**.
 
-## Step 2 — Draft, from the bundled `PRODUCT.md` template (`${CLAUDE_PLUGIN_ROOT}/templates/PRODUCT.md`)
-Fill only what the repo can actually support:
+## Step 2 — Draft only the sections and fields the repo supports
+The start prints each section's field names - never copy the template whole; a section or field with no evidence is left out. Fill only what the repo can actually support:
 
-| Section | Draw it from | Leave empty when |
+| Section | Draw it from | Leave it out when |
 |---|---|---|
 | **Vision** | README/CLAUDE.md "what and why", package description | there is no stated purpose — do **not** infer a market or a north star |
 | **Scope** | features that demonstrably exist (routes, commands, entry points) | Non-goals unless an explicit "not doing"/"out of scope" list exists |
@@ -69,17 +63,18 @@ Fill only what the repo can actually support:
 | **Tickets** (`status.py ticket`) | features found + **how each can be verified today** | you cannot state a verification — an unverifiable row is noise |
 
 **The north star, the riskiest assumption, the business model and the Non-goals are almost never
-inferable.** Leave them empty and say plainly that these are the parts only the owner knows — that is the
+inferable.** Leave them out and say plainly that these are the parts only the owner knows — that is the
 honest result, not a gap in the skill.
 
 ## Step 3 — Confirm-loop (this is the skill's real work)
-**Two rounds, each ONE message:** round 1 — the whole draft, **keep / correct / drop** per line, with the
-evidence beside each inferred line ("Scope — 'CSV export' — inferred from `src/routes/export.ts`"), plus the
-owner-only questions (who and why, north star, riskiest assumption, business model, never-build list; "don't
-know" leaves it empty); round 2 — the corrected draft, any Step 3c clash, and *"Looks good - save
-(Recommended)"* / *"Change something"* (no drawn options: *"Save this version of your project? (yes / no)"*).
-Keep it short and plain; a newcomer should not feel interrogated. **Nothing is written until this
-finishes** — and a section the owner cannot speak to stays empty rather than being kept on a shrug.
+**ONE question round** (`CAPABILITIES.md` §Ask the user a question with options): print the whole draft as text
+first, the evidence beside each inferred line ("Scope — 'CSV export' — inferred from `src/routes/export.ts`"), then ONE form (or
+lettered list): *Keep every inferred line (Recommended)* · *Other - name each line to correct or drop, and the fix*; plus the owner-only questions (who and
+why, north star, riskiest assumption, business model, never-build list), each as options as the start prints them -
+*"Don't know yet"* leaves it empty. After the answers the corrected draft is written and saved in ONE call - no
+confirm or save question; the close shows it with any Step 3c clash and asks *"Change anything?"*.
+**Nothing is written until this
+finishes** — and a section the owner cannot speak to is left out rather than being kept on a shrug.
 
 ## Step 3b — Self-verify (before writing)
 Check the boxes. **STOP if:** any line in the draft is a claim the repo does not support; any section was
@@ -87,7 +82,7 @@ filled from absence rather than evidence; a Non-goal was inferred from a missing
 `PRODUCT.md` would be overwritten. **A fabricated spine is far worse than no spine** — every later phase
 gates against it, and `/drift-check` would then measure drift from fiction.
 
-**Close the loop (`MECHANISMS.md` §Step 3b):** ONE call records it — `status.py set adopt filled --section-from <draft> --product "<name>" --commit "<one line>"` (`--dry-run` writes nothing; no `--commit` on a no: `MECHANISMS.md` §Commit the work); a verification phase stays empty; it refuses what the start lists —
+**Close the loop (`MECHANISMS.md` §Step 3b):** ONE call records it — `status.py set adopt filled --section-from <draft> --product "<name>"` - it saves `PRODUCT.md` and `STATUS.md` only, never the repo's other changes (`MECHANISMS.md` §Commit the work; `--dry-run` writes nothing; `--no-commit` only if the user said not to save); a verification phase stays empty; it refuses what the start lists —
 reconcile any number carried in from the repo against what the owner just confirmed. Then **run the transition guard** (`MECHANISMS.md`
 §Step 3b, item 4): re-run any `evidence:` line this draft carried in and report a verdict for every
 criterion — an inferred spine is *full* of claims nobody has re-measured, so `UNVERIFIED` will be the
@@ -105,8 +100,8 @@ The record call's last line names **the earliest phase in the chain that is not 
 say why in one line. **Never recommend a phase whose own Step 0 would reject the project**: read the target skill's
 `Reads:` line first; if what it reads is empty, recommend the phase that fills it instead.
 (case file: Sent to a gate that sends you back)
-- `#Vision` has no vision sentence, audience or value proposition → **`/vision`** (code shows *what* was
-  built, never *why* or *for whom* — an empty Vision is the normal result of adopting);
+- `#Vision` has no vision sentence, audience or value proposition → **`/vision`** (code never shows *why* or
+  *for whom*: an empty Vision is normal here);
 - Vision confirmed, no core feature or no Non-goals → **`/scope`** (the anti-creep list is the most
   valuable thing a half-built project lacks);
 - otherwise → **`/playbook`**, which will now orient properly because the spine exists.

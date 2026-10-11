@@ -88,8 +88,8 @@ touched:
 assumption) is `status.py set <phase> overridden …`: it counts as done, and `next` surfaces it on every
 orient. THIS phase **proceeding although a prior gate is unmet** is `status.py bypass …`: the unmet phase
 stays owed, `next` keeps routing to it and surfaces the bypass, which closes itself when that phase is
-filled. Required, none optional: **which gate**, **a reason in the user's own words** (not the agent's
-paraphrase, not "user said continue"), and **the date** (`status.py` stamps it). A verbal "yes, continue"
+filled. Required, none optional: **which gate**, **the reason the user picked** (an option's fixed
+text, never the agent's paraphrase), and **the date** (`status.py` stamps it). A verbal "yes, continue"
 that reaches no file turns a gated workflow into an advisory one.
 
 ## §Read receipt — proving a pointer was followed
@@ -156,7 +156,7 @@ it; the user chooses; one phase per session stays the default.
 5. **A batch is one session** — §Context hygiene applies harder: files, progress lines, measured metrics.
 
 **Chain mode is the neighbour: an `input` phase followed by the derivation phase that depends on it, in
-one session — `/architect` → `/structure` only.** Offered at `/architect` Step 0, never the default. Chaining
+one session — `/architect` → `/structure` only.** Never offered: it runs when the user asks at `/architect`. Chaining
 is *following*, not *collapsing*: **every input question is still asked** (§2d — input gates never batch);
 no close between; rules 1–5 apply (two sections, two commits, one close; a red `/architect` never reaches
 `/structure`); **read receipts still come from the file** — the chain loses the fresh re-read that guards

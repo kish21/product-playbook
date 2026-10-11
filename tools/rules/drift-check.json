@@ -29,7 +29,7 @@
     "- **Writes:** a drift report to the user + a `status.py drift` row in `STATUS.md` on any confirmed drift (never `/learn`'s `#Learnings`); does NOT advance the chain. **If there is no `PRODUCT.md`, do not create one** — report to the user and, if the project keeps a log/CHANGELOG, offer to append the drift note there."
    ],
    "new": [
-    "- **Writes:** a drift report to the user + a `status.py drift` row in `STATUS.md` on any confirmed drift (never `/learn`'s `#Learnings`); does NOT advance the chain. **If there is no `PRODUCT.md`, do not create one** — report to the user and, if the project keeps a log/CHANGELOG, offer to append the drift note there."
+    "- **Writes:** a drift report to the user + a `status.py drift` row in `STATUS.md` on any confirmed drift (never `/learn`'s `#Learnings`); does NOT advance the chain. **If there is no `PRODUCT.md`, do not create one** — report only; the close's **What YOU do next** names `/adopt` to create a `PRODUCT.md`."
    ]
   },
   {
@@ -630,7 +630,7 @@
     "1. **Scope creep:** list features in the code/build log not justified by `#Scope`; flag anything built that's a **Non-goal** or a **Deferred** item whose trigger never fired. Also flag the inverse: a deliberate pivot the spine never recorded → recommend updating `#Scope`/`#Vision`, not cutting code."
    ],
    "new": [
-    "1. **Scope creep:** list features in the code/build log not justified by `#Scope`; flag anything built that's a **Non-goal** or a **Deferred** item whose trigger never fired. Also flag the inverse: a deliberate pivot the spine never recorded → recommend updating `#Scope`/`#Vision`, not cutting code."
+    "1. **Scope creep, both ways:** list features in the code/build log not justified by `#Scope`; flag anything built that's a **Non-goal** or a **Deferred** item whose trigger never fired."
    ]
   },
   {
@@ -690,7 +690,7 @@
     "(`docs/<phase>.md`, `docs/adr/*`, `docs/runbook.md`, `STRUCTURE.md`, `DESIGN.md`, `docs/features/*`,"
    ],
    "new": [
-    "(`docs/<phase>.md`, `docs/adr/*`, `docs/runbook.md`, `STRUCTURE.md`, `DESIGN.md`, `docs/features/*`,"
+    "(`docs/<phase>.md`, `docs/architecture.md`, `docs/runbook.md`, `STRUCTURE.md`, `DESIGN.md`, `docs/features/*`,"
    ]
   },
   {
@@ -950,27 +950,7 @@
     "where a claim must be stated, pin it with a **parity test** that reads both sides. *(Real"
    ],
    "new": [
-    "where a claim must be stated, pin it with a **parity test** that reads both sides. *(Real"
-   ]
-  },
-  {
-   "id": "DC98",
-   "what": "Step 2 — Check for drift: instance: in a 21 skill audit, 14 were stale",
-   "old": [
-    "instance: in a 21-skill audit, 14 were stale and **every** model/storage error was a re-typed"
-   ],
-   "new": [
-    "instance: in a 21-skill audit, 14 were stale and **every** model/storage error was a re-typed"
-   ]
-  },
-  {
-   "id": "DC99",
-   "what": "Step 2 — Check for drift: config value; the only two skills that survived were",
-   "old": [
-    "config value; the only two skills that survived were the two that pointed at a doc rather than"
-   ],
-   "new": [
-    "config value; the only two skills that survived were the two that pointed at a doc rather than"
+    "where a claim must be stated, pin it with a **parity test** that reads both sides."
    ]
   },
   {
@@ -1000,7 +980,7 @@
     "**deliberate re-scope** (add to Scope with a trigger), or a **fix**. On any confirmed drift, write a"
    ],
    "new": [
-    "**deliberate re-scope** (add to Scope with a trigger), or a **fix**. On any confirmed drift, write a"
+    "**deliberate re-scope** (add to Scope with a trigger), or a **fix**. **When a `PRODUCT.md` exists**, record every"
    ]
   },
   {
@@ -1010,7 +990,7 @@
     "`status.py drift --found \"<drift>\" --rec \"<cut / re-scope+trigger / fix>\"` row **when a `PRODUCT.md` exists**; otherwise report"
    ],
    "new": [
-    "`status.py drift --found \"<drift>\" --rec \"<cut / re-scope+trigger / fix>\"` row **when a `PRODUCT.md` exists**; otherwise report"
+    "`status.py drift --found \"<drift 1>\" --rec \"<cut / re-scope+trigger / fix>\" --found \"<drift 2>\" --rec \"<...>\"`"
    ]
   },
   {
@@ -1020,18 +1000,18 @@
     "to the user and offer to append to the project's log/CHANGELOG — never silently create a `PRODUCT.md`."
    ],
    "new": [
-    "to the user and offer to append to the project's log/CHANGELOG — never silently create a `PRODUCT.md`."
+    "report only - the close's **What YOU do next** names `/adopt` to create a `PRODUCT.md`; never create one yourself."
    ]
   },
   {
    "id": "DC105",
-   "what": "no phase write; confirm + record in one message; the printed last line",
+   "what": "no phase write; every drift recorded and saved in ONE call, no question (2.3); the printed last line",
    "old": [
     "(No phase write, no handoff — it's a check, not a stage.)"
    ],
    "new": [
-    "One message ends the report: *\"Record these drifts? Looks good - record (Recommended)\"* / *\"Change something\"*;",
-    "No phase write — it's a check, not a stage; the last line is the one the start (or `drift`) printed, word for word."
+    "confirmed drift in ONE call, no question first:",
+    "No phase write — it's a check, not a stage; the last line is the one `drift` (or the start) printed, word for word."
    ]
   },
   {
@@ -1147,6 +1127,14 @@
   {
    "old": "A real spine reached **73KB with five sections still empty** because it held reasoning; at",
    "reason": "same anecdote (DC72-73)"
+  },
+  {
+   "old": "instance: in a 21-skill audit, 14 were stale and **every** model/storage error was a re-typed",
+   "reason": "history: the 21-skill audit anecdote behind the point-don't-re-type fix (DC97); the rule stays"
+  },
+  {
+   "old": "config value; the only two skills that survived were the two that pointed at a doc rather than",
+   "reason": "history: the 21-skill audit anecdote behind the point-don't-re-type fix (DC97); the rule stays"
   }
  ]
 }

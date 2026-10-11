@@ -29,7 +29,7 @@
     "- **Writes:** `PRODUCT.md#Scope` — fields: THE core feature · in-scope (now) · Deferred (+trigger) · Non-goals (never)."
    ],
    "new": [
-    "- **Writes:** `PRODUCT.md#Scope` — fields: THE core feature · in-scope (now) · Deferred (+trigger) · Non-goals (never) · Table stakes · `docs/scope.md`."
+    "`PRODUCT.md#Scope` (THE core feature · Capacity · in-scope (now) · Deferred (+trigger) · Non-goals (never) · Table stakes) and `docs/scope.md` from it."
    ]
   },
   {
@@ -54,14 +54,14 @@
   },
   {
    "id": "S06",
-   "what": "companion docs/scope.md; #Scope stays a record",
+   "what": "companion docs/scope.md; #Scope stays a record - still a record, rendered with docs/scope.md from the same fields (one fields file renders both documents)",
    "old": [
     "- **Companion:** `docs/scope.md` — the reasoning, workings and raw notes. `PRODUCT.md#Scope` stays a",
     "RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay."
    ],
    "new": [
-    "- **Companion:** `docs/scope.md` — the reasoning, workings and raw notes. `PRODUCT.md#Scope` stays a",
-    "RECORD (summary · decision · evidence · pointer) — no byte cap; reasoning moves, answers stay."
+    "- **Companion:** `docs/scope.md` — the story for people, rendered from the same fields as `PRODUCT.md#Scope`:",
+    "`#Scope` is a **RECORD** — every field is a decision, evidence line or pointer"
    ]
   },
   {
@@ -154,15 +154,17 @@
   },
   {
    "id": "S15",
-   "what": "no #Vision: warn, offer /vision, allow override",
+   "what": "no #Vision: warn, offer /vision, allow a recorded override (2.4: printed by `next` when #Vision is empty)",
    "old": [
     "- Read `PRODUCT.md#Vision`. If it is missing/empty, warn: \"`/vision` looks incomplete — scope without",
     "a vision drifts.\" Offer to run `/vision` first, but allow override (standalone use)."
    ],
    "new": [
-    "- `#Vision` empty (the start says so) → warn: \"`/vision` looks incomplete — scope without",
-    "a vision drifts.\" Offer to run `/vision` first, but allow override (standalone use)."
-   ]
+    "/vision looks incomplete - scope without a vision drifts",
+    "the user goes on anyway -> ask \"",
+    "`status.py bypass --from scope \""
+   ],
+   "home": "tools/status.py"
   },
   {
    "id": "S16",
@@ -176,10 +178,7 @@
     "onward**, where the cost of being wrong is real."
    ],
    "new": [
-    "- `#Validation` **running** → **advisory, not blocking**: proceed **provisionally**, mark every scope decision that depends on the pending result `provisional`, and say the mark",
-    "clears when the result lands.",
-    "It **blocks from `/architect`",
-    "onward**, where the cost of being wrong is real."
+    "running `#Validation` is advisory here (mark the scope decisions that depend on it `provisional`) and blocks from `/architect` on"
    ]
   },
   {
@@ -203,28 +202,32 @@
     "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from scope --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
    ],
    "new": [
-    "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from scope --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
+    "An override is recorded, never a verbal yes"
    ]
   },
   {
    "id": "S19",
-   "what": "re-run: one question listing what would change; a reversed decision keeps a superseded line",
+   "what": "re-run: one question listing what would change; a reversed decision keeps a superseded line (2.4: printed by `next` only on a re-run; MECHANISMS.md §Re-run semantics)",
    "old": [
     "- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** a filled section → follow the `RE-RUN` line `next` prints: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line."
    ],
    "new": [
-    "- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** a filled section → follow the `RE-RUN` line `next` prints: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line."
-   ]
+    "**compare the section against the current rules first, and ask ONE question listing each concrete change**",
+    "a `superseded <date>: <why>` line"
+   ],
+   "home": "references/mechanisms.md"
   },
   {
    "id": "S20",
-   "what": "a stopped run is recorded as declined; PRODUCT.md unchanged",
+   "what": "a stopped run is recorded as declined; PRODUCT.md unchanged (2.4: MECHANISMS.md §Declined runs, printed by `next` when the gate is unmet)",
    "old": [
     "- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** record it — `status.py set scope declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`."
    ],
    "new": [
-    "- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** record it — `status.py set scope declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`."
-   ]
+    "`status.py set <phase> declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>`",
+    "touches nothing in `PRODUCT.md`"
+   ],
+   "home": "references/mechanisms.md"
   },
   {
    "id": "S21",
@@ -280,16 +283,16 @@
   },
   {
    "id": "S26",
-   "what": "Q3: temptations, creep categories, sorted into Deferred (+trigger) or Non-goal",
+   "what": "Q3: temptations (says which way a tick goes), creep categories as options; each sorted by the owner in round 2",
    "old": [
     "3. **What are you tempted to add that is NOT needed for the core?** If the user is unsure, prompt with the",
     "usual creep categories — auth/multi-user, admin dashboard, integrations, mobile, analytics, settings.",
     "Sort each into **Deferred** (with the **trigger/signal** that would justify it) or **Non-goal** (never)."
    ],
    "new": [
-    "3. **What are you tempted to add that is NOT needed for the core?** If the user is unsure, prompt with the",
-    "usual creep categories — auth/multi-user, admin dashboard, integrations, mobile, analytics, settings.",
-    "Sort each into **Deferred** (with the **trigger/signal** that would justify it) or **Non-goal** (never)."
+    "3. **Which of these should stay OUT of the first version? You decide later or never for each next.**",
+    "usual creep categories — auth/multi-user, admin dashboard, integrations, mobile, analytics, settings",
+    "**Each temptation from question 3 is its own question:** later, when `<proposed trigger>` · never · in now"
    ]
   },
   {
@@ -306,9 +309,9 @@
     "but it still has error states and a licence. Adapting the list is expected; leaving an item unsorted is not."
    ],
    "new": [
-    "4. **Walk the table-stakes checklist** — the boring items nobody proposes and everybody expects.",
+    "- **Walk the table-stakes checklist** — the boring items nobody proposes and everybody expects.",
     "Sort **every** one into **in-scope now / Deferred",
-    "(+trigger) / N-A (+reason)**, one line each:",
+    "(+trigger) / N-A (+reason)**, one `table stakes` row each:",
     "**Adapt the list to the product kind** — an account-less CLI has no password reset (N-A: \"no accounts\"),",
     "but it still has error states and a licence. Adapting the list is expected; leaving an item unsorted is not.",
     "`next` prints the list for this product"
@@ -321,7 +324,7 @@
     "5. Tie each in-scope item to **a customer outcome** (\"user can X in minutes\"), not a feature name — and check it plausibly moves the north-star metric."
    ],
    "new": [
-    "5. Tie each in-scope item to **a customer outcome** (what the user can now do), not a feature name — and name the north-star input it moves."
+    "- Tie each in-scope item to **a customer outcome** (what the user can now do), its **Done when** (a check anyone can run), and the north-star input it moves."
    ]
   },
   {
@@ -336,14 +339,16 @@
   },
   {
    "id": "S30",
-   "what": "step 3: fill #Scope's fields, table stakes with a verdict each",
+   "what": "step 3: fill #Scope's fields, table stakes with a verdict each - now as fields rows (one fields file renders both documents)",
    "old": [
     "Fill `#Scope`: THE core feature · in-scope (now) · Deferred (each with its trigger) · Non-goals (never) ·",
-    "**Table stakes** (every item with its in / deferred+trigger / N-A+reason verdict)."
+    "**Table stakes** (every item with its in / deferred+trigger / N-A+reason verdict).",
+    "## Step 3 — Write back to `PRODUCT.md`"
    ],
    "new": [
-    "THE core feature (one line) · in-scope (now) ·",
-    "Deferred (+ trigger) · Non-goals (never) · **Table stakes**"
+    "## Step 3 — Write ONE fields file; the script renders both documents",
+    "one row per in-scope item with its Done when, the week-by-week shape,",
+    "a trigger per later item, a reason per never, a row per table stake, the user's answers word for word."
    ]
   },
   {
@@ -393,7 +398,8 @@
     "If the assistant notices work quietly contradicting a Non-goal without this protocol, that is",
     "drift — surface it (`/drift-check` treats an unrecorded reversal as a finding, not a decision).",
     "feature that prompted it. Name it separately so its true size is visible."
-   ]
+   ],
+   "home": "commands/scope/references/reopen-non-goal.md"
   },
   {
    "id": "S33",
@@ -408,14 +414,14 @@
   },
   {
    "id": "S34",
-   "what": "the close: set filled --commit on the confirm message's yes, transition guard, plain-language close; reconcile + save question in round 2 (next.65)",
+   "what": "the close: set filled --commit on the confirm message's yes, transition guard, plain-language close; reconcile + save question in round 2 (next.65); --from-fields (one fields file renders both documents)",
    "old": [
     "**Close the loop (`MECHANISMS.md` §Step 3b):** record the phase's state — `status.py set scope filled` (`MECHANISMS.md` §Status) — reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work — this project's repo, name the branch, commit on a yes, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff)."
    ],
    "new": [
-    "`status.py set scope filled --section-from <file> --commit \"<one",
+    "`status.py set scope filled --from-fields <file> --commit \"<one line>\"`",
     "**run the transition guard**",
-    "\"Anything to change? If not: Save this version of your project? (yes / no)\""
+    "No save question: the answers are the go-ahead to write and save"
    ]
   },
   {

@@ -25,7 +25,6 @@ def claude_log(path: Path, skip: str = "") -> None:
              ("Read", {"file_path": "/p/PRINCIPLES.md"}), ("Read", {"file_path": "/p/references/mechanisms.md"}),
              ("Bash", {"command": "python scripts/check_structure.py"}),
              ("Bash", {"command": "python $S set structure filled"}),
-             ("AskUserQuestion", {"questions": [{"question": "Save this version of your project? (yes / no)"}]}),
              ("Bash", {"command": "git commit -m structure"})]
     rows = []
     for name, inp in steps:
@@ -43,7 +42,6 @@ def antigravity_db(path: Path, skip: str = "") -> None:
                 'call_3 view_file {"AbsolutePath":"c:/p/.agents/product-playbook/MECHANISMS.md"}',
                 'call_4 run_command {"CommandLine":"python scripts/check_structure.py"}',
                 'call_5 run_command {"CommandLine":"python .agents/product-playbook/status.py set structure filled"}',
-                'call_6 ask_question {"questions":[{"options":["yes","no"],"question":"Save this version of your project? (yes / no)"}]}',
                 'call_7 run_command {"CommandLine":"git commit -m structure"}',
                 # a skill file the run opened: its text names the close blocks, which must not count as said
                 'call_8 view_file {"AbsolutePath":"c:/p/SKILL.md"} What just happened · Test this yourself', CLOSE]
@@ -84,10 +82,76 @@ def test_build_rows(fails: list[str]) -> None:
             fails.append(f"a build that broke {want!r} should be a ✗ row: {rows}")
 
 
+def test_architect_rows(fails: list[str]) -> None:
+    """#40 A2/A3: /architect researched (its helper counts), and offered no product, model, version or price before
+    the research. Round 1's login providers are the user's facts."""
+    def log(*steps) -> dict:
+        ev = {"search": [], "agent": [], "seq": []}
+        for kind, text in steps:
+            ev["seq"].append((kind, text))
+            if kind == "search":
+                ev["search"].append(text)
+            if kind == "agent":
+                ev["agent"].append(text)
+        return ev
+
+    round1 = ("ask", "6. Which login do people use? Entra ID (Recommended) · Google · Okta · Other")
+    cases = (
+        ("helper, then options", log(round1, ("agent", "architect-research Read and follow the brief"),
+                                     ("ask", "Which model? Mistral Small 3.2 (€0.10 per 1M)")), True, True),
+        ("searched itself", log(round1, ("search", "managed postgres EU free tier")), True, True),
+        ("a model before any search", log(("ask", "Which model? GPT-4o (Recommended) · Claude 3.5"),
+                                          ("search", "x")), True, False),
+        ("a framework typed out before the helper", log(("ask", "a) Next.js (Recommended) b) Django"),
+                                                        ("agent", "architect-research")), True, False),
+        ("no research at all", log(round1), False, True))
+    if not hasattr(run_report, "architect_rows"):
+        fails.append("run_report.py has no architect_rows (#40 A2/A3)")
+        return
+    for name, ev, researched, clean in cases:
+        rows = run_report.architect_rows(ev)
+        if rows[0][1] != researched or rows[1][1] != clean:
+            fails.append(f"architect_rows, {name}: expected researched={researched} clean={clean}: {rows}")
+
+
+def test_typed_question_form(d: Path, fails: list[str]) -> None:
+    """A question typed out as numbered or lettered options (the fallback form on a tool without a question tool)
+    counts as asking - in both log formats: Antigravity types its questions, and an override after one was scored
+    unasked. Prose that merely mentions "(Recommended" is not a question: counting it hid a real unasked override."""
+    over = "python $S open --from tickets --what \"Override: #foundation's check fails - test project\" --clears x"
+    asked = "Foundation's check fails. Go on anyway? Why?\n1. Test project only (Recommended)\n2. Other"
+    prose = "The check fails, so I go on with the override (Recommended path for a test project)."
+    for said, want in ((asked, "✓ asked the user before recording an override"),
+                       (prose, "✗ asked the user before recording an override")):
+        log = d / f"typed-{said is asked}.jsonl"
+        claude_log(log)
+        rows = log.read_text(encoding="utf-8").splitlines()
+        rows[2:2] = [json.dumps({"type": "assistant", "message": {"content": [{"type": "text", "text": said}]}}),
+                     json.dumps({"type": "assistant", "message": {"content": [{"type": "tool_use", "name": "Bash",
+                                                                               "input": {"command": over}}]}})]
+        log.write_text("\n".join(rows) + "\n", encoding="utf-8")
+        code, out = run(log)
+        if want not in out:
+            fails.append(f"Claude, {'a typed options question' if said is asked else 'prose naming (Recommended'} "
+                         f"before an override: expected {want!r}: {out[-300:]}")
+    typed_db = d / "typed.db"
+    antigravity_db(typed_db)
+    con = sqlite3.connect(typed_db)
+    con.execute("insert into steps values (?, ?)", (3, ("\x12\x03" + asked).encode()))
+    con.execute("insert into steps values (?, ?)", (4, ('\x12\x03call_56 run_command {"CommandLine":"python s.py '
+                                                       'open --from tickets --what \\"Override: x\\" --clears y"}').encode()))
+    con.commit()
+    con.close()
+    code, out = run(typed_db)
+    if "✓ asked the user before recording an override" not in out:
+        fails.append(f"Antigravity: an override after a typed options question was asked: {out[-300:]}")
+
+
 def main() -> int:
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     fails: list[str] = []
     test_build_rows(fails)
+    test_architect_rows(fails)
     with tempfile.TemporaryDirectory() as t:
         d = Path(t)
         for fmt, make, ext in (("Claude", claude_log, "jsonl"), ("Antigravity", antigravity_db, "db")):
@@ -98,12 +162,21 @@ def main() -> int:
                 fails.append(f"{fmt}: a complete run should pass: {out}")
             for skip, label in (("What just happened** x", "close block: What just happened"),
                                 ("check_structure", "ran the structure check"), ("PRINCIPLES", "opened PRINCIPLES.md"),
-                                ("set structure", "recorded the phase"), ("git commit", "committed on the answer")):
+                                ("set structure", "recorded the phase")):
                 bad = d / f"skip-{re.sub(r'\W+', '_', skip)}.{ext}"
                 make(bad, skip)
                 code, out = run(bad)
                 if code != 1 or f"✗ {label}" not in out:
                     fails.append(f"{fmt}: a run that skipped {skip!r} should be reported missing {label!r}: {out}")
+        # #62: a save question is a miss now - `set` saves on the last round's answers
+        asked = d / "asked-save.jsonl"
+        claude_log(asked)
+        asked.write_text(asked.read_text(encoding="utf-8") + "\n" + json.dumps({"type": "assistant", "message": {
+            "content": [{"type": "tool_use", "name": "AskUserQuestion", "input": {"questions": [
+                {"question": "Save this version of your project? (yes / no)"}]}}]}}), encoding="utf-8")
+        code, out = run(asked)
+        if code != 1 or "✗ asked no save question" not in out:
+            fails.append(f"a run that asked the save question should be reported: {out}")
         via_rules = d / "via-rules.jsonl"  # L3: `status.py rules` stands in for opening both rule files
         claude_log(via_rules, "PRINCIPLES")
         rows = via_rules.read_text(encoding="utf-8").splitlines()
@@ -193,6 +266,7 @@ def main() -> int:
         code, out = run(once_db)
         if "✓ stopped a failing command" not in out:
             fails.append(f"Antigravity: one call logged in three steps is not a loop: {out[-300:]}")
+        test_typed_question_form(d, fails)
     import replay  # R4: the replay tool builds a runnable command without spending anything
     out = io.StringIO()
     with contextlib.redirect_stdout(out):

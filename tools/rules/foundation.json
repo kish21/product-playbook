@@ -1,7 +1,7 @@
 {
  "skill": "foundation",
  "base": "ff74447",
- "note": "Rewritten 2026-10-03 for the fix/foundation-skill rework: every rule of the next.65 text (ff74447) by id, kept verbatim before any cut. The previous inventory (base b9ce05a, next.27's rewrite) is in git history.",
+ "note": "Rewritten 2026-10-03 for the fix/foundation-skill rework: every rule of the next.65 text (ff74447) by id, kept verbatim before any cut. The previous inventory (base b9ce05a, next.27's rewrite) is in git history. 2.4: Step 0's re-run, override and stop rules are one line (the start names the case when it is real); same rules, same commands.",
  "rules": [
   {
    "id": "F01",
@@ -139,7 +139,7 @@
   },
   {
    "id": "F14",
-   "what": "what `set foundation filled` checks in code - now every gap in one refusal, the new checks listed; next.68: + the proof log, the secret plant, install/personal paths, type checker, echo fake, real AI adapter",
+   "what": "what `set foundation filled` checks in code - now every gap in one refusal, the new checks listed; next.68: + the proof log, the secret plant, install/personal paths, type checker, echo fake, real AI adapter - 2.3: the list itself is the start's (printed whole there)",
    "old": [
     "- **Checked by `status.py set foundation filled`, not by reading:** every `evidence:` line cites files and tests that",
     "exist · the commit hooks are installed · every manifest has its lockfile · no `CHANGE_ME` variable has a fallback",
@@ -148,9 +148,7 @@
    ],
    "new": [
     "- **Checked by `status.py set foundation filled`, not by reading** (every problem in one refusal; the start lists",
-    "  them): the cited files and tests exist · hooks installed · a lockfile per manifest · no `CHANGE_ME` fallback · the",
-    "  the scans, the bot, the runbook · no money column as a float · `Agent: yes`/UI: their items · the proof log · a",
-    "  planted fake secret · no install path · a type checker · no echo fake · the real AI adapter."
+    "each one)."
    ]
   },
   {
@@ -309,12 +307,12 @@
   },
   {
    "id": "F28",
-   "what": "CI is in place and mirrors the prod bootstrap (builds/migrates/tests from the real schema,…",
+   "what": "CI is in place and mirrors the prod bootstrap (builds/migrates/tests from the real schema,… - 2.3: + the action versions exist and CI ran once",
    "old": [
     "- [ ] **CI is in place and mirrors the prod bootstrap** (builds/migrates/tests from the real schema, installs from the lockfile), green — a must, not optional. **No git remote:** its steps pass with `ci_local.py` = *verified locally*, and an open item stays until CI is green on the first push."
    ],
    "new": [
-    "- [ ] **CI is in place and mirrors the prod bootstrap** (builds/migrates/tests from the real schema, installs from the lockfile), green — a must, not optional. **No git remote:** its steps pass with `ci_local.py` = *verified locally*, and an open item stays until CI is green on the first push."
+    "- [ ] **CI is in place and mirrors the prod bootstrap** (builds/migrates/tests from the real schema, installs from the lockfile), **every action version it pins exists, and it ran once** (`ci_local.py` checks both), green — a must, not optional. **No git remote:** its steps pass with `ci_local.py` = *verified locally*, and an open item stays until CI is green on the first push."
    ]
   },
   {
@@ -404,7 +402,8 @@
     "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from foundation --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
    ],
    "new": [
-    "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from foundation --gate <gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
+    "**An override is RECORDED, never a verbal \"yes\"**: the **reason in the user's own words**",
+    "`status.py bypass --from foundation --gate <gate> --reason \"<the user's own words>\"` before continuing"
    ]
   },
   {
@@ -424,7 +423,7 @@
     "- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** a filled section → follow the `RE-RUN` line `next` prints: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line."
    ],
    "new": [
-    "- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** a filled section → follow the `RE-RUN` line `next` prints: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line."
+    "a re-run follows its `RE-RUN` line: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line."
    ]
   },
   {
@@ -434,7 +433,7 @@
     "- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** record it — `status.py set foundation declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`."
    ],
    "new": [
-    "- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** record it — `status.py set foundation declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`."
+    "`status.py set foundation declined --reason \"<what was missing>\" --gate <the phase(s) that fill it>`, and nothing changes in `PRODUCT.md`"
    ]
   },
   {
@@ -765,8 +764,8 @@
    ],
    "new": [
     "**Close the loop (`MECHANISMS.md` §Step 3b):** first Step 3c below, and reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it).",
-    "Then ONE message: what runs and what each proof showed (a line each), what is owed, any clash, then **the save question** *\"Anything to change? If not: Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work — this project's repo, name the branch; push only if a remote exists and the user says so).",
-    "On a yes: close each open item this phase settled (`status.py close <n> --how \"…\"`), then record the phase's state — `status.py set foundation filled --section-from <file> --commit \"<one line>\"` (`MECHANISMS.md` §Status; no `--commit` on a no)",
+    "the close says what runs and what the proofs showed (each block at most 2 lines - the record holds the evidence), what is owed and any clash",
+    "close each open item this phase settled (`status.py close <n> --how \"…\"`), then record the phase's state — `status.py set foundation filled --section-from <file> --commit \"<one line>\"` (`MECHANISMS.md` §Status)",
     "Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run an `evidence:` line only when a file it reads changed after Step 3b captured it (`verify.md` §Runs end to end) and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal.",
     "**Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff)."
    ]
@@ -783,12 +782,13 @@
   },
   {
    "id": "F74",
-   "what": "Per MECHANISMS.md §Step 3c, check what this phase just produced against decisions already …",
+   "what": "Per MECHANISMS.md §Step 3c, check what this phase just produced against decisions already … - 2.3 (owner, ): a clash is named on its own line and recorded as an open item; an earlier phase's record or document is never edited",
    "old": [
     "Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Architecture` (adapters · tool choices · CI approach · **the datastore and its custody, test datastore included**) and `#Structure`'s map — a skeleton wired to a datastore, hook runner or provider other than the recorded one. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction."
    ],
    "new": [
-    "Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Architecture` (adapters · tool choices · CI approach · **the datastore and its custody, test datastore included**) and `#Structure`'s map — a skeleton wired to a datastore, hook runner or provider other than the recorded one. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction."
+    "Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Architecture` (adapters · tool choices · CI approach · **the datastore and its custody, test datastore included**) and `#Structure`'s map — a skeleton wired to a datastore, hook runner or provider other than the recorded one. On a conflict (this replaces `MECHANISMS.md` §Step 3c items 2-3), **name both sides on a line of its own** in the close and ask nothing; fix this phase's artefact, **never an earlier phase's record or document** — record the clash as an open item: `status.py open --from foundation",
+    "Adding detail to an earlier decision is not a contradiction."
    ]
   },
   {

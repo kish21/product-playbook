@@ -56,7 +56,9 @@ EVALUATION = """\
 FILES = {
     "evals/known_answers.jsonl": '{"case": 1, "employee": "E-001", "months": ["2026-08", "2026-09"]}\n',
     "evals/run_known_answers.py": "\"\"\"Runs the known-answer set and prints right/wrong counts.\"\"\"\n",
-    "docs/evaluation.md": "# Evaluation\n\n## Baseline\n\nThe #Vision accuracy bar, 90%, is the baseline.\n"
+    "docs/evaluation.md": "# Evaluation\n\n## In short\n\n38 of 40 known-answer drafts had every figure right. "
+                          "That beats the 90% bar. Next we add French cases before the pilot grows.\n"
+                          "\n## Baseline\n\nThe #Vision accuracy bar, 90%, is the baseline.\n"
                           "\n## Owner's answers\n\n1. The 40 known-answer cases and 10 real anonymised payslips.\n"
                           "2. Yes, this result is the baseline.\n",
     "app/main.py": "from fastapi import FastAPI\n\napp = FastAPI()\n",
@@ -132,7 +134,7 @@ def test_eval(t: str, fails: list[str]) -> None:
                  "no wrong figure ever reaches a client", "both passed", "p95 draft time under 8 s",
                  "none recorded - this first result becomes the baseline", "evals/known_answers.jsonl",
                  "REPORT ONLY", "never its fix step", "Is it good? (measured vs a recorded baseline",
-                 "refuses, every problem in one list", "Round 1", "\"Looks good - save (Recommended)\"",
+                 "refuses, every problem in one list", "ONE question round", "never a separate save or",
                  "set eval filled --verdict pass|fail --section-from <file> --commit", "===== PRINCIPLES.md =====",
                  "the bullets this phase applies", "it never changes product code", "inside a subagent", "Run only",
                  "a playbook command fails twice"):
@@ -215,7 +217,8 @@ def test_eval(t: str, fails: list[str]) -> None:
     (d5 / ".github" / "workflows").mkdir(parents=True)
     (d5 / ".github" / "workflows" / "ci.yml").write_text("on: push\n", encoding="utf-8")
     code, start = run(d5, "next", "--phase", "eval")
-    if "NOT PASSED: /test" not in start or "status.py bypass --from eval --gate <phase>" not in start:
+    if "/test has not passed (empty)" not in start or "status.py bypass --from eval --gate test" not in start \
+            or "Stop - run /test first (Recommended)" not in start:
         fails.append(f"the /eval start should name the unpassed /test and the bypass command: {start[:900]}")
     code, out = run(d5, "set", "eval", "filled", "--verdict", "pass", "--section-from", section_file(d5, EVALUATION))
     if code != 0 or "files outside /eval's record changed" not in out or ".github/" not in out:
@@ -237,7 +240,9 @@ LEARNINGS = """\
 - **Detail:** `docs/learnings.md` (reasoning + workings; this section stays a RECORD)
 """
 LEARN_FILES = {"scripts/review_times.py": "\"\"\"Median opened -> sent time from the review log.\"\"\"\n",
-               "docs/learnings.md": "# Learnings\n\n## Cycle 2026-10-06\n\nInterviews with 6 pilot consultants.\n"
+               "docs/learnings.md": "# Learnings\n\n## In short\n\nWe iterate on French drafts. The pilot median "
+                                    "is 11 minutes against a target of 5.\n\n## Cycle 2026-10-06\n\nInterviews with 6 "
+                                    "pilot consultants.\n"
                                     "\n## Owner's answers\n\n1. 11 minutes, from the review log.\n2. Interviews.\n"}
 
 
@@ -260,8 +265,8 @@ def test_learn(t: str, fails: list[str]) -> None:
     for want in ("/learn start", "median consultant time per pay-change question 5 minutes by 2027-06-30",
                  "M4 pilot: drafts for 10 consultants", "38 of 40 known-answer cases", "a client self-service view",
                  "First cycle", "it builds nothing", "Success metric + result (instrumented, not guessed)",
-                 "refuses, every problem in one list", "\"Keep as proposed - save (Recommended)\"",
-                 "never record it unseen", "set learn filled --section-from <file> --commit", "Run only", "§Production "
+                 "refuses, every problem in one list", "\"Not readable until after the pilot (M4) (Recommended)\"",
+                 "the decision stays (proposed)", "set learn filled --section-from <file> --commit", "Run only", "§Production "
                  "safeguards - the bullets", "**Measure for real**"):
         if want not in start:
             fails.append(f"the /learn start lacks {want!r}")
@@ -395,7 +400,7 @@ def test_ship(t: str, fails: list[str]) -> None:
                  "inside a subagent", "- **merge:** never", "CHANGELOG.md - its top", "tests/test_boot_guard.py",
                  "uv run pip-audit", "Git remote: origin", "--pr pending --dry-run", "a gap here means do not open the "
                  "PR", "local-only: <branch> @ <sha>", "`status.py release` refuses, every problem in one list",
-                 "## Composed skills", "it starts no new feature", "Run only", "the save goes in the same message"):
+                 "## Composed skills", "it starts no new feature", "Run only", "no save or \"open the PR?\" question"):
         if want not in start:
             fails.append(f"the /ship start lacks {want!r}")
     if "close with, in order" in start or len(start) > 30000:
@@ -459,6 +464,321 @@ def test_ship(t: str, fails: list[str]) -> None:
     if code == 0 or out.count("REFUSED") != 1 or len(hit) != 7 or (d4 / "STATUS.md").read_text(encoding="utf-8") != before:
         fails.append(f"every /ship fault at once should be ONE refusal naming each, nothing written (named {hit}): "
                      f"{out[-900:]}")
+    # #51 (f): a --reviews over 200 characters is one more gap in the SAME list, not a second refusal
+    code, out = release(ready(), **{"--reviews": "looked at it " + "x" * 200, "--docs": "done"})
+    if out.count("REFUSED") != 1 or "--reviews is 213 characters" not in out or "does not say what was reconciled" not in out:
+        fails.append(f"the 200-character cap should sit in the one gap list with the other gaps: {out[-700:]}")
+    test_ship_22(t, fails, ready, release)
+    test_ship_push(t, fails, ready, release)
+
+
+def test_ship_push(t: str, fails: list[str], ready, release) -> None:
+    """2.4: the release row is committed AFTER the PR opened, so `release` pushes that commit to the PR's branch -
+    else `land.py merge` merges a PR without it. Origin is a local bare repository: no outside call. Local-only and
+    a branch with no copy on origin: nothing pushed."""
+    d = ready(remote=False)
+    bare = Path(t) / f"origin-{d.name}.git"
+    subprocess.run(["git", "init", "-q", "--bare", str(bare)], capture_output=True)
+    git(d, "remote", "add", "origin", str(bare))
+    git(d, "push", "-q", "-u", "origin", "release/m4")
+    code, out = release(d, "--commit", "ship: M4 pilot release")
+    head = git(d, "rev-parse", "HEAD").strip()
+    on_origin = subprocess.run(["git", "rev-parse", "release/m4"], cwd=bare, capture_output=True, text=True).stdout.strip()
+    if code != 0 or "saved" not in out or head != on_origin or "pushed: release/m4" not in out:
+        fails.append(f"release with a PR should push its commit to the PR's branch (origin {on_origin[:9]}, "
+                     f"local {head[:9]}): {out[-600:]}")
+    d2 = ready(remote=False)
+    code, out = release(d2, "--commit", "ship: local", **{"--pr": "local-only: release/m4 @ abc1234"})
+    if code != 0 or "saved" not in out or "push" in out.lower().replace("never get pushed", ""):
+        fails.append(f"a local-only release should save and say nothing about a push: {out[-500:]}")
+    d3 = ready()  # a remote, but the branch was never pushed there: no push attempted (no outside call), said once
+    code, out = release(d3, "--commit", "ship: M4")
+    if code != 0 or "not pushed: release/m4 has no copy on origin" not in out:
+        fails.append(f"a branch with no copy on origin should be named, not pushed: {out[-500:]}")
+
+
+def test_ship_22(t: str, fails: list[str], ready, release) -> None:
+    """2.2 (#51 items 12, 13, 15, 16, (e), (g)): the start prints the ticket's whole row, what changed since /build's
+    review, the feature doc's review table and the diff; names the gate's dependency audit; says a red CI on main
+    first; asks the merge question; and a per-ticket PR never bumps the version."""
+    def g(d: Path, *a: str) -> str:
+        return git(d, "-c", "user.email=t@t", "-c", "user.name=t", *a)
+
+    def ticket_ready(seats: str = "SR1") -> Path:
+        d = ready(extra={"justfile": "check:\n    uv run pytest -q\n    uv run pip-audit\n",
+                         "TICKETS.md": f"# Tickets\n\n## M4\n\n| Seat | Lane |\n|---|---|\n| {seats} | auth |\n",
+                         "docs/features/login.md": "# Login\n\n---\n\n### Review\n\ncode review + security review R1 "
+                                                   "2 findings · R2 (1 file) 0 findings\n\n| Severity | File:line | "
+                                                   "What goes wrong | Fixed by |\n|---|---|---|---|\n| MEDIUM | "
+                                                   "`app/auth/session.py:1` | a stolen cookie works forever | expiry "
+                                                   "+ test_session_expires |\n\n### Later\n\nnot this\n"})
+        prod = d / "PRODUCT.md"
+        prod.write_text(prod.read_text(encoding="utf-8").replace("- **merge:** never", "- **merge:**"), encoding="utf-8")
+        g(d, "checkout", "-q", "-b", "m4-auth-01-login")
+        st = status.Status.load(d / "STATUS.md")
+        st.rows["Tickets"] = [["M4-AUTH-01", "2026-10-05", "yes", "gate ×1", "1", "R1 (diff) 2 findings · R2 clean · "
+                               "sec R1 clean", "docs/features/login.md"]]
+        st.save(d / "STATUS.md")
+        g(d, "add", "-A")
+        g(d, "commit", "-q", "-m", "M4-AUTH-01: record the ticket row")
+        (d / "app" / "auth" / "expiry.py").write_text("MAX_AGE = 3600\n", encoding="utf-8")
+        g(d, "add", "-A")
+        g(d, "commit", "-q", "-m", "M4-AUTH-01: a fix after the build review")
+        return d
+
+    code, out = run(ready(), "next", "--phase", "ship")
+    if "#Project policy says merge: never - no question" not in out or "Merge now" in out:
+        fails.append("with merge: never in #Project policy the start should ask no merge question")
+    d = ticket_ready()
+    code, start = run(d, "next", "--phase", "ship")
+    for want in ("DoD met: yes | How verified: gate ×1", "/build reviewed M4-AUTH-01 at", "1 file(s) changed since - "
+                 "round 1 and security cover ONLY these: app/auth/expiry.py", "a stolen cookie works forever",
+                 "```diff", "+MAX_AGE = 3600", "already runs pip-audit", "never a second run", "no lint or type run per "
+                 "file", "Merge now (Recommended - one seat builds)", "land.py\" merge --pr <n>", "## [Unreleased]",
+                 "Owner turns, at most two", "run /code-review here (it starts its own reviewer - never inside a helper)",
+                 "moves the ticket's card to In Review (read back)"):
+        if want not in start:
+            fails.append(f"the 2.2 /ship start lacks {want!r}")
+    if "not this" in start:
+        fails.append("the /ship start printed past the feature doc's ### Review part")
+    first = git(d, "rev-list", "--max-parents=0", "HEAD").strip()[:9]
+    named = status.ticket_reviewed_at(d, ["M4-AUTH-01", "", "", "", "", f"R1 clean · reviewed @ {first}", ""])
+    if named != first:
+        fails.append(f"a ticket row naming its reviewed commit should be read first: {named!r} vs {first!r}")
+    code, two = run(ticket_ready("SR1 | auth |\n| SR2"), "next", "--phase", "ship")
+    if "Leave it for review (Recommended - 2 seats: SR1, SR2" not in two or "Merge now (Recommended" in two:
+        fails.append(f"with 2 seats in TICKETS.md the merge question should recommend review: "
+                     f"{two[two.find('Merge (no remote'):][:600]}")
+    # 2.4 review: each tool starts /ship's reviewers its own way - Codex only when the skill explicitly asks; off
+    # Claude ONE helper does code and security (no tool there has /code-review to run here)
+    tool = status.playbook_tool
+    # Antigravity (and Cursor on a long start) gets a short pointer; the start itself is in this file
+    held = Path(status.__file__).resolve().parent / "ship-start.md"
+    try:
+        for name, want in (("codex", "explicitly asks you to spawn ONE reviewer agent"),
+                           ("cursor", "ONE Task sub-agent reviews code and security"),
+                           ("antigravity", "`invoke_subagent` - ONLY if it is in your tool list")):
+            status.playbook_tool = lambda name=name: name
+            held.unlink(missing_ok=True)
+            code, other = run(d, "next", "--phase", "ship")
+            if "ship-start.md" in other and held.is_file():
+                other = held.read_text(encoding="utf-8")
+            at = other.find("The order:")
+            order = other[at:][:400] if at >= 0 else ""
+            if want not in order or "/code-review" in order:
+                fails.append(f"/ship on {name}: the review order should be {want!r}, never /code-review: "
+                             f"{order or other[-400:]}")
+    finally:
+        status.playbook_tool = tool
+        held.unlink(missing_ok=True)
+    # CI on main: a red last run is said first; gh unreadable says nothing
+    real = getattr(status, "gh_json", None)
+    try:
+        status.gh_json = lambda base, *a: ([{"conclusion": "failure", "status": "completed", "workflowName": "ci",
+                                             "url": "https://github.com/x/y/actions/runs/1"}] if a[:2] == ("run", "list")
+                                           else None)
+        code, red = run(d, "next", "--phase", "ship")
+        if "IS FAILING - say this to the user FIRST" not in red[red.find("/ship start"):][:600]:
+            fails.append(f"a failed last CI run on main should be the start's first line after the header: {red[:600]}")
+        status.gh_json = lambda base, *a: None
+        code, quiet = run(d, "next", "--phase", "ship")
+        if "CI ON" in quiet:
+            fails.append("with gh unreadable the start should say nothing about CI")
+    finally:
+        status.gh_json = real
+    # a per-ticket PR that bumps the version or adds a version heading: a gap in the list
+    d2 = ticket_ready()
+    (d2 / "CHANGELOG.md").write_text("# Changelog\n\n## 0.5.0 - 2026-10-06\n\n- Login.\n\n## 0.4.0 - 2026-10-06\n\n"
+                                     "- Drafts in French.\n", encoding="utf-8")
+    (d2 / "pyproject.toml").write_text("[project]\nname = \"hr-drafting\"\nversion = \"0.5.0\"\n", encoding="utf-8")
+    code, out = release(d2, "--dry-run", **{"--what": "M4-AUTH-01: company login"})
+    if "adds a version heading" not in out or "bumps the version in pyproject.toml" not in out:
+        fails.append(f"a per-ticket /ship that bumps the version should be a gap: {out[-600:]}")
+    d3 = ticket_ready()
+    (d3 / "CHANGELOG.md").write_text("# Changelog\n\n## [Unreleased]\n\n- Login.\n\n## 0.4.0 - 2026-10-06\n\n"
+                                     "- Drafts in French.\n", encoding="utf-8")
+    code, out = release(d3, "--dry-run", **{"--what": "M4-AUTH-01: company login"})
+    if "version" in out:
+        fails.append(f"a per-ticket entry under [Unreleased] should pass the version check: {out[-600:]}")
+    # 2.4 (#51 item 14): the record with the PR's link moves the ticket's card to In Review and says how it went (a
+    # standalone /ship that /build never moved); a local-only release moves nothing
+    moved = []
+    real_line = status.board_line
+    status.board_line = lambda base, tid, st_, seat=None: moved.append((tid, st_)) or f"Board: {tid} -> {st_} (read back)"
+    try:
+        code, out = release(d3, **{"--what": "M4-AUTH-01: company login"})
+        if code != 0 or moved != [("M4-AUTH-01", "In Review")] or "Board: M4-AUTH-01 -> In Review" not in out:
+            fails.append(f"a release with its PR link should move the ticket's card to In Review: {moved} {out[-500:]}")
+        moved.clear()
+        code, out = release(ticket_ready(), "--dry-run", **{"--what": "M4-AUTH-01: company login"})
+        if moved:
+            fails.append("a dry run must move no card")
+    finally:
+        status.board_line = real_line
+    # the post-merge line: a release row's PR merged since -> `land.py after` first, in /build's and /ship's start
+    st = status.Status.load(d / "STATUS.md")
+    st.rows["Releases"].append([TODAY, "M4-AUTH-01: login", "R1 clean", "none", "README", "CHANGELOG", "revert",
+                                "https://github.com/x/y/pull/41"])
+    st.save(d / "STATUS.md")
+    try:
+        status.gh_json = lambda base, *a: {"state": "MERGED", "number": 41} if a[:2] == ("pr", "view") else None
+        code, out = run(d, "next", "--phase", "ship")
+        if "PR #41 (M4-AUTH-01: login) was merged since the last /ship" not in out or "after --pr 41" not in out:
+            fails.append(f"a merged PR left for review should put `land.py after` first: {out[-800:]}")
+        status.gh_json = lambda base, *a: {"state": "OPEN", "number": 41} if a[:2] == ("pr", "view") else None
+        code, out = run(d, "next", "--phase", "ship")
+        if "is still open, waiting for review" not in out:
+            fails.append("an open PR left for review should be one line")
+    finally:
+        status.gh_json = real
+
+
+class FakeHost:
+    """gh + git for land.py: one PR, one issue, one board card."""
+
+    def __init__(self, ci="SUCCESS", options=("Todo", "In Progress", "In Review", "Done"), dirty="", sticky=False):
+        self.pr = {"number": 41, "state": "OPEN", "url": "https://github.com/x/y/pull/41", "headRefName": "m4",
+                   "baseRefName": "main", "closingIssuesReferences": [{"number": 7}], "mergeCommit": None,
+                   "statusCheckRollup": [{"name": "ci", "status": "COMPLETED" if ci != "PENDING" else "IN_PROGRESS",
+                                          "conclusion": ci if ci != "PENDING" else ""}]}
+        self.issue, self.status, self.options = "OPEN", "Todo", options
+        self.dirty, self.sticky, self.calls, self.head = dirty, sticky, [], "aaa"
+        self.area = ""  # what `status.py area-rules --check` prints: "" = no area rule file is out of step
+        self.ahead = "0"  # `git rev-list --count <PR head>..<branch>`: local commits the PR does not carry
+        self.pr["headRefOid"] = "hhh000111"
+
+    def __call__(self, args):
+        import json
+        self.calls.append(args)
+        a = args[1:]
+        if "area-rules" in args:
+            if "--write" in args:
+                return 0, "area-rules (claude): 2 module(s)\n  wrote web/CLAUDE.md (90 characters)\n", ""
+            return (1 if "drift" in self.area or "missing" in self.area else 0), \
+                "area-rules (claude): 2 module(s)\n" + self.area, ""
+        if args[0] == "git":
+            if a[0] == "status":
+                return 0, self.dirty, ""
+            if a[0] == "pull":
+                self.head = "mmm111222"
+            if a[0] == "rev-list":
+                return 0, self.ahead, ""
+            if a[0] == "rev-parse":
+                return 0, self.head if a[1] == "HEAD" else "mmm111222", ""
+            return 0, "", ""
+        if a[:2] == ["pr", "view"]:
+            return 0, json.dumps(self.pr), ""
+        if a[:2] == ["pr", "merge"]:
+            self.pr.update(state="MERGED", mergeCommit={"oid": "mmm111222"})
+            return 0, "", ""
+        if a[:2] == ["pr", "comment"]:
+            return 0, "", ""
+        if a[:2] == ["issue", "view"]:
+            return 0, json.dumps({"state": self.issue}), ""
+        if a[:2] == ["issue", "close"]:
+            self.issue = "CLOSED"
+            return 0, "", ""
+        if a[:2] == ["repo", "view"]:
+            return 0, "x/y\n", ""
+        if a[:2] == ["api", "graphql"]:
+            q = a[3]
+            if "mutation" in q:
+                opt = next(x for x in a if x.startswith("o=opt-")).split("=", 1)[1]
+                if not self.sticky:
+                    self.status = opt.replace("opt-", "")
+                return 0, json.dumps({"data": {}}), ""
+            field = {"id": "F", "options": [{"id": f"opt-{o}", "name": o} for o in self.options]}
+            node = {"id": "C", "project": {"id": "P", "title": "Board", "status": field},
+                    "statusValue": {"name": self.status}}
+            return 0, json.dumps({"data": {"repository": {"issue": {"projectItems": {"nodes": [node]}}}}}), ""
+        return 1, "", f"unexpected {args}"
+
+
+def test_land(t: str, fails: list[str]) -> None:
+    """commands/ship/land.py (#51 item 16): merge only on green CI, then issue CLOSED, card Done, local folder on main -
+    each read back; review sets In Review and names the seat; every read-back shown red by breaking it."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("land", ROOT / "commands" / "ship" / "land.py")
+    land = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(land)
+
+    def go(host, *argv):
+        lines = []
+        return land.main(list(argv), run=host, log=lines.append), "\n".join(lines), host
+
+    prev_board = os.environ.pop("PLAYBOOK_BOARD", None)
+    shared = land.board_module()
+    if shared is None or not hasattr(shared, "move_issue"):
+        fails.append("land.py does not find the shared tools/board.py - /build and /ship move cards with one module")
+        return
+    code, out, h = go(FakeHost(ci="PENDING"), "merge", "--pr", "41")
+    if code != 2 or "CI is still running" not in out or any(c[1:3] == ["pr", "merge"] for c in h.calls):
+        fails.append(f"land.py merge on pending CI should refuse and never merge: {out}")
+    code, out, h = go(FakeHost(ci="FAILURE"), "merge", "--pr", "41")
+    if code != 2 or "CI failed" not in out:
+        fails.append(f"land.py merge on failed CI should refuse: {out}")
+    code, out, h = go(FakeHost(), "merge", "--pr", "41")
+    for want in ("OK   merge: PR #41 merged (merge)", "OK   issue #7: CLOSED", "OK   card #7: Status reads Done",
+                 "OK   local folder: on main", "all read back OK"):
+        if want not in out:
+            fails.append(f"land.py merge lacks {want!r}: {out}")
+    if code != 0 or h.issue != "CLOSED" or h.status != "Done":
+        fails.append(f"land.py merge should close the issue and move the card: {out}")
+    code, out, h = go(FakeHost(sticky=True), "merge", "--pr", "41")
+    if code != 1 or "FAIL card #7: Status reads Todo, not Done" not in out:
+        fails.append(f"a card that did not move should read back red: {out}")
+    code, out, h = go(FakeHost(dirty=" M app/x.py"), "merge", "--pr", "41")
+    if code != 1 or "uncommitted changes - not switched" not in out:
+        fails.append(f"a dirty folder should not be switched, and say so: {out}")
+    # 2.4 review: after the merge, area rule files out of step with the merged records are rewritten on main - only
+    # in a project that has them, never on a dirty folder; in step: no write
+    def writes(h):
+        return [c for c in h.calls if "area-rules" in c and "--write" in c]
+    host = FakeHost()
+    host.area = "  ok app/CLAUDE.md\n  drift web/CLAUDE.md: does not match STRUCTURE.md\n"
+    code, out, h = go(host, "merge", "--pr", "41")
+    if code != 0 or len(writes(h)) != 1 or "OK   area rules: 1 file(s) rewritten" not in out \
+            or "web/CLAUDE.md" not in out:
+        fails.append(f"land.py after should rewrite area rule files the merge moved: {out}")
+    for area, why in (("  ok app/CLAUDE.md\n", "in step"),
+                      ("  missing app/CLAUDE.md\n  missing web/CLAUDE.md\n", "a project that never had area rule files")):
+        host = FakeHost()
+        host.area = area
+        code, out, h = go(host, "merge", "--pr", "41")
+        if writes(h) or "area rules" in out:
+            fails.append(f"land.py after should write no area rule file ({why}): {out}")
+    host = FakeHost(dirty=" M app/x.py")
+    host.area = "  drift web/CLAUDE.md\n"
+    code, out, h = go(host, "merge", "--pr", "41")
+    if writes(h):
+        fails.append(f"land.py after on a dirty folder should write no area rule file: {out}")
+    # 2.4: the release row's commit never reached the PR (local branch ahead of the PR head) -> refuse, never merge
+    host = FakeHost()
+    host.ahead = "1"
+    code, out, h = go(host, "merge", "--pr", "41")
+    if code != 2 or "lacks 1 commit" not in out or any(c[1:3] == ["pr", "merge"] for c in h.calls):
+        fails.append(f"land.py merge should refuse a PR whose branch lacks a local commit (the release row): {out}")
+    code, out, h = go(FakeHost(), "after", "--pr", "41")
+    if code != 1 or "nothing to do until it merges" not in out:
+        fails.append(f"land.py after on an open PR should say it is not merged: {out}")
+    code, out, h = go(FakeHost(), "review", "--pr", "41", "--seat", "SR2")
+    if code != 0 or "Status reads In Review" not in out or "seat SR2 named on PR #41" not in out:
+        fails.append(f"land.py review should set In Review and name the seat: {out}")
+    code, out, h = go(FakeHost(options=("Todo", "In Progress", "Done")), "review", "--pr", "41", "--seat", "SR2")
+    if code != 0 or "has no Status option 'In Review'" not in out or h.status != "Todo":
+        fails.append(f"a board without In Review should be named, the card left alone: {out}")
+    # never backwards: a card someone already moved to Done is not pulled back to In Review by a hand-off
+    host = FakeHost()
+    host.status = "Done"
+    code, out, h = go(host, "review", "--pr", "41", "--seat", "SR2")
+    if code != 0 or h.status != "Done" or "never moved back" not in out or any(
+            "mutation" in " ".join(c) for c in h.calls):
+        fails.append(f"land.py review must never pull a Done card back to In Review: {out}")
+    code, out, h = go(FakeHost(), "review", "--pr", "41")
+    if code != 2:
+        fails.append("land.py review without --seat should print the usage and exit 2")
+    if prev_board is not None:
+        os.environ["PLAYBOOK_BOARD"] = prev_board
 
 
 DEPLOY_ARCH = ARCHITECTURE + """\
@@ -472,11 +792,14 @@ DEPLOYMENT = """\
 - **Migrations on deploy (the command, where it runs, what happens on failure):** `uv run alembic upgrade head` as the host's pre-deploy command on one instance; a failure aborts the deploy and the old version keeps serving.
 - **Who can get in (credentials in the built output · every way to a session · what a visitor sees · previews · what a stranger can spend):** built-output scan found no password strings and no typed-in sign-in calls; the company login is the only way in (no sign-up, no demo buttons); visitors see our domain only; previews off; no proxy.
 - **Proof it answers:** `evidence: curl -s https://api.hr-drafting.example.org/healthz → 200 {"status":"ok"} · docs/deployment.md · 2026-10-06` · the web root and https://hr-drafting.example.org/drafts/123 → 200 · owner-verified (manual) 2026-10-06: signed in with the company login → saw the draft queue
-- **Rollback path:** redeploy the previous build from the host's deploy list; migrations are forward-only (docs/deployment.md §7).
+- **Rollback path:** redeploy the previous build from the host's deploy list; migrations are forward-only, so a rollback restores the pre-deploy database backup (docs/deployment.md §7).
+  - Rehearsed 2026-10-06 on a local copy: a bad release with one extra migration, rolled back by restoring the backup → the old build answers, schema back to 4 · `evidence: curl -s http://127.0.0.1:8001/healthz → 200 after the rollback · docs/deployment.md · 2026-10-06`
 - **Known gaps:** none.
 """
 DEPLOY_DOC = """\
 # Deployment
+
+**In short:** The API and the site run on Render. Only the pilot consultants can sign in. Redeploy the previous build to roll back.
 
 | Unit | Host | Category | Chosen in `#Architecture` | Live URL |
 |---|---|---|---|---|
@@ -526,7 +849,9 @@ The built output was searched for password strings, sign-in calls with typed-in 
 
 ## 7. Rollback
 
-Redeploy the previous build from the deploy list; migrations are forward-only.
+Redeploy the previous build from the deploy list; migrations are forward-only, so a rollback restores the pre-deploy database backup.
+
+- **Rehearsed:** 2026-10-06 on a local copy: one extra migration, then the rollback (backup restored) → the old build answers.
 
 ## 8. Known gaps
 
@@ -567,7 +892,7 @@ def test_deploy(t: str, fails: list[str]) -> None:
                  "read at boot: DATABASE_URL, OIDC_CLIENT_SECRET, SECRET_KEY", "VITE_API_BASE",
                  "test only (not the host's - leave out): TEST_DATABASE_URL",
                  ".env.example lacks: OIDC_CLIENT_SECRET, VITE_API_BASE", "lists but nothing reads: LEGACY_FLAG",
-                 "render.yaml", "all eight `##` sections", "never writes or asks for a secret",
+                 "render.yaml", "all eight numbered `##` sections", "never writes or asks for a secret",
                  "Host (copied from #Architecture", "refuses, every problem in one list", "the date the USER gives",
                  "previews off" if False else "preview deployments: off (Recommended)", "§Production safeguards - the bullets",
                  "set deploy filled --section-from <file> --commit", "ONE long wait",
@@ -666,6 +991,103 @@ def test_deploy(t: str, fails: list[str]) -> None:
                      f"{hit}): {out[-900:]}")
 
 
+def open_to_others(p: Path, on: bool) -> None:
+    """Make a file readable by other users (on) or by its owner only (off), on this OS."""
+    if os.name != "nt":
+        os.chmod(p, 0o644 if on else 0o600)
+    elif on:
+        subprocess.run(["icacls", str(p), "/grant", "Everyone:R"], capture_output=True)
+    else:
+        subprocess.run(["icacls", str(p), "/remove", "Everyone"], capture_output=True)
+
+
+def test_deploy_rehearsal_secrets(t: str, fails: list[str]) -> None:
+    """#52 items 1, 5, 11 (2.2): a logged /deploy wrote a rollback path it never tried; plain Claude rehearsed one on a
+    fake host folder and found the two traps (no down-migrations -> the rollback is the database backup; a copied
+    release folder runs the old code). It also locked the secrets file and checked the logs. The start prints the
+    rehearsal steps and the secrets checks; the close refuses an untried rollback path, a secrets file others can
+    read on the owner's machine, and a secret value in a log; the built-output facts are the script's."""
+    spine = {"Vision": VISION, "Architecture": DEPLOY_ARCH, "Plan": DEPLOY_PLAN}
+    own = (DEPLOYMENT.replace("https://hr-drafting.example.org (web) · https://api.hr-drafting.example.org (api)",
+                              "own machine - not public, reachable by the owner only")
+           .replace("`evidence: curl -s https://api.hr-drafting.example.org/healthz → 200 {\"status\":\"ok\"} · "
+                    "docs/deployment.md · 2026-10-06` · the web root and https://hr-drafting.example.org/drafts/123 → 200",
+                    "`evidence: curl -s http://localhost:8000/healthz → 200 · docs/deployment.md · 2026-10-06` and "
+                    "http://localhost:5173/drafts/1 → 200"))
+    secret = "s3cr3t-value-for-the-test-only"
+
+    def ready(extra: dict[str, str] | None = None) -> Path:
+        d = fresh(t, spine, {**DEPLOY_FILES, ".env": f"DATABASE_URL=sqlite:///hr.db\nSECRET_KEY={secret}\n",
+                             **(extra or {})})
+        states(d, dev_check=("filled", "pass"))
+        open_to_others(d / ".env", False)
+        return d
+
+    d = ready()
+    code, start = run(d, "next", "--phase", "deploy")
+    for want in ("Rehearse the rollback before you record it", "never copy a release folder", "ONE extra migration",
+                 "the rollback IS restoring the step-1 backup", "not rehearsed - <why>", "`chmod 600 .env`",
+                 "for each secret value of .env, naming the variable, never the value", "a rollback path not rehearsed"):
+        if want not in start:
+            fails.append(f"the /deploy start lacks {want!r}")
+    if secret in start:
+        fails.append("the /deploy start printed a secret value")
+    code, out = run(d, "set", "deploy", "filled", "--section-from", section_file(d, own), "--dry-run")
+    if "no gap" not in out:
+        fails.append(f"an owner-only .env, clean logs and a rehearsed rollback should pass: {out[-500:]}")
+    rehearsal = DEPLOYMENT.split("  - Rehearsed")[1].split("\n")[0]
+    breaks = {"was written, not tried": own.replace("  - Rehearsed" + rehearsal + "\n", ""),
+              "says not rehearsed with no open item": own.replace("  - Rehearsed" + rehearsal,
+                                                                  "  - not rehearsed - no copy of the host to run")}
+    for name, body in breaks.items():
+        code, out = run(d, "set", "deploy", "filled", "--section-from", section_file(d, body), "--dry-run")
+        if name not in out:
+            fails.append(f"/deploy check {name!r} did not go red on its own break: {out[-500:]}")
+    run(d, "open", "--from", "deploy", "--what", "rollback not rehearsed: no copy of the host to run",
+        "--clears", "a rollback rehearsal is recorded")
+    code, out = run(d, "set", "deploy", "filled", "--section-from",
+                    section_file(d, breaks["says not rehearsed with no open item"]), "--dry-run")
+    if "no gap" not in out:
+        fails.append(f"`not rehearsed` WITH an open item should pass: {out[-400:]}")
+    # the secrets file: red when others can read it on the owner's machine, green once locked
+    d2 = ready()
+    open_to_others(d2 / ".env", True)
+    code, out = run(d2, "set", "deploy", "filled", "--section-from", section_file(d2, own), "--dry-run")
+    if "lock it to its owner" not in out:
+        fails.append(f"a .env others can read on the owner's machine should be refused: {out[-500:]}")
+    if secret in out:
+        fails.append("the refusal printed a secret value")
+    code, out = run(d2, "set", "deploy", "filled", "--section-from", section_file(d2, DEPLOYMENT), "--dry-run")
+    if "lock it to its owner" in out:
+        fails.append("a PaaS host (the secrets live in the host's dashboard) should not be refused for the local .env")
+    open_to_others(d2 / ".env", False)
+    # a secret value in a log: named by variable, never by value
+    d3 = ready({"logs/app.log": f"INFO boot ok\nDEBUG settings SECRET_KEY={secret}\n"})
+    code, out = run(d3, "set", "deploy", "filled", "--section-from", section_file(d3, own), "--dry-run")
+    if "a log holds the value of SECRET_KEY (app.log)" not in out or secret in out:
+        fails.append(f"a secret value in a log should be refused by its variable name only: {out[-500:]}")
+    d4 = ready({"logs/app.log": "INFO boot ok\nDEBUG settings SECRET_KEY=***\n"})
+    code, out = run(d4, "set", "deploy", "filled", "--section-from", section_file(d4, own), "--dry-run")
+    if "a log holds" in out:
+        fails.append(f"a masked log should pass: {out[-400:]}")
+    # warnings (never refusals): forward-only migrations with no backup in the rollback; a build value not built in
+    nobackup = own.replace(", so a rollback restores the pre-deploy database backup", "").replace(
+        " by restoring the backup", "")
+    d5 = ready({"web/.env.production": "VITE_API_BASE=https://api.hr-drafting.example.org\n",
+                "web/dist/index.html": "<script src=\"https://cdn.vendor-x.net/a.js\"></script>"
+                                       "<script>fetch('http://localhost:8000/api')</script>"})
+    code, start = run(d5, "next", "--phase", "deploy")
+    if "hostnames a visitor's browser calls: cdn.vendor-x.net" not in start or \
+            "build-time values NOT in it: VITE_API_BASE" not in start:
+        fails.append(f"the /deploy start should print the built output's hostnames and missing build values: "
+                     f"{start[start.find('Built output'):][:300]}")
+    code, out = run(d5, "set", "deploy", "filled", "--section-from", section_file(d5, nobackup), "--no-commit")
+    if code != 0 or "names no database backup" not in out or "does not contain the committed value of VITE_API_BASE" \
+            not in out:
+        fails.append(f"/deploy should warn (and still record) on no backup in the rollback and a build value not "
+                     f"built in: {out[-700:]}")
+
+
 def test_lean_rules(t: str, fails: list[str]) -> None:
     """A start prints only the safeguard bullets its phase applies, and the re-run / declined sections only when they
     apply - every call re-sends the start, and those parts were ~4-5 KB of each 14-17 KB start. The full sections stay
@@ -755,15 +1177,258 @@ def test_review_findings(t: str, fails: list[str]) -> None:
         fails.append("the /deploy start still prints §Context hygiene whole (its lines repeat the start's own)")
 
 
+LEARN_TICKETS = """# Tickets - the plan
+
+## M1 Core
+| Epic | Lane | Owner | Tickets in build order |
+|---|---|---|---|
+| [M1-A] Part a | a | Senior | M1-A-01 Build part a · M1-A-02 Build part a2 |
+
+## Day 1 — who starts what
+| Seat | Lane | Day-1 ticket | Why |
+|---|---|---|---|
+| SR1 | a | M1-A-01 | no dependencies |
+"""
+LEARN_PLAN = ("- **Phases / milestones (core first):**\n  - M1 Core: one consultant gets one draft (2026-10-01 → 10-14)\n"
+              "- **Exit criteria per milestone:**\n  - M1: the consultant approves one draft\n")
+NO_METRIC = LEARNINGS.replace(
+    "median consultant time per pay-change question 11 minutes over the pilot's first 4 weeks (from the review log: "
+    "opened → sent, 212 questions), against the target of 5 by 2027-06-30 and about 25 before.\n  - `evidence: uv run "
+    "python scripts/review_times.py --since 2026-09-07 → median 11.0 min, n=212 · scripts/review_times.py · 2026-10-06`",
+    "not readable until after the pilot (M4) - nothing records review times yet.")
+
+
+def test_learn_retro(t: str, fails: list[str]) -> None:
+    """#50 items 3-4 (2.2): with no metric readable, a logged /learn decided on "opinion"; plain Claude read the repo
+    (tickets built vs planned, docs vs code, commits since the last merged ticket) and decided "iterate". The start
+    prints that process retro; a retro citing no number while the metric is not readable is a warning; "iterate the
+    plan" is a decision and hands off to /tickets."""
+    spine = {"Vision": VISION, "Architecture": ARCHITECTURE, "Scope": SCOPE, "Evaluation": EVALUATION,
+             "Plan": LEARN_PLAN}
+    if NO_METRIC == LEARNINGS:
+        fails.append("NO_METRIC's replaced text is not in LEARNINGS")
+
+    def ready(release: bool = True) -> Path:
+        d = fresh(t, spine, {**LEARN_FILES, "TICKETS.md": LEARN_TICKETS})
+        states(d, ship=("filled", ""), eval=("filled", "pass"))
+        (d / "app" / "a.py").write_text("A = 1\nB = 2\n", encoding="utf-8")
+        (d / "status" / "tickets").mkdir(parents=True, exist_ok=True)
+        (d / "status" / "tickets" / "2026-10-03-m1-a-01.md").write_text(
+            "<!-- One ticket, written by status.py. Never edit by hand. -->\nTicket: M1-A-01\nDate: 2026-10-03\nDoD met: "
+            "yes\nHow verified: pytest -> 2 passed\nFull-suite runs: 1\nReview: R1 clean\nDoc: docs/features/a.md\n",
+            encoding="utf-8")
+        git(d, "add", "-A")
+        git(d, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "M1-A-01: build part a")
+        run(d, "release", "--what", "M1-A-01 part a", "--reviews", "R1 (diff) clean · gate ×1 a1b2c3d · deps: pip-audit "
+            "0", "--skipped", "none", "--docs", "README checked", "--record", "n/a — releases recorded in the host",
+            "--rollback", "revert PR", "--pr", "local-only: main @ a1b2c3d")
+        run(d, "open", "--from", "learn", "--what", "no metric yet: nothing records review times",
+            "--clears", "the review log records times")
+        git(d, "add", "-A")  # the release record names the ticket: its commit is the last merged ticket's
+        git(d, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "M1-A-01 release: part a")
+        (d / "docs" / "notes.md").write_text("one\ntwo\nthree\n", encoding="utf-8")
+        git(d, "add", "-A")
+        git(d, "-c", "user.email=t@t", "-c", "user.name=t", "commit", "-q", "-m", "docs: notes")
+        return d
+
+    d = ready()
+    code, start = run(d, "next", "--phase", "learn")
+    for want in ("Process retro from the repo", "M1 (planned 2026-10-01 → 2026-10-14: day 6 of 14): 1 of 2 tickets built, "
+                 "1 merged here - M1-A-01 2026-10-03", "Day 1 starters (TICKETS.md): M1-A-01 built 2026-10-03",
+                 "Since the last merged ticket (M1-A-01, ", "1 commit(s), lines added - docs 3 · product code 0 · tests 0",
+                 "The repo now: docs ", "Findings still open: 1 open item(s) - /learn 1",
+                 "iterate the plan (change named unbuilt tickets", "pivot (back to /scope)"):
+        if want not in start:
+            fails.append(f"the /learn start lacks {want!r}: {start[start.find('Process retro'):][:900]}")
+    no_num = NO_METRIC.replace(
+        "worked - the known-answer set caught 2 wrong-rule drafts before the pilot; change - French cases were thin in "
+        "/eval, so add 20 French known-answer cases before widening the pilot.",
+        "worked - the team shipped part a; change - write fewer documents before building.")
+    code, out = run(d, "set", "learn", "filled", "--section-from", section_file(d, no_num), "--no-commit")
+    if code != 0 or "cites no number while the metric is not readable" not in out:
+        fails.append(f"a retro citing no number while the metric is not readable should warn: {out[-600:]}")
+    with_num = no_num.replace("the team shipped part a; change - write fewer documents",
+                              "1 of 2 M1 tickets built by day 6; change - 3 doc lines and 0 code lines since then, so "
+                              "build M1-A-02 before more documents")
+    d2 = ready()
+    code, out = run(d2, "set", "learn", "filled", "--section-from", section_file(d2, with_num))
+    if code != 0 or "cites no number" in out:
+        fails.append(f"a retro citing the repo's numbers should record with no warning: {out[-500:]}")
+    if "Open a NEW conversation and type: " + status.skill_command("tickets") in out:
+        fails.append("a decision other than 'iterate the plan' should not hand off to /tickets")
+    # "iterate the plan" is a decision, and the next step is /tickets (red: the decision above kept its handoff)
+    iterate = with_num.replace("iterate on French drafts (20 known-answer cases, then re-run /eval)",
+                               "iterate the plan: split M1-A-02 in two and drop its export step (unbuilt)")
+    if iterate == with_num:
+        fails.append("the iterate replacement text is not in the record")
+    d3 = ready()
+    code, out = run(d3, "set", "learn", "filled", "--section-from", section_file(d3, iterate))
+    if code != 0 or "Open a NEW conversation and type: " + status.skill_command("tickets") not in out:
+        fails.append(f"'iterate the plan' should record and hand off to /tickets: {out[-500:]}")
+
+
+def test_companions_24(t: str, fails: list[str]) -> None:
+    """2.4 (#60, R5 of #49 #50 #52, #62, #50 item 5): the document each phase writes for a person opens with a summary
+    (`## 1. In short`; deployment.md an `**In short:**` line), `set` numbers the headings left unnumbered (keeping
+    the numbered ones and the document's own links) only when the record has no gap, the plain-English estimates
+    warn and never refuse, the starts leave §Spine resolution out when PRODUCT.md exists, the /deploy round says how
+    to ask more than 4 questions, and /scope and /plan carry the last /learn decision. Each shown red alone."""
+    spine = {"Vision": VISION, "Architecture": ARCHITECTURE}
+    evdoc = FILES["docs/evaluation.md"]
+    # red: no summary first -> refused by name; the refused call leaves the document as the run wrote it
+    d = fresh(t, spine, {"docs/evaluation.md": evdoc.replace("## In short\n\n", "## Results\n\n")})
+    states(d, dev_check=("filled", "pass"), test=("filled", "pass"))
+    before = (d / "docs" / "evaluation.md").read_text(encoding="utf-8")
+    code, out = run(d, "set", "eval", "filled", "--verdict", "pass", "--section-from", section_file(d, EVALUATION))
+    if code == 0 or "does not open with `## 1. In short`" not in out:
+        fails.append(f"docs/evaluation.md without a summary first should be refused by name: {out[-400:]}")
+    if (d / "docs" / "evaluation.md").read_text(encoding="utf-8") != before:
+        fails.append("a refused set eval filled renumbered docs/evaluation.md - it numbers only a record it keeps")
+    # red: an empty summary
+    d = fresh(t, spine, {"docs/evaluation.md": evdoc.replace(
+        "38 of 40 known-answer drafts had every figure right. That beats the 90% bar. Next we add French cases "
+        "before the pilot grows.\n", "")})
+    states(d, dev_check=("filled", "pass"), test=("filled", "pass"))
+    code, out = run(d, "set", "eval", "filled", "--verdict", "pass", "--section-from", section_file(d, EVALUATION),
+                    "--dry-run")
+    if "`## 1. In short` is empty" not in out:
+        fails.append(f"an empty `## In short` should be a gap: {out[-300:]}")
+    # green: the record saves, the headings are numbered in the saved commit, an in-document link follows its heading
+    linked = evdoc.replace("The #Vision accuracy bar", "See [the baseline](#baseline). The #Vision accuracy bar")
+    d = fresh(t, spine, {"docs/evaluation.md": linked})
+    states(d, dev_check=("filled", "pass"), test=("filled", "pass"))
+    code, out = run(d, "set", "eval", "filled", "--verdict", "pass", "--section-from", section_file(d, EVALUATION))
+    saved = git(d, "show", "HEAD:docs/evaluation.md")
+    for want in ("## 1. In short", "## 2. Baseline", "## 3. Owner's answers", "(#2-baseline)"):
+        if want not in saved:
+            fails.append(f"the saved docs/evaluation.md lacks {want!r} (set numbers unnumbered headings): {saved[:400]}")
+    if code != 0 or "playbook words" not in out or "a warning, not a refusal" not in out:
+        fails.append(f"#Vision in docs/evaluation.md should WARN (playbook words), never refuse: {code} {out[-500:]}")
+    # the start: §Spine resolution only for a project without PRODUCT.md
+    code, start = run(d, "next", "--phase", "learn")
+    if "## §Spine resolution" in start:
+        fails.append("the /learn start prints §Spine resolution although PRODUCT.md exists")
+    if "opens with `## In short`" not in start:
+        fails.append("the /learn start does not say docs/learnings.md opens with `## In short`")
+    (d / "PRODUCT.md").rename(d / "PRODUCT.bak")
+    code, start = run(d, "next", "--phase", "eval")
+    if "## §Spine resolution" not in start:
+        fails.append("the /eval start on a project WITHOUT PRODUCT.md should print §Spine resolution")
+    # learn: the summary rule; deploy: the summary line, the >4-questions line, a numbered section kept as numbered
+    lspine = {"Vision": VISION, "Architecture": ARCHITECTURE, "Scope": SCOPE, "Evaluation": EVALUATION}
+    d = fresh(t, lspine, {**LEARN_FILES, "docs/learnings.md": LEARN_FILES["docs/learnings.md"].replace(
+        "## In short\n\n", "## Summary of interviews\n\n")})
+    states(d, ship=("filled", ""), eval=("filled", "pass"))
+    code, out = run(d, "set", "learn", "filled", "--section-from", section_file(d, LEARNINGS), "--dry-run")
+    if "docs/learnings.md does not open with `## 1. In short`" not in out:
+        fails.append(f"docs/learnings.md without a summary first should be a gap: {out[-300:]}")
+    dspine = {"Vision": VISION, "Architecture": DEPLOY_ARCH, "Plan": DEPLOY_PLAN}
+    for doc in (DEPLOY_DOC.replace("**In short:** ", "**Summary:** "),
+                DEPLOY_DOC.replace("**In short:** The API", "**In short:** `<3 plain sentences>` The API")):
+        d = fresh(t, dspine, {**DEPLOY_FILES, "docs/deployment.md": doc})
+        states(d, dev_check=("filled", "pass"))
+        code, out = run(d, "set", "deploy", "filled", "--section-from", section_file(d, DEPLOYMENT), "--dry-run")
+        if "no filled `**In short:**` line" not in out:
+            fails.append(f"docs/deployment.md without a filled In short line should be a gap: {out[-300:]}")
+    code, start = run(d, "next", "--phase", "deploy")
+    if "more than 4 questions: two question-tool calls in the same reply" not in start:
+        fails.append("the /deploy start (6 questions) does not say how to ask more than the tool's 4 at a time")
+    if "the `**In short:**` line first" not in start:
+        fails.append("the /deploy start does not name the `**In short:**` line")
+    numbered = status.number_missing("# D\n\n## 1. Build and start\n\n## 7. Rollback\n\n## Owner's answers\n\n"
+                                     "### First round\n\n## Appendix — Notes\n")
+    for want in ("## 1. Build and start", "## 7. Rollback", "## 8. Owner's answers", "### 8.1 First round",
+                 "## Appendix A — Notes"):
+        if want not in numbered:
+            fails.append(f"number_missing should keep set numbers and fill the rest: {want!r} not in {numbered!r}")
+    # #50 item 5: /scope and /plan print the last cycle's decision
+    d = fresh(t, {**lspine, "Learnings": LEARNINGS})
+    states(d, ship=("filled", ""), eval=("filled", "pass"))
+    for ph in ("scope", "plan"):
+        code, start = run(d, "next", "--phase", ph)
+        if "#Learnings, the last cycle's decision" not in start or "KILL the email digest" not in start:
+            fails.append(f"the /{ph} start does not carry #Learnings' last decision: {start[:600]}")
+    d = fresh(t, lspine)
+    code, start = run(d, "next", "--phase", "scope")
+    if "#Learnings, the last cycle's decision" in start:
+        fails.append("the /scope start names a #Learnings decision on a project with none")
+
+
+def round_options(start: str, head: str) -> list[tuple[str, list[str]]]:
+    """Each numbered question of the start's ONE round (the line holding `head`) with its options, Other left out."""
+    line = next((ln for ln in start.splitlines() if head in ln), "")
+    qs = []
+    for m in __import__("re").finditer(r"(?:^|\s)(\d)\. (.*?)(?=\s\d\. |\. Then |$)", line):
+        if "(Recommended)" not in m.group(2):
+            continue  # a question with no options (the gate line) is not a choice
+        opts = [o.strip() for o in m.group(2).split(" · ")]
+        qs.append((m.group(1), [o for o in opts if not o.startswith("Other") and not o.startswith('"Other')]))
+    return qs
+
+
+def test_review_24_ops(t: str, fails: list[str]) -> None:
+    """2.4 wording review (ops): a re-run of /eval or /learn measures again - the RE-RUN line never says "nothing
+    differs: stop" (their rules never change between runs); /scope and /plan carry a decision /learn saved as
+    (proposed) as a proposal to offer, never one to apply; every question in the /deploy and /learn rounds has at
+    least 2 real options besides Other (Claude Code's question tool takes 2-4). Each shown red before the fix."""
+    spine = {"Vision": VISION, "Architecture": ARCHITECTURE, "Evaluation": EVALUATION}
+    d = fresh(t, spine)
+    states(d, dev_check=("filled", "pass"), test=("filled", "pass"), eval=("filled", "pass"))
+    code, start = run(d, "next", "--phase", "eval")
+    rerun = next((ln for ln in start.splitlines() if "RE-RUN" in ln), "")
+    if "a new measurement" not in rerun or "Nothing differs" in rerun or "keep the earlier" not in rerun:
+        fails.append(f"a /eval re-run should measure again and keep the earlier entry, never stop: {rerun!r}")
+    lspine = {**spine, "Scope": SCOPE, "Learnings": LEARNINGS}
+    d = fresh(t, lspine, LEARN_FILES)
+    states(d, ship=("filled", ""), eval=("filled", "pass"), learn=("filled", ""))
+    code, start = run(d, "next", "--phase", "learn")
+    rerun = next((ln for ln in start.splitlines() if "RE-RUN" in ln), "")
+    if "a new cycle" not in rerun or "Nothing differs" in rerun:
+        fails.append(f"a /learn re-run should run a new cycle, never stop: {rerun!r}")
+    # a decision saved (proposed) is offered, never applied; a kept one is quoted in this phase's document
+    kept = "KILL the email digest"
+    d = fresh(t, {**lspine, "Learnings": LEARNINGS.replace(kept, kept + " (proposed)")})
+    states(d, ship=("filled", ""), eval=("filled", "pass"))
+    code, start = run(d, "next", "--phase", "scope")
+    if "proposed, not yet kept by the owner" not in start or "never apply it unasked" not in start:
+        fails.append(f"a (proposed) #Learnings decision should be offered as (Recommended), never applied: "
+                     f"{start[:700]}")
+    d = fresh(t, lspine)
+    states(d, ship=("filled", ""), eval=("filled", "pass"))
+    code, start = run(d, "next", "--phase", "plan")
+    if "proposed, not yet kept" in start or "quote the decision line in docs/" not in start \
+            or "name each one this run touches" in start:
+        fails.append(f"a kept #Learnings decision is quoted in this phase's document: {start[:700]}")
+    # every question offers 2+ real options (one real option + Other fails Claude Code's question tool)
+    d = fresh(t, {"Vision": VISION, "Architecture": DEPLOY_ARCH, "Plan": DEPLOY_PLAN}, DEPLOY_FILES)
+    states(d, dev_check=("filled", "pass"))
+    code, dstart = run(d, "next", "--phase", "deploy")
+    d = fresh(t, {**spine, "Scope": SCOPE}, LEARN_FILES)
+    states(d, ship=("filled", ""), eval=("filled", "pass"))
+    code, lstart = run(d, "next", "--phase", "learn")
+    for ph, start, head in (("deploy", dstart, "1. why the URL is needed now"), ("learn", lstart, "1. the success metric")):
+        qs = round_options(start, head)
+        if len(qs) < 3:
+            fails.append(f"the /{ph} round was not found in its start: {qs}")
+        for n, opts in qs:
+            if len(opts) < 2:
+                fails.append(f"/{ph} question {n} has one real option besides Other: {opts}")
+
+
 def main() -> int:
     fails: list[str] = []
     with tempfile.TemporaryDirectory() as t:
+        test_companions_24(t, fails)
         test_eval(t, fails)
         test_learn(t, fails)
+        test_learn_retro(t, fails)
         test_ship(t, fails)
+        test_land(t, fails)
         test_deploy(t, fails)
+        test_deploy_rehearsal_secrets(t, fails)
         test_lean_rules(t, fails)
         test_review_findings(t, fails)
+        test_review_24_ops(t, fails)
     for f in fails:
         print(f"  x {f}")
     print("OK - the release phases' starts and closes" if not fails else f"FAIL - {len(fails)} problem(s)")

@@ -86,9 +86,9 @@
         "**Close the loop (`MECHANISMS.md` §Step 3b):** record the phase's state — `status.py set deploy filled` (`MECHANISMS.md` §Status) — reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work — this project's repo, name the branch, commit on a yes, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff)."
       ],
       "new": [
-        "`status.py set deploy filled --section-from <file> --commit \"<one line>\"` (`--dry-run` lists every gap) checks the record and the files, saves on round 2's yes (`MECHANISMS.md` §Commit the work) and prints the rest of the close: reconcile any number against `#Vision` (surface a contradiction, never write over it); **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines, a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not;",
+        "`status.py set deploy filled --section-from <file> --commit \"<one line>\"` (`--dry-run` lists every gap) checks the record and the files, saves (`MECHANISMS.md` §Commit the work; `--no-commit` instead of `--commit` only when the user said not to save) and prints the rest of the close: reconcile any number against `#Vision` (surface a contradiction, never write over it); **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines, a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not;",
         "**What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next**, ending with its `Open a NEW conversation` line word for word.",
-        "*\"Anything to change? If not: Save this version of your project? (yes / no)\"* as \"Looks good - save (Recommended)\" · \"Change something\"."
+        "after the proof the record saves - no save question"
       ]
     },
     {
@@ -122,8 +122,8 @@
         "user) — and record it in `#Deployment`'s *Why now* line."
       ],
       "new": [
-        "1. why the URL is needed now (the \"",
-        "\"#Plan milestone, or the user's reason)"
+        "1. why the URL is needed now: the #Plan milestone above (Recommended)",
+        "own reason (a demo, a first user) · Other · 2. with "
       ],
       "home": "tools/status.py"
     },
@@ -155,8 +155,21 @@
       "what": "next.69b new (P43 P44): two rounds, confirm + save in one message; what /deploy must NOT do",
       "old": [],
       "new": [
-        "- **Two rounds, each ONE message:** the start's numbered questions before the first deploy;",
+        "- **ONE question round, before the first deploy:**",
         "- **What this phase must NOT do:** re-decide the host, write or ask for a secret, or merge without the user's explicit word."
+      ]
+    },
+    {
+      "id": "DP16",
+      "what": "2.1: an override is recorded, never a typed reason - the milestone-only gate is one printed line recorded by `set`; any other gate is ONE options question",
+      "old": [
+        "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): name the gate, ask",
+        "for the **reason in the user's own words**, and record it — `status.py bypass --from deploy --gate",
+        "<gate> --reason \"<the user's own words>\"` (`MECHANISMS.md` §Status) — before continuing."
+      ],
+      "new": [
+        "- **An override is RECORDED, never a verbal \"yes\"** (`MECHANISMS.md` §Declined runs): follow the start's gate line",
+        "`status.py bypass --from deploy --gate <gate> --reason \"/<gate> not passed - the user chose to go on\"`"
       ]
     },
     {
@@ -168,6 +181,29 @@
         "def deploy_env(base: Path) -> tuple[dict[str, str], list[str]]:"
       ],
       "home": "tools/status.py"
+    },
+    {
+      "id": "DP17",
+      "what": "a re-run keeps the superseded host with its dated line; a stop records `set deploy declined` and touches nothing in PRODUCT.md - both printed by the start only when the case is real",
+      "old": [
+        "- **Re-running — `MECHANISMS.md` §Re-run semantics, in full.** A host change keeps the superseded one",
+        "with its dated line: *why the other host lost* is the expensive thing to reconstruct.",
+        "- **Stopping at an unmet gate — `MECHANISMS.md` §Declined runs, in full.** `status.py set deploy declined",
+        "--reason \"<what was missing>\" --gate <phase>` (`MECHANISMS.md` §Status), nothing in `PRODUCT.md` touched."
+      ],
+      "new": [
+        "- **A re-run or a stop:** the start prints the rule only when the case is real (a `RE-RUN` line; a stop: `status.py set deploy declined --reason \"<what was missing>\" --gate <phase>`, nothing in `PRODUCT.md` touched). A host change keeps the superseded one with its dated line: *why the other host lost* is the expensive thing to reconstruct."
+      ]
+    },
+    {
+      "id": "DP18",
+      "what": "Step 2: scaffold docs/deployment.md from the template (2.4: its reader-first In short line first -, R5); the steps differ by category, not by brand",
+      "old": [
+        "**Scaffold from `templates/deployment.md`.** The steps differ by **category, not by brand** — Vercel,"
+      ],
+      "new": [
+        "**Scaffold from `templates/deployment.md`** - its `**In short:**` line first: where it runs and who can reach it, how to deploy it again, how to roll it back. The steps differ by **category, not by brand** — Vercel,"
+      ]
     }
   ],
   "dropped": []
