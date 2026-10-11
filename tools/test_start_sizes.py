@@ -139,7 +139,10 @@ def main(argv: list[str]) -> int:
     short = [ph for ph, (_, n, _) in got.items() if n < 500]
     if len(got) < 20 or short:
         fails.append(f"a start printed almost nothing - the fixture did not reach it: {', '.join(short)}")
-    unknown = [ph for ph, (_, _, out) in got.items() if out.lower().count(ROOT.name.lower()) > path_copies(out, ROOT)]
+    # the folder name as a path segment only: in a checkout named `product-playbook` (the public repo's CI) every
+    # start also prints the product's own name, which is not a path
+    seg = re.compile(rf"(?i)[\\/]{re.escape(ROOT.name)}(?![\w.-])")
+    unknown = [ph for ph, (_, _, out) in got.items() if len(seg.findall(out)) > path_copies(out, ROOT)]
     if unknown:
         fails.append(f"the install path is printed in a form this test does not count at {LONG_INSTALL} characters "
                      f"(the folder name {ROOT.name} without its full path): {', '.join(unknown)}")
