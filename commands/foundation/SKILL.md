@@ -1,12 +1,6 @@
 ---
 name: foundation
-description: >
-  Phase 2 (Development), step 3 of product-playbook. Build the walking skeleton that actually RUNS —
-  dependencies, config loader, structured logging, base infra wiring (DB/LLM/queue), dev tooling
-  (lint/format + the commit-hook runner #Architecture chose), secret-scan, and a CI that mirrors the
-  prod bootstrap. Use after
-  /structure, or run /foundation "set up the skeleton", "get it running", "wire up CI". Writes the
-  Foundation section of PRODUCT.md. Run /contracts next.
+description: Build the runnable skeleton - config, logging, tooling, CI.
 ---
 
 # `/foundation` — Phase 2 · Development ③ · run as an **engineer**
@@ -27,10 +21,7 @@ description: >
 - **Gate type:** `derivation` — computable from `#Architecture` + `#Structure`. Batchable - a `derivation` run may chain with its neighbours and end in ONE review. (`STATE-MODEL.md` §2d)
 - **State model** (`STATE-MODEL.md` §2c): writes `#Foundation` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Checked by `status.py set foundation filled`, not by reading** (every problem in one refusal; the start lists
-  them): the cited files and tests exist · hooks installed · a lockfile per manifest · no `CHANGE_ME` fallback · the
-  test engine and variable · CI ran or an open item says not · the project's own environment · the placeholder boot ·
-  the scans, the bot, the runbook · no money column as a float · `Agent: yes`/UI: their items · the proof log · a
-  planted fake secret · no install path · a type checker · no echo fake · the real AI adapter.
+  each one).
 - **Exit criteria:**
   - [ ] App **runs end-to-end** with nothing in it (a health check / hello path works).
   - [ ] **For a product with auth, the bar is USABLE end-to-end, not merely running** — a login actually
@@ -58,7 +49,7 @@ description: >
   - [ ] Structured logging (no stray prints); dev tooling wired — lint/format + **a type checker for a typed language** (none only with the user's reason recorded) + the **commit-hook runner and secret scanner `#Architecture` chose** (not a tool this skill picks), **installed, with one real commit through it**, and a planted fake secret refused (`set` plants it).
   - [ ] **AI product: the real adapter fits its caller** — on a dead endpoint, in the fake's place, it takes `#Architecture`'s failure path (a hand-off), not an exception.
   - [ ] **`docs/runbook.md` boots a fresh clone with the project's own commands** — `.env` from `.env.example`, the database created and migrated; never a path into the playbook's install or this machine.
-  - [ ] **CI is in place and mirrors the prod bootstrap** (builds/migrates/tests from the real schema, installs from the lockfile), green — a must, not optional. **No git remote:** its steps pass with `ci_local.py` = *verified locally*, and an open item stays until CI is green on the first push.
+  - [ ] **CI is in place and mirrors the prod bootstrap** (builds/migrates/tests from the real schema, installs from the lockfile), **every action version it pins exists, and it ran once** (`ci_local.py` checks both), green — a must, not optional. **No git remote:** its steps pass with `ci_local.py` = *verified locally*, and an open item stays until CI is green on the first push.
   - [ ] **UI product (`DESIGN.md` exists): the frontend audit runs in the commit hooks AND CI** from a committed copy of the installed engine, over `DESIGN.md` + the whole UI tree — an ERROR blocks, a WARN only reports — **proven red at Step 3b**. **A route renders the UI shell** with the tokens (`skeleton-steps.md` §7).
   - [ ] CI runs **both secret-scan AND dependency-vulnerability scan** (e.g. `pip-audit`/`npm audit`), **fail-closed on a known CVE**; CI creates throwaway creds at runtime (no literal secret in the repo).
   - [ ] An **automated dependency-update bot** is wired (`.github/dependabot.yml` or Renovate). Add it **on day one while deps are clean**. **Group tightly-coupled packages** (react+react-dom, eslint+eslint-config-next) so they bump in one PR.
@@ -73,10 +64,8 @@ no product prompt, pipeline or real golden cases (`/build`) — two logged runs 
 ## Step 0 — Context + prior-gate check
 - **One start command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase foundation`**, run as it is (its output is sized for your tool — never into a file of your own) — this project's facts (git, manifests, hooks, `.env.example`, the datastore, this machine's tools, the script lines), `#Architecture`, `#Structure` (`#Design` for a UI), AGENT.md §Foundation (`Agent: yes`), the eight steps, the proofs, this phase's rules. Show its first line. `STRUCTURE.md`, `DESIGN.md` and code: the parts a step needs.
 - If `#Structure` is empty, warn and offer `/structure` first (allow override).
-- **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from foundation --gate <gate> --reason "<the user's own words>"` (`MECHANISMS.md` §Status) — before continuing.
 - Brownfield: detect what already exists (CI, config, logging) and fill only the gaps.
-- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** a filled section → follow the `RE-RUN` line `next` prints: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line.
-- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** record it — `status.py set foundation declined --reason "<what was missing>" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`.
+- **Anything unusual - the start names it when it is real:** a re-run follows its `RE-RUN` line: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line. **An override is RECORDED, never a verbal "yes"**: the **reason in the user's own words**, then `status.py bypass --from foundation --gate <gate> --reason "<the user's own words>"` before continuing. A stop at an unmet gate: `status.py set foundation declined --reason "<what was missing>" --gate <the phase(s) that fill it>`, and nothing changes in `PRODUCT.md` (`MECHANISMS.md` §Re-run semantics, §Declined runs).
 
 ## Step 1 — Apply principles (this phase)
 - **No-hardcoding, fail-loud/fail-closed:** as the exit criteria say — the guard in the entrypoint (`skeleton-steps.md` §3.), a value read back at runtime (`verify.md` §Config flows).
@@ -108,7 +97,7 @@ command, the address). A line, not a pause. No boot → fix it before item 2.
 **`docs/runbook.md` holds the operational detail** — boot sequence, the `.env` variables and how to
 generate each, what every guard refuses and how to prove it, how to reset and re-seed, how to run the
 suite against the isolated datastore. It is the document someone opens at 2am, so it is written for
-someone who was not here — so its commands are the project's own (task-runner targets, files in the repo; a clone has
+someone who was not here, every heading numbered (the start prints the five) — so its commands are the project's own (task-runner targets, files in the repo; a clone has
 no playbook) and its recipes run as written in PowerShell and bash. **`#Foundation` keeps the record and the pointer.**
 
 Fill `#Foundation`: runs end-to-end? · config-flow verified (how) · guards (**incl. the placeholder rejection and the test-datastore refuse-to-run guard, each with its proof**) · isolated test datastore + how the runner loads config · secret-scan + dep-vuln · hook runner + CI (auto-layer; UI: audit copy path + engine version) · container · observability hook.
@@ -122,10 +111,12 @@ log, and plants a fake secret through the hooks itself.
 
 **Keep the context lean (`MECHANISMS-ON-DEMAND.md` §Context hygiene):** a command's output over 30 lines goes to a scratch file; read the tail or grep the verdict, and cite the file in the evidence line.
 
-**Close the loop (`MECHANISMS.md` §Step 3b):** first Step 3c below, and reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it). Then ONE message: what runs and what each proof showed (a line each), what is owed, any clash, then **the save question** *"Anything to change? If not: Save this version of your project? (yes / no)"* (`MECHANISMS.md` §Commit the work — this project's repo, name the branch; push only if a remote exists and the user says so). On a yes: close each open item this phase settled (`status.py close <n> --how "…"`), then record the phase's state — `status.py set foundation filled --section-from <file> --commit "<one line>"` (`MECHANISMS.md` §Status; no `--commit` on a no): it refuses every gap at once, commits through the hooks with the items in the save (`verify.md` §Saving) and prints the rest. Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run an `evidence:` line only when a file it reads changed after Step 3b captured it (`verify.md` §Runs end to end) and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff).
+**Review this phase's own code before the record:** `status.py secreview foundation` lists only the code this phase wrote and prints ONE helper's prompt; fix every HIGH and MEDIUM; its `security review:` line goes in `#Foundation` (`/dev-check` then skips those files, unless it was a self-review).
+
+**Close the loop (`MECHANISMS.md` §Step 3b):** first Step 3c below, and reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it). Then, no save question: the record call saves (`--no-commit` only when the user said not to save) (`MECHANISMS.md` §Commit the work — this project's repo, name the branch; push only if a remote exists and the user says so): close each open item this phase settled (`status.py close <n> --how "…"`), then record the phase's state — `status.py set foundation filled --section-from <file> --commit "<one line>"` (`MECHANISMS.md` §Status): it refuses every gap at once, commits through the hooks with the items in the save (`verify.md` §Saving) and prints the rest; the close says what runs and what the proofs showed (each block at most 2 lines - the record holds the evidence), what is owed and any clash, and asks *"Change anything?"*. Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run an `evidence:` line only when a file it reads changed after Step 3b captured it (`verify.md` §Runs end to end) and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff).
 
 ## Step 3c — Contradiction check (before the gate closes)
-Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Architecture` (adapters · tool choices · CI approach · **the datastore and its custody, test datastore included**) and `#Structure`'s map — a skeleton wired to a datastore, hook runner or provider other than the recorded one. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
+Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Architecture` (adapters · tool choices · CI approach · **the datastore and its custody, test datastore included**) and `#Structure`'s map — a skeleton wired to a datastore, hook runner or provider other than the recorded one. On a conflict (this replaces `MECHANISMS.md` §Step 3c items 2-3), **name both sides on a line of its own** in the close and ask nothing; fix this phase's artefact, **never an earlier phase's record or document** — record the clash as an open item: `status.py open --from foundation --what "Clash: <both sides>" --clears "/<that phase> decides"`. A file only an earlier refusal forced is no clash to ask about. Adding detail to an earlier decision is not a contradiction.
 
 ## Step 4 — Handoff
 "Skeleton runs, a seeded account can log in (credentials: <where>), and CI is green. Next run **`/contracts`** to define typed models/schemas/migrations

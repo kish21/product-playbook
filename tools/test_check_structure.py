@@ -201,6 +201,46 @@ def main() -> int:
         code, out = run(d)
         if code == 0 or "decision home not on disk: app/orders/adapters" not in out:
             fails.append(f"a missing path in the Home column must still fail: {out.strip()}")
+        # 2.3: numbered headings (`## 2. Modules`) are read like unnumbered ones; a missing section still fails
+        build(d)
+        numbered, n = GOOD, 0
+        for h in ("The tree", "Modules", "Inside a module", "Where does a new file go?", "Where decisions live",
+                  "Hub files", "Changes"):
+            n += 1
+            numbered = numbered.replace(f"## {h}\n", f"## {n}. {h}\n")
+        (d / "STRUCTURE.md").write_text(numbered, encoding="utf-8")
+        code, out = run(d)
+        if code != 0:
+            fails.append(f"numbered headings (`## 2. Modules`) should pass like unnumbered ones: {out.strip()}")
+        shutil.rmtree(d / "app/orders/tests")
+        code, out = run(d)
+        if code == 0 or "app/orders/ has no tests/" not in out:
+            fails.append(f"a numbered ## Modules is still checked (a module with no tests/): {out.strip()}")
+        (d / "STRUCTURE.md").write_text(numbered.replace("## 5. Where decisions live", "## 5. Decisions"),
+                                        encoding="utf-8")
+        code, out = run(d)
+        if code == 0 or "## Where decisions live" not in out:
+            fails.append(f"a numbered map without ## Where decisions live should still fail: {out.strip()}")
+        # S12: `.github/` drawn in the tree is on disk - the walk leaves it out, so it was refused as "drawn but not
+        # on disk" (a logged Codex run, 2026-10-03)
+        build(d)
+        (d / ".github/workflows").mkdir(parents=True)
+        (d / "STRUCTURE.md").write_text(GOOD.replace("migrations/ ", ".github/\n└── workflows/   # CI\nmigrations/ "),
+                                        encoding="utf-8")
+        code, out = run(d)
+        if code != 0:
+            fails.append(f"a drawn .github/ that exists should pass: {out.strip()}")
+        # S7: a module's own sub-folders listed under ## Modules are not modules (`app/orders/tests/` has no tests/
+        # of its own) - a logged Codex run was refused "module .../tests/ has no tests/"
+        build(d)
+        (d / "app/orders/adapters").mkdir()
+        (d / "STRUCTURE.md").write_text(GOOD.replace(
+            "| `app/orders` | order lookup |",
+            "| `app/orders` | order lookup |\n| `app/orders/tests/` | its tests |\n| `app/orders/adapters/` | its "
+            "adapters |").replace("│   └── tests/", "│   ├── adapters/\n│   └── tests/"), encoding="utf-8")
+        code, out = run(d)
+        if code != 0:
+            fails.append(f"a module's own sub-folders under ## Modules are not modules: {out.strip()}")
     for f in fails:
         print(f"  x {f}")
     print("OK - check_structure.py behaves" if not fails else f"FAIL - {len(fails)} check_structure.py test(s)")

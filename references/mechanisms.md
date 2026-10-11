@@ -73,16 +73,15 @@ when there is no repository to commit to. Every phase that writes ends with thes
      the legitimate case and it is **the user's call, recorded once** (a line under `#Project policy`:
      `- **commits into:** <root> — <reason, the user's words> (<date>)`), never re-inferred by the next phase from the fact that
      `git rev-parse` answered.
-   - **No repo anywhere** → say so and offer `git init` once.
+   - **No repo anywhere** → say so: the user runs `git init`.
 
    **Never create a remote**, and never push to one the user has not named.
 2. **Name the branch AND the repository root you are on.** A phase writing straight to `main`/`master`
    says so and offers a branch; the user may decline, and that is their call to make knowingly.
    Naming the root is what lets a human see a commit landing in the wrong repository.
-3. **Offer the commit in plain words:** ask *"Save this version of your project? (yes / no)"*; the branch,
-   root, files and message (one line, the repo's own convention, built from the run's summary) go under it,
-   marked as the details.
-   **Offer, then do it on a yes.** Suggest-and-stop is what left three phases behaving three different
+3. **Save without asking:** the record call commits (`--no-commit` only if the user said so); the close
+   starts *"Saved (commit <hash>)."* and asks *"Change anything?"*.
+   **Never suggest-and-stop.** Suggest-and-stop is what left three phases behaving three different
    ways and a project with zero commits after two full phases. Commit with `git add <files>`, then
    `git commit -m "<one line>"`: every shell, never a heredoc.
 4. **Push only if a remote exists and the user says so.** No remote → state that the work is committed
@@ -91,9 +90,8 @@ when there is no repository to commit to. Every phase that writes ends with thes
 
 ## §Plain-language close — what just happened, and what YOU do next
 
-
 Four blocks close every phase, in this order, each under its bolded name — **printed first**, before the
-transition-guard table and the confidence score (the user meets their own language before the dialect):
+transition-guard table and the confidence score:
 
 - **What just happened** — two or three sentences. No skill names, no `#Section` references, no state
   vocabulary. What the product now has that it did not have an hour ago.
@@ -108,15 +106,16 @@ transition-guard table and the confidence score (the user meets their own langua
   (*"run 3 dinners with real bills by 2026-09-24"*). **Real-world homework belongs here and nowhere
   else** — a phase can hand back a two-week experiment, and prose under a confidence score is not a place
   a person can find it again. If there is nothing for them to do, say **"Nothing — you're done; run
-  `/<next phase>` when you're ready"**, which is also a complete answer. **It ends with the handoff:** the
+  `/<next phase>` when you're ready"**. **It ends with the handoff:** the
   phase's own *next, run `/<phase>`* line and, when `/playbook` runs the phase, its next-phase offer with its
   size and, for a long one, the start-with-room line (`/playbook` Step 2) — never after the close. **The next phase runs in
   a new conversation** (a chosen batch or chain excepted): the record is in git.
 
 The agent's own next steps go in the handoff, never in this list.
-**The close is the run's LAST message**, after the save question's answer. A composed skill's report is evidence *for* the close, never the
+**The close is the run's LAST message**, after the save. A composed skill's report is evidence *for* the close, never the
 close; one that ends on its own report (`/security-review`) runs **inside a subagent** so it cannot end
 the turn. Keep going until all four blocks are printed.
+**/vision, /scope, /plan:** the short close `set` prints wins; no **Test this yourself**.
 
 ## §Re-run semantics — a second run must not erase the first
 
@@ -138,11 +137,11 @@ forms, the within-run trigger, and the one case that may replace wholesale.
 byte-identical is indistinguishable from never having run, so it records the stop, and touches nothing in
 `PRODUCT.md`:
 
-`status.py set <phase> declined --reason "<what was missing>" --gate <the phase(s) that fill it>`
+`status.py set <phase> declined --reason "<what was missing>" --gate <the phase(s) that fill it>` - it saves, like `filled`.
 
 A *deliberate* skip of THIS phase is `status.py set <phase> overridden …`; proceeding here although an
-earlier gate is unmet is `status.py bypass …` (§Status). Each needs gate · the user's own words; the date is
-stamped. `filled ──▶ declined` is refused by `status.py`. **Before recording either, open
+earlier gate is unmet is `status.py bypass …` (§Status). Each needs gate · the reason the user picked (an
+option's fixed text, never a typed-reason question); the date is stamped. `filled ──▶ declined` is refused by `status.py`. **Before recording either, open
 `MECHANISMS-ON-DEMAND.md` §Declined runs (full)** — which one applies, what it does to `/playbook`'s routing,
 and the already-filled case.
 

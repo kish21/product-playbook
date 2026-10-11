@@ -24,6 +24,9 @@ That market comes FIRST; the rest of the world second. No market named → searc
 `local · no market named`. Then write your search list (topics below) before the first search.
 
 ## Research — ALL searches in ONE message, then open the key pages in ONE message
+**No cap on searches:** run one search per angle a topic has - the task in the local words, the players, the
+newcomers, each product, rule or date the brief names. A logged plain run's helper ran about 37 searches and found
+products and a new rule that a playbook helper's 16 missed.
 1. **Local, same job** (first) — in the named market, **in its own language(s) as well as English**: what its
    established players already offer for THIS task (name them + "AI assistant" or the task in the local words),
    and local newcomers doing it. A local-market search that only returns the big names is not this search: also
@@ -59,9 +62,13 @@ this way of working (the usual riskiest assumption), each with its link.
 **How the problem happens** — 1-3 lines: what the searches say causes the owner's problem (the mechanism), each with
 its link.
 
+**Who else, and how many** — 1-3 lines: other user groups or moments, the people inside the business who would use
+it, and the scale (how many users in the named market), each with its link. `/vision` offers them to the owner as
+options; they never change who it's for by themselves.
+
 **Sharpening insight** — one or two sentences the owner has not said: an angle, a segment, a differentiator.
 
 Rules: every claim has a link; a number you did not read on a page is not a finding; mark a guess as
 `low`; never invent a figure, a target or a bar for the owner - that is their decision.
 **Keep it compact** - the report is re-sent on every later call of the conversation: at most 12 Findings rows, each
-cell a few words; no prose outside the five blocks; no page text pasted.
+cell a few words; no prose outside the six blocks; no page text pasted.

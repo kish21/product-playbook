@@ -50,6 +50,8 @@ Each one is a decision that was never made, or never checked. So every step of t
 
 If it says `Run /reload-plugins to activate.`, run that.
 
+Windows with VS Code, installing for one project only (`--scope local` or `project`): install from the Claude Code panel inside VS Code. A terminal records the folder as `C:\...` while VS Code opens it as `c:\...`, Claude Code treats the two as different projects, and the playbook silently does not load. To check, the first line of any phase's start reads `Playbook <version>`.
+
 **2. Start with your idea** — open Claude Code in an empty folder and type:
 
 ```

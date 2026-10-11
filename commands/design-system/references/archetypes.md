@@ -50,6 +50,10 @@ the same message as these three, never after a proposal. Then map the answers to
 > WebGL. Every tier still obeys the Tier ≥ 1 guardrails (reduced-motion fallback, lazy-load, 60fps,
 > earn-its-place). Don't exceed the ceiling without re-confirming.
 >
+> **Restraint limits motion and decoration, never content.** A restraint family (Calm Authority, Data-Dense Pro …)
+> still shows charts, timelines, evidence panels and decision logs when the product's idea needs them: quiet means
+> no decorative motion and one accent, not one card on an empty page.
+>
 > **Signature moves → `references/craft.md`** — the *concrete* per-family craft gesture (or, for restraint
 > families, the deliberate *absence* of motion) lives there; loaded at Step 4 build-time. This file picks
 > the family + ceiling; `craft.md` says how to make it feel hand-crafted.
@@ -74,6 +78,7 @@ the same message as these three, never after a proposal. Then map the answers to
 - **Depth:** subtle — hairline borders + `--shadow-sm`; flat-ish, separation by border/space not big shadows.
 - **Motion:** minimal, fast (120–180ms), opacity/transform only; no decorative motion. **Motion ceiling: Tier 0.**
 - **Brands:** Linear, Stripe Dashboard, Carbon (IBM), Vercel dashboard, Datadog.
+- **Avoid here (the industry's known mistakes):** KPI tiles with no period or baseline; a chart where a sorted table answers faster; status as filled pastel pills; hover-only row actions.
 
 ### 2. Editorial Minimalism  — *marketing sites, docs, premium SaaS landing, content-forward*
 - **Use when:** read-heavy or a calm premium brand; lots of whitespace.
@@ -88,6 +93,7 @@ the same message as these three, never after a proposal. Then map the answers to
   GSAP/ScrollTrigger is in scope for tasteful scroll-reveal/parallax on a content-forward marketing site
   (behind reduced-motion + lazy-load); keep it gentle, not a carnival.
 - **Brands:** Stripe (marketing), Vercel, Notion, Linear (site), Apple editorial.
+- **Avoid here (the industry's known mistakes):** body text under 16px or lines over 75 characters; a grid of identical feature cards; a gradient hero with no product in it.
 
 ### 3. Terminal-Core / Developer  — *dev tools, infra, CLIs-with-a-UI, technical products*
 - **Use when:** developer audience; code/logs are first-class; "fast & precise" brand.
@@ -101,6 +107,7 @@ the same message as these three, never after a proposal. Then map the answers to
 - **Depth:** flat, crisp borders; minimal shadow.
 - **Motion:** snappy (100–150ms), almost utilitarian. **Motion ceiling: Tier 0.**
 - **Brands:** Vercel, Railway, Warp, Supabase, GitHub dark.
+- **Avoid here (the industry's known mistakes):** decorative code that is not real output; neon glow on body text; a log view without copy and wrap controls.
 
 ### 4. Warm Editorial / Humanist  — *media, creator, community, lifestyle SaaS*
 - **Use when:** content + personality; approachable, not corporate.
@@ -113,6 +120,7 @@ the same message as these three, never after a proposal. Then map the answers to
 - **Motion:** friendly ease, 200–300ms. **Motion ceiling: Tier 2** — GSAP scroll-reveal is OK for an
   editorial/story layout (behind reduced-motion + lazy-load).
 - **Brands:** Medium, Substack, Ghost, Airbnb-ish warmth.
+- **Avoid here (the industry's known mistakes):** stock photos of smiling teams; three fonts or more; a comment area louder than the content.
 
 ### 5. Playful Consumer  — *consumer apps, growth/gamified, B2C onboarding*
 - **Use when:** first-time consumers, mobile-first, fun > restraint.
@@ -125,6 +133,7 @@ the same message as these three, never after a proposal. Then map the answers to
 - **Motion:** lively spring/ease, 250–350ms (still transform/opacity). **Motion ceiling: Tier 1** — Framer
   Motion for delightful staggered/gesture micro-interactions (behind reduced-motion).
 - **Brands:** Duolingo, Gumroad, Cash App, Headspace.
+- **Avoid here (the industry's known mistakes):** confetti on routine actions; streak or guilt pressure in a health or money product; tap targets under 44px.
 
 ### 6. Glass / Soft Depth  — *premium consumer, AI products, "Apple-like"*
 - **Use when:** a polished, modern, slightly futuristic feel.
@@ -137,6 +146,7 @@ the same message as these three, never after a proposal. Then map the answers to
   shader accent fits the "premium/futuristic" feel, but only as a hero moment, behind reduced-motion +
   lazy-load; the app chrome stays Tier 0–1.
 - **Brands:** Arc, Raycast, Apple, Linear (accents).
+- **Avoid here (the industry's known mistakes):** text on blurred glass under AA contrast; glass on every surface instead of 1–2 layers; a purple-blue gradient as the brand.
 
 ### 7. Neo-Brutalist / Bold  — *creator tools, bold brands, statement products*
 - **Use when:** the brand wants to be loud and memorable (and the user explicitly asks for bold).
@@ -148,6 +158,7 @@ the same message as these three, never after a proposal. Then map the answers to
 - **Motion:** snappy, deliberate. **Motion ceiling: Tier 2** — a bold statement/marketing build can use
   GSAP scroll for deliberate, hard-edged motion (behind reduced-motion + lazy-load); app chrome stays Tier 0.
 - **Brands:** Gumroad (rebrand), Figma community, indie tools.
+- **Avoid here (the industry's known mistakes):** bold styling on forms, errors or money screens; offset shadows on every card; contrast sacrificed for the look.
 
 ### 8. Calm Authority / Trust  — *fintech, healthcare, gov, compliance, insurance*
 - **Use when:** trust + clarity + "we are serious and safe" matter most.
@@ -160,6 +171,7 @@ the same message as these three, never after a proposal. Then map the answers to
 - **Motion:** calm, minimal, 150–200ms. **Motion ceiling: Tier 0** — trust products stay restrained; flashy
   motion reads as unserious here.
 - **Brands:** Mercury, Wise, Ramp, Stripe, healthcare dashboards.
+- **Avoid here (the industry's known mistakes):** hiding the number behind a chart; red for anything that is not a real problem; vague reassurance copy instead of the rule or the evidence.
 
 ### 9. Bold Brand / Marketing Splash  — *simple promo / landing / brochure*
 - **⚠ Honesty boundary (Law 19):** for a *simple* pretty marketing page, this skill is overkill —
@@ -171,6 +183,7 @@ the same message as these three, never after a proposal. Then map the answers to
   `prefers-reduced-motion` with a static fallback, be lazy-loaded, hold 60fps, and serve the launch story —
   not decorate. A flashy hero that janks or has no reduced-motion path is a fail, not a win.
 - **Brands:** product launch pages, campaign microsites.
+- **Avoid here (the industry's known mistakes):** more than 1 primary action per screen; autoplay video with sound; claims with no proof next to them.
 
 ### 10. Cinematic / Media-Forward  — *video, streaming, creative tools, media review, AI-video*
 - **Use when:** the content is **media** (video/image/audio) and should be the hero; premium dark feel.
@@ -185,6 +198,7 @@ the same message as these three, never after a proposal. Then map the answers to
   in scope, for a landing/showcase moment. The dense review/player chrome (grids, timelines) stays Tier 0;
   Tier 2–3 is the marketing/hero surface only, behind reduced-motion + lazy-load + 60fps.
 - **Brands:** Frame.io, Vimeo, RunwayML, Mux, Pika.
+- **Avoid here (the industry's known mistakes):** controls that cover the media; UI chrome brighter than the content; dark mode with pure black `#000` and pure white text.
 
 ### 11. E-commerce / Retail  — *storefronts, product catalogs, marketplaces, checkout*
 - **Use when:** selling products; imagery + conversion are the job; trust + speed-to-purchase.
@@ -195,6 +209,7 @@ the same message as these three, never after a proposal. Then map the answers to
 - **Depth:** light cards, clear product hover-lift; price + primary CTA are the loudest elements. **Motion:** quick add-to-cart feedback, image hover (transform/opacity). **Motion ceiling: Tier 0** (a 3D product viewer, if the catalog needs one, is an isolated component decision — not a site-wide license).
 - **Responsive:** grid auto-fills 4→2→1; nav → hamburger; filters → drawer/sheet; **sticky buy-bar** on mobile PDP.
 - **Brands:** Shopify, Stripe checkout, Allbirds, Glossier.
+- **Avoid here (the industry's known mistakes):** fake urgency timers; a price hidden until the last step; a checkout with the site navigation still in it.
 
 ### 12. Conversational / AI-chat  — *AI assistants, copilots, chat-first products*
 - **Use when:** the core surface is a conversation / agent thread.
@@ -204,6 +219,7 @@ the same message as these three, never after a proposal. Then map the answers to
 - **Layout:** **message stream** + sticky composer; optional left thread list; **inline tool/agent cards**. **Reuse 21st.dev agent-UI primitives** (chat shell, tool-call cards, streaming markdown). **Depth:** flat; the composer is the one elevated element. **Motion:** streaming text, gentle message-in. **Motion ceiling: Tier 0.**
 - **Responsive:** thread list → drawer; full-width turns on mobile; composer pinned to bottom (safe-area).
 - **Brands:** ChatGPT, Claude, Perplexity, Linear agent UI.
+- **Avoid here (the industry's known mistakes):** an AI answer with no label or source; a spinner with no words for a wait over 2 s; a chat box as the only way to do a structured task.
 
 ### 13. Social / Feed  — *feeds, communities, creator/consumer social (mobile-first)*
 - **Use when:** an infinite feed of posts/people; consumption + light interaction.
@@ -213,6 +229,7 @@ the same message as these three, never after a proposal. Then map the answers to
 - **Layout:** **single centred feed column** (≈600px) + optional desktop side rails; **bottom-tab nav on mobile**, top-nav desktop; composer; profile. **Depth:** flat cards/dividers; media is the texture. **Motion:** like/tap micro-feedback, optimistic UI. **Motion ceiling: Tier 1** (Framer Motion for gesture/optimistic feedback; behind reduced-motion).
 - **Responsive:** desktop 3-col (nav · feed · rail) → mobile single feed + bottom tabs; rails drop first.
 - **Brands:** Instagram, Bluesky, Threads, Reddit.
+- **Avoid here (the industry's known mistakes):** infinite scroll with no end or position marker for a task flow; engagement counts louder than the post; emoji as the only icons.
 
 ---
 

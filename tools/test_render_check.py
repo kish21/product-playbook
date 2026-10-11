@@ -34,7 +34,7 @@ NAV_FIRST = HEAD + ("<nav>" + "".join(f"<a href='#'>Menu item {i}</a>" for i in 
                     + "<button>Approve and send</button></main></body></html>")
 
 
-def run(page: Path) -> tuple[int, str]:
+def run(page: Path | str) -> tuple[int, str]:
     p = subprocess.run([sys.executable, str(SCRIPT), str(page), "--main", "Approve and send"], capture_output=True,
                        text=True, encoding="utf-8", errors="replace")
     return p.returncode, p.stdout + p.stderr
@@ -75,6 +75,29 @@ def main() -> int:
         code, out = run(pages["plain-tag"])
         if code != 0:
             fails.append(f"a custom tag that draws its text should be measured and pass: {out}")
+        # 2.3 (#55): the running app by URL - a React or server-rendered page has no .html file to open
+        import functools
+        import http.server
+        import threading
+        class Quiet(http.server.SimpleHTTPRequestHandler):
+            def log_message(self, *args) -> None:  # noqa: ANN002 - no request lines in the test's output
+                pass
+        srv = http.server.ThreadingHTTPServer(("127.0.0.1", 0), functools.partial(Quiet, directory=str(d)))
+        threading.Thread(target=srv.serve_forever, daemon=True).start()
+        try:
+            port = srv.server_address[1]
+            code, out = run(f"http://127.0.0.1:{port}/good.html")
+            if code != 0 or "PASS" not in out:
+                fails.append(f"the good page served by URL should pass: {out}")
+            code, out = run(f"http://127.0.0.1:{port}/buried.html")
+            if code != 1 or "below the 812px first screen" not in out:
+                fails.append(f"the buried page served by URL should fail: {out}")
+        finally:
+            srv.shutdown()
+            srv.server_close()
+        code, out = run(f"http://127.0.0.1:{port}/good.html")  # the server is gone: the app is not running
+        if code != 3 or "NOT RUN" not in out or "start the app" not in out:
+            fails.append(f"a URL nothing answers should be NOT RUN (exit 3), never a FAIL: {out}")
     for f in fails:
         print(f"  x {f}")
     print("OK - render_check.py behaves" if not fails else f"FAIL - {len(fails)} render_check.py test(s)")

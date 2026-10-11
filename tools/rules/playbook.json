@@ -204,8 +204,8 @@
    ],
    "new": [
     "**Offer a batch only when `route` prints `Batch: legal`** (`MECHANISMS-ON-DEMAND.md` §Batch mode)",
-    "*\"Run `/foundation` alone, or `/foundation` + `/contracts` + `/tickets` as one batch? The batch still stops where a phase asks you to confirm; one commit per phase, one review at the end.\"*",
-    "A batch is long. The user's choice is a choice, not a default."
+    "*\"a) Run `/foundation` alone (Recommended: a review after each phase) · b) `/foundation` + `/contracts` + `/tickets` as one batch (it stops where a phase asks you to confirm; one commit per phase, one review at the end) · c) Other\"*",
+    "A batch is long; the user's choice is a choice, not a default."
    ]
   },
   {
@@ -225,19 +225,18 @@
     "2. **Invoke that phase's skill** (e.g. run `/vision`). Let it ask its questions and do its work."
    ],
    "new": [
-    "**Invoke that phase's skill only on the user's yes** (e.g. run `/vision`)",
-    "The phase asks its questions and does its work."
+    "The phase asks its questions and does its work;"
    ]
   },
   {
    "id": "PB19",
-   "what": "pause at the exit gate; never advance past an unmet gate",
+   "what": "never advance past an unmet gate; the exit-gate pause is replaced by the owner's 2026-10-06 ruling: the last round's answers are the go-ahead, the phase saves and its close asks \"Change anything?\" - no confirm question of /playbook's own",
    "old": [
     "3. When that skill reaches its **exit gate**, surface the result and **pause** — confirm with the user",
     "that it's right before continuing. **Never advance past an unmet gate.**"
    ],
    "new": [
-    "When it reaches its **exit gate**, surface the result and **pause** — confirm with the user that it's right before continuing. **Never advance past an unmet gate.**"
+    "its close asks *\"Change anything?\"* - add no confirm question of your own. **Never advance past an unmet gate.**"
    ]
   },
   {
@@ -351,6 +350,17 @@
    "old": [],
    "new": [
     "**Must NOT:** write a `PRODUCT.md` section, answer a phase's questions for the user, start a phase without the user's yes, or start the next phase in the same conversation."
+   ]
+  },
+  {
+   "id": "PB-LOOP",
+   "what": "2.1/2.2: the router text names the per-ticket loop route/next/show already print - /build -> /ship -> merge -> next ticket; /dev-check once every ticket of the milestone is built and shipped",
+   "old": [
+    "the next phase while a milestone in `TICKETS.md` has unrecorded tickets; Dev-check, Test and Eval stay it until"
+   ],
+   "new": [
+    "loops: `/build <ticket>` → `/ship <ticket>` (its PR) → merge → `/build` the seat's next ticket; `/dev-check` once",
+    "every ticket of the milestone is built and shipped. Dev-check, Test and Eval stay next until their verdict is `pass`."
    ]
   }
  ],

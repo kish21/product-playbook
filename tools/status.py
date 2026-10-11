@@ -13,7 +13,7 @@ dependencies, so every tool that can run a command can use it (CAPABILITIES.md).
     status.py flag [--ui yes|no] [--ai yes|no] [--agent yes|no] [--order-override REASON]
     status.py ticket ID --dod yes|no|partial --verified "CMD -> RESULT" --doc PATH [--runs N] [--review R]
     status.py release --what W --reviews R --skipped S --docs D --record C --rollback B --pr P
-    status.py drift --found F --rec R
+    status.py drift --found F --rec R [--found F2 --rec R2 ...] [--no-commit]   (saves STATUS.md and its rows only)
     status.py open --from PHASE --what W --clears C
     status.py bypass --from PHASE --gate PHASE --reason R   (proceed here although an earlier gate is unmet)
     status.py close N --how H
@@ -74,6 +74,7 @@ HOW = [
                                      "inversion, rule change, open item)"),
     ("Step 0 of a phase whose `next` names it", "rules <phase>  (its sections of PRINCIPLES.md + MECHANISMS.md)"),
     ("Step 0, the skill's own reference files", "refs <phase>  (small ones whole, a big one's headings)"),
+    ("/architect, after round 2's yes", "fields architect  (the fields file's shape; set --from-fields renders it)"),
     ("reading part of a Markdown file", 'section <file> "<heading>" ...  (word for word; intro = above the '
                                         'first heading; --own "<heading>" = without its sub-sections; --headings)'),
     ("writing a Read: receipt", 'quote <file> "<a few words from the line you used>"  (prints the line to paste)'),
@@ -81,9 +82,11 @@ HOW = [
     ("an older PRODUCT.md with a Stage: header", "migrate  (dry run) -> show the user -> migrate --write on their yes"),
     ("this phase completes (Step 3b)", "set <phase> filled   (dev-check / test / eval add --verdict pass|fail)"),
     ("this phase stops at an unmet prior gate", 'set <phase> declined --reason "<what was missing>" --gate <phase>'),
-    ("the user skips THIS phase on purpose", 'set <phase> overridden --reason "<the user\'s own words>" --gate <phase>'),
+    ("the user skips THIS phase on purpose", 'set <phase> overridden --reason "<the picked option\'s words>" --gate <phase>'),
+    ("/architect or /structure: the user says one refusal does not apply",
+     'waive --from <phase> --check "<words of that refusal>" --reason "<the picked option\'s words>"'),
     ("proceeding here although an earlier gate is unmet",
-     'bypass --from <phase> --gate <earlier phase> --reason "<the user\'s own words>"'),
+     'bypass --from <phase> --gate <earlier phase> --reason "<the picked option\'s words>"'),
     ("work started that finishes on a later date",
      'set <phase> running --due <YYYY-MM-DD> --reason "<what is measured> · pass: <the bar, plain words>"'),
     ("that work's result is in and recorded (no PENDING left)", 'set <phase> filled --note "<measured result vs bar>"'),
@@ -100,9 +103,11 @@ HOW = [
                                                         "bundle format)"),
     ("/structure makes the project run", 'prove "<lock>" "<install>" "<lint>" "<smoke test>"  (prints the evidence '
                                          'lines)'),
+    ("/foundation or /contracts, before the save", "secreview <phase>  (this phase's own code files and the "
+                                                   "review helper's prompt)"),
 ]
 DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
-MUTATING = {"set", "flag", "ticket", "release", "drift", "open", "bypass", "close"}
+MUTATING = {"set", "flag", "ticket", "release", "drift", "open", "bypass", "waive", "close"}
 
 
 class Refused(Exception):
@@ -145,6 +150,10 @@ FORMAT = "2"
 FRAG_DIR = "status"
 FRAG = {"Open items": "open", "Tickets": "tickets", "Releases": "releases", "Drift": "drift"}
 DERIVED = {"build": ("Tickets", "first ticket built"), "ship": ("Releases", "first release")}
+# 2.1 (owner): the build and ship rows read "empty" although their records exist as files. /tickets writes this static
+# Note once; it is never a running count - two developers' branches must never edit the same line.
+DERIVED_NOTE = {"build": "one file per built ticket in status/tickets/ - status.py show lists them",
+                "ship": "one file per shipped PR in status/releases/"}
 LOCK = ".status.lock"
 
 
@@ -433,6 +442,54 @@ def last_conversation(base: Path) -> str | None:
             f"(Claude Code's own total) · {m['calls']} calls · {m['working']} min working · {log.name}")
 
 
+# a ticket's cost says little when the playbook's tickets are smaller than plain's (48 for one
+# plan, 14 in M1 against plain's 8); the milestone total is the number to compare. A conversation counts for the
+# tickets it started or recorded (`--ticket <ID>`, `status.py ticket <ID>`), split evenly over their milestones.
+COST_TICKET = re.compile(r"(?:status\.py\\?[\"']?\s+ticket|--ticket)\s+(M\d+-[A-Z0-9]+-\d+)\b")
+
+
+def milestone_costs(base: Path) -> list[str]:
+    """Cost per milestone from this folder's Claude Code session logs (Claude Code's own total, written when a
+    conversation ends). One line saying so when nothing records cost."""
+    sc = session_costs()
+    logs_at = sc.project_log_dir(base) if sc is not None else None
+    if logs_at is None or not logs_at.is_dir():
+        return ["Cost per milestone: not recorded - no Claude Code conversation logs for this folder on this machine "
+                "(Codex, Cursor and Antigravity write no cost total the playbook can read)"]
+    per: dict[str, dict] = {}
+    still_open = 0
+    for log in sorted(logs_at.glob("*.jsonl")):
+        try:
+            ids = sorted(set(COST_TICKET.findall(log.read_text(encoding="utf-8", errors="replace"))))
+            own = sc.own_total(log) if ids else None
+        except (OSError, ValueError):
+            continue
+        if not ids:
+            continue
+        if not own:
+            still_open += 1
+            continue
+        mss = sorted({i.split("-")[0] for i in ids}, key=lambda m: int(m[1:]))
+        for ms in mss:
+            e = per.setdefault(ms, {"usd": 0.0, "convs": 0, "tickets": set()})
+            e["usd"] += own["total"] / len(mss)
+            e["convs"] += 1
+            e["tickets"] |= {i for i in ids if i.startswith(ms + "-")}
+    if not per:
+        return ["Cost per milestone: no finished conversation in this folder's Claude Code logs built or recorded a "
+                "ticket yet" + (f" ({still_open} still open - Claude Code writes its total when it ends)"
+                                if still_open else "")]
+    out = ["Cost per milestone (Claude Code's own totals for the conversations that built or recorded a ticket in this "
+           "folder - an API-equivalent estimate, not a bill; other tools' runs are not counted):"]
+    for ms in sorted(per, key=lambda m: int(m[1:])):
+        e = per[ms]
+        out.append(f"  {ms}: ${e['usd']:.2f} · {e['convs']} conversation(s) · {len(e['tickets'])} ticket(s): "
+                   f"{', '.join(sorted(e['tickets']))}")
+    if still_open:
+        out.append(f"  ({still_open} conversation(s) still open - not counted until Claude Code writes their total)")
+    return out
+
+
 def agent_rules() -> str:
     """Where the agent track's rules are on this install route: AGENT.md beside a copy install, else the plugin's."""
     here = Path(__file__).resolve().parent
@@ -445,8 +502,9 @@ def agent_rules() -> str:
 LEAN_PHASES = {"build", "dev-check"}
 LEAN_CLOSE = (
     "Mode: lean (Claude Code) - follow SKILL.md §Lean path only; PLAYBOOK_MODE=full runs the full procedure.",
-    "The close: the one record command §Lean path names · ask \"Save this version of your project? (yes / no)\" and "
-    "commit on a yes · then three short blocks: What just happened · What I did not check · What YOU do next.")
+    "The close: the one record command §Lean path names - it saves the project itself (never a save question) · then "
+    "three short blocks: What just happened · What I did not check · What YOU do next, ending \"Saved (commit <hash>). "
+    "Change anything?\".")
 
 
 # The question-led phases close with one `set --section-from`, which prints the rest of the close itself: their start
@@ -456,8 +514,9 @@ QUESTION_PHASES = ("vision", "scope", "plan")
 QUESTION_CLOSE = (
     "This phase closes with ONE call - `status.py set <phase> filled --section-from <file> --commit \"<one line>\"`, "
     "the section in a scratch file outside the repo (never an edit tool on PRODUCT.md): it checks the record, names "
-    "every problem at once, saves the project when the user's yes to the drafts included saving (leave `--commit` out "
-    "on a no) - no git call of your own - and prints the rest of the close.",
+    "every problem at once, saves the project (the answers to the last question round are the go-ahead: never a "
+    "separate save question; `--no-commit` only when the user said not to save) - no git call of your own - and prints "
+    "the rest of the close.",
     "Commands work in PowerShell and in bash: one command per call - no &&, tail, grep or export; never `cd <path> &&`. "
     "The same command fails 3 times: stop and tell the user what fails.",
     "An input gate: ask the skill's numbered questions, grouped as the skill groups them, before drafting anything "
@@ -511,7 +570,8 @@ CLOSE_CHECKLIST = (
     " prints the size line - no grep or wc of your own; refused, PRODUCT.md is put back",
     "  2. reconcile every number it introduced against #Vision; name a contradiction, never write over it",
     "  3. check it against decisions already recorded (§Step 3c): name both sides, ask which wins",
-    '  4. ask "Save this version of your project? (yes / no)"; commit on a yes',
+    '  4. the record call saves the project (a commit) - never a save question; `--no-commit` only when the user said '
+    'not to save',
     "  5. a verdict for every exit criterion: VERIFIED only when a command you ran in this run tests THAT criterion"
     " (a count or grep of its field) and agreed; a link, a command that checks something else, or a criterion"
     " about wording or quality (plain, clear, explained) is UNVERIFIED (judged). Never 100%; no criterion"
@@ -590,12 +650,24 @@ RULE_CHANGES = (
 
 # A5: the third choice beside re-run and keep. A logged agent test re-ran /architect 3 times and /structure 4 times
 # as whole phases, each for one changed decision.
+# /eval, /learn, /validate re-run: (what the run is, where the earlier entry stays)
+MEASURE_RERUN = {
+    "eval": ("a new measurement", "it moves to docs/evaluation.md under `## Run <its date>`, after this run's text"),
+    "learn": ("a new cycle", "it moves to docs/learnings.md under `## Cycle <its date>`, after this cycle's text"),
+    "validate": ("a new test of the bet", "the new dated entry goes under it in #Validation"),
+}
 UPDATE_ONE = ("update one decision: edit that entry (and its ADR or companion) with a dated `superseded <date>: <why>` "
               "line, then status.py set {p} filled --note \"updated: <which decision>\" (runs only this phase's check)")
 
 
 # Rule Q: provenance has exactly two values. "default taken, <anything else>" claims a choice (a logged run wrote
 # "default taken, confirmed by user" 35 times); a bare "default taken" inside a superseded note is a quotation.
+# the UI component source /architect records and /design-system builds on (a library, or plain CSS on purpose)
+COMPONENT_SOURCE = re.compile(r"(?i)\b(?:shadcn(?:/ui)?|tailwind(?: ?css)?|radix(?: ui)?|mui|material[ -]ui|chakra|"
+                              r"mantine|bootstrap|daisy ?ui|ant design|headless ?ui|bulma|vuetify|quasar|prime(?:vue|"
+                              r"react|ng)|flowbite|ark ui|park ui|angular material|skeleton ui|pico\.?css|"
+                              r"component (?:library|source|kit)|ui (?:library|kit)|plain css|vanilla css|css modules|"
+                              r"own components)\b")
 THIRD_PROVENANCE = re.compile(r"default taken, (?!not user-chosen)[a-z][a-z -]{2,30}[a-z]")
 
 
@@ -1053,25 +1125,46 @@ def contracts_doc_gaps(base: Path, body: str) -> list[str]:
         return [] if CONTRACTS_DOC in body else [f"no {CONTRACTS_DOC}: write it (the shape `next` printed)"]
     text = doc.read_text(encoding="utf-8", errors="replace")
     lines = text.splitlines()
-    h2 = [(t, "\n".join(lines[a:b])) for lvl, t, a, b in md_sections(text) if lvl == 2]
+    h2 = [(heading_key(t), "\n".join(lines[a:b])) for lvl, t, a, b in md_sections(text) if lvl == 2]  # `## 1. X`
     gaps = []
-    if not h2 or not h2[0][0].lower().startswith("overview") or "```mermaid" not in h2[0][1]:
+    if not h2 or not h2[0][0].startswith("overview") or "```mermaid" not in h2[0][1]:
         gaps.append(f"{CONTRACTS_DOC} does not start with `## Overview` holding 3-5 plain sentences and ONE ```mermaid "
                     f"erDiagram (the tables and the tenant key) - the reader's part first, the workings after it")
-    if not any("pii" in t.lower() and "|" in s for t, s in h2):
-        gaps.append(f"{CONTRACTS_DOC} has no `## PII` table (field · why kept · how long · deletion path)")
+    if not any(pii_table(s) for _, s in h2):
+        gaps.append(f"{CONTRACTS_DOC} has no personal-data table - its header row names the field, why it is kept, how "
+                    f"long and how it is deleted (any heading: `## PII`, `## Personal data`)")
     if not any(re.search(r"(?i)owner'?s?['’]?s? answers", t) for t, _ in h2):
         gaps.append(f"{CONTRACTS_DOC} has no `## Owner's answers` (round 1's answers, word for word)")
-    return gaps
+    return gaps + early_doc_layout_gaps(CONTRACTS_DOC, text)  # every heading numbered (a logged run)
+
+
+def pii_table(section: str) -> bool:
+    """A table whose header row names at least three of: the field, why it is kept, how long, how it is deleted - a
+    live run's `## Personal data` table was refused for its heading word."""
+    for line in section.splitlines():
+        if line.lstrip().startswith("|") and not set(line.strip()) <= set("|-: "):
+            head = line.lower()
+            hits = sum(bool(re.search(rx, head)) for rx in (
+                r"field|column|data|attribute|what", r"why|purpose|reason|basis|kept", r"how long|retention|keep|"
+                r"period|until|months|days", r"delet|purge|erase|remov|how .*gone"))
+            return hits >= 3  # only the first row of the first table is its header
+    return False
 
 
 RATE_WORDS = {"rate", "rates", "percent", "pct", "percentage"}
+#  (plain had it): a score compared with a bar - 0.7 + 0.1 < 0.8 is true in binary floating point. A
+# threshold-like name is warned on its own; a score, weight or ratio when the project also keeps a threshold.
+BAR_WORDS = {"threshold", "thresholds", "confidence", "probability", "prob", "cutoff", "likelihood"}
+SCORE_WORDS = {"score", "scores", "weight", "weights", "ratio"}
 
 
 def contracts_warnings(base: Path) -> list[str]:
     """A rate or percentage kept as a float (`withholding_rate: float`, `vat_rate: 0.21`): a WARNING at the close - the
-    recommended form is integer basis points (1250 = 12.50%), exact like money; never a refusal (owner)."""
+    recommended form is integer basis points (1250 = 12.50%), exact like money; never a refusal (owner). The same for
+    a score, confidence or threshold compared against a bar."""
     found: dict[str, set[str]] = {}
+    scored: dict[str, set[str]] = {}
+    scores: dict[str, set[str]] = {}
     for p in contract_files(base):
         rel, suffix = p.relative_to(base).as_posix(), p.suffix.lower()
         decl = FLOAT_DECL.get(suffix)
@@ -1084,11 +1177,22 @@ def contracts_warnings(base: Path) -> list[str]:
         if value:
             names |= {m.group(1) for line in text.splitlines()
                       for m in FLOAT_VALUE.finditer(line if suffix == ".json" else re.sub(r"(^|\s)#.*$", "", line))}
-        rates = {n for n in names if {w.lower() for w in re.findall(r"[A-Z]?[a-z]+|[A-Z]+(?![a-z])", n)} & RATE_WORDS}
+        words = lambda n: {w.lower() for w in re.findall(r"[A-Z]?[a-z]+|[A-Z]+(?![a-z])", n)}  # noqa: E731
+        rates = {n for n in names if words(n) & RATE_WORDS}
         if rates:
             found[rel] = rates
+        bars = {n for n in names if words(n) & BAR_WORDS}
+        if bars:
+            scored.setdefault(rel, set()).update(bars)
+        scores.setdefault(rel, set()).update(n for n in names if words(n) & SCORE_WORDS)
+    if scored:  # a bar exists: the scores compared with it are warned too
+        for rel, n in scores.items():
+            if n:
+                scored.setdefault(rel, set()).update(n)
     return [f"{rel} keeps a rate as a float ({', '.join(sorted(n)[:4])}) - integer basis points (1250 = 12.50%) are "
-            f"exact; a float rate times money drifts" for rel, n in sorted(found.items())]
+            f"exact; a float rate times money drifts" for rel, n in sorted(found.items())] + [
+        f"{rel} keeps a score or threshold compared exactly as a float ({', '.join(sorted(n)[:4])}) - integer basis "
+        f"points (0.78 = 7800) or a Decimal: in floats 0.7 + 0.1 < 0.8 is true" for rel, n in sorted(scored.items())]
 
 
 def contracts_gaps(base: Path, close: bool = False, doc_pending: bool = False) -> list[str]:
@@ -1177,7 +1281,8 @@ def contracts_gaps(base: Path, close: bool = False, doc_pending: bool = False) -
         if missing:
             gaps.append(f"Agent: yes - #Contracts' (Agent) field lacks {', '.join(missing)}: each AGENT.md "
                         f"§Contracts row by name, with its path or N/A - <reason>")
-    return gaps + (contracts_doc_gaps(base, body) if close and not doc_pending else [])
+    return gaps + (contracts_doc_gaps(base, body) if close and not doc_pending else []) + (
+        own_review_gaps(base, "contracts", body) if close else [])
 
 
 def earlier_gate_gaps(st: "Status", phase: str, base: Path) -> list[str]:
@@ -1285,6 +1390,30 @@ def tickets_gaps(base: Path) -> list[str]:
                 r"(?i)\b(no tickets?|skipped|not ticketed|why)\b", near):
             gaps.append(f"#Plan milestone {ms} has no ticket and TICKETS.md gives no reason (one line: '{ms}: no "
                         f"tickets - <why>')")
+    # T22 every exit criterion of a ticketed milestone is served by a ticket, or TICKETS.md says why not.
+    # Matched by number (`M1.2`), never by wording; a backlog written before the field (no ticket has it) is not held.
+    crit = exit_criteria(plan)
+    served: dict[str, set[str]] = {}
+    for tid, f in tickets.items():
+        sec = re.search(r"(?ims)^#{2,3} [^\n]*exit criterion[^\n]*$(.*?)(?=^#{2,3} |\Z)",
+                        f.read_text(encoding="utf-8", errors="replace"))
+        if sec:
+            served[tid] = set(re.findall(r"\bM\d+\.\d+\b", re.sub(r"<!--.*?-->", "", sec.group(1), flags=re.S)))
+    if served and crit:
+        known = {c for v in crit.values() for c, _ in v}
+        if none := sorted(t for t in tickets if not served.get(t) and t.split("-")[0] in crit):
+            gaps.append(f"{len(none)} ticket(s) name no #Plan exit criterion under Exit Criterion (`M1.2`, as the "
+                        f"start numbers them): {', '.join(none[:6])}{' ...' if len(none) > 6 else ''}")
+        if wrong := sorted({f"{t}:{c}" for t, cs in served.items() for c in cs if c not in known}):
+            gaps.append(f"{len(wrong)} exit criterion number(s) #Plan does not have: {', '.join(wrong[:6])}")
+        named = set().union(*served.values())
+        for ms in sorted({t.split("-")[0] for t in tickets} & set(crit), key=lambda x: int(x[1:])):
+            open_ = [c for c, _ in crit[ms] if c not in named and not re.search(
+                rf"(?im)^.*\b{re.escape(c)}\b.*\b(no tickets?|not ticketed|why|handed|skipped)\b", plan_md)]
+            if open_:
+                gaps.append(f"#Plan exit criteria {', '.join(open_)} of {ms} are served by no ticket and TICKETS.md "
+                            f"gives no reason (a ticket's Exit Criterion names it, or one line: '{open_[0]}: no "
+                            f"ticket - <why>')")
     # T7 the plan file carries its lane flow graph
     if not plan_md:
         gaps.append("no TICKETS.md (references/tickets-md.md)")
@@ -1342,6 +1471,9 @@ def ticket_shape_gaps(base: Path, files: list[Path], tickets: dict[str, Path], p
     hubs = set(re.findall(r"`([^`\s]+)`", re.search(r"(?ims)^#{2,3} [^\n]*hub files[^\n]*$(.*?)(?=^#{1,3} |\Z)",
                                                      plan_md).group(1))) if re.search(r"(?im)^#{2,3} [^\n]*hub files",
                                                                                      plan_md) else set()
+    smd = (base / "STRUCTURE.md").read_text(encoding="utf-8") if (base / "STRUCTURE.md").is_file() else ""
+    named_hubs = re.search(r"(?ims)^## Hub files\s*$(.*?)(?=^## |\Z)", smd)
+    hubs |= set(re.findall(r"`([^`\s]+)`", named_hubs.group(1))) if named_hubs else set()  # one-line registries
     writers: dict[str, list[str]] = {}
     for tid, x in texts.items():
         secs = ticket_sections(x)
@@ -1479,10 +1611,13 @@ def need_date(v: str, what: str) -> str:
 
 # ---- the next phase ---------------------------------------------------------------------------------------
 TICKET_ID = re.compile(r"`([A-Z][A-Z0-9]*-[A-Z0-9]+-\d+)`")
+# 2.1's epic tables list the ids bare ("M1-SEED-01 Seed the demo customers · M1-AUDIT-01 ..."): with only the
+# backticked form every milestone read as empty, and a logged checkpoint judged "M6" while M1 was being built
+TICKET_ID_BARE = re.compile(r"(?<![\w`-])([A-Z][A-Z0-9]*-[A-Z0-9]+-\d+)(?![\w-])")
 
 
 def milestone_plan(base: Path) -> dict[str, list[str]] | None:
-    """TICKETS.md's tickets per milestone, in order. None: no TICKETS.md."""
+    """TICKETS.md's tickets per milestone, in order (a table row's ids, backticked or bare). None: no TICKETS.md."""
     f = base / "TICKETS.md"
     if not f.exists():
         return None
@@ -1495,7 +1630,7 @@ def milestone_plan(base: Path) -> dict[str, list[str]] | None:
         elif line.startswith("## "):
             milestone = None
         elif milestone and line.startswith("|"):
-            for t in TICKET_ID.findall(line):
+            for t in TICKET_ID.findall(line) + TICKET_ID_BARE.findall(line):
                 if t not in plan[milestone]:
                     plan[milestone].append(t)
     return plan
@@ -1512,6 +1647,47 @@ def ticket_progress(st: Status) -> dict | None:
         if missing:
             return {"milestone": ms, "total": len(ids), "done": len(ids) - len(missing), "missing": missing}
     return {"milestone": None, "total": 0, "done": 0, "missing": []}
+
+
+def ticket_shipped(st: Status, tid: str, rows: dict) -> bool:
+    """A built ticket is shipped once a release row names it. A project whose release rows name no ticket at all
+    (recorded before 2.1) counts a release on or after the ticket's date."""
+    named = re.compile(rf"(?<![\w-]){re.escape(tid)}(?![\w-])")
+    rels = st.rows["Releases"]
+    if any(named.search(" ".join(x)) for x in rels):
+        return True
+    any_named = any(re.search(r"\b[A-Z][A-Z0-9]*-[A-Z0-9]+-\d+\b", " ".join(x)) for x in rels)
+    return not any_named and any(x[0] >= rows[tid][1] for x in rels)
+
+
+def ticket_flow(st: Status) -> dict | None:
+    """2.1: the step after a built ticket. Built, not shipped -> /ship <ticket>; shipped -> merge its PR, then
+    /build the seat's next ticket; every ticket of the milestone built and shipped -> /dev-check (unless it passed).
+    A logged run printed "Next: /dev-check" after the first of 14 tickets. None: nothing to say (no ticket row)."""
+    if getattr(st, "base", None) is None or not st.rows["Tickets"]:
+        return None
+    rows = {r[0]: r for r in st.rows["Tickets"]}
+    plan = milestone_plan(st.base) or {"": list(rows)}
+    dc = st.phase("dev-check")
+    for ms, ids in plan.items():
+        built = [t for t in ids if t in rows]
+        unshipped = [t for t in built if not ticket_shipped(st, t, rows)]
+        missing = [t for t in ids if t not in rows]
+        where = f" ({ms}: {len(built)} of {len(ids)} tickets built)" if ms else ""
+        if unshipped:
+            return {"phase": "ship", "arg": unshipped[0], "line": f"/ship {unshipped[0]} - built, not shipped yet: "
+                                                                  f"its PR is the next step{where}"}
+        if missing:
+            last = next((x for x in reversed(st.rows["Releases"]) if x[-1]), None)
+            pr = f" ({last[-1][:80]})" if last else ""
+            return {"phase": "build", "arg": missing[0],
+                    "line": f"/build {missing[0]} - merge the shipped PR first{pr}, then the seat's next ticket{where}; "
+                            f"not yet: {', '.join(missing[:8])}{' ...' if len(missing) > 8 else ''} (pick by "
+                            f"TICKETS.md: its Day 1 table and coordination points)"}
+        if not (dc[1] == "filled" and dc[4] == "pass"):
+            return {"phase": "dev-check", "arg": "", "line": f"/dev-check - every {ms or 'built'} ticket is built and "
+                                                              f"shipped: merge any open PR, then check the milestone"}
+    return None
 
 
 def in_checkout(base: Path, row: list[str]) -> bool:
@@ -1541,6 +1717,193 @@ def dev_check_state(st: Status) -> dict | None:
     return None
 
 
+# ---- /dev-check 2.2: a logged checkpoint judged the whole product ("M6", "1 of 48") while M1 was in progress,
+# mapped none of #Plan's exit criteria, never compared the end date with what was left, re-reviewed code /build had
+# reviewed, left both scans UNVERIFIED and spent 3 calls reading one small file each. Plain Claude did all of it. The
+# start now prints these facts; the model judges them.
+PLAN_DATE = r"(?:\d{4}-)?\d{2}-\d{2}"
+WORD_NUM = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10}
+
+
+def plan_exit_criteria(plan: str, ms: str) -> tuple[list[str], list[str]]:
+    """#Plan's exit criterion for milestone `ms` split into its clauses, and the dated notes under it (a superseded
+    line changes how a clause is met). ([], []) when #Plan names none."""
+    field, clauses, notes, inside = "", [], [], False
+    for ln in plan.splitlines():
+        if ln.startswith("- **"):
+            field, inside = ln.lower(), False
+            continue
+        m = re.match(rf"^\s{{1,4}}[-*]\s*\**{ms}\**\s*(?:[:—–]|-\s)\s*(.+)$", ln)
+        if m and "exit criteri" in field:
+            text = re.split(r"\.?\s*\bNeeds:", m.group(1))[0].strip().rstrip(".")
+            clauses += [c.strip().rstrip(".") for c in re.split(r";\s+|,\s+and\s+|\.\s+(?=[A-Z])", text) if c.strip()]
+            inside = True
+        elif inside and re.match(r"^\s{4,}[-*]\s", ln):
+            notes.append(ln.strip().lstrip("-* ").strip())
+        elif re.match(r"^\s{1,4}[-*]\s", ln):
+            inside = False
+    return clauses, notes
+
+
+def milestone_dates(plan: str, ms: str, today: str) -> tuple[str, str] | None:
+    """The milestone's start and end dates as #Plan writes them ("M1 ... (2026-10-07 → 10-20)", "M1 2026-10-05 →
+    2026-10-23"), the year filled in from the start date or today. None when #Plan gives none."""
+    for ln in plan.splitlines():
+        for seg in re.split(r"\s·\s", ln):
+            m = re.search(rf"\b{ms}\b[^\n]*?({PLAN_DATE})\s*(?:→|->|–|—|\bto\b)\s*({PLAN_DATE})", seg)
+            if not m:
+                continue
+            a, b = m.group(1), m.group(2)
+            year = a[:4] if len(a) == 10 else today[:4]
+            a = a if len(a) == 10 else f"{year}-{a}"
+            b = b if len(b) == 10 else f"{year if b >= a[5:] else int(year) + 1}-{b}"
+            if DATE.match(a) and DATE.match(b):
+                return a, b
+    return None
+
+
+def plan_capacity(plan: str) -> tuple[int, int] | None:
+    """(people, hours a week each) from #Plan's timeline: "2 people × 20 h/week", "two developers ... 15 h a week
+    each". None when it gives no such numbers."""
+    p = re.search(r"(?i)\b(\d+|" + "|".join(WORD_NUM) + r")\s+(?:people|persons|developers?|devs?|engineers?|builders?)",
+                  plan)
+    h = re.search(r"(?i)(\d+)\s*h(?:ours?)?\s*(?:/|a|per)\s*w(?:ee)?k", plan)
+    if not (p and h):
+        return None
+    n = p.group(1).lower()
+    return (int(n) if n.isdigit() else WORD_NUM[n]), int(h.group(1))
+
+
+def day_count(a: str, b: str) -> int:
+    from datetime import date
+    return (date.fromisoformat(b) - date.fromisoformat(a)).days
+
+
+def schedule_line(st: Status, ms: str, tickets: list[tuple[str, str]], plan: str) -> str:
+    """the milestone's end date against what is left, in plain words, computed - never estimated."""
+    from datetime import date, timedelta
+    dates, today = milestone_dates(plan, ms, st.today), st.today
+    left = [t for t, v in tickets if v != "done"]
+    if not dates:
+        return (f"Schedule: #Plan gives {ms} no dates - write `Schedule: no end date in #Plan` and say what is left "
+                f"({len(left)} of {len(tickets)} tickets).")
+    start, end = dates
+    rows = {r[0]: r for r in st.rows["Tickets"]}
+    built = [rows[t][1] for t, _ in tickets if t in rows and DATE.match(rows[t][1] or "")]
+    out = [f"Schedule: {ms} runs {start} → {end}; today is {today}"
+           + (f" ({day_count(today, end)} days left)" if today <= end else f" ({day_count(end, today)} days PAST its end)")
+           + f"; {len(left)} of {len(tickets)} tickets left."]
+    if today >= start:
+        spent = max(1, day_count(start, today) + 1)
+        if built and left:
+            need = round(len(left) * spent / len(built))
+            finish = (date.fromisoformat(today) + timedelta(days=need)).isoformat()
+            late = day_count(end, finish)
+            out.append(f"Pace so far: {len(built)} ticket(s) in {spent} day(s) since {start}; at that pace the rest "
+                       f"takes about {need} days, done about {finish} - "
+                       + (f"{late} days LATE." if late > 0 else "on time."))
+        elif left:
+            out.append(f"Pace so far: no ticket built in {spent} day(s) since {start}.")
+    cap = plan_capacity(plan)
+    if cap and left and today <= end:
+        hours = cap[0] * cap[1] * max(1, day_count(today, end)) / 7
+        out.append(f"Capacity left (#Plan: {cap[0]} × {cap[1]} h a week): about {round(hours)} h, so about "
+                   f"{hours / len(left):.1f} h per ticket left.")
+    out.append("#Dev-complete's `Schedule:` line says this in plain words (on time, or how late, and what would "
+               "close the gap) - a fact for the owner, never a reason to stop the run.")
+    return " ".join(out)
+
+
+SCAN_RECIPES = {"secret scan": r"secrets?|secret[-_]?scan|scan[-_]?secrets?|gitleaks|trufflehog",
+                "dependency scan": r"vuln\w*|deps?[-_]?(?:audit|scan|check)|audit[-_]?deps|dependenc\w*|pip[-_]audit|"
+                                   r"npm[-_]audit|osv\w*|safety"}
+
+
+def scan_commands(base: Path) -> dict[str, str]:
+    """The project's own secret-scan and dependency-scan commands (a just/make recipe or an npm script), by kind."""
+    names: list[tuple[str, str]] = []
+    for name, rx, fmt in (("justfile", r"(?m)^([\w-]+)(?:\s+[^:\n=]*)?:(?!=)", "just {}"),
+                          ("Justfile", r"(?m)^([\w-]+)(?:\s+[^:\n=]*)?:(?!=)", "just {}"),
+                          ("Makefile", r"(?m)^([\w-]+)\s*:(?!=)", "make {}")):
+        if (base / name).is_file():
+            names += [(m, fmt.format(m)) for m in re.findall(rx, read_text(base / name))]
+    pkg = base / "package.json"
+    if pkg.is_file():
+        try:
+            names += [(k, f"npm run {k}") for k in (json.loads(read_text(pkg)).get("scripts") or {})]
+        except ValueError:
+            pass
+    out = {}
+    for kind, rx in SCAN_RECIPES.items():
+        hit = next((cmd for n, cmd in names if re.fullmatch(rx, n, re.I)), None)
+        if hit:
+            out[kind] = hit
+    return out
+
+
+REVIEW_CODE = {".py", ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".vue", ".svelte", ".go", ".rs", ".java", ".kt",
+               ".rb", ".php", ".cs", ".swift", ".sql", ".sh", ".ps1", ".yml", ".yaml", ".toml"}
+LOCKFILES = {"package-lock.json", "pnpm-lock.yaml", "yarn.lock", "uv.lock", "poetry.lock", "Cargo.lock"}
+
+
+def security_scope(st: Status, tickets: list[tuple[str, str]]) -> tuple[list[str], dict[str, list[str]]]:
+    """the code files no /build or /ship review saw at this code, and the ones it did (ticket -> files).
+    A ticket's files are what its commits touched (their message names the ticket, as /build and /ship write them);
+    a file counts as reviewed only while it is unchanged since the ticket's last commit."""
+    base = st.base
+    files = [f for f in git(base, "ls-files").splitlines()
+             if (Path(f).suffix.lower() in REVIEW_CODE or Path(f).name.startswith("Dockerfile"))
+             and Path(f).name not in LOCKFILES and not f.startswith((FRAG_DIR + "/", "docs/"))
+             and (base / f).is_file() and (base / f).stat().st_size > 0]  # an empty __init__.py holds nothing to review
+    rows = {r[0] for r in st.rows["Tickets"]}
+    covered: dict[str, list[str]] = {}
+    seen: set[str] = set()
+    for t, _ in tickets:
+        if t not in rows:
+            continue
+        last = git(base, "log", "-1", "--format=%H", "-i", "-F", f"--grep={t}", "HEAD")
+        if not last:
+            continue
+        touched = {f for f in git(base, "log", "--format=", "--name-only", "-i", "-F", f"--grep={t}", "HEAD")
+                   .splitlines() if f}
+        changed = set(git(base, "diff", "--name-only", last, "HEAD").splitlines())
+        mine = sorted(f for f in files if f in touched and f not in changed and f not in seen)
+        if mine:
+            covered[f"{t} at {last[:7]}"] = mine
+            seen.update(mine)
+    covered.update(phase_reviews(base, files, seen))  # 2.3: /foundation's and /contracts' own reviews
+    return [f for f in files if f not in seen], covered
+
+
+def by_folder(files: list[str], per: int = 8) -> list[str]:
+    groups: dict[str, list[str]] = {}
+    for f in files:
+        d, _, n = f.rpartition("/")
+        groups.setdefault(d or ".", []).append(n)
+    return [f"  {d}/ ({len(ns)}): {', '.join(ns[:per])}{f' +{len(ns) - per} more' if len(ns) > per else ''}"
+            for d, ns in groups.items()]
+
+
+ROUTE = re.compile(r"""@\w+(?:\.\w+)*\.(get|post|put|patch|delete|api_route|route)\(\s*["']([^"']*)["']|"""
+                   r"""\b(?:app|router|server|api|routes)\.(get|post|put|patch|delete)\(\s*["'`]([^"'`]+)["'`]""")
+
+
+def code_routes(base: Path, cap: int = 40) -> list[str]:
+    """Every route the code declares (method path · file), with a router's own prefix - the live path's targets."""
+    out = []
+    for f in git(base, "ls-files").splitlines():
+        if Path(f).suffix.lower() not in {".py", ".ts", ".js", ".mjs", ".cjs"} or is_test(f):
+            continue
+        text = read_text(base / f)
+        pre = re.search(r"""APIRouter\([^)]*prefix\s*=\s*["']([^"']+)["']""", text)
+        for m in ROUTE.finditer(text):
+            meth, path = (m.group(1) or m.group(3)).upper(), m.group(2) if m.group(1) else m.group(4)
+            out.append(f"{meth} {(pre.group(1) if pre else '') + path} · {f}")
+            if len(out) >= cap:
+                return out + ["  (more - the first 40 shown)"]
+    return out
+
+
 def dev_check_gaps(st: Status) -> list[str]:
     """What a PASS needs the repo to show, the same way for every model: every ticket of the milestone recorded, done
     and merged into this checkout, and the project's full check recipe passing on this exact code. A FAIL verdict
@@ -1568,7 +1931,10 @@ def dev_check_gaps(st: Status) -> list[str]:
 DEV_CHECKS = {"the gate (the project's full checks on this code)": r"just check|make check|npm (?:run )?test|pytest|gate",
               "the live path (/run, the observable result)": r"live|/run|devserver|route|endpoint|/healthz",
               "security (each built ticket's DoD)": r"security",
-              "scope creep (against #Scope)": r"scope|creep"}
+              "scope creep (against #Scope)": r"scope|creep",
+              # a logged checkpoint left both scans UNVERIFIED because the gate did not run them
+              "the secret scan": r"secret[- ]?scan|gitleaks|trufflehog|detect-secrets|just secrets",
+              "the dependency scan": r"dependenc\w*[- ]scan|vuln|pip-audit|npm audit|osv-scanner|dependency audit"}
 SKIPPED_ON_RED = re.compile(r"(?i)(stopp?(?:ed|s)?|halt\w*|skipp?\w*)\b[^\n]{0,40}\b(on|at|after)\s+(the\s+)?"
                             r"(first\s+)?(red|fail\w*)")
 
@@ -1617,7 +1983,62 @@ def dev_check_fail_handoff(st: Status) -> str | None:
             f"PRODUCT.md, STATUS.md and git.")
 
 
-def dev_check_close_gaps(st: Status, verdict: str) -> list[str]:
+# 2.1: while a milestone is built ticket by ticket, /dev-check's FAIL ("1 of 14 built") is expected. /test,
+# /eval, /deploy and /learn each stopped for a typed override on a logged 17-phase run; now they print ONE line, go on,
+# and `set` records the override with this fixed reason - no question, no typing.
+MILESTONE_REASON = "milestone not finished - its tickets are still being built; this phase works on what is built"
+CASCADE = {"deploy": "deploying", "test": "testing", "eval": "measuring", "ship": "shipping", "learn": "learning from"}
+
+
+def milestone_unfinished(st: Status) -> dict | None:
+    """/dev-check has not passed AND the milestone it checks still has a ticket not built, not done or not merged
+    into this checkout: the gate is open only because the milestone is unfinished. None otherwise."""
+    r = st.phase("dev-check")
+    if (r[1] == "filled" and r[4] == "pass") or getattr(st, "base", None) is None:
+        return None
+    s = dev_check_state(st)
+    if s is None:
+        return None
+    done = sum(1 for _, v in s["tickets"] if v == "done")
+    if done == len(s["tickets"]):
+        return None
+    return {"milestone": s["milestone"], "done": done, "total": len(s["tickets"])}
+
+
+def gate_proceed_reason(gate: str) -> str:
+    return f"/{gate} not passed - the user chose to go on"
+
+
+def gate_note(st: Status, phase: str, gate: str) -> str:
+    """What a phase's start says about an earlier gate that has not passed: ONE plain line when the only reason is an
+    unfinished milestone (recorded by `set`, no question); otherwise ONE options question - never a typed reason."""
+    m = milestone_unfinished(st) if gate == "dev-check" else None
+    if m:
+        return (f"/dev-check says {m['milestone']} isn't finished ({m['done']} of {m['total']} tickets); "
+                f"{CASCADE.get(phase, 'working on')} what is built. Tell the user this one line and go on - no "
+                f"question: `set {phase}` records it as an override (\"{MILESTONE_REASON}\").")
+    r = st.phase(gate)
+    state = f"{r[1]}{' ' + r[4].upper() if r[4] else ''}"
+    return (f"/{gate} has not passed ({state}). Ask ONE options question: \"Stop - run /{gate} first (Recommended)\" · "
+            f"\"Proceed anyway (reason: {gate_proceed_reason(gate)})\" · \"Other\". Proceed -> `status.py bypass "
+            f"--from {phase} --gate {gate} --reason \"{gate_proceed_reason(gate)}\"`; Stop -> `status.py set {phase} "
+            f"declined --reason \"/{gate} not passed\" --gate {gate}`. Never a typed reason.")
+
+
+def record_milestone_bypass(st: Status, phase: str, today: str) -> str:
+    """`set <phase>` on a cascade phase while the milestone is unfinished: the override, recorded once, fixed text."""
+    m = milestone_unfinished(st) if phase in CASCADE else None
+    if not m or any(not o[5] and o[3].startswith("Override: bypassed /dev-check ") for o in st.rows["Open items"]):
+        return ""
+    n = new_open_id(st)
+    st.rows["Open items"].append([n, today, phase, f"Override: bypassed /dev-check — {MILESTONE_REASON} "
+                                  f"({m['milestone']}: {m['done']} of {m['total']} tickets)", bypass_clears("dev-check"),
+                                  ""])
+    return (f"\n  open item {n}: /dev-check says {m['milestone']} isn't finished ({m['done']} of {m['total']} "
+            f"tickets) - recorded as an override, no question")
+
+
+def dev_check_close_gaps(st: Status, verdict: str, security_from: str | None = None) -> list[str]:
     """P20: the checkpoint record's problems in ONE list - #Dev-complete's missing checks and, for a PASS, what the repo
     does not show. They were two refusals in turn, and neither honoured --dry-run."""
     prod = st.base / "PRODUCT.md"
@@ -1630,7 +2051,211 @@ def dev_check_close_gaps(st: Status, verdict: str) -> list[str]:
         if prod.exists():
             gaps += skipped_checks(product_sections(prod.read_text(encoding="utf-8")).get("Dev-complete", ""),
                                    DEV_CHECKS)
+    body = product_sections(prod.read_text(encoding="utf-8")).get("Dev-complete", "") if prod.exists() else ""
+    return gaps + dev_check_plan_gaps(st) + security_receipt_gaps(st.base, body, security_from)[0]
+
+
+# ---- 2.4 (parked in 2.0 for 2.x): proof the security helper ran. A checkpoint's `Security:` line could claim
+# "0 findings" with no review behind it, and nothing could tell. Now a line that claims a result needs the helper's
+# table (`--security-from <file>`): the script counts its rows per severity, compares them with the line, and keeps a
+# receipt (commit, date, counts, the table's hash) in .git/playbook-review/. UNVERIFIED is always allowed.
+SEC_LINE = re.compile(r"(?im)^\W*(?:\*\*)?security\b(?!\s*review list)[^\n]*")
+SEVERITIES = ("CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO")
+SEC_NONE = re.compile(r"(?i)\bclean\b|\bno findings?\b|\b0 findings?\b|\bnothing found\b|\bnone found\b")
+
+
+def security_lines(body: str) -> list[str]:
+    return [m.group(0).strip() for m in SEC_LINE.finditer(re.sub(r"<!--.*?-->", "", body, flags=re.S))]
+
+
+def table_counts(text: str) -> dict[str, int]:
+    """Findings per severity in a helper's table: one table row per finding, its severity word in a cell."""
+    counts = dict.fromkeys(SEVERITIES, 0)
+    for ln in text.splitlines():
+        if not ln.lstrip().startswith("|") or re.match(r"^\s*\|[\s:|-]+\|\s*$", ln):
+            continue
+        cells = [c.strip().strip("*`").upper() for c in ln.strip().strip("|").split("|")]
+        sev = next((c for c in cells if c in SEVERITIES), None)
+        if sev:
+            counts[sev] += 1
+    return counts
+
+
+def line_counts(line: str) -> dict[str, int] | None:
+    """The counts a `Security:` line states: per severity (`2 MEDIUM`, `MEDIUM 2`), a total (`3 findings`) as
+    {"TOTAL": n}, or a clean result as {"TOTAL": 0}. None when it states no count."""
+    got = {}
+    for n, sev in re.findall(r"(?i)\b(\d+)\s*(?:x\s*|×\s*)?(critical|high|medium|low|info)\b", line):
+        got[sev.upper()] = got.get(sev.upper(), 0) + int(n)
+    for sev, n in re.findall(r"(?i)\b(critical|high|medium|low|info)\s*[:=×x]?\s*(\d+)\b", line):
+        got.setdefault(sev.upper(), int(n))
+    if got:
+        return got
+    m = re.search(r"(?i)\b(\d+)\s+(?:findings?|issues?)\b", line)
+    if m:
+        return {"TOTAL": int(m.group(1))}
+    return {"TOTAL": 0} if SEC_NONE.search(line) else None
+
+
+SELF_REVIEW = re.compile(r"(?i)\bself[- ]review|\breviewed (?:it |them |the files )?myself\b|\bno helper\b")
+
+
+def in_work_tree(base: Path, f: Path) -> str:
+    """The path of `f` relative to the project when it lies in the project's files (its .git folder excepted, which
+    is never committed); "" when it is outside."""
+    try:
+        rel = f.resolve().relative_to(base.resolve())
+    except (ValueError, OSError):
+        return ""
+    return "" if rel.parts and rel.parts[0] == ".git" else rel.as_posix()
+
+
+def security_receipt_path(base: Path) -> Path | None:
+    d = git_dir(base)
+    return d / "playbook-review" / "dev-check-security.json" if d else None
+
+
+def security_receipt_gaps(base: Path, body: str, security_from: str | None) -> tuple[list[str], dict | None]:
+    """(gaps, the receipt to write). No gap when every security line says UNVERIFIED / not run."""
+    lines = security_lines(body)
+    claims = [ln for ln in lines if not CHECK_NOT_RUN.search(ln)]
+    if not claims:
+        return [], None
+    selfs = [ln for ln in claims if SELF_REVIEW.search(ln)]
+    if selfs:
+        return [f"#Dev-complete's security line claims a result from a self-review ({selfs[0][:80]!r}) - a self-review "
+                f"never signs off security: write `Security: UNVERIFIED - self-review only, <n> findings`"], None
+    head = git(base, "rev-parse", "HEAD") if git_dir(base) else ""
+    if not security_from:
+        rp = security_receipt_path(base)
+        old = json.loads(read_text(rp) or "{}") if rp and rp.is_file() else {}
+        if not old:
+            return [f"#Dev-complete's security line claims a result ({claims[0][:80]!r}) and no review table backs it - "
+                    f"pass the helper's findings table: --security-from <file> (the table it returned, saved to a "
+                    f"file outside the repo), or write `Security: UNVERIFIED - <why>`"], None
+        moved = [f for f in git(base, "diff", "--name-only", old.get("commit", ""), "HEAD").splitlines()
+                 if Path(f).suffix.lower() in REVIEW_CODE] if old.get("commit") and head else ["?"]
+        if moved:
+            return [f"the security receipt is for {old.get('commit', '?')[:9]} and {len(moved)} code file(s) changed "
+                    f"since ({', '.join(moved[:4])}) - review them again and pass --security-from <file>"], None
+        table = None
+        counts = old.get("counts", {})
+    else:
+        f = Path(security_from)
+        if not f.is_absolute():
+            f = Path.cwd() / f
+        inside = in_work_tree(base, f)
+        if inside:  # 2.4 review: a table saved in the repo gets committed - security findings on a public repo
+            return [f"--security-from {security_from} is inside the project ({inside}) - a file there gets committed "
+                    f"and shows the security findings to anyone who can read the repo: save the table to a scratch "
+                    f"file OUTSIDE the repo and pass that"], None
+        table = read_text(f) if f.is_file() else ""
+        if SELF_REVIEW.search(table):  # 2.4 review: a self-review never signs off security
+            return [f"--security-from {security_from} says it is a self-review - a self-review never signs off "
+                    f"security: write `Security: UNVERIFIED - self-review only, <n> findings` and pass no "
+                    f"--security-from (or start ONE helper and pass its table)"], None
+        if not table.strip():
+            return [f"--security-from {security_from}: no such file, or it is empty - save the helper's findings "
+                    f"table there"], None
+        counts = table_counts(table)
+        if not sum(counts.values()) and not SEC_NONE.search(table):
+            return [f"--security-from {security_from} holds no findings row (a table row with a severity: HIGH, "
+                    f"MEDIUM, LOW) and does not say CLEAN - pass the table the helper returned"], None
+    total = sum(counts.values())
+    gaps = []
+    for ln in claims:
+        said = line_counts(ln)
+        if said is None:
+            continue
+        if "TOTAL" in said and said["TOTAL"] != total:
+            gaps.append(f"#Dev-complete's security line says {said['TOTAL']} finding(s), the review table has {total} "
+                        f"({', '.join(f'{v} {k}' for k, v in counts.items() if v) or 'none'}) - say what the table says")
+        for sev, n in said.items():
+            if sev != "TOTAL" and counts.get(sev, 0) != n:
+                gaps.append(f"#Dev-complete's security line says {n} {sev}, the review table has {counts.get(sev, 0)} - "
+                            f"say what the table says")
+    receipt = None if table is None else {
+        "commit": head, "counts": {k: v for k, v in counts.items() if v},
+        "table_sha256": __import__("hashlib").sha256(table.replace("\r\n", "\n").encode("utf-8")).hexdigest()}
+    return gaps, receipt
+
+
+def write_security_receipt(base: Path, receipt: dict | None, today: str) -> str:
+    rp = security_receipt_path(base)
+    if receipt is None or rp is None:
+        return ""
+    rp.parent.mkdir(parents=True, exist_ok=True)
+    rp.write_text(json.dumps({**receipt, "date": today}, indent=1) + "\n", encoding="utf-8")
+    counts = ", ".join(f"{v} {k}" for k, v in receipt["counts"].items()) or "clean"
+    return f"\n  security receipt: {counts} at {receipt['commit'][:9]} (.git/playbook-review/)"
+
+
+HELPER_CALL = re.compile(r'"name"\s*:\s*"(?:Task|Agent)"[^\n]{0,6000}?(?i:security)')
+
+
+def security_helper_warning(base: Path, body: str) -> list[str]:
+    """Claude Code only, warn-only: the security line names a helper and the newest conversation log shows no helper
+    call about security. Other tools write no log this can read: nothing said."""
+    if not any(re.search(r"(?i)helper|subagent|/security-review", ln) and not CHECK_NOT_RUN.search(ln)
+               for ln in security_lines(body)):
+        return []
+    sc = session_costs()
+    try:
+        logs = sorted(sc.project_log_dir(base).glob("*.jsonl"), key=os.path.getmtime) if sc else []
+    except OSError:
+        logs = []
+    if not logs or HELPER_CALL.search(read_text(logs[-1])):
+        return []
+    return ["#Dev-complete says a helper ran the security review, and this conversation's log shows no helper call "
+            "about security - say how the review ran (a warning: the log can miss a call)"]
+
+
+VERDICT_WORD = re.compile(r"(?i)\bnot met\b|\bpartly\b|\bmet\b")
+UNVERIFIED_BARE = re.compile(r"(?i)\bunverified\b(?![^\n]*\b(?:because|why|no recipe|not installed|install|"
+                             r"owner-verified|no [\w-]+ (?:in|on)|needs?|missing|blocked|cannot|can't|did not|didn't|offline)\b)")
+
+
+def dev_check_plan_gaps(st: Status) -> list[str]:
+    """-3, pass or fail: #Plan names exit criteria for the milestone judged -> #Dev-complete gives them a
+    verdict (met / partly / not met); #Plan dates the milestone -> a `Schedule` line. Counted, never read for meaning."""
+    prod = st.base / "PRODUCT.md"
+    s = dev_check_state(st)
+    if not prod.exists() or s is None:
+        return []
+    secs = product_sections(prod.read_text(encoding="utf-8"))
+    body = re.sub(r"<!--.*?-->", "", secs.get("Dev-complete", ""), flags=re.S)
+    plan, gaps = secs.get("Plan", ""), []
+    clauses, _ = plan_exit_criteria(plan, s["milestone"])
+    if clauses and not VERDICT_WORD.search(body):
+        gaps.append(f"#Dev-complete maps none of {s['milestone']}'s {len(clauses)} #Plan exit criteria - one line each "
+                    f"(the start printed them): `<criterion>: met · partly · not met - <evidence>`")
+    if milestone_dates(plan, s["milestone"], st.today) and not re.search(r"(?i)\bschedule\b", body):
+        gaps.append(f"#Dev-complete has no `Schedule:` line - {s['milestone']}'s end date against the tickets left, "
+                    f"in plain words (the start computed it)")
     return gaps
+
+
+def dev_check_warnings(base: Path) -> list[str]:
+    """Warnings, never refusals (prose): fewer verdicts than #Plan's criteria, a bare UNVERIFIED with no reason."""
+    st = Status.load(base / "STATUS.md") if (base / "STATUS.md").is_file() else None
+    prod = base / "PRODUCT.md"
+    if st is None or not prod.is_file():
+        return []
+    st.base = base
+    s = dev_check_state(st)
+    secs = product_sections(prod.read_text(encoding="utf-8"))
+    body = re.sub(r"<!--.*?-->", "", secs.get("Dev-complete", ""), flags=re.S)
+    out = []
+    clauses = plan_exit_criteria(secs.get("Plan", ""), s["milestone"])[0] if s else []
+    found = len(VERDICT_WORD.findall(body))
+    if clauses and 0 < found < len(clauses):
+        out.append(f"#Dev-complete gives {found} met/partly/not-met verdict(s) for {len(clauses)} #Plan exit criteria "
+                   f"of {s['milestone']} - one line per criterion")
+    bare = [ln.strip()[:90] for ln in body.splitlines() if UNVERIFIED_BARE.search(ln)]
+    if bare:
+        out.append(f"#Dev-complete says UNVERIFIED without why on {len(bare)} line(s) (first: {bare[0]!r}) - run it, "
+                   f"or say why not (the scans: the start named their commands)")
+    return out + security_helper_warning(base, body)
 
 
 # what #Tests must show, pass or fail (the lean path's proof that the suite covers what plain Claude's covered)
@@ -1789,7 +2414,8 @@ def vision_gaps(base: Path, header: dict[str, str]) -> list[str]:
         searches = [l for l in (listed if listed is not None else lines)
                     if (re.match(r"(?:[-*]|\d+[.)])\s", l) if listed is not None
                         else "·" in l or re.search(r"(?i)\bsettled\b", l))
-                    and not l.lstrip().startswith(("|", "#")) and "no search" not in l.lower()]
+                    and not l.lstrip().startswith(("|", "#")) and "no search" not in l.lower()
+                    and not NOT_SEARCHED.match(l)]
         if not searches:
             gaps.append(f"{OWN_COMPANION['Vision']} lists no search - one line each: query · what it settled · "
                         f"<source link>")
@@ -1846,13 +2472,557 @@ def vision_gaps(base: Path, header: dict[str, str]) -> list[str]:
             gaps += [f"{OWN_COMPANION['Vision']} north-star term {r[0][:40]!r}: From is {r[2][:20]!r} - one of owner "
                      f"· proposed · searched · derived" for r in rows[1:]
                      if len(r) < 3 or not NUMBER_FROM.search(r[2])]
+        gaps += early_doc_layout_gaps(OWN_COMPANION["Vision"], doc, vision=True)
     if header.get("AI product") not in ("yes", "no") or (header.get("AI product") == "yes"
                                                          and header.get("Agent") not in ("yes", "no")):
-        gaps.append("the AI answer (question 6) is not recorded: add `--ai yes|no --agent yes|no` to this `set`")
+        gaps.append("the AI answer (the AI question) is not recorded: add `--ai yes|no --agent yes|no` to this `set`")
     for name, text in (("#Vision", body), (OWN_COMPANION["Vision"], doc)):
         if LATEX.search(text):
             gaps.append(f"{name} has LaTeX ({LATEX.search(text).group(0)}...) - plain symbols (≥ ≤ →)")
     return gaps
+
+
+# ---- the documents /vision, /scope and /plan write for a person ------------------------------
+# A logged chain's docs had 14 unnumbered sections; plain Claude numbered its own, and the owner ruled every heading is
+# numbered so a reader, a reviewer or an agent can point at "section 7". Numbering is countable: the close refuses an
+# unnumbered `##`/`###` heading. The prose rules (one idea per sentence, no dash chains, labels in footnotes) are a
+# judgement a script only estimates: they WARN, never refuse (prose checks caused false refusals before).
+NOT_SEARCHED = re.compile(r"(?i)^\W*(?:not searched\b|gap\s*·)")
+DOC_H2_OK = re.compile(r"^(?:\d+\.\s+\S|Appendix\b)")
+DOC_H3_OK = re.compile(r"^(?:\d+\.\d+\.?\s+\S|[A-Z]\.\d+\.?\s+\S)")
+DOC_PROVENANCE = re.compile(r"(?i)owner'?s claim|not opened|\(illustrative\)|\binference\b|\bderived\b|"
+                            r"page summary only|\(proposed\)|not verified")
+DOC_PLAYBOOK_WORDS = re.compile(r"(?i)\bspine\b|\bcompanion\b|\btriggers?\b|PRODUCT\.md|STATUS\.md|status\.py|#(?:Vision|Scope|Plan|"
+                                r"Validation|Architecture)\b|(?<![\w/])/(?:vision|validate|scope|plan|architect|"
+                                r"structure|tickets|build)\b")
+# "trigger" is a plain word where the phase asks for one by name: /learn records a trigger per deferred item, and a
+# deployment names what a stranger can set off. /scope's document still says "what would make us do it".
+DOC_PLAIN_HERE = {"docs/learnings.md": ("trigger", "triggers"), "docs/deployment.md": ("trigger", "triggers")}
+
+
+def doc_headings(doc: str) -> list[tuple[int, str, int]]:
+    """(level, title, line number) of every `##`/`###` heading outside a fenced code block."""
+    out, fence = [], False
+    for n, line in enumerate(doc.splitlines(), 1):
+        if line.lstrip().startswith("```"):
+            fence = not fence
+            continue
+        m = re.match(r"^(#{2,3})\s+(.*\S)\s*$", line)
+        if m and not fence:
+            out.append((len(m.group(1)), m.group(2).strip(), n))
+    return out
+
+
+def unnumbered_headings(doc: str) -> list[str]:
+    """Every `##`/`###` heading without its number: `## 1. ...`, `### 2.1 ...`, `## Appendix A — ...`, `### A.1 ...`."""
+    return [f"{'#' * lv} {t}" for lv, t, _ in doc_headings(doc)
+            if not (DOC_H2_OK if lv == 2 else DOC_H3_OK).match(t)]
+
+
+def early_doc_layout_gaps(rel: str, doc: str, vision: bool = False) -> list[str]:
+    """The countable layout of a phase document: numbered headings and, for docs/vision.md, the parts of
+    templates/vision.md a reader needs: the diagram, In/Out of scope, open questions, the brief table. ONE line
+    naming every missing part, so one rewrite fixes it."""
+    if not doc:
+        return []
+    gaps = []
+    bad = unnumbered_headings(doc)
+    if bad:
+        gaps.append(f"{rel}: {len(bad)} heading(s) without a number - `## 1. <title>`, `### 2.1 <title>`, `## Appendix "
+                    f"A — <title>`, `### A.1 <title>` (first: {bad[0][:50]!r})")
+    if not vision:
+        return gaps
+    flat = doc.lower()
+    titles = " | ".join(t.lower() for _, t, _ in doc_headings(doc))
+    missing = [what for what, ok in (
+        ("a ```mermaid diagram of how it works", "```mermaid" in flat),
+        ("an `In scope` list", re.search(r"(?im)^\W*in scope\b", doc) is not None),
+        ("an `Out of scope` list", re.search(r"(?im)^\W*out of scope\b", doc) is not None),
+        ("an `Open questions` section", "open question" in titles)) if not ok]
+    # a brief the user gave is answered point by point (fix A): the owner's answers say a brief was given
+    answers = ""
+    m = re.search(r"(?im)^#{1,6}\s.*owner'?s?['’]?s? answers.*$", doc)
+    if m:
+        nxt = re.search(r"(?m)^#{1,6}\s", doc[m.end():])
+        answers = doc[m.end():m.end() + nxt.start()] if nxt else doc[m.end():]
+    if re.search(r"(?i)\bbrief\b", answers):
+        rows = [[c.strip() for c in l.strip().strip("|").split("|")] for l in doc.splitlines()
+                if l.lstrip().startswith("|")]
+        head = next((i for i, r in enumerate(rows) if r and re.search(r"(?i)brief", r[0])), None)
+        if head is None:
+            missing.append("a `| Brief point | Our answer |` table (the owner's answers say a brief was given)")
+        else:
+            empty = [r[0][:40] for r in rows[head + 1:] if not re.fullmatch(r"[-: ]*", "".join(r))
+                     and (len(r) < 2 or not r[1].strip(" -—"))]
+            missing += [f"an answer for the brief point {e!r}" for e in empty[:3]]
+    if missing:
+        gaps.append(f"{rel} lacks " + " · ".join(missing) + " (the layout is templates/vision.md)")
+    return gaps
+
+
+def doc_body(doc: str) -> str:
+    """The reader's part of a document: everything before the appendix, without headings, tables, code and comments."""
+    doc = re.sub(r"<!--.*?-->", "", doc, flags=re.S)
+    cut = re.search(r"(?im)^##\s+(?:appendix|[A-Z]\.\s)", doc)
+    out, fence = [], False
+    for line in (doc[:cut.start()] if cut else doc).splitlines():
+        if line.lstrip().startswith("```"):
+            fence = not fence
+            continue
+        if fence or line.startswith("#") or line.lstrip().startswith("|") or re.match(r"^_.*_$", line.strip()):
+            continue
+        out.append(line)
+    return "\n".join(out)
+
+
+def early_doc_warnings(rel: str, doc: str) -> list[str]:
+    """Plain-English estimates for a phase document, warn-only: sentence length, dash chains, provenance labels
+    and playbook words in the body, links to a heading that is not there."""
+    if not doc:
+        return []
+    body = doc_body(doc)
+    warns = []
+    sentences = [x for x in re.split(r"(?<=[.!?])\s+|\n\s*[-*\d.)]+\s+|\n{2,}", body) if len(x.split()) >= 3]
+    words = [len(re.findall(r"[\w'’€$%-]+", x)) for x in sentences]
+    long = [w for w in words if w > 30]
+    if words and (sum(words) / len(words) > 18 or long):
+        warns.append(f"{rel}: sentences average {sum(words) / len(words):.0f} words, {len(long)} over 30 - one idea "
+                     f"per sentence, about 15-18 words")
+    dashes = sum(l.count(" — ") + l.count(" – ") + l.count(" · ") for l in body.splitlines())
+    if dashes:
+        warns.append(f"{rel}: {dashes} em-dash or ` · ` joins in the body - one idea per sentence instead")
+    labels = sorted({m.group(0).lower() for m in DOC_PROVENANCE.finditer(body)})
+    if labels:
+        warns.append(f"{rel}: where-it-came-from labels inside the body ({', '.join(labels[:4])}) - a footnote `[n]` "
+                     f"there, the label in the appendix")
+    words_pb = sorted({m.group(0) for m in DOC_PLAYBOOK_WORDS.finditer(body)
+                       if m.group(0).lower() not in DOC_PLAIN_HERE.get(rel, ())})
+    if words_pb:
+        warns.append(f"{rel}: playbook words a reader does not know ({', '.join(words_pb[:5])}) - say it in plain "
+                     f"words")
+    anchors = set()
+    for _, t, _ in doc_headings(doc):
+        slug = re.sub(r"[^\w\- ]", "", t.lower()).replace(" ", "-")
+        anchors.add(slug)
+    dead = [a for a in re.findall(r"\]\(#([^)\s]+)\)", doc) if a.lower() not in anchors]
+    if dead:
+        warns.append(f"{rel}: {len(dead)} link(s) to a heading that is not there (first: #{dead[0]}) - numbered headings "
+                     f"change their anchors")
+    return warns
+
+
+def early_doc_owner_numbers(doc: str) -> list[str]:
+    """an owner's number presented as a search finding - a search line that 'settles' a number the owner gave."""
+    lines = doc.splitlines()
+    listed = search_list_lines(lines) or []
+    m = re.search(r"(?im)^#{1,6}\s.*owner'?s?['’]?s? answers.*$", doc)
+    if not m:
+        return []
+    nxt = re.search(r"(?m)^#{1,6}\s", doc[m.end():])
+    answers = doc[m.end():m.end() + nxt.start()] if nxt else doc[m.end():]
+    own = {n for n in re.findall(r"\d+(?:[.,]\d+)?%?", re.sub(r"\b20\d\d\b", "", answers)) if len(n) >= 2}
+    out = []
+    for l in listed:
+        hit = [n for n in re.findall(r"\d+(?:[.,]\d+)?%?", re.sub(r"https?://\S+|\b20\d\d\b", "", l)) if n in own]
+        if hit:
+            out.append(f"search line states {hit[0]!r}, which is also the owner's answer - is it from the page, or the "
+                       f"owner's number? {l.strip()[:60]!r}")
+    return out[:3]
+
+
+def early_phase_warnings(phase: str, base: Path) -> list[str]:
+    """`set vision|scope|plan filled`: the warn-only checks of the phase's document."""
+    rel = OWN_COMPANION[phase.capitalize()]
+    f = base / rel
+    doc = f.read_text(encoding="utf-8") if f.is_file() else ""
+    warns = early_doc_warnings(rel, doc)
+    if phase == "vision":
+        warns += early_doc_owner_numbers(doc)
+    if phase == "plan":
+        warns += plan_doc_warnings(base, doc)
+    return warns
+
+
+EARLY_DOC_WARN = {"vision": early_phase_warnings, "scope": early_phase_warnings, "plan": early_phase_warnings}
+
+
+# ---- phase fields: the model types each fact ONCE, the script renders both files --------------------------
+# A logged chain wrote every early phase's content 2-3 times: a drafts message, docs/<phase>.md and a PRODUCT.md section
+# that repeated it (vision 3,121 + 878 words, scope 829 + 587). Now the run writes ONE fields file - `### <field>` and
+# its text - and `set <phase> filled --from-fields <file>` renders docs/<phase>.md from templates/<phase>.md and the
+# phase's PRODUCT.md section from templates/product-<phase>.md, from the same fields. The required-field check is
+# exact (a field is there and filled, a table row has its columns); what a script can only estimate from prose (a
+# number not marked, a missing trigger word) WARNS on this path. The API, for any phase that switches to it later:
+#   templates/product-<phase>.md  `## Fields` (one `- <name> [optional] [table: A | B] - <hint>` per field, what `next`
+#                                 prints) and `## Section` (the PRODUCT.md section, with {{slots}})
+#   templates/<phase>.md          the human document, with {{slots}}; the script numbers its headings
+#   FIELD_PHASES[phase]           (the document's path, the gap check run on the rendered files)
+#   phase_fields_text(phase)      the start's field list; set_with_fields() the close
+FIELD_SLOT = re.compile(r"\{\{(\??)((?:[^{}]|\{[^{}]*\})+)\}\}")
+FIELD_SPEC = re.compile(r"^- (?P<name>[a-z][a-z0-9 '-]*?)(?P<opt> \[optional\])?(?: \[table: (?P<cols>[^\]]+)\])?"
+                        r" - (?P<hint>.+)$")
+FIELD_EMPTY = re.compile(r"(?i)^(?:|tbd|todo|\.\.\.|…|<[^>]*>)$")  # `n/a` is an answer (the AI line), not a gap
+FIELD_NONE = re.compile(r"(?i)^(?:n/?a|none|no|-|—)\.?$")  # an answer that drops an optional section ({{?ai}})
+TABLE_RULE = re.compile(r"^\|?[\s:|-]+\|?$")
+FIELD_BUILTINS = ("product", "date", "ai note")
+# the first line every start of these phases prints (QUESTION_CLOSE's, for the fields path)
+FIELDS_CLOSE = ("This phase closes with ONE call - `status.py set <phase> filled --from-fields <file> --commit \"<one "
+                "line>\"`, the fields in a scratch file outside the repo (never an edit tool on PRODUCT.md or the "
+                "document): it renders both, checks them, names every problem at once, saves the project (the answers "
+                "to the last question round are the go-ahead: never a separate save question; `--no-commit` only when "
+                "the user said not to save) - no git call of your own - and prints the rest of the close.",
+                *QUESTION_CLOSE[1:])
+# phase -> (its document, the check `set` runs on the rendered files); lambdas: scope_gaps and plan_gaps come later
+FIELD_PHASES = {"vision": ("docs/vision.md", lambda base, st: vision_gaps(base, st.header)),
+                "scope": ("docs/scope.md", lambda base, st: scope_gaps(base, st)),
+                "plan": ("docs/plan.md", lambda base, st: plan_gaps(base, st))}
+# what a script can only estimate from free text: on the fields path these warn, never refuse (owner, 2026-10-09:
+# prose rules are warn-only; they caused false refusals). Everything else `set` checks stays a refusal.
+PROSE_GAPS = {
+    "vision": (r"worked example has no numbers", r"homepage for a fact"),
+    "scope": (r"names more than one thing", r"N/A with no reason", r"deferred with no trigger",
+              r"Deferred item with no trigger", r"is not in #Vision and not marked", r"carried from #Vision"),
+    "plan": (r"the Timeline has no capacity", r"state numbers that are not in", r"constraint .* has no line in #Plan"),
+}
+
+
+def field_key(name: str) -> str:
+    """A field's name as typed by any model: `### Why now:`, `### why_now`, `### `why-now` [optional]` are one."""
+    name = re.split(r"\s+\[|\s+-\s", name.replace("`", "").strip(), maxsplit=1)[0]
+    return " ".join(re.sub(r"[^a-z0-9' ]", " ", name.lower().replace("_", " ").replace("-", " ")).split())
+
+
+def phase_spec(phase: str) -> dict:
+    """templates/product-<phase>.md read into {fields: [{name, optional, cols, hint}], section: text} + the layout."""
+    f, doc = tool_file("templates", f"product-{phase}.md"), tool_file("templates", f"{phase}.md")
+    if f is None or doc is None:
+        raise Refused(f"the playbook install lacks templates/product-{phase}.md or templates/{phase}.md - reinstall it")
+    text = re.sub(r"<!--.*?-->", "", f.read_text(encoding="utf-8"), flags=re.S)
+    head, _, section = text.partition("\n## Section")
+    fields = []
+    for line in head.splitlines():
+        m = FIELD_SPEC.match(line.strip())
+        if m:
+            fields.append({"name": field_key(m.group("name")), "optional": bool(m.group("opt")), "hint": m.group("hint"),
+                           "cols": [c.strip() for c in m.group("cols").split("|")] if m.group("cols") else []})
+    layout = re.sub(r"^\s*<!--.*?-->\s*", "", doc.read_text(encoding="utf-8"), count=1, flags=re.S)
+    return {"fields": fields, "by": {x["name"]: x for x in fields}, "section": section.strip("\n"), "doc": layout}
+
+
+def read_fields(src: Path, spec: dict) -> tuple[dict[str, str], list[str]]:
+    """The fields file: `### <field>` + its text (Markdown, any model), or a JSON object (name -> text, a list of
+    lines, or a list of rows). Returns the fields and the problems: unknown names, a field written twice."""
+    import json as _json
+    text = src.read_text(encoding="utf-8").replace("\r\n", "\n")
+    out: dict[str, str] = {}
+    probs: list[str] = []
+    if text.lstrip().startswith("{"):
+        try:
+            data = _json.loads(text)
+        except ValueError as e:
+            raise Refused(f"--from-fields {src}: not readable JSON ({e}) - or write `### <field>` blocks")
+        for k, v in data.items():
+            key = field_key(str(k))
+            if isinstance(v, list):
+                v = "\n".join(("| " + " | ".join(str(c) for c in (r.values() if isinstance(r, dict) else r)) + " |")
+                              if isinstance(r, (list, dict)) else str(r) for r in v)
+            out[key] = str(v if v is not None else "").strip("\n")
+    else:
+        key, buf, fence = None, [], False
+        for line in text.split("\n") + ["### "]:
+            if line.lstrip().startswith("```"):
+                fence = not fence
+            m = None if fence else re.match(r"^#{2,3}\s+(.*)$", line)
+            if m:
+                if key is not None:
+                    if key in out:
+                        probs.append(f"`### {key}` is written twice - one block per field")
+                    out[key] = "\n".join(buf).strip("\n")
+                key, buf = field_key(m.group(1)), []
+                if key == "" and line != "### ":
+                    probs.append(f"a heading with no field name: {line.strip()[:40]!r}")
+                continue
+            if key is not None:
+                buf.append(line)
+        out.pop("", None)
+    probs += [f"unknown field `### {k}` - the fields are the ones `next` printed"
+              + (" (the script writes this one)" if k in FIELD_BUILTINS else "") for k in out if k not in spec["by"]]
+    return {k: v for k, v in out.items() if k in spec["by"]}, probs
+
+
+def field_rows(raw: str, cols: list[str]) -> tuple[list[list[str]], list[str]]:
+    """A table field's rows (a header row and the |---| rule skipped); problems: a row with the wrong number of
+    cells, a line that is not a row."""
+    rows, probs = [], []
+    lines = [l.strip() for l in raw.split("\n") if l.strip()]
+    for i, l in enumerate(lines):
+        if TABLE_RULE.match(l) and "-" in l:
+            continue
+        if not l.startswith("|"):
+            probs.append(f"not a table row: {l[:60]!r} - one `| {' | '.join(cols)} |` row per item")
+            continue
+        cells = [c.strip().replace("\\|", "|") for c in re.split(r"(?<!\\)\|", l.strip().strip("|"))]
+        if (i + 1 < len(lines) and TABLE_RULE.match(lines[i + 1]) and "-" in lines[i + 1]) or \
+                [c.lower() for c in cells] == [c.lower() for c in cols]:
+            continue  # the header the model copied
+        if len(cells) != len(cols):
+            probs.append(f"a row with {len(cells)} cell(s), the columns are `| {' | '.join(cols)} |`: {l[:60]!r}")
+            continue
+        rows.append(cells)
+    return rows, probs
+
+
+def field_gaps(spec: dict, fields: dict[str, str]) -> list[str]:
+    """The required-field check: every field that is not [optional] is there and filled, and every table row
+    has its columns and no blank cell - ONE list, every gap once."""
+    gaps = []
+    for f in spec["fields"]:
+        raw = fields.get(f["name"], "")
+        where = f"`### {f['name']}`"
+        if not f["cols"]:
+            if not f["optional"] and FIELD_EMPTY.match(raw.strip()):
+                gaps.append(f"{where} {'is empty' if f['name'] in fields else 'is missing'} - {f['hint'][:240]}")
+            continue
+        rows, probs = field_rows(raw, f["cols"])
+        gaps += [f"{where}: {p}" for p in probs]
+        if not rows and not f["optional"] and not probs:
+            gaps.append(f"{where} {'has no row' if f['name'] in fields else 'is missing'} - one `| "
+                        f"{' | '.join(f['cols'])} |` row per item: {f['hint'][:240]}")
+        for r in rows:
+            blank = [c for c, v in zip(f["cols"], r) if FIELD_EMPTY.match(v)]
+            if blank:
+                gaps.append(f"{where} row {r[0][:30]!r}: {', '.join(blank)} is blank")
+    return gaps
+
+
+def field_value(expr: str, spec: dict, fields: dict[str, str], ctx: dict[str, str]) -> tuple[str, bool]:
+    """One {{slot}}'s text and whether it may be empty (an [optional] field or a builtin)."""
+    name, _, mod = expr.partition(":")
+    key = field_key(name)
+    if key in ctx:
+        return ctx[key], True
+    f = spec["by"].get(key)
+    if f is None:
+        raise Refused(f"the playbook's template names a field it does not list: {{{{{expr}}}}} - reinstall it")
+    raw = fields.get(key, "").strip("\n")
+    if f["cols"]:
+        rows = field_rows(raw, f["cols"])[0]
+        if mod.startswith("each:"):
+            return "\n".join(fill_row(mod[5:], r) for r in rows), f["optional"]
+        return "\n".join("| " + " | ".join(c.replace("|", "\\|") for c in r) + " |" for r in rows), f["optional"]
+    lines = [l.rstrip() for l in raw.split("\n")]
+    nonblank = [i for i, l in enumerate(lines) if l.strip()]
+    plain = lambda s: re.sub(r"^(?:[-*]|\d+[.)])\s+", "", s.strip()).replace("**", "")  # noqa: E731  (it sits in **..**)
+    if mod == "first":
+        return (plain(lines[nonblank[0]]) if nonblank else ""), f["optional"]
+    if mod == "rest":
+        return ("\n".join(lines[nonblank[0] + 1:]).strip("\n") if nonblank else ""), f["optional"]
+    if mod == "line":
+        return plain(" ".join(l.strip() for l in lines if l.strip())), f["optional"]
+    return raw, f["optional"]
+
+
+def fill_row(pattern: str, row: list[str]) -> str:
+    """`{n}` = column n of the row; `{n:list}` = its `;`-separated parts, one sub-bullet each; `\\n` = a new line."""
+    def cell(m: re.Match) -> str:
+        v = row[int(m.group(1)) - 1] if 0 < int(m.group(1)) <= len(row) else ""
+        if m.group(2) == "list":
+            parts = [p.strip() for p in re.split(r";\s*", v) if p.strip()]
+            return "".join(f"\n  - {p}" for p in parts) if len(parts) > 1 else f" {v}"
+        return v
+    return re.sub(r"\{(\d+)(?::(list))?\}", cell, pattern.replace("\\n", "\n"))
+
+
+def render_fields(template: str, spec: dict, fields: dict[str, str], ctx: dict[str, str]) -> str:
+    """The template with every {{slot}} filled. A heading ending `{{?slot}}` goes, with everything under it, when the
+    slot is empty or n/a; a line whose optional slot is empty goes."""
+    out: list[str] = []
+    drop_level = 0
+    for line in template.split("\n"):
+        h = re.match(r"^(#{1,6})\s", line)
+        if h and drop_level and len(h.group(1)) <= drop_level:
+            drop_level = 0
+        if drop_level:
+            continue
+        cond = re.search(r"\s*\{\{\?((?:[^{}]|\{[^{}]*\})+)\}\}\s*$", line) if h else None
+        if cond:
+            val, _ = field_value(cond.group(1), spec, fields, ctx)
+            if not val.strip() or FIELD_NONE.match(val.strip()):
+                drop_level = len(h.group(1))
+                continue
+            line = line[:cond.start()]
+        slots = list(FIELD_SLOT.finditer(line))
+        vals = [field_value(m.group(2), spec, fields, ctx) for m in slots]
+        if any(o and not v.strip() for v, o in vals):
+            continue
+        it = iter(v for v, _ in vals)
+        out.append(FIELD_SLOT.sub(lambda m: next(it), line) if slots else line)
+    lines, fence = [], False
+    for line in "\n".join(out).split("\n"):
+        if line.lstrip().startswith("```"):
+            fence = not fence
+        if not fence and line.startswith("#") and lines and lines[-1].strip() and not lines[-1].startswith("#"):
+            lines.append("")  # a heading after a dropped section keeps its blank line
+        lines.append(line.rstrip())
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip("\n") + "\n"
+
+
+def number_headings(doc: str) -> str:
+    """Every `##`/`###` heading numbered in order - `## 3. ...`, `### 3.1 ...`, `## Appendix A — ...`,
+    `### A.1 ...` - so a section the render dropped leaves no gap and a reader can point at "section 7"."""
+    out, fence, sec, sub, app, letter = [], False, 0, 0, False, ""
+    for line in doc.split("\n"):
+        if line.lstrip().startswith("```"):
+            fence = not fence
+        m = None if fence else re.match(r"^(#{2,3})\s+(.*)$", line)
+        if not m:
+            out.append(line)
+            continue
+        title = m.group(2).strip()
+        if len(m.group(1)) == 2:
+            sub = 0
+            a = re.match(r"^Appendix\s+[A-Z]?\s*[—–-]?\s*(.*)$", title)
+            if a:
+                letter = chr(ord(letter) + 1) if letter else "A"
+                app = True
+                out.append(f"## Appendix {letter} — {a.group(1).strip()}")
+                continue
+            app, sec = False, sec + 1
+            title = re.sub(r"^\d+\.\s+", "", title)
+            out.append(f"## {sec}. {title}")
+            continue
+        sub += 1
+        title = re.sub(r"^(?:\d+(?:\.\d+)+\.?|[A-Z]\.\d+\.?)\s+", "", title)
+        out.append(f"### {letter if app else sec}.{sub} {title}")
+    return "\n".join(out)
+
+
+def product_header(name: str) -> str:
+    """A new PRODUCT.md: the title and the project policy only - a section appears when its phase finishes, so
+    no phase re-sends ~1,500 words of empty placeholders."""
+    tpl = tool_file("templates", "PRODUCT.md")
+    text = tpl.read_text(encoding="utf-8") if tpl else "# PRODUCT — <product name>\n"
+    start = text.find("# PRODUCT")
+    secs = [m.start() for m in re.finditer(r"(?m)^## ", text)]
+    policy = next((i for i in secs if text.startswith("## Project policy", i)), None)
+    end = next((i for i in secs if policy is not None and i > policy), len(text))
+    head = text[max(start, 0):end].replace("<product name>", name or "<product name>")
+    return head.rstrip("\n") + "\n"
+
+
+def phase_fields_text(phase: str) -> str:
+    """The start's lines for the fields file: what to write and how - the run never opens a template."""
+    spec = phase_spec(phase)
+    doc, sec = FIELD_PHASES[phase][0], PHASE_SECTION[phase]
+    lines = [f"  - Write ONE fields file, in a scratch file outside the repo: `### <field>` on its own line, its text "
+             f"under it, for every field below (`[optional]` may be left out; `[table: ...]`: one `| a | b |` row per "
+             f"item, the columns in that order). `set {phase} filled --from-fields <file>` renders {doc} and "
+             f"PRODUCT.md#{sec} from it, each fact typed once - never write either file yourself, never open a "
+             f"template. Plain words for a newcomer: a field's first line is its takeaway; one idea per sentence, none "
+             f"over 30 words; no em-dash or ` · ` chains in prose; explain a rule or term the first time; where a "
+             f"fact came from is a footnote [n]; no playbook words (PRODUCT.md, #{sec}, a command name):"]
+    lines += [f"      ### {f['name']}{' [optional]' if f['optional'] else ''}"
+              f"{' [table: ' + ' | '.join(f['cols']) + ']' if f['cols'] else ''} - {f['hint']}" for f in spec["fields"]]
+    return "\n".join(lines)
+
+
+def split_prose_gaps(phase: str, gaps: list[str], covered: tuple = ()) -> tuple[list[str], list[str]]:
+    """(refusals, warnings): on the fields path a prose estimate warns (PROSE_GAPS). /plan: a #Scope table stake in
+    now that the `coverage` table gives a milestone is covered - its exit-criterion wording match only warns."""
+    rx = PROSE_GAPS.get(phase, ()) + tuple(rf"table stake {re.escape(repr(c))} is in now" for c in covered)
+    warn = [g for g in gaps if any(re.search(r, g) for r in rx)]
+    return [g for g in gaps if g not in warn], warn
+
+
+def plan_covered(st: "Status", fields: dict[str, str], spec: dict) -> tuple:
+    """The #Scope table stakes the plan's `coverage` table puts in a milestone (a row naming it, an M<n> beside it)."""
+    rows = field_rows(fields.get("coverage", ""), spec["by"]["coverage"]["cols"])[0] if "coverage" in spec["by"] else []
+    return tuple(what.split(" - ")[0].split(" (")[0] for what, rx in scope_stakes(st.header)
+                 if any(re.search(rx, r[0], re.I) and re.search(r"\bM\d+\b", r[1]) for r in rows))
+
+
+def add_read_receipts(body: str, read: str) -> str:
+    """The `read` field: an input file the run opened itself beyond what `next` printed, one receipt per line as
+    `status.py quote` prints it. Added under the section's `Read:` line (after README.md's on /vision); `set` then
+    checks each quote against its file, as on every receipt."""
+    lines = [re.sub(r"^[-*]\s+", "", l.strip()) for l in read.splitlines() if l.strip()]
+    if not lines:
+        return body
+    subs = "".join("\n  - " + l for l in lines)
+    m = re.search(r"(?m)^(- \*\*Read \(file · date · verbatim quote\):\*\*)[ \t]*(.*)$", body)
+    if m is None:
+        return body.rstrip("\n") + "\n- **Read (file · date · verbatim quote):**" + subs + "\n"
+    head = m.group(1) + ("" if m.group(2).lower().startswith("none") else " " + m.group(2))
+    return body[:m.start()] + head + subs + body[m.end():]
+
+
+def set_with_fields(st: "Status", a, today: str, prod: Path) -> str:
+    """`set <phase> filled --from-fields <file>`: render docs/<phase>.md and the PRODUCT.md section from ONE fields
+    file, check both, record the phase - a refusal puts both files back. Every gap in one list (P20)."""
+    phase = a.phase
+    if a.state != "filled":
+        raise Refused(f"--from-fields records a filled phase: `set {phase} filled --from-fields <file>`")
+    src = Path(a.from_fields)
+    if not src.is_file():
+        raise Refused(f"--from-fields {src}: no such file")
+    base, (rel, gap_check) = prod.resolve().parent, FIELD_PHASES[phase]
+    created = phase == CHAIN[0] and not prod.is_file()
+    if not prod.is_file() and not created:
+        raise Refused(f"--from-fields needs {prod.name} - run the earlier phases first (no {prod.name} here)")
+    spec = phase_spec(phase)
+    fields, probs = read_fields(src, spec)
+    probs += field_gaps(spec, fields)
+    ctx = {"product": st.product or base.name, "date": today,
+           "ai note": "chosen when the architecture is decided (a free local model or a paid API); every milestone "
+                      "works with either." if st.header.get("AI product") == "yes" else ""}
+    doc = number_headings(render_fields(spec["doc"], spec, fields, ctx))
+    body = render_fields(spec["section"], spec, fields, ctx)
+    sec = PHASE_SECTION[phase]
+    if phase == "vision":
+        body, a.purpose = vision_bookkeeping(base, body, today)
+    else:
+        body = read_line_default(body)
+    body = add_read_receipts(body, fields.get("read", ""))
+    body, split = reflow(body)
+    doc_path = base / rel
+    old_prod = None if created else prod.read_text(encoding="utf-8")
+    old_doc = doc_path.read_text(encoding="utf-8") if doc_path.is_file() else None
+    made_dir = not doc_path.parent.is_dir()
+    doc_path.parent.mkdir(parents=True, exist_ok=True)
+    doc_path.write_text(doc, encoding="utf-8", newline="\n")
+    prod.write_text(replace_section(product_header(st.product) if created else old_prod, sec, body), encoding="utf-8",
+                    newline="")
+    a.fields_path = True
+    a.covered = plan_covered(st, fields, spec) if phase == "plan" else ()
+
+    def put_back() -> None:
+        if created:
+            prod.unlink(missing_ok=True)
+        else:
+            prod.write_text(old_prod, encoding="utf-8", newline="")
+        if old_doc is None:
+            doc_path.unlink(missing_ok=True)
+            if made_dir:
+                doc_path.parent.rmdir()
+        else:
+            doc_path.write_text(old_doc, encoding="utf-8", newline="")
+
+    try:
+        if probs:  # the field gaps and the rendered files' own gaps, in ONE list
+            hard, _ = split_prose_gaps(phase, gap_check(base, st), a.covered)
+            hard = [g for g in hard if not re.match(r"#\w+ field empty|#\w+: no fields found", g)]
+            allg = list(dict.fromkeys(probs + hard))
+            head = f"{len(allg)} gap(s)" + (" the record call would refuse" if getattr(a, "dry_run", False) else "")
+            text = f"{head} - the fields file {src.name}:\n  - " + "\n  - ".join(allg)
+            raise DryRun(text) if getattr(a, "dry_run", False) else Refused(f"#{phase}: {text}")
+        msg = cmd_set(st, a, today)
+    except Refused:
+        put_back()
+        raise
+    return msg + (f"\nwrote {rel} and #{sec} from {src.name} ({len(fields)} fields)"
+                  + (" into a new PRODUCT.md (the title and the project policy, then this section)" if created else "")
+                  + (f" (wrapped {split} long line(s) at sentence ends, every word kept - nothing to do)" if split
+                     else ""))
 
 
 TEST_CHECKS = {"the live path (the running app, the observable result)": r"live|/run|devserver|route|endpoint|/healthz",
@@ -1867,6 +3037,13 @@ def tests_gaps(st: Status, verdict: str) -> list[str]:
     sec = product_sections(prod.read_text(encoding="utf-8")).get("Tests", "") if prod.is_file() else ""
     body = re.sub(r"<!--.*?-->", "", sec, flags=re.S)
     gaps = [f"#Tests has no line for {what}" for what, rx in TEST_CHECKS.items() if not re.search(rf"(?i){rx}", body)]
+    #  (2.4): the person's document numbers every heading, as /vision's, /scope's and /plan's do (templates/tests.md).
+    # 2.4 review: `set` numbers a heading without one, as /validate /eval /learn /deploy do (companion_prep) - written
+    # with the record, never on a refusal or a dry run; a refusal and a rewrite for it cost a turn
+    doc = read_text(st.base / OWN_COMPANION["Tests"])
+    numbered = number_missing(doc) if doc else doc
+    gaps += [g + " (the layout is templates/tests.md)"
+             for g in early_doc_layout_gaps(OWN_COMPANION["Tests"], numbered)]
     if outside_files(st.base) and not re.search(r"(?im)^\W*outside-service reach\b", body):
         gaps.append("#Tests has no `Outside-service reach:` line - name the tests proving each outside-service file uses "
                     "the fake or refuses when the app starts as the project runs it (or the bug they exposed)")
@@ -1887,6 +3064,85 @@ GUARD_CODE = re.compile(r"(?i)(^|/)(guards?|sanitiz\w*|escap\w*|redact\w*|polic(
                         r"injection|firewall|validators?)(/|\.|_)")
 
 
+# a logged /test followed its checklist and found no new bug; plain probed each module and found five -
+# an ID regex passing non-ASCII digits, a health check saying ok on a store with no tables, two migrations racing, a
+# connection left open when setup failed, a caller field overwriting a log record's own. The probes, and where the
+# code shows each one applies (a file list, so the run probes there first).
+NO_ASCII_FLAG = re.compile(r"re\.(?:ASCII|A)\b|\(\?a")
+DEFECT_PROBES = (
+    ("input domains: empty, one item, each number's boundaries (0, 1, the limits), the longest value; dates: a leap "
+     "day, New Year, a month end", re.compile(r"\bdatetime\b|\btimedelta\b|\bdate\.today\b|new Date\(")),
+    ("Python `\\d` also matches non-ASCII digits (chr(0x0661) passes `\\d{5}`) unless re.ASCII or [0-9] - feed them to "
+     "every ID or format check", re.compile(r"""["'][^"'\n]*\\d""")),
+    ("does ok really mean usable: start on an empty or unmigrated store and expect the health check to say NOT ok",
+     re.compile(r"(?i)health|readyz|liveness")),
+    ("two at once: two processes migrating together, a migration while the app starts (a version read before the "
+     "lock is a race)", re.compile(r"(?i)\bdef migrate|\bmigrat\w*\(|alembic|schema_version")),
+    ("cleanup on failure: make setup fail after a connection, file or process opened, and assert it was closed",
+     re.compile(r"(?i)\bdef (?:connect|open)\w*|\.connect\(|createPool|new Pool\(")),
+    ("a caller-supplied field named like one the code sets itself (a log record's event, level, time) must not "
+     "overwrite it", re.compile(r"\*\*(?:extra|fields|kwargs)\b|\.update\((?:extra|fields|kwargs)\)|\.\.\.(?:extra|fields)\b")),
+)
+GENERATOR = re.compile(r"(?i)(^|/)[^/]*(seed|fake|generat|synth|population|factor(y|ies))[^/]*\.(py|ts|js)$")
+SHELL_OUT = re.compile(r"\bsubprocess\.(?:run|Popen|call|check_call|check_output)\(|\bos\.system\(|"
+                       r"create_subprocess_(?:exec|shell)\(|\bexecSync\(|\bexecFileSync\(|\bspawn(?:Sync)?\(|\bexeca\(")
+SHELL_TOOL = re.compile(r"""(?:(?:run|Popen|call|check_output|exec|spawn|spawnSync|execa|execFileSync|which)\(\s*\[?\s*)"""
+                        r"""["']([A-Za-z][\w.+-]{1,30})["']""")
+
+
+def test_edit_cmd(base: Path) -> str:
+    """The one command a /test run uses while writing (checks nobody asked for ran 5 times, ~673K)."""
+    if (base / "pyproject.toml").is_file() or (base / "pytest.ini").is_file():
+        return ("uv run pytest" if (base / "uv.lock").is_file() else "python -m pytest") + " <the test file> -q"
+    pkg = read_text(base / "package.json")
+    for tool, cmd in (("vitest", "npx vitest run <the test file>"), ("jest", "npx jest <the test file>")):
+        if tool in pkg:
+            return cmd
+    return "the project's test runner on <the test file> alone"
+
+
+def test_hunt_text(code: list[tuple[str, str]], tests_text: str) -> list[str]:
+    """The defect hunt, the generated-data pin and the faked command-line tools - each with the files the code shows
+    (`code`: the non-test source files as (path, text))."""
+    probes = []
+    for i, (what, rx) in enumerate(DEFECT_PROBES):
+        hits = [rel for rel, t in code if rx.search(t)
+                and (i != 1 or (rel.endswith(".py") and not NO_ASCII_FLAG.search(t)))]
+        if i == 0 or hits:  # input domains always; the rest where the code shows them
+            probes.append(f"  - {what}" + (f" - here: {', '.join(hits[:6])}" if hits else ""))
+    out = ["Defect hunt - after the checklist cases, probe each built module for bugs nobody filed yet (a logged run "
+           "that only followed its checklist found 0 new bugs; probing the same code found 5). The probes, and where "
+           "this code shows each one:\n" + "\n".join(probes) + "\n  A probe that finds a bug: an expected-failure "
+           "test naming the issue you file. #Tests carries `Defect hunt:` - the probes run and what each found "
+           "(`none found` is a result)."]
+    gens = [rel for rel, _ in code if GENERATOR.search(rel)]
+    if gens:
+        pinned = re.search(r"\bsha256\b|\bhashlib\b|\bmd5\b|createHash\(", tests_text)
+        out.append(f"Generated data - {', '.join(gens[:6])}: " + (
+            "a test already hashes an output; check it covers each generator above" if pinned else
+            "a regression test pins it: generate a small output (5 records) with a fixed seed, hash a stable form "
+            "(sorted keys) and assert the hash, so a change to the generator shows red and is updated on purpose"))
+    shells = {rel: sorted({m.group(1) for m in SHELL_TOOL.finditer(t)})[:6] for rel, t in code if SHELL_OUT.search(t)}
+    if shells:
+        out.append("Command-line tools the code runs - " + "; ".join(f"{f}{' (' + ', '.join(v) + ')' if v else ''}"
+                                                                   for f, v in list(shells.items())[:8])
+                   + ": like an outside service, each test puts the tool behind a recording fake (a fake executable "
+                     "first on PATH, or the runner passed in) and asserts the arguments, the call order, a non-zero "
+                     "exit and a missing tool - never the real tool.")
+    return out
+
+
+def test_warnings(base: Path) -> list[str]:
+    """`set test filled` warns (never refuses) when #Tests names no defect hunt."""
+    sec = product_sections(read_text(base / "PRODUCT.md")).get("Tests", "")
+    #  (2.4): docs/tests.md in plain English - warn only (owner 2026-10-09: prose rules stay warnings)
+    out = early_doc_warnings(OWN_COMPANION["Tests"], read_text(base / OWN_COMPANION["Tests"]))
+    if re.search(r"(?i)defect[- ]hunt", sec):
+        return out
+    return ["#Tests has no `Defect hunt:` line - the probes the start listed (input domains, two at once, cleanup on "
+            "failure, health means usable) and what each found; `none found` is a result"] + out
+
+
 def test_start_text(st: Status) -> str:
     """/test's start: the built tickets and the files they changed, where the suite points, each ticket's security
     surface, and the gate + live-path commands - what a plain run spends its first calls discovering."""
@@ -1898,7 +3154,8 @@ def test_start_text(st: Status) -> str:
     if pre:
         parts.append(pre)
     dc, tt = st.phase("dev-check"), st.phase("test")
-    parts.append(f"Dev check: {dc[1]}{' - not verified: warn, and record an override (status.py bypass)' if dc[1] != 'filled' else ''}"
+    passed = dc[1] == "filled" and dc[4] == "pass"
+    parts.append(f"Dev check: {dc[1]}{' ' + dc[4] if dc[4] else ''}{' - ' + gate_note(st, 'test', 'dev-check') if not passed else ''}"
                  f" · #Tests: {tt[1]}{' - a RE-RUN: see the RE-RUN line above' if tt[1] == 'filled' else ''}")
     if not rows:
         parts.append("! no built ticket in this checkout - nothing to test yet: run /build first (or say what to test)")
@@ -1907,7 +3164,7 @@ def test_start_text(st: Status) -> str:
         spec = tf.read_text(encoding="utf-8", errors="replace") if tf else ""
         secs = ticket_sections(spec) if spec else {}
         files = TARGET.findall(secs.get("Target Files", ""))
-        touches = sorted({w.lower() for w in SECURITY_TICKET.findall(spec)})
+        touches = ticket_security_words(spec)  # the ticket's own lines, not the template's DoD
         # the criteria next to the tests that exist: the run judges the gaps, it does not rediscover the ticket
         dod = [re.sub(r"^\s*-\s*\[.\]\s*", "", ln).strip() for ln in secs.get("Definition of Done", "").splitlines()
                if re.match(r"^\s*-\s*\[.\]", ln)]
@@ -1941,6 +3198,13 @@ def test_start_text(st: Status) -> str:
                      "it isn't built yet (variants: case, spacing, encoding, look-alikes - write them as "
                      "chr(0x043E) or \\N{CYRILLIC SMALL LETTER O}, never the raw character (linters reject it) "
                      "and never \\u in an edit tool (its input decodes it to the raw character)): " + ", ".join(guards[:10]))
+    code = [(q, read_text(base / q)) for q in (x.relative_to(base).as_posix()
+                                               for x in project_files(base, {".py", ".ts", ".js"})) if not is_test(q)]
+    if rows:
+        parts += test_hunt_text(code, tests_text)
+    parts.append(f"While writing, run only `{test_edit_cmd(base)}` and the test files that import a module it touches "
+                 f"- no lint, type check, scan or full suite of your own (a logged run spent ~673K tokens on 5 checks "
+                 f"nobody asked for); the full checks run once, in the gate below.")
     env = base / ".env"
     target = next((ln.split("=", 1)[1].strip() for ln in (env.read_text(encoding="utf-8", errors="replace").splitlines()
                                                           if env.is_file() else []) if ln.startswith("TEST_DATABASE_URL=")), "")
@@ -1995,12 +3259,29 @@ def test_start_text(st: Status) -> str:
                  "\"<words>\" ...]; write #Tests' body to a scratch file outside the repo, then ONE call writes it "
                  "and closes the phase - status.py set test filled --verdict pass|fail --section-from <file> (refused: "
                  "PRODUCT.md is put back, every gap named at once; --dry-run lists them and writes nothing; it SAVES the "
-                 "project - never ask \"Save this version?\", --no-commit only when the user said not to save; `set` "
+                 "project - never ask a separate save question, --no-commit only when the user said not to save; `set` "
                  "prints the rest of the close). Never edit PRODUCT.md with an edit tool. Every line "
                  f"under {LONG_LINE} characters (a longer bullet is split for you), #Tests under 8 KB: the "
                  "reasoning goes in docs/tests.md, the section keeps each result, evidence line and pointer.")
+    tpl = tool_file("templates", "tests.md")  #  (2.4): the person's document, laid out like the other phase docs
+    parts.append(f"docs/tests.md - for a person: the layout of {tpl.as_posix() if tpl else 'templates/tests.md'} "
+                 f"(read it once): every heading numbered (`## 1. ...`, `### A.1 ...` - `set` numbers any heading without one), "
+                 f"what the tests prove first in short sentences, sources as footnotes, workings in the appendix.")
     parts.append(remote_line(base))
     return "\n\n".join(parts)
+
+
+# 2.4 review: how each tool starts /dev-check's ONE security helper, and the fallback. A tool with no helper writes a
+# self-review as UNVERIFIED and passes no table - a self-review never signs off security (the script refuses a
+# --security-from table that says it is one).
+DEV_CHECK_SECURITY_ROUTE = {
+    "claude": "the Agent tool (run_in_background: true)",
+    "cursor": "a Task sub-agent",
+    "antigravity": "`invoke_subagent` - ONLY if it is in your tool list",
+    "codex": "spawn_agent - this skill explicitly asks you to spawn ONE agent; then ONE `wait_agent` call",
+}
+DEV_CHECK_NO_HELPER = ("No helper tool: review the files yourself and write `Security: UNVERIFIED - self-review only, "
+                       "<n> findings`, with no --security-from")
 
 
 def dev_check_start_text(st: Status) -> str:
@@ -2014,8 +3295,17 @@ def dev_check_start_text(st: Status) -> str:
     pre = env_precheck(st.base)
     if pre:
         parts.append(pre)
-    parts.append("Tickets (a PASS needs every one done AND in this checkout; anything else is a FAIL with this list):\n"
-                 + "\n".join(f"  {t}: {v}" for t, v in s["tickets"]))
+    # judge the CURRENT milestone (the first with a ticket not done here); later ones get one line
+    rows = {r[0]: r for r in st.rows["Tickets"]}
+    parts.append(f"Tickets of {s['milestone']} - the milestone this checkpoint judges (a PASS needs every one done AND "
+                 f"in this checkout; anything else is a FAIL with this list):\n"
+                 + "\n".join(f"  {t}: {v}" + (f" · {rows[t][1]} · verified: {rows[t][3][:140]} · review: "
+                                              f"{rows[t][5][:120]}" if t in rows else "") for t, v in s["tickets"]))
+    plan_ms = milestone_plan(st.base) or {}
+    later = list(plan_ms)[list(plan_ms).index(s["milestone"]) + 1:] if s["milestone"] in plan_ms else []
+    if later:
+        parts.append("Later milestones - not judged now, one line in #Dev-complete: " + " · ".join(
+            f"{m} {sum(1 for t in plan_ms[m] if t in rows)} of {len(plan_ms[m])} built" for m in later))
     # work on a branch nobody merged: a logged plain run found two ticket branches the checkpoint's list never showed
     ids = [t.lower() for t, _ in s["tickets"]]
     loose = [b.strip() for b in git(st.base, "branch", "-a", "--no-merged", "HEAD", "--format=%(refname:short)")
@@ -2024,14 +3314,20 @@ def dev_check_start_text(st: Status) -> str:
         parts.append("Ticket branches NOT merged into this checkout (their work is not checked here - name them in "
                      "the FAIL):\n" + "\n".join(f"  {b}" for b in loose[:12]))
     parts.append("Every check runs once, whatever an earlier one found - a red one decides the verdict, never how "
-                 "much is checked: the gate, the live path (/run, the observable result), each built ticket's "
-                 "security DoD, and scope creep against the list below. #Dev-complete names each with its result.")
+                 "much is checked: the gate, the secret scan, the dependency scan, the live path (/run, the observable "
+                 "result), security (the files listed below), scope creep against the list below, each #Plan exit "
+                 "criterion of this milestone and the schedule. #Dev-complete names each with its result.")
     recipe = check_recipe(st.base)
     gate = tool_file("build", "gate.py")
     if gate:
         parts.append(f"Gate - the project's full checks on THIS code, once (each ticket's own run was on its own branch; "
                      f"merged code is new code): python \"{gate.as_posix()}\" \"{recipe[0] if recipe else '<the '
                      f'project check command>'}\"")
+    scans = scan_commands(st.base)  # a logged run left both UNVERIFIED because the gate did not run them
+    parts.append("Scans - run each once, here (the gate does not run them): " + " · ".join(
+        f"{k}: `{scans[k]}`" if k in scans else f"{k}: the project has no recipe - run the tool directly if it is "
+                                                f"installed, else write `{k}: not run - <why> (install: <command>)`"
+        for k in SCAN_RECIPES) + ". Never a bare UNVERIFIED: the line says what ran, or why not.")
     prod = st.base / "PRODUCT.md"
     spine = product_sections(prod.read_text(encoding="utf-8", errors="replace")) if prod.is_file() else {}
     # the live path in one call: a logged checkpoint spent ~15 calls finding how to start the app and freeing its port
@@ -2042,9 +3338,31 @@ def dev_check_start_text(st: Status) -> str:
         run_ = f"python \"{server.as_posix()}\""
         parts.append(f"Live path - one call to start, one to stop, never by hand: {run_} start --cmd \"{dev}\" --port "
                      f"{port} --health {url} · then hit the routes the built tickets add · {run_} stop --port {port}")
-    plan_lines = [ln for ln in spine.get("Plan", "").splitlines() if re.search(rf"\b{s['milestone']}\b", ln)]
-    if plan_lines:
-        parts.append(f"#Plan lines for {s['milestone']} (its exit criteria):\n" + "\n".join(plan_lines[:12]))
+    routes = code_routes(st.base)  # printed, so no call reads a file to find them
+    if routes:
+        parts.append("Routes the code declares (method path · file) - the live path hits the built tickets' ones:\n"
+                     + "\n".join(f"  {r}" for r in routes))
+    todo, covered = security_scope(st, s["tickets"])  # narrow the review, never drop it
+    route = DEV_CHECK_SECURITY_ROUTE.get(playbook_tool(), DEV_CHECK_SECURITY_ROUTE["claude"])
+    parts.append(f"Security review - ONE helper ({route}) reviews exactly these {len(todo)} code files and returns "
+                 f"only its findings table; save it as it returned it to a scratch file OUTSIDE the repo for "
+                 f"--security-from. {DEV_CHECK_NO_HELPER}. The files (no "
+                 f"review saw them at this code: code changed since its last review, or never reviewed):\n"
+                 + ("\n".join(by_folder(todo)) or "  none")
+                 + ("\n  Skip - reviewed by a ticket's /build or /ship, or by /foundation's or /contracts' own review, "
+                    "and unchanged since: " + " · ".join(
+                     f"{k}: {len(v)} file(s)" for k, v in covered.items()) if covered else ""))
+    plan = spine.get("Plan", "")
+    clauses, notes = plan_exit_criteria(plan, s["milestone"])
+    if clauses:  # each criterion mapped, as plain Claude did
+        parts.append(f"#Plan exit criteria for {s['milestone']} - #Dev-complete maps each, one line: `<criterion>: met "
+                     f"· partly · not met - <evidence>`:\n" + "\n".join(f"  {i}. {c}" for i, c in enumerate(clauses, 1))
+                     + "".join(f"\n     (note: {n[:200]})" for n in notes))
+    else:
+        plan_lines = [ln for ln in plan.splitlines() if re.search(rf"\b{s['milestone']}\b", ln)]
+        if plan_lines:
+            parts.append(f"#Plan lines for {s['milestone']} (its exit criteria):\n" + "\n".join(plan_lines[:12]))
+    parts.append(schedule_line(st, s["milestone"], s["tickets"], plan))  # 
     scope = spine.get("Scope", "")
     out = re.search(r"(?im)^.*\b(?:deferred|non-goals?|out[- ]of[- ]scope)\b.*$", scope)
     if out:  # the template's "Deferred" + "Non-goals" lists, to the end of the section
@@ -2059,6 +3377,7 @@ def next_phase(st: Status, run: str | None = None) -> dict:
     states = {r[0]: r for r in st.rows["Phases"]}
     frontier, blocked_by = None, None
     progress = ticket_progress(st)
+    flow = ticket_flow(st)
     for p in CHAIN:
         if p == "deploy":
             continue  # a bridge phase: it runs when the product must be reachable, never the frontier
@@ -2076,8 +3395,8 @@ def next_phase(st: Status, run: str | None = None) -> dict:
         if r[1] in ("empty", "declined"):
             frontier = r
             break
-        if p == "build" and progress and progress["missing"]:
-            frontier = r  # a milestone still has unrecorded tickets: build is not done
+        if p == "build" and ((progress and progress["missing"]) or (flow and flow["phase"] in ("build", "ship"))):
+            frontier = r  # a milestone still has unrecorded or unshipped tickets: build is not done
             break
         if p in VERIFY and r[1] == "filled" and r[4] != "pass":
             frontier = r  # a gate that failed, or whose verdict was never recorded, is not passed
@@ -2094,6 +3413,8 @@ def next_phase(st: Status, run: str | None = None) -> dict:
         line = f"/{frontier[0]}"
         if frontier[1] == "declined":
             line += f" (already tried {frontier[2]}: {frontier[5]})"
+        elif frontier[0] == "build" and flow and flow["phase"] in ("build", "ship"):
+            line = flow["line"]
         elif frontier[0] == "build" and progress and progress["missing"]:
             line += (f" - {progress['milestone']}: {progress['done']} of {progress['total']} tickets recorded; not yet: "
                      f"{', '.join(progress['missing'])} (pick by TICKETS.md: its Day 1 table and coordination points)")
@@ -2126,7 +3447,8 @@ def next_phase(st: Status, run: str | None = None) -> dict:
         if run and run in secs:  # an order, not a condition: a logged Gemini run skipped the conditional line
             notes.append(f"Agent: yes - open now: {rules.as_posix()} §{run.capitalize()}, and apply every row of it")
         elif run:
-            notes.append(f"Agent: yes - {rules.as_posix()} has no section for /{run}: nothing agent-specific to apply")
+            # no path: there is nothing to open (each printed install path is ~100-160 characters of the start)
+            notes.append(f"Agent: yes - AGENT.md has no section for /{run}: nothing agent-specific to apply")
         else:
             # The phase run may not be the frontier (a re-run of an earlier phase), so name every section there is.
             notes.append(f"Agent: yes - {rules.as_posix()} has a section for " + ", ".join(f"/{s}" for s in secs)
@@ -2149,8 +3471,9 @@ def next_phase(st: Status, run: str | None = None) -> dict:
                          f"\"## Read what the task needs\" from the playbook's templates/AGENTS.md")
     if base is not None and (Path(base) / ".git").exists() and git(Path(base), "status", "--porcelain", "STATUS.md", FRAG_DIR):
         # E7: an item closed after the phase's commit (it cites that commit) is left out of it
-        notes.append("STATUS.md or status/ has changes that are not committed - commit them, one command each: git "
-                     "add STATUS.md status, then git commit -m \"status: record what the last phase closed\"")
+        notes.append("STATUS.md or status/ has changes that are not committed - save them in one call (no git call "
+                     "of your own; the project's other changes stay out): `status.py save --status-only -m "
+                     "\"status: record what the last phase closed\"`")
     if base is not None and (Path(base) / "PRODUCT.md").exists():
         for p in ("structure", "design-system", "foundation", "contracts"):
             if states.get(p, [p, "empty"])[1] == "filled" and not earlier_override(st, p):
@@ -2165,7 +3488,13 @@ def next_phase(st: Status, run: str | None = None) -> dict:
                          f"and CI run it): copy {engine.as_posix()} over it and commit - never edit it to make it pass; "
                          f"if the formatter hook rewrites it, git add it again and commit (a formatted copy is the same "
                          f"check)")
-    if run and states.get(run, [run, "empty"])[1] in ("filled", "overridden"):
+    if run in MEASURE_RERUN and states.get(run, [run, "empty"])[1] in ("filled", "overridden"):
+        # 2.4 review: these record a measurement or a cycle - a re-run is new evidence even when no rule changed,
+        # so the generic "nothing differs: stop" made a run stop without measuring
+        notes.insert(0, f"RE-RUN: #{run} is already {states[run][1]}. The user chose this re-run by running /{run}: "
+                        f"{MEASURE_RERUN[run][0]} - keep the earlier entry word for word ({MEASURE_RERUN[run][1]}) and "
+                        f"record the new one; no question about re-running")
+    elif run and states.get(run, [run, "empty"])[1] in ("filled", "overridden"):
         changed = rule_changes(st, run)
         notes.insert(0, f"RE-RUN: #{run} is already {states[run][1]}. The user chose this re-run by running /{run}: "
                         f"never ask whether to re-run. First compare the WHOLE section against the current rules and the "
@@ -2187,7 +3516,13 @@ def next_phase(st: Status, run: str | None = None) -> dict:
             notes.append(f"open item {r[0]} (from /{r[2]}, {r[1]}): {r[3]} - clears when {r[4]}")
     if st.header.get("Order", "chain order") != "chain order":
         notes.append(f"order: {st.header['Order']}")
-    return {"phase": frontier[0] if frontier else None, "line": line, "notes": notes}
+    phase = frontier[0] if frontier else None
+    arg = ""
+    if phase == "build" and flow and flow["phase"] in ("build", "ship"):
+        phase, arg = flow["phase"], flow["arg"]
+    elif phase == "dev-check" and flow and flow["phase"] == "dev-check" and frontier[1] in ("empty", "declined"):
+        line = flow["line"]
+    return {"phase": phase, "line": line, "notes": notes, "arg": arg}
 
 
 # ---- /playbook's start: `status.py route` ------------------------------------------------------------------
@@ -2332,12 +3667,22 @@ def replace_section(text: str, name: str, body: str) -> str:
     eol = "\r\n" if "\r\n" in text else "\n"
     lines = text.replace("\r\n", "\n").split("\n")
     at = next((i for i, ln in enumerate(lines) if re.match(rf"^## {re.escape(name)}\b", ln)), None)
-    if at is None:
-        raise Refused(f"PRODUCT.md has no `## {name}` heading to write into")
-    end = next((i for i in range(at + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
     new = body.replace("\r\n", "\n").strip("\n").split("\n")
     if new and re.match(rf"^## {re.escape(name)}\b", new[0]):
         new = new[1:]
+    order = list(PHASE_SECTION.values())
+    if at is None and name in order:  # a section appears when its phase finishes, in the phases' order
+        later = set(order[order.index(name) + 1:])
+        pos = next((i for i, ln in enumerate(lines) if (m := re.match(r"^## (\S+)", ln)) and m.group(1) in later),
+                   None)
+        if pos is None:
+            while lines and not lines[-1].strip():
+                lines.pop()
+            return eol.join(lines + ["", f"## {name}"] + new + [""])
+        return eol.join(lines[:pos] + [f"## {name}"] + new + [""] + lines[pos:])
+    if at is None:
+        raise Refused(f"PRODUCT.md has no `## {name}` heading to write into")
+    end = next((i for i in range(at + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
     tail = [""] if end < len(lines) else []
     return eol.join(lines[:at + 1] + new + tail + lines[end:])
 
@@ -2426,12 +3771,17 @@ def vision_bookkeeping(base: Path, body: str, today: str) -> tuple[str, str | No
     return body, purpose
 
 
+# a save with no git repository: one line the user reads, never an offer the run has to turn into a question
+NO_GIT_LINE = 'tell the user, as-is: "Not saved - this folder has no git history. Run `git init` to keep versions."'
+
+
 def repo_facts(base: Path, purpose: str | None, readme: bool = True, saved: bool = False) -> str:
-    """What the save question (and /vision's Step 3c) need, so the run opens no git or README call of its own."""
+    """What a save that did not happen (and /vision's Step 3c) need, so the run opens no git or README call of its
+    own."""
     root = git(base, "rev-parse", "--show-toplevel")
     here = base.resolve().as_posix().lower()
     if not root:
-        where = "no git repository here: offer `git init` once"
+        where = "no git repository here: " + NO_GIT_LINE
     elif Path(root).resolve().as_posix().lower() == here:
         where = f"git root = this project · branch {git(base, 'branch', '--show-current') or '(none)'}"
     else:
@@ -2440,7 +3790,7 @@ def repo_facts(base: Path, purpose: str | None, readme: bool = True, saved: bool
     changed = [re.sub(r"^\s*\S{1,2}\s+", "", l) for l in git(base, "status", "--porcelain",
                                                             "--untracked-files=all").splitlines()] if root else []
     changed = [c for c in changed if c != LOCK and not install_root(c)]
-    save = f"  - for the save question: {where}"
+    save = f"  - not saved: {where}"
     if saved:
         save = ""
     elif changed:
@@ -2448,7 +3798,7 @@ def repo_facts(base: Path, purpose: str | None, readme: bool = True, saved: bool
         # One save path only: a logged /structure close also printed "git add <8 files>" here, and literal obedience
         # would have committed 8 of 53 files (2026-10-04)
         save += (f" · {len(changed)} changed file(s): {', '.join(changed[:8])}{' ...' if len(changed) > 8 else ''} · "
-                 f"the save is step 4's one call - it takes every change except the playbook's install; these facts "
+                 f"a save is one call, `status.py save -m \"<one line>\"` - it takes every change except the playbook's install; these facts "
                  f"replace git status, diff and log: run none of them")
     if not readme:
         return save
@@ -2470,12 +3820,14 @@ def read_line_default(body: str) -> str:
     return body.rstrip("\n") + f"\n- **Read (file · date · verbatim quote):** {READ_NONE}\n"
 
 
-def save_commit(base: Path, message: str) -> str:
+def save_commit(base: Path, message: str, only: tuple[str, ...] = ()) -> str:
     """`set <phase> filled --commit "<line>"`: the save in the same call - a logged run spent 6-9 calls on git per
-    phase (status, add, commit, a `.git/index.lock` retry), each re-sending the whole conversation."""
+    phase (status, add, commit, a `.git/index.lock` retry), each re-sending the whole conversation. `only` (`save
+    --status-only`): commit those paths alone - `next` saves a STATUS.md left uncommitted without sweeping in the
+    user's other unsaved work."""
     root = git(base, "rev-parse", "--show-toplevel")
     if not root:
-        return "not saved: no git repository here - offer `git init` once, then save"
+        return "not saved: no git repository here - " + NO_GIT_LINE
     if Path(root).resolve().as_posix().lower() != base.resolve().as_posix().lower():
         return f"not saved: the git root is a PARENT folder ({root}) - offer `git init` here (MECHANISMS.md §Commit)"
     # never the playbook's own install (INSTALL_PATHS), even when .gitignore lost its line. An exclude that names an
@@ -2483,14 +3835,15 @@ def save_commit(base: Path, message: str) -> str:
     # failed on every project with `.agents/` in .gitignore - so only paths git does not already ignore are excluded.
     excludes = [p for p in (LOCK, *INSTALL_PATHS) if (base / p).exists()
                 and subprocess.run(["git", "check-ignore", "-q", p], cwd=base).returncode != 0]
-    add = subprocess.run(["git", "add", "-A", "--", ".", *(f":(exclude){p}" for p in excludes)], cwd=base,
-                         capture_output=True, text=True, encoding="utf-8", errors="replace")
+    only = tuple(p for p in only if (base / p).exists())
+    add = subprocess.run(["git", "add", "-A", "--", *(only or (".",)), *(f":(exclude){p}" for p in excludes)],
+                         cwd=base, capture_output=True, text=True, encoding="utf-8", errors="replace")
     if add.returncode != 0:
         return f"not saved: git add failed - {(add.stderr or add.stdout).strip()[:200]}"
-    staged = git(base, "diff", "--cached", "--name-only").splitlines()
+    staged = git(base, "diff", "--cached", "--name-only", "--", *only).splitlines()
     if not staged:
         return "nothing to save: no file changed"
-    c = commit_through_hooks(base, message, staged)
+    c = commit_through_hooks(base, message, staged, only)
     if c.returncode != 0:
         return (f"not saved: git commit failed - {hook_failure(c)} - the record is written: fix what failed, then run "
                 f"this same `set ... --commit` again (no git call of your own)")
@@ -2524,11 +3877,12 @@ def playbook_commit(base: Path, staged: list[str]) -> str:
     return f"saved the playbook update first, on its own: commit {git(base, 'rev-parse', '--short', 'HEAD')} \"{msg}\""
 
 
-def commit_through_hooks(base: Path, message: str, staged: list[str]) -> subprocess.CompletedProcess:
-    """git commit; when a hook (a formatter) rewrote staged files and refused, add them and commit once more -
-    the same two calls a person makes, done here so the run does not spend them."""
-    run = lambda: subprocess.run(["git", "commit", "-q", "-m", message], cwd=base, capture_output=True,  # noqa: E731
-                                 text=True, encoding="utf-8", errors="replace")
+def commit_through_hooks(base: Path, message: str, staged: list[str],
+                         only: tuple[str, ...] = ()) -> subprocess.CompletedProcess:
+    """git commit (of `only` alone, when given); when a hook (a formatter) rewrote staged files and refused, add them
+    and commit once more - the same two calls a person makes, done here so the run does not spend them."""
+    run = lambda: subprocess.run(["git", "commit", "-q", "-m", message, *(("--", *only) if only else ())],  # noqa: E731
+                                 cwd=base, capture_output=True, text=True, encoding="utf-8", errors="replace")
     c = run()
     rewritten = [f for f in git(base, "diff", "--name-only").splitlines() if f in staged]
     if c.returncode != 0 and rewritten:
@@ -2557,7 +3911,7 @@ def set_with_section(st: Status, a, today: str, prod: Path) -> str:
     created = a.phase == CHAIN[0] and not prod.is_file() and template is not None
     if not (prod.is_file() or created) or not src.is_file():
         raise Refused(f"--section-from needs {prod.name} and {src} to exist")
-    old = template.read_text(encoding="utf-8") if created else prod.read_text(encoding="utf-8")
+    old = product_header(st.product) if created else prod.read_text(encoding="utf-8")
     body = normalise_section(src.read_text(encoding="utf-8"), sec)
     if a.phase == "vision":
         body, a.purpose = vision_bookkeeping(prod.parent, body, today)
@@ -2567,7 +3921,8 @@ def set_with_section(st: Status, a, today: str, prod: Path) -> str:
     prod.write_text(replace_section(old, sec, body), encoding="utf-8", newline="")
     try:
         return cmd_set(st, a, today) + f"\nwrote #{sec} from {src.name}" + (
-            f" into a new {prod.name} made from the playbook's template" if created else "") + (
+            f" into a new {prod.name} made from the playbook's template (its title and project policy, then "
+            f"this section)" if created else "") + (
             f" (wrapped {split} long line(s) at sentence ends, every word kept - nothing to do)" if split else "")
     except Refused:
         if created:
@@ -2607,7 +3962,7 @@ def cmd_set(st: Status, a, today: str) -> str:
                           f"a written section is not a passed gate")
         verdict = a.verdict
         if a.phase == "dev-check" and getattr(st, "base", None) is not None:
-            gaps = dev_check_close_gaps(st, verdict)
+            gaps = dev_check_close_gaps(st, verdict, getattr(a, "security_from", None))
             if gaps and getattr(a, "dry_run", False):
                 raise DryRun(f"{len(gaps)} gap(s) the record call would refuse:\n  - " + "\n  - ".join(gaps))
             if gaps:
@@ -2616,6 +3971,10 @@ def cmd_set(st: Status, a, today: str) -> str:
         prod_ = getattr(st, "base", Path(".")) / "PRODUCT.md"
         if a.phase == "test" and getattr(st, "base", None) is not None:  # every tool: the same record test
             gaps = tests_gaps(st, verdict)
+            doc_ = read_text(st.base / OWN_COMPANION["Tests"])  # numbered with the record (the write comes later)
+            if doc_ and number_missing(doc_) != doc_:
+                a.number_docs = [*getattr(a, "number_docs", []), (st.base / OWN_COMPANION["Tests"],
+                                                                   number_missing(doc_))]
             if gaps and prod_.exists():  # with the section's own problems, so one refusal names them all
                 text_ = prod_.read_text(encoding="utf-8")
                 gaps += receipt_problems(text_, prod_.resolve().parent, "Tests") + \
@@ -2667,20 +4026,40 @@ def cmd_set(st: Status, a, today: str) -> str:
                 pending = getattr(a, "dry_run", False) and not (prod.resolve().parent / ARCH_DOC).is_file()
                 bad += architect_gaps(prod.resolve().parent, st, doc_pending=pending)
                 a.dry_note = arch_docs_pending(st.header.get("Agent") == "yes") if pending else ""
+                if bad:  # the warnings ride with a refusal, so one rewrite fixes both (they never refuse)
+                    a.refuse_note = "".join(f"\n  ! {w} (a warning)" for w in architect_prose_warnings(
+                        prod.resolve().parent, st))
+                    a.dry_note += a.refuse_note
         if a.phase == "vision" and new == "filled" and not (a.note or "").lower().startswith("adopted"):
             bad += vision_gaps(prod.resolve().parent, st.header)
         if a.phase == "scope" and new == "filled" and not (a.note or "").lower().startswith("adopted"):
             bad += scope_gaps(prod.resolve().parent, st)
         if a.phase == "validate" and getattr(a, "section_from", None) and not (a.note or "").lower().startswith(
                 "adopted"):
+            bad += companion_prep(prod.resolve().parent, OWN_COMPANION["Validation"], a)  #  + R5 (2.4)
             bad += validate_gaps(prod.resolve().parent, st, new)
         if a.phase == "plan" and new == "filled" and not (a.note or "").lower().startswith("adopted"):
             bad += plan_gaps(prod.resolve().parent, st)
+        if getattr(a, "fields_path", False):  # what a script only estimates from prose warns on this path
+            bad, a.prose_warns = split_prose_gaps(a.phase, bad, getattr(a, "covered", ()))
         if a.phase == "structure" and new == "filled" and not (a.note or "").lower().startswith("adopted"):
+            if not getattr(a, "dry_run", False):  # the script formats, the run never re-types a table
+                a.waived_note = fix_table_separators(prod.resolve().parent / "STRUCTURE.md")
             bad += structure_gaps(prod.resolve().parent, st)
+        if a.phase in WAIVABLE and new == "filled" and bad:
+            bad, waived = apply_waivers(st, a.phase, bad)
+            a.waived_note = getattr(a, "waived_note", "") + waived
+            a.dry_note = getattr(a, "dry_note", "") + waived
+        if a.phase in PHASE_WARN_23 and new == "filled" and getattr(a, "dry_run", False):  # warnings show in the dry run
+            a.dry_note = getattr(a, "dry_note", "") + "".join(
+                f"\n  ! {w}" for w in PHASE_WARN_23[a.phase](prod.resolve().parent, st))
         if a.phase == "design-system" and new == "filled" and not (a.note or "").lower().startswith("adopted"):
             bad += design_record_gaps(prod.resolve().parent, st, not getattr(a, "dry_run", False), today)
             a.checked = {"design-system"}  # its phase_check ran inside: the audit once, not twice (~3 s each)
+        if a.phase in ("foundation", "contracts") and new == "filled" and not (a.note or "").lower().startswith(
+                ("adopted", "kept:")):  #, a logged run: its folders drawn before /structure's check runs
+            a.drawn_note = register_phase_folders(prod.resolve().parent, a.phase, getattr(a, "dry_run", False))
+            a.dry_note = getattr(a, "dry_note", "") + a.drawn_note
         if a.phase == "foundation" and new == "filled" and not (a.note or "").lower().startswith(("adopted", "kept:")):
             bad += earlier_check_gaps(st, a.phase, prod.resolve().parent)  # every problem in ONE list (P20)
             bad += foundation_close_gaps(prod.resolve().parent, st)
@@ -2690,7 +4069,7 @@ def cmd_set(st: Status, a, today: str) -> str:
             pending = getattr(a, "dry_run", False) and not (prod.resolve().parent / CONTRACTS_DOC).is_file()
             bad += earlier_gate_gaps(st, "contracts", prod.resolve().parent) + contracts_gaps(
                 prod.resolve().parent, close=True, doc_pending=pending)
-            a.dry_note = CONTRACTS_DOC_PENDING if pending else ""
+            a.dry_note = (CONTRACTS_DOC_PENDING if pending else "") + getattr(a, "dry_note", "")
         if a.phase in RELEASEOPS_GAPS and new == "filled" and not (a.note or "").lower().startswith(("adopted",
                                                                                                     "kept:")):
             bad += RELEASEOPS_GAPS[a.phase](prod.resolve().parent, st, a)
@@ -2698,22 +4077,43 @@ def cmd_set(st: Status, a, today: str) -> str:
             raise DryRun(f"{len(dict.fromkeys(bad))} gap(s) the record call would refuse:\n"
                          + "\n".join(f"  - {g}" for g in dict.fromkeys(bad)) + getattr(a, "dry_note", ""))
         if bad:
-            raise Refused(f"#{a.phase}: " + "; ".join(dict.fromkeys(bad)))
+            raise Refused(f"#{a.phase}: " + "; ".join(dict.fromkeys(bad)) + getattr(a, "refuse_note", ""))
+        if not getattr(a, "dry_run", False):  #  (2.4): the document's headings numbered, saved with the record
+            for doc_path, numbered in getattr(a, "number_docs", []):
+                doc_path.write_text(numbered, encoding="utf-8", newline="")
     if a.phase == "validate" and new == "overridden" and prod.exists() and getattr(a, "section_from", None):
         bad = validate_gaps(prod.resolve().parent, st, new)  # an override keeps every field (§Declined runs)
         if bad and getattr(a, "dry_run", False):
             raise DryRun(f"{len(bad)} gap(s) the record call would refuse:\n" + "\n".join(f"  - {g}" for g in bad))
         if bad:
             raise Refused("#validate: " + "; ".join(bad))
+    tickets_note, t_warns = "", []
     if a.phase == "tickets" and new == "filled" and prod.exists():
         # /tickets writes no spine section: its record is docs/issues/*.md + TICKETS.md, checked here so --dry-run
         # lists it and the refusal puts every problem on its own line (phase_check joined them into one)
-        bad = tickets_gaps(prod.resolve().parent)
+        tbase = prod.resolve().parent
+        made = render_tickets(tbase, Path(a.from_fields), st.product or tbase.name) \
+            if getattr(a, "from_fields", None) else []
+        made += provision_tickets(tbase, today)  # the templates and the docs/issues/ line: never by hand
+        gone = [m for m in made if m.startswith("removed ")]
+        made = [m for m in made if m not in gone]
+        if made:
+            tickets_note = f"\n  wrote {len(made)} file(s) from the fields: " + ", ".join(made[:4]) + (
+                f" ... (+{len(made) - 4})" if len(made) > 4 else "")
+        tickets_note += "".join(f"\n  {m}" for m in gone)
+        t_warns = tickets_warnings(tbase)
+        tickets_note += "".join(f"\n  ! {w}" for w in t_warns)
+        a.dry_note = getattr(a, "dry_note", "") + tickets_note
+        bad = tickets_gaps(tbase)
         if bad and getattr(a, "dry_run", False):
-            raise DryRun(f"{len(bad)} gap(s) the record call would refuse:\n" + "\n".join(f"  - {g}" for g in bad))
+            raise DryRun(f"{len(bad)} gap(s) the record call would refuse:\n" + "\n".join(f"  - {g}" for g in bad)
+                         + tickets_note)
         if bad:
             raise Refused(f"#tickets: {len(bad)} problem(s), every one at once - fix them all, then run this `set` "
                           f"again:\n  - " + "\n  - ".join(bad))
+        area = tickets_area_rules(tbase, getattr(a, "dry_run", False))  # saved with the backlog, no question
+        tickets_note += area
+        a.dry_note = getattr(a, "dry_note", "") + area
     if new == "filled" and prod.exists():
         # An earlier gate that fails now is not waved through by a later phase closing: a logged Gemini run was told
         # "#foundation's check fails now ... fix it before this phase" by `next`, and filled /contracts anyway.
@@ -2737,10 +4137,28 @@ def cmd_set(st: Status, a, today: str) -> str:
     closed = 0
     if new in ("filled", "overridden"):  # a bypassed gate that is now met or deliberately skipped is settled
         for o in st.rows["Open items"]:
-            if not o[5] and o[4] == bypass_clears(a.phase):
+            if not o[5] and (o[4] == f"/{a.phase} is filled" or (o[4] == bypass_clears(a.phase)
+                                                                 and (a.phase not in VERIFY or verdict == "pass"))):
                 o[5] = f"{today}: /{a.phase} {new}"
                 closed += 1
     msg = f"#{a.phase}: {old} -> {new}" + (f"; closed {closed} bypass item(s)" if closed else "")
+    msg += getattr(a, "waived_note", "")
+    msg += getattr(a, "drawn_note", "")
+    msg += tickets_note + ("\n  (a warning, not a refusal: the record is saved as written - never re-run `set` for "
+                           "it; mention it in the close)" if t_warns else "")
+    if new in ("filled", "running"):
+        msg += record_milestone_bypass(st, a.phase, today)
+    if a.phase == "dev-check" and new == "filled" and getattr(st, "base", None) is not None \
+            and getattr(a, "security_from", None) and (st.base / "PRODUCT.md").is_file():
+        body_ = product_sections(read_text(st.base / "PRODUCT.md")).get("Dev-complete", "")
+        msg += write_security_receipt(st.base, security_receipt_gaps(st.base, body_, a.security_from)[1], today)
+    if a.phase == "tickets" and new == "filled":  # once: the build and ship rows say where their records live
+        for ph, text in DERIVED_NOTE.items():
+            row = st.phase(ph)
+            stored, derived = st.derived.get(ph, (None, None))
+            target = stored if stored is not None and row == derived else row
+            if not target[5]:
+                target[5] = text
     prod = getattr(st, "base", Path(".")) / "PRODUCT.md"
     sec = PHASE_SECTION.get(a.phase)
     if new in ("filled", "running") and sec and prod.exists():
@@ -2751,8 +4169,15 @@ def cmd_set(st: Status, a, today: str) -> str:
             warns += architect_warnings(prod.resolve().parent, st)
         if new == "filled" and a.phase == "contracts":
             warns += contracts_warnings(prod.resolve().parent)
+        if new == "filled" and a.phase in PHASE_WARN_23:
+            warns += PHASE_WARN_23[a.phase](prod.resolve().parent, st)
+        if new == "filled" and a.phase == "test":
+            warns += test_warnings(prod.resolve().parent)
         if new == "filled" and a.phase in RELEASEOPS_WARN:
             warns += RELEASEOPS_WARN[a.phase](prod.resolve().parent)
+        if new == "filled" and a.phase in EARLY_DOC_WARN:
+            warns += EARLY_DOC_WARN[a.phase](a.phase, prod.resolve().parent)
+        warns += getattr(a, "prose_warns", [])
         msg += "".join(f"\n  ! {w}" for w in warns)
         if warns:  # a logged Codex /vision edited and re-ran `set` 4 times to clear one (293K tokens)
             msg += ("\n  (a warning, not a refusal: the record is saved as written - never re-run `set` for it; "
@@ -2766,17 +4191,23 @@ def handoff_card(st: Status, after: str | None = None) -> str:
     n = next_phase(st)
     if n["phase"] is None and after == "learn":  # the chain is done: the next cycle starts at /scope (#284)
         n["phase"] = "scope"
+    if after == "learn" and learn_iterates_plan(st):  # the unbuilt tickets change first
+        n = {**n, "phase": "tickets", "arg": ""}
     lines = []
     still = [o for o in st.rows["Open items"] if not o[5]]
     if still:  # a logged run spent 3 calls finding the close syntax, then retried it
         lines.append("Open items - close each one this phase settled, one command each (plain words, up to "
                      f"{CAP['how']} characters): status.py close <n> --how \"<how it was settled>\"")
         lines += [f"  {o[0]}: {o[3][:110]} - clears when {o[4][:80]}" for o in still]
-    fail_next = dev_check_fail_handoff(st) if n["phase"] in ("dev-check", "build") else None
+    fail_next = dev_check_fail_handoff(st) if n["phase"] in ("dev-check", "build") and not n.get("arg") else None
     if fail_next:
         lines.append(fail_next)
     elif n["phase"]:
-        lines.append(f"Open a NEW conversation and type: {skill_command(n['phase'])} - nothing is lost: it is all in "
+        if playbook_tool() == "antigravity":  # two logged closes cut this line, one to "Open a NEW conversation"
+            lines.append("Your close ends with `Change anything? If not:` and then the next line, copied whole to its "
+                         "last word:")
+        lines.append(f"Open a NEW conversation and type: {skill_command(n['phase'])}"
+                     f"{' ' + n['arg'] if n.get('arg') else ''} - nothing is lost: it is all in "
                      f"PRODUCT.md, STATUS.md and git, and this conversation would be re-sent on every call of the "
                      f"next phase.")
     sc = session_costs()
@@ -2824,7 +4255,7 @@ def record_sizes(text: str, base: Path, sec: str) -> str:
 
 
 def bypass_clears(gate: str) -> str:
-    return f"/{gate} is filled"
+    return f"/{gate} passes" if gate in VERIFY else f"/{gate} is filled"
 
 
 def carried_bypass(st: Status, gate: str) -> list[str] | None:
@@ -2842,8 +4273,11 @@ def cmd_bypass(st: Status, a, today: str) -> str:
     owed and `next` keeps routing to it; the bypass is surfaced on every run until that phase is filled."""
     frm, gate = a.frm.lstrip("/"), a.gate.lstrip("/")
     st.phase(frm)
-    if st.state(gate) in ("filled", "overridden"):
-        raise Refused(f"#{gate} is {st.state(gate)} - its gate is met, there is nothing to bypass")
+    g = st.phase(gate)
+    if g[1] == "overridden" or (g[1] == "filled" and (gate not in VERIFY or g[4] == "pass")):
+        raise Refused(f"#{gate} is {g[1]}{' ' + g[4] if g[4] else ''} - its gate is met, there is nothing to bypass")
+    if any(not o[5] and o[3].startswith(f"Override: bypassed /{gate} ") for o in st.rows["Open items"]):
+        return f"already covered: an open override of /{gate} is recorded - nothing new recorded"
     carried = carried_bypass(st, gate)
     if carried:
         return (f"already covered: open item {carried[0]} (the override recorded at /{carried[2]} on {carried[1]}) "
@@ -2852,6 +4286,78 @@ def cmd_bypass(st: Status, a, today: str) -> str:
     st.rows["Open items"].append([n, today, frm, f"Override: bypassed /{gate} — {capped('reason', a.reason)}",
                                   bypass_clears(gate), ""])
     return f"open item {n}: /{frm} proceeds with /{gate} bypassed"
+
+
+#  (a logged run, item 1): a false refusal had no way out - `bypass` takes a phase, so a live /structure was refused for a
+# Dockerfile its laptop runtime never needed, asked the owner twice and wrote one nobody wanted. A per-check waiver is
+# the owner's decision, recorded as an open item with their own words; it drops only the refusals that contain its
+# words, on this phase's own close. A secret, .env, install or security refusal is never waived.
+WAIVABLE = {"architect", "structure"}
+# `\btoken\b`, not `token`: the /architect cost refusal "`input tokens: ...` is not a number" was refused as a secret,
+# with no way out (2.4 review).
+NEVER_WAIVED = re.compile(r"(?i)secret|\.env\b|\.gitignore|password|\btoken\b|credential|security|install|leak|"
+                          r"CHANGE_ME|playbook's check|edit(?:ed)? the copy")
+WAIVED = "Waived: "
+
+
+def cmd_waive(st: Status, a, today: str) -> str:
+    """`waive --from <phase> --check "<words of the refusal>" --reason "<the user's own words>"`."""
+    frm, words = a.frm.lstrip("/"), " ".join(a.check.split())
+    st.phase(frm)
+    if frm not in WAIVABLE:
+        raise Refused(f"waive works on {', '.join(sorted(WAIVABLE))} only; for an unmet earlier gate: status.py bypass")
+    if len(words) < 12:
+        raise Refused("--check needs the refusal's own words, at least 12 characters, so it drops that one refusal only")
+    if NEVER_WAIVED.search(words):
+        raise Refused("a secret, .env, install or security refusal is never waived - fix it")
+    if not a.reason.strip():
+        raise Refused("--reason needs the user's own words: why this check does not apply")
+    for o in st.rows["Open items"]:
+        if not o[5] and o[2] == frm and o[3].startswith(WAIVED) and words.lower() in o[3].lower():
+            return f"already covered: open item {o[0]} waives it - nothing new recorded"
+    n = new_open_id(st)
+    st.rows["Open items"].append([n, today, frm, f"{WAIVED}\"{words}\" — {capped('reason', a.reason)}",
+                                  f"/{frm} re-run without the waiver", ""])
+    return f"open item {n}: /{frm}'s refusal containing \"{words}\" is waived (the next `set {frm} filled` drops it)"
+
+
+def apply_waivers(st: "Status", phase: str, gaps: list[str]) -> tuple[list[str], str]:
+    """The gaps an open waiver of this phase covers are dropped and named; a never-waived gap always stays."""
+    waivers = [(o[0], m.group(1)) for o in st.rows["Open items"] if not o[5] and o[2] == phase
+               for m in [re.match(rf'{WAIVED}"(.+?)" —', o[3])] if m]
+    if not waivers:
+        return gaps, ""
+    keep, dropped = [], []
+    for g in gaps:
+        hit = next((n for n, w in waivers if w.lower() in " ".join(g.split()).lower()), None)
+        (keep if hit is None or NEVER_WAIVED.search(g) else dropped).append((g, hit))
+    return [g for g, _ in keep], "".join(f"\n  waived by open item {n}: {g[:120]}" for g, n in dropped)
+
+
+def fix_table_separators(path: Path) -> str:
+    """a table whose header row has no `|---|` row under it shows as plain text (44 lines of a logged
+    STRUCTURE.md). The script adds the row - the run never re-types a table."""
+    if not path.is_file():
+        return ""
+    raw = path.read_bytes().decode("utf-8")
+    eol = "\r\n" if "\r\n" in raw else "\n"
+    lines = raw.replace("\r\n", "\n").split("\n")
+    sep = re.compile(r"^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)*\|?\s*$")
+    out, added, fence = [], 0, False
+    for i, line in enumerate(lines):
+        if line.lstrip().startswith("```"):
+            fence = not fence
+        out.append(line)
+        is_row = not fence and line.lstrip().startswith("|")
+        starts = is_row and (i == 0 or not lines[i - 1].lstrip().startswith("|"))
+        if starts and i + 1 < len(lines) and lines[i + 1].lstrip().startswith("|") and not sep.match(lines[i + 1]):
+            cols = max(1, len([c for c in line.strip().strip("|").split("|")]))
+            out.append("|" + "---|" * cols)
+            added += 1
+    if not added:
+        return ""
+    path.write_bytes(eol.join(out).encode("utf-8"))
+    return f"\n  added {added} missing `|---|` row(s) under a table header in STRUCTURE.md (tables render now)"
 
 
 RULES_MARK = "playbook-rules"
@@ -2895,6 +4401,30 @@ def playbook_tool() -> str:
     return f.read_text(encoding="utf-8").strip().lower() if f.is_file() else "claude"
 
 
+DATASTORE_FIELD = re.compile(r"(?i)^\s*(?:[-*]\s*)?(?:\*\*)?(?:primary\s+|main\s+)?(?:datastore|database|db)\b[^:\n]{0,40}:")
+
+
+def chosen_datastore(arch: str) -> str | None:
+    """The engine #Architecture CHOSE (a live run was refused "#Architecture chose Postgres" for "SQLAlchemy
+    keeps a Postgres move open" beside "Datastore: SQLite"). A `Datastore:` / `Database:` line decides by its first
+    engine; without one, each line's FIRST engine is that line's choice (a later one is an option), and lines naming
+    an alternative, a later move or a superseded choice are left out."""
+    lines = re.sub(r"<!--.*?-->", "", arch, flags=re.S).splitlines()
+    for l in lines:
+        if DATASTORE_FIELD.match(l):
+            m = SQL_DBS.search(l.split(":", 1)[1])
+            if m:
+                return m.group(1)
+    for l in lines:
+        if re.search(r"(?i)superseded|rejected|instead of|not chosen|alternative|ruled out|\blater\b|\bfuture\b|"
+                     r"\bmove\b|if .*\bever\b", l):
+            continue
+        m = SQL_DBS.search(l)
+        if m and SERVER_DBS.match(m.group(1)):
+            return m.group(1)
+    return None
+
+
 def test_engine_mismatch(base: Path) -> tuple[str, list[str], bool] | None:
     """E4 / DB1: #Architecture's server database against SQLite in the test setup - (engine, files, the user's
     override recorded in #Foundation), or None. A logged Gemini build's tests passed on SQLite with a timestamp
@@ -2902,10 +4432,8 @@ def test_engine_mismatch(base: Path) -> tuple[str, list[str], bool] | None:
     product = base / "PRODUCT.md"
     secs = product_sections(product.read_text(encoding="utf-8")) if product.is_file() else {}
     arch, found = secs.get("Architecture", ""), secs.get("Foundation", "")
-    # the chosen engine, not one named as a rejected alternative or a superseded choice
-    arch = "\n".join(l for l in arch.splitlines()
-                     if not re.search(r"(?i)superseded|rejected|instead of|not chosen|alternative|ruled out", l))
-    engine = SERVER_DBS.search(arch)
+    chosen = chosen_datastore(arch)
+    engine = SERVER_DBS.search(chosen or "")
     if not engine:
         return None
     places = [base / ".env.example"] + [p for p in project_files(base) if p.name in (
@@ -2959,6 +4487,26 @@ SECURITY_TICKET = re.compile(r"(?i)\b(auth\w*|session token|tenant|permission|re
                              r"encrypt\w*|password|oauth|access token|offline token|pii|personal data|"
                              r"webhook|upload|credential\w*|signature|csrf|cors)\b")
 VERIFICATION = re.compile(r"(?im)^#{2,3} .*verification command.*$\s*```[^\n]*\n(.*?)```", re.S)
+
+
+def _tpl_norm(line: str) -> str:
+    return " ".join(re.sub(r"^\s*(?:[-*]\s*)?(?:\[.\]\s*)?", "", line).replace("*", "").lower().split())
+
+
+def _ticket_template_lines() -> set[str]:
+    f = tool_file("templates", "feature_ticket_template.md")
+    return {_tpl_norm(l) for l in f.read_text(encoding="utf-8").splitlines()} - {""} if f else set()
+
+
+TICKET_TEMPLATE_LINES = _ticket_template_lines()
+
+
+def ticket_security_words(spec: str) -> list[str]:
+    """The security words a ticket's OWN lines name. The template's standard DoD lines ("credentials in .env",
+    "fail closed on anything auth-related") are on every ticket: a logged lean build marked a demo-data seeder
+    "Security review: REQUIRED" on those two lines alone."""
+    own = "\n".join(l for l in spec.splitlines() if _tpl_norm(l) not in TICKET_TEMPLATE_LINES)
+    return sorted({w.lower() for w in SECURITY_TICKET.findall(own)})
 
 
 def ticket_verification(spec: str) -> list[str]:
@@ -3186,6 +4734,10 @@ def build_ticket_gaps(base: Path, a, today: str, st: "Status | None" = None) -> 
                     "review names every file it read, with what it checked there")
     gate_gap, good = final_gate_gap(base, d, branch)
     gaps += [g for g in (review_count_gap(doc, review, a.review or ""), gate_gap) if g]
+    gaps += feature_doc_gaps(doc, text)
+    low_gap, low_note = low_findings(review, getattr(a, "low", None), a.id)
+    gaps += [low_gap] if low_gap else []
+    notes += [low_note] if low_note else []
     tf = find_ticket(base, a.id)
     spec = tf.read_text(encoding="utf-8", errors="replace") if tf else ""
     # finding 2: a complete verdict needs the ticket's OWN verification in the close gate - the project recipe can
@@ -3205,7 +4757,7 @@ def build_ticket_gaps(base: Path, a, today: str, st: "Status | None" = None) -> 
     diff = git(base, "diff", "-U0", f"{mb}...HEAD", "--", *changed) if mb and changed else ""
     added = "\n".join(ln[1:] for ln in diff.splitlines() if ln.startswith("+") and not ln.startswith("+++"))
     in_code = sorted({w.lower() for w in SECURITY_TICKET.findall(added)})
-    sensitive = bool(SECURITY_TICKET.search(spec)) or bool(in_code)
+    sensitive = bool(ticket_security_words(spec)) or bool(in_code)
     # R3-2: the demo's entry point (a route, a `python -m` command) is called by a test - a logged Gemini build was
     # "wired" to a module whose only way in answered 501; nothing outside the tests could reach it
     demo = demo_section(spec)
@@ -3268,7 +4820,7 @@ def build_ticket_gaps(base: Path, a, today: str, st: "Status | None" = None) -> 
                     f"{', '.join(extra[:6])} - say in the feature doc why each changed, or undo it")
     # a ticket the start marked "security review: REQUIRED" records that one ran (the helper, or its equivalent)
     if sensitive and not re.search(r"(?i)security", a.review or ""):
-        where = ("the ticket touches auth / tenant / money / secrets / personal data" if SECURITY_TICKET.search(spec)
+        where = ("the ticket touches auth / tenant / money / secrets / personal data" if ticket_security_words(spec)
                  else f"the code this branch added touches {', '.join(in_code[:5])} (the ticket did not say so)")
         gaps.append(f"{where}, and --review names no security review - run it (round 1's helper) and name it in "
                     f"--review")
@@ -3288,6 +4840,46 @@ def build_ticket_gaps(base: Path, a, today: str, st: "Status | None" = None) -> 
     return gaps, notes
 
 
+def feature_doc_gaps(doc: str, text: str) -> list[str]:
+    """the feature doc's top half is for people - featuredoc.py's check, run here too. The full path
+    writes the doc AFTER its close gate, so the gate never saw it; the record is the last point both paths pass."""
+    if not text or not re.match(r"(?i)^docs/features/[^/]+\.md$", doc.replace("\\", "/")) \
+            or Path(doc).name.lower() == "readme.md":
+        return []
+    f = tool_file("build", "featuredoc.py")
+    if f is None:
+        return []
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("playbook_featuredoc", f)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return [f"{doc}'s top half (for people, templates/feature-doc.md): {g}" for g in mod.top_half_gaps(text)]
+
+
+LOW_SEVERITY = {"LOW", "NIT", "INFO", "UNRATED"}
+
+
+def low_findings(review: str, low: str | None, tid: str) -> tuple[str, str]:
+    """the review's LOW findings that were not fixed are filed as ONE grouped issue at the close, or the
+    row says why not. A logged lean build told the user to run /tickets for them - so nobody filed them.
+    A row counts as fixed when it names a commit or says "fixed" (not "not fixed"). (gap, note)."""
+    open_ = []
+    for line in review.splitlines():
+        cells = [c.strip().strip("*").strip() for c in line.strip().strip("|").split("|")] if "|" in line else []
+        if any(c.upper() in LOW_SEVERITY for c in cells):
+            rest = " ".join(c for c in cells if c.upper() not in LOW_SEVERITY)
+            if not re.search(r"(?i)(?<!not )\bfixed\b|\b[0-9a-f]{7,40}\b", rest):
+                open_.append(rest[:60])
+    if not open_:
+        return "", ""
+    if not low:
+        return (f"{len(open_)} LOW finding(s) in the Review table are not fixed ({'; '.join(open_[:3])}) - file them "
+                f"as ONE grouped issue: gh issue create --title \"{tid}: low findings from the review\" --body "
+                f"\"<one line each: file:line - what goes wrong>\", then pass --low \"#<its number>\"; or --low \"not "
+                f"filed: <why>\" (no GitHub remote, the user said not to)"), ""
+    return "", f"Tell the user in the close: {len(open_)} LOW finding(s) not fixed - {low}"
+
+
 def cmd_ticket(st: Status, a, today: str) -> str:
     if a.dod not in ("yes", "no", "partial"):
         raise Refused("--dod is yes, no or partial")
@@ -3300,15 +4892,21 @@ def cmd_ticket(st: Status, a, today: str) -> str:
     verified = a.verified + "".join(f" · {k}: {v}" for k, v in (("no cuts", a.no_cuts), ("not wired", a.not_wired),
                                                                 ("self-review ok", a.self_review_ok),
                                                                 ("uncut", "; ".join(a.uncut or []))) if v)
+    review = capped("review", a.review or "none recorded", a.doc)
+    #  pre-check row 1: the commit the review covered, so /ship reviews only what came after it. Only when nothing
+    # but the record is uncommitted - otherwise the commit that saves this row is that point (ticket_reviewed_at).
+    head = git(st.base, "rev-parse", "--short", "HEAD") if st.base is not None and git_dir(st.base) else ""
+    dirty = [l for l in git(st.base, "status", "--porcelain").splitlines() if not re.search(
+        rf"\s(?:STATUS\.md|{FRAG_DIR}/|\.status\.lock)", l)] if head else []
+    if head and not dirty and not re.search(r"\b[0-9a-f]{7,40}\b", review):
+        review += f" · reviewed @ {head}"
     row = [capped("cell", a.id), today, a.dod, capped("verified", verified, a.doc),
-           str(a.runs) if a.runs is not None else "not counted", capped("review", a.review or "none recorded", a.doc),
-           capped("cell", a.doc)]
+           str(a.runs) if a.runs is not None else "not counted", review, capped("cell", a.doc)]
     st.rows["Tickets"].append(row)  # #build counts as filled once a ticket file exists (DERIVED), never written here
     return f"ticket {a.id} recorded" + "".join(f"\n  {n}" for n in notes)
 
 
 def cmd_release(st: Status, a, today: str) -> str:
-    cells = [today] + [capped("cell", v) for v in (a.what, a.reviews, a.skipped, a.docs, a.record, a.rollback, a.pr)]
     gaps = ship_release_gaps(st, a, st.base) if st.base is not None else []  # /ship's close, in code (P20)
     if gaps and getattr(a, "dry_run", False):
         raise DryRun(f"{len(gaps)} gap(s) the release call would refuse - fix them before the PR opens:\n"
@@ -3318,8 +4916,13 @@ def cmd_release(st: Status, a, today: str) -> str:
                       + "\n  - ".join(gaps))
     if getattr(a, "dry_run", False):
         raise DryRun("no gap: open the PR, then run this `release` with --pr <link> and --commit \"<one line>\"")
+    cells = [today] + [capped("cell", v) for v in (a.what, a.reviews, a.skipped, a.docs, a.record, a.rollback, a.pr)]
     st.rows["Releases"].append(cells)
-    return "release recorded"  # #ship counts as filled once a release file exists (DERIVED)
+    # the card says In Review once the PR is open (read back), also on a /ship that /build never moved
+    cards = [board_line(st.base, t, "In Review") for t in list(dict.fromkeys(PLAIN_ID.findall(a.what)))[:4]] \
+        if st.base is not None and re.search(r"https?://|#\d+", a.pr) and not re.search(r"(?i)local", a.pr) else []
+    return ("release recorded" + record_milestone_bypass(st, "ship", today)  # #ship is filled once a release file exists
+            + "".join(f"\n  {c}" for c in cards))
 
 
 def cmd_open(st: Status, a, today: str) -> str:
@@ -3737,6 +5340,28 @@ CLOSE_STEPS = {
 }
 
 
+# SETUP-1 (2.3 review): /structure, /foundation and /contracts never edit an earlier phase's record, so their step 3
+# replaces MECHANISMS.md §Step 3c items 2-3 ("ask which wins", "amend the earlier section") - a model following the
+# printed rule word for word asked an extra question and edited #Architecture.
+CLOSE_CONFLICT: dict[str, str] = {}
+
+
+def conflict_as_open_item(phase: str) -> str:
+    return ("a conflict (this replaces MECHANISMS.md §Step 3c items 2-3): name both sides on a line of their own, ask "
+            "nothing, never edit an earlier phase's record or document; record it: `status.py open --from "
+            f"{phase} --what \"Clash: <both sides>\" --clears \"/<that phase> decides\"`; a fix of this phase's own "
+            "files -> run this `set` again")
+
+
+# 2.4 review: /architect had no entry, so its close printed "ask which wins" against the owner rule (a clash is an
+# open item, never an edit). Its open items go in with the save, from the fields file's `open items`.
+CLOSE_CONFLICT["architect"] = (
+    "a conflict no answer this run decided (this replaces MECHANISMS.md §Step 3c items 2-3): name both sides on a "
+    "line of their own, ask "
+    "nothing, never edit #Scope or #Plan; add to the fields file's `open items` the line `- Clash: <both sides> | "
+    "/<that phase> decides` and run this `set` again (it saves again)")
+
+
 def close_steps_text(phase: str, saved: str | None = None) -> str:
     """What `set <phase> filled` prints: the rest of the close as a checklist. Three reviewers said ~2/3 of the
     ~3.5K tokens of rules it printed went unused, and a re-run of `set` printed them again."""
@@ -3752,29 +5377,78 @@ def close_steps_text(phase: str, saved: str | None = None) -> str:
         "it, and never measure line lengths (`set` wraps them). Steps 2-3 use what you wrote - it is in this "
         "conversation - and the facts printed below.",
         f"  2. reconcile {reconcile}; name a clash to the user, never write over it",
-        f"  3. Step 3c: compare with {compare}; a conflict: name both sides, ask which wins; a fix -> run this `set` "
-        f"again",
-        (f"  4. {saved} - the user's yes to the drafts was the save: never ask it again" if saved else
-         '  4. ask "Save this version of your project? (yes / no)" with the details below under it; it waits for the '
-         "reply - on a yes: `status.py save -m \"<one line>\"`, the only save (no git call of your own). End the "
-         "message at the question: steps 5-6 come after the answer, their first line saying what the save did "
-         "(Saved, with the commit hash - or Not saved). The user's own request already said to commit: that is the yes - save and say so, no question"),
-        f"  5. the transition guard: a verdict per exit criterion - VERIFIED only for what a command you ran checked "
-        f"(this `set` counted {counted}); wording and quality are UNVERIFIED (judged); never 100%",
+        f"  3. Step 3c: compare with {compare}; " + CLOSE_CONFLICT.get(
+            phase, "a conflict: name both sides, ask which wins; a fix -> run this `set` again"),
+        (f"  4. {saved} - this call was the save: never ask a save question" if saved else
+         "  4. not saved (the user said not to save, or the save failed above): say so in the close's first line - "
+         "never ask a save question; the user asks for it later: `status.py save -m \"<one line>\"` (no git call of "
+         "your own)"),
+        (f"  5. the transition guard, ONE line: `Checked by the save: {counted} - judged, not checked: <the exit "
+         f"criteria about wording and quality>`; never 100%" if phase in FIELD_PHASES or phase in SHORT_CLOSE_ALSO else
+         f"  5. the transition guard: a verdict per exit criterion - VERIFIED only for what a command you ran checked "
+         f"(this `set` counted {counted}); wording and quality are UNVERIFIED (judged); never 100%"),
         # A6: after a clean --commit save the owner still typed "commit" (3 calls): the close says it first
-        (f"  6. its first line: `Saved: commit {sha.group(1)}` - nothing left to commit; then four blocks" if sha
-         else "  6. four blocks")
-        + ", in order: What just happened · What I skipped or couldn't do · Test this yourself · What YOU do next - "
-        "its last line is the `Open a NEW conversation` line below, copied word for word"])
+        (("  6. " + SHORT_CLOSE.format(first=f"`Saved (commit {sha.group(1)}).` (nothing left to commit)" if sha else
+                                       "`Nothing changed since the last save.`" if saved else "`Not saved.`"))
+         if phase in FIELD_PHASES else
+         (f"  6. its first line: `Saved (commit {sha.group(1)}).` - nothing left to commit; then the blocks" if sha
+          else "  6. its first line: `Nothing changed since the last save.`; then the blocks" if saved
+          else "  6. its first line: `Not saved.`; then the blocks")
+         + ", in order: What just happened · What I skipped or couldn't do · Test this yourself · What YOU do next - "
+         + (VERIFY_CLOSE if phase in VERIFY_CLOSE_PHASES else SETUP_CLOSE if phase in SETUP_CLOSE_PHASES else
+            SHORT_CLOSE_ALSO.get(phase, ""))
+         + "its last two lines: `Change anything? If not:` and the `Open a NEW conversation` line below, copied word "
+         "for word")
+        + ". A change the user asks for afterwards: make it, run this `set` again (it saves again)"])
+
+
+#  (owner OK 2026-10-06), a document phase's close repeated its content a 4th time (scope 10.3K vs
+# plain's 6.8K). The four blocks stay; each is ONE line, and the document is linked, never restated.
+# 2.4: at most 6 lines - a document phase has nothing to test by hand, so that block is left out, not printed empty.
+# review 2.4 early-2: the line order is stated once, as printed - the guard line comes first, `Saved` second.
+SHORT_CLOSE = ("the close, 6 lines in all: the guard line, then {first}, then What just happened and What I skipped "
+               "or couldn't do, ONE line each - what was saved and the document's path (never restate its content: "
+               "it is linked) · what was skipped (or `Nothing skipped.`) - and What YOU do next as the last two "
+               "lines, copied word for word: `Change anything? If not:` and the `Open a NEW conversation` line below. Test "
+               "this yourself is left out: nothing to test by hand here")
+# 2.4 (comment B): the checking phases' closes restated their record (the verdict table, every finding, the
+# release row) as the run's last and priciest message. Their blocks carry real results, so each is at most 2 lines
+# and the record is pointed at, never repeated.
+VERIFY_CLOSE_PHASES = ("dev-check", "test", "ship")
+VERIFY_CLOSE = ("each block at most 2 lines, the whole close at most 12 lines: the verdict and where it is recorded "
+                "(never restate the record or its table: point at it) · what was skipped or UNVERIFIED, by name (or "
+                "`Nothing skipped.`) · ONE command or link the user runs to see it work · the issues filed or reopened, "
+                "by number on one line, and the next step (a security finding kept out of a public repo is the one "
+                "exception: say each one in full) - ")
+# 2.4 (B, review item 8): /architect's and /structure's closes restated the architecture and the layout; the
+# same short close. /structure leaves a runnable project, so its test line is the smoke-test command `prove` ran.
+# They keep the four blocks (the early phases' 6-line close drops Test this yourself; /structure's test line is real).
+# 2.4 review: "7 lines" left no room for step 5's verdict per exit criterion - the guard is one line, counted here.
+SETUP_SHORT = ("ONE line each, the whole close 8 lines (the transition guard, the first line, the four blocks, the "
+               "last two): what was saved "
+               "and the document's path (never restate its content: it is linked) · what was skipped (or "
+               "`Nothing skipped.`) · ")
+SHORT_CLOSE_ALSO = {"architect": SETUP_SHORT + "`Nothing to test by hand in this phase.` · ",
+                    "structure": SETUP_SHORT + "the smoke-test command `prove` ran, to run yourself · "}
+
+
+#  for the setup phases (2.4): the same waste - a close restating DESIGN.md, the runbook or the contracts it just
+# wrote. A setup close also says what runs and how to try it, so each block gets two lines, never the content again.
+SETUP_CLOSE_PHASES = ("design-system", "foundation", "contracts")
+SETUP_CLOSE = ("each block at most 2 lines (/contracts' table of what was frozen counts as one): what was saved with "
+               "the documents' paths "
+               "(never restate DESIGN.md, the runbook, the contracts or the record: they are linked) · what was "
+               "skipped or is owed (or `Nothing skipped.`) · the one command or page to try it yourself · ")
 
 
 # ---- /dev-check (P1, P2, P20, P44) ------------------------------------------------------------------------------
 # The checkpoint's start prints the facts and the rules its checks use; the close is ONE checked call whose refusal
 # names every gap, and `set` prints the rest of the close. Before: a second `rules` call (27 KB), the generic 3 KB
 # checklist re-sent on every call, and two refusals in turn that --dry-run never reached.
-# owner 2026-10-06: a checkpoint or suite record is saved without a question (a separate "Save this version?" turn
-# cost ~680K tokens across 4 tools); `--no-commit` only when the user said not to save
-AUTO_SAVE = ("dev-check", "test")
+# owner 2026-10-06 (/dev-check, /test), extended to every phase for 2.1: a record is saved without a question -
+# a separate save turn cost ~680K tokens across 4 tools, and a 17-phase run needed 58 owner turns vs plain's 27.
+# The answers to a phase's last question round are the go-ahead; `--no-commit` only when the user said not to save.
+AUTO_SAVE = tuple(CHAIN)
 PHASE_CLOSE_RULES["dev-check"] = {"PRINCIPLES.md": ["The exit-criteria gate", "Reviews, vision & confidence"],
                                   "MECHANISMS.md": ["Step 3b", "Step 3c", "Commit the work", "Plain-language close"]}
 CLOSE_STEPS["dev-check"] = (
@@ -3783,11 +5457,31 @@ CLOSE_STEPS["dev-check"] = (
     "scoped feature quietly dropped",
     "each milestone ticket's state, the gate on this checkout, and a line for the gate, the live path, security and "
     "scope")
+#  (owner 2026-10-06): every question is options + one (Recommended) + Other, through the tool's question form;
+# follow-ups show only under the answer they belong to. A text round lost answers 2-4 on a logged /deploy.
+QUESTION_FORM = ("each question through your question tool when you have one (AskUserQuestion on Claude Code); "
+                 "without one: numbered options, ONE question per line, `(Recommended)` on one option, `Other` last, "
+                 "\"reply with the numbers\" - never a question answered by typing free text. A follow-up shows only "
+                 "under the answer it belongs to")
+LAST_ROUND_SAVES = ("after the last round's answers: write and save in one call (the answers are the go-ahead - never "
+                    "a separate save or \"looks good?\" question); the close shows the result and asks \"Change "
+                    "anything?\"")
+
+
+def auto_save_message(phase: str, verdict: str | None = None) -> str:
+    """The commit line of a save no one typed: the phase, its verdict, and what it wrote."""
+    what = {"build": "ticket record", "tickets": "tickets and TICKETS.md", "ship": "release record"}.get(
+        phase, f"#{PHASE_SECTION.get(phase, phase)} written")
+    return f"{phase}: {verdict.upper() if verdict else 'recorded'} - {what}"
+
+
 DEV_CHECK_HEAD = (
-    "This phase closes with ONE call - `status.py set dev-check filled --verdict pass|fail --section-from <file>`, "
-    "#Dev-complete's body in a scratch file outside the repo (never an edit tool on PRODUCT.md): it checks the "
+    "This phase closes with ONE call - `status.py set dev-check filled --verdict pass|fail --section-from <file> "
+    "--security-from <file>`, #Dev-complete's body and the security helper's findings table (as it returned it; a "
+    "security line that claims a result needs it, UNVERIFIED does not) in scratch files outside the repo (never an "
+    "edit tool on PRODUCT.md): it checks the "
     "record, names every problem at once (refused: PRODUCT.md is put back; `--dry-run` lists them, writes nothing), "
-    "SAVES the project - never ask \"Save this version?\" (`--no-commit` only when the user said not to save) - and "
+    "SAVES the project - never ask a separate save question (`--no-commit` only when the user said not to save) - and "
     "prints the rest of the close. A FAIL is a normal record - only the owner declines this phase.",
     "This phase must NOT: edit or fix code, tests or docs · merge a branch · re-run a check to get its number again "
     "(cite the run: a gate pass counts on the exact files it checked) · run a check it was not asked for (an extra type "
@@ -3829,7 +5523,8 @@ RELEASEOPS_HEAD = {p: (f"This phase closes with ONE call - `status.py set {p} fi
                        f"{' --verdict pass|fail' if p in VERIFY else ''} --section-from <file> --commit "
                        f"\"<one line>\"`, the section in a scratch file outside the "
                        f"repo (never an edit tool on PRODUCT.md): it checks the record, names every problem at once, "
-                       f"saves (leave `--commit` out when the user said not to save - no git call of your own) and "
+                       f"saves, never a separate save question (`--no-commit` only when the user said not to save; no git call of "
+                       f"your own) and "
                        f"prints the rest of the close.",) + RELEASEOPS_CLOSE for p in ("eval", "learn", "deploy")}
 EVAL_FIELDS = (("Is it good?", r"^is it good"), ("Metrics + confidence score", r"^metrics"),
                ("Cost-per-run", r"^cost"), ("Operational failures", r"^operational"), ("Detail", r"^detail"))
@@ -3855,6 +5550,8 @@ CLOSE_STEPS["eval"] = (
     "#Vision's north star (the metric measured is the one recorded) and #Architecture's performance and cost budget (a "
     "measured number never silently replaces it)",
     "the #Evaluation fields, the baseline, the confidence number and the evidence lines")
+# 2.4 review: /eval never owns #Vision or #Architecture - a clash is an open item, never a question or an edit
+CLOSE_CONFLICT["eval"] = conflict_as_open_item("eval")
 
 
 # Every call re-sends the start, and the rule sections were 8.4-9.4 KB of each 14-17 KB start: §Production
@@ -3889,6 +5586,8 @@ def safeguard_bullets(keys: tuple) -> str:
 def releaseops_rules_text(st: "Status", phase: str, gate_unmet: bool) -> str:
     want = {k: list(v) for k, v in PHASE_RULES[phase].items()}
     want["PRINCIPLES.md"] = [s for s in want["PRINCIPLES.md"] if s != "Production safeguards"]
+    if ((st.base or Path(".")) / "PRODUCT.md").is_file():  # §Spine resolution is for a project without one
+        want["MECHANISMS.md"] = [s for s in want["MECHANISMS.md"] if s != "Spine resolution"]
     if st.phase(phase)[1] not in ("filled", "overridden"):
         want["MECHANISMS.md"] = [s for s in want["MECHANISMS.md"] if s != "Re-run semantics"]
     if not gate_unmet:
@@ -3919,6 +5618,103 @@ def releaseops_owner_gaps(base: Path, companion: str) -> list[str]:
     if OWNER_ANSWERS.search(read_text(base / companion)):
         return []
     return [f"{companion} has no `## Owner's answers` - round 1's answers word for word, numbered as asked"]
+
+
+#  + R5 (2.4): the documents /eval, /learn, /validate and /deploy write for a person. An output review of logged runs
+# found the workings first and the result last (plain opened with the answer - P42, reader first), headings with no
+# number (the owner's ruling: a reader points at "section 7"), and dash chains and playbook words in the prose. Now the
+# document opens with `## 1. In short` (deployment.md: an `**In short:**` line above its numbered sections, which
+# /ship cites by number), `set` numbers every heading that has no number - keeping the ones that do and the document's
+# own links - and the plain-English estimates warn, never refuse (owner, 2026-10-09).
+IN_SHORT = re.compile(r"(?i)^(?:\d+\.\s+)?in short\b")
+IN_SHORT_LINE = re.compile(r"(?im)^\s*\*\*In short:\*\*[ \t]*(.*)$")
+APPENDIX_HEAD = re.compile(r"(?i)^appendix\s*[—–:-]?\s*")
+COMPANION_SHORT = {"docs/evaluation.md": "the result, what it means, what happens next",
+                   "docs/learnings.md": "the decision, the evidence behind it, what happens next",
+                   "docs/validation.md": "the bet, the test and its bar, the result or when it is due",
+                   "docs/deployment.md": "where it runs and who can reach it, how to deploy it again, how to roll it "
+                                         "back"}
+
+
+def heading_slug(title: str) -> str:
+    """The anchor a Markdown viewer gives a heading (the form early_doc_warnings checks links against)."""
+    return re.sub(r"[^\w\- ]", "", title.lower()).replace(" ", "-")
+
+
+def number_missing(doc: str) -> str:
+    """Every `##`/`###` heading without a number gets the next one; a heading that has a number keeps it (deployment.md
+    §1-§8 are cited by number elsewhere), an Appendix keeps its letter. Links to a renamed heading follow it."""
+    out, fence, sec, sub, letter, moves = [], False, 0, 0, "", {}
+    for line in doc.split("\n"):
+        if line.lstrip().startswith("```"):
+            fence = not fence
+        m = None if fence else re.match(r"^(#{2,3})\s+(.*\S)\s*$", line)
+        if not m:
+            out.append(line)
+            continue
+        title, new = m.group(2), line
+        if len(m.group(1)) == 2:
+            sub = 0
+            app = re.match(r"^Appendix\s+([A-Z])\b", title)
+            num = re.match(r"^(\d+)\.\s+\S", title)
+            if app:
+                letter = app.group(1)
+            elif re.match(r"(?i)^appendix\b", title):
+                letter = chr(ord(letter) + 1) if letter else "A"
+                new = f"## Appendix {letter} — {APPENDIX_HEAD.sub('', title)}"
+            elif num:
+                sec, letter = int(num.group(1)), ""
+            else:
+                sec, letter = sec + 1, ""
+                new = f"## {sec}. {title}"
+        else:
+            num = re.match(r"^(?:\d+\.(\d+)|[A-Z]\.(\d+))\.?\s+\S", title)
+            if num:
+                sub = int(num.group(1) or num.group(2))
+            else:
+                sub += 1
+                new = f"### {letter or sec}.{sub} {title}"
+        if new != line:
+            moves[heading_slug(title)] = heading_slug(re.match(r"^#{2,3}\s+(.*)$", new).group(1))
+        out.append(new)
+    text = "\n".join(out)
+    return re.sub(r"\]\(#([^)\s]+)\)", lambda x: f"](#{moves.get(x.group(1).lower(), x.group(1))})", text) \
+        if moves else text
+
+
+def companion_prep(base: Path, rel: str, a) -> list[str]:
+    """At the record call: name a missing reader-first summary, and queue the numbering of the document's unnumbered
+    headings - written only once the record has no gap (a refusal or --dry-run leaves the file as the run wrote it).
+    [] when the document is not there - the phase's own check names that."""
+    p = base / rel
+    if not p.is_file():
+        return []
+    doc = read_text(p)
+    numbered = number_missing(doc)
+    if numbered != doc:
+        a.number_docs = [*getattr(a, "number_docs", []), (p, numbered)]
+    what = COMPANION_SHORT.get(rel, "the result and what happens next")
+    if rel == "docs/deployment.md":
+        m = IN_SHORT_LINE.search(doc)
+        if not m or not m.group(1).strip() or m.group(1).lstrip().startswith(("`<", "<")):
+            return [f"{rel} has no filled `**In short:**` line above section 1 - 3 plain sentences a newcomer reads "
+                    f"first: {what}"]
+        return []
+    heads = doc_headings(numbered)
+    first = next(((t, n) for lv, t, n in heads if lv == 2), None)
+    if first is None or not IN_SHORT.match(first[0]):
+        return [f"{rel} does not open with `## 1. In short` - 3-5 plain sentences a newcomer reads first: {what}; "
+                f"the workings come after it"]
+    body = next((ln for ln in numbered.splitlines()[first[1]:] if ln.strip()), "")
+    if not body.strip() or body.startswith("#"):
+        return [f"{rel}: `## 1. In short` is empty - 3-5 plain sentences: {what}"]
+    return []
+
+
+def companion_warnings(base: Path, rel: str) -> list[str]:
+    """The plain-English estimates of a phase document - warnings, never refusals."""
+    p = base / rel  # a command, a value or an evidence line in backticks is not prose: one word each
+    return early_doc_warnings(rel, re.sub(r"`[^`\n]+`", "`code`", read_text(p))) if p.is_file() else []
 
 
 def releaseops_spine(base: Path) -> dict[str, str]:
@@ -3981,6 +5777,33 @@ def eval_warnings(base: Path) -> list[str]:
             f"delete) - a product change goes through a ticket. The user's own edits: leave them and say so"]
 
 
+def eval_design_check_text(m: dict) -> str:
+    """before the features exist, a logged /eval stopped (the recommended option); plain checked the
+    evaluation itself from the plan's numbers and found the headline target could never fail (no planned negative case
+    scored above 0.33 against a 0.80 bar), recall had no target, the fake data had no hard negatives and the ID format
+    capped the population. None of that needs a built feature."""
+    return (f"  - /dev-check says {m['milestone']} isn't finished ({m['done']} of {m['total']} tickets): the features the "
+            f"measures read may not exist yet. Ask ONE options question instead of the gate lines and round 1: "
+            f"\"Check the measures and the test data now (Recommended)\" · \"Stop and record why\" · \"Other\".\n"
+            f"      Other, e.g. measure what is built: `status.py bypass --from eval --gate <each gate above> --reason "
+            f"\"/<gate> not passed - the user chose to go on\"`, then round 1.\n"
+            f"      The check runs nothing in the product; it works from #Vision, #Plan, the tickets and the fake-data "
+            f"code:\n"
+            f"      1. Can each target fail AND pass? From the plan's own numbers (weights, thresholds, the planned "
+            f"negative cases): the highest score a negative case can reach and the lowest a positive one can - a "
+            f"ceiling under the threshold means the target passes whatever the code does.\n"
+            f"      2. Is every target set? Each measure the goal needs has a number (precision AND recall, accuracy AND "
+            f"coverage, speed AND cost); a missing one is a finding.\n"
+            f"      3. Hard negatives: count the fake-data cases that carry a positive's signals without being one; 0 "
+            f"for a signal means every negative is an easy one.\n"
+            f"      4. Scale: the size where it breaks (memory, ID width, run time) against the planned volume.\n"
+            f"      Write docs/evaluation.md `## Design check` (per check: the numbers, how you got them, the unbuilt "
+            f"ticket it would change) and `## Owner's answers`, then `status.py set eval declined --reason \"features "
+            f"not built - measures checked: <n> findings in docs/evaluation.md\" --gate dev-check` (it saves). The "
+            f"close lists each finding as a change to an unbuilt ticket. Stop: the same call with --reason \"features "
+            f"not built yet\".")
+
+
 def eval_start_text(st: "Status") -> str:
     """`next --phase eval`: the goal to measure against, the gates before it, the budget, the dataset, the fields and
     what the close refuses - one call instead of three rule files and PRODUCT.md read whole."""
@@ -3994,6 +5817,7 @@ def eval_start_text(st: "Status") -> str:
         r = st.phase(p)
         gates.append((p, sec, r[1], r[4]))
     unmet = [g for g in gates if not (g[2] == "filled" and g[3] == "pass")]
+    early = milestone_unfinished(st)
     budget = [ln.strip()[:200] for ln in secs.get("Architecture", "").splitlines()
               if re.search(r"(?i)budget|latency|p9[59]|per run|cost per|throughput", ln)][:6]
     earlier = releaseops_field(section_fields(secs.get("Evaluation", "")), r"^is it good")
@@ -4008,9 +5832,9 @@ def eval_start_text(st: "Status") -> str:
            "sharpen it with the user or send them back to /vision before measuring anything)"),
            "  - Gates before /eval: " + " · ".join(f"#{s} ({p}): {state}{' ' + v if v else ''}"
                                                    for p, s, state, v in gates)
-           + (f" - NOT PASSED: {', '.join('/' + g[0] for g in unmet)}. Say which, offer them first (/dev-check, then "
-              f"/test); to go on, record the user's own reason: status.py bypass --from eval --gate <phase> --reason "
-              f"\"<their words>\"" if unmet else " - both passed"),
+           + ("".join(f"\n      {gate_note(st, 'eval', g[0])}" for g in unmet
+                      if not early) if unmet else " - both passed"),
+           *([eval_design_check_text(early)] if early else []),
            "  - #Architecture's budget lines (a measured number never silently replaces one - Step 3c):\n"
            + ("\n".join("      " + b for b in budget) or "      (none recorded)"),
            "  - Baseline: " + ("the recorded one - #Evaluation now says: " + earlier[:200] if earlier and earlier.strip()
@@ -4040,21 +5864,22 @@ def eval_start_text(st: "Status") -> str:
            "<date>`, and the input metrics measured now) · no confidence percentage, or 100% · a #Vision guardrail "
            "not reported · operational failures without a count · an AI product's cost without a number or the "
            "scoring-bias check · a pass with no `evidence:` line · a cited file that does not exist · LaTeX.",
-           "  - Two rounds, each ONE message (numbered lines to answer by typing, or your ask tool's form). Round 1 - "
-           "only what the lines above leave open: 1. the representative inputs (the owner's real samples, evals/, or "
-           "both) · 2. no baseline recorded: this result becomes it (Recommended), or the owner names one · 3. a north "
-           "star readable only after launch: record it not readable until <date> and measure the input metrics now "
-           "(Recommended), or stop · 4. a gate not passed: run it first (Recommended), or go on with the owner's "
-           "reason. Round 2, after measuring: the result, the confidence, any Step 3c clash, and \"Anything to "
-           "change? If not: Save this version of your project? (yes / no)\" as \"Looks good - save (Recommended)\" · "
-           "\"Change something\".",
+           f"  - ONE question round, before measuring - {QUESTION_FORM}. Only what the lines above leave open: "
+           "1. the representative inputs: evals/ (Recommended when it exists) · the owner's real samples · both · "
+           "Other · 2. no baseline recorded: this result becomes it (Recommended) · the owner names one · Other · 3. a "
+           "north star readable only after launch: record it not readable until <date> and measure the input metrics "
+           "now (Recommended) · stop · Other · 4. a gate not passed: the gate line above says what to do - never a "
+           "free-text reason. Then measure; " + LAST_ROUND_SAVES + " - the result, the confidence and any Step 3c "
+           "clash are in that close.",
            "  - The forms `set` accepts: `Confidence 70%: solid - ...; risky - ...; to raise it - ...` · failures as "
            "`0 of 40` · `Is it good?` names the input kind (real · owner samples · synthetic) - the close copies every "
            "number and data claim from this record, never from memory.",
-           "  - docs/evaluation.md ends with `## Owner's answers`: round 1's answers word for word, numbered as asked.",
+           "  - docs/evaluation.md opens with `## In short` (3-5 plain sentences a newcomer reads first: the result, "
+           "what it means, what happens next) and ends with `## Owner's answers`: round 1's answers word for word, "
+           "numbered as asked. `set` numbers every heading you leave unnumbered.",
            "  - Then ONE message: docs/evaluation.md and the section file, then `set eval filled --verdict pass|fail "
-           "--section-from <file> --commit \"<one line>\"` (no `--commit` on a no) records, saves and prints the rest "
-           "of the close. Stopping at an unmet gate: `status.py set eval declined --reason \"<what was missing>\" "
+           "--section-from <file>` records, saves (no question) and prints the rest of the close. Stopping at an "
+           "unmet gate: `status.py set eval declined --reason \"<what was missing>\" "
            "--gate <phase>`."]
     return "\n".join(out) + "\n\n" + releaseops_rules_text(st, "eval", bool(unmet))
 
@@ -4085,6 +5910,8 @@ CLOSE_STEPS["learn"] = (
     "#Vision's north star and #Scope's non-goals - 'what we learned we should build' is how a non-goal comes back "
     "unrecorded",
     "the #Learnings fields, the decision word, a trigger per deferred item and the earlier cycle kept")
+# 2.4 review: /learn never owns #Vision or #Scope - a clash is an open item, never a question or an edit
+CLOSE_CONFLICT["learn"] = conflict_as_open_item("learn")
 
 
 def learn_gaps(base: Path, st: "Status") -> list[str]:
@@ -4116,7 +5943,8 @@ def learn_gaps(base: Path, st: "Status") -> list[str]:
                       and re.search(r"(?i)chang|differently|improve|\bstop\b|\bstart\b|fix", retro)):
         gaps.append("#Learnings `Retro` needs both halves: what worked · what to change")
     if decided and not LEARN_DECISION.search(decided):
-        gaps.append("#Learnings `Decided next` names no decision - build, iterate or KILL (the owner's call)")
+        gaps.append("#Learnings `Decided next` names no decision - continue, iterate the plan, pivot or KILL (the "
+                    "owner's call)")
     if decided and LEARN_DEFERRED.search(decided) and not LEARN_TRIGGER.search(decided):
         gaps.append("#Learnings `Decided next` defers something without the trigger that would bring it back "
                     "(`later - when <trigger>`)")
@@ -4132,8 +5960,144 @@ def learn_gaps(base: Path, st: "Status") -> list[str]:
     if old and not EMPTY_VALUE.match(old) and " ".join(old.split()) != " ".join(decided.split()) and \
             " ".join(old.split())[:60] not in " ".join(comp.split()):
         gaps.append(f"#Learnings is append-only - the earlier cycle's decision ({old[:70]}) is in neither the section "
-                    f"nor docs/learnings.md: move the earlier entry under `## Cycle <its date>` there, word for word")
+                    f"nor docs/learnings.md: move the earlier entry there, after this cycle's text, under `## Cycle "
+                    f"<its date>`, word for word")
     return gaps
+
+
+# with no metric readable, a logged /learn decided on "opinion"; plain Claude read the repo instead (no M1
+# ticket built on day 1, the next four commits documents and tests, ~2,400 lines of docs vs ~1,700 of product code)
+# and decided "iterate". These numbers need no metric: the start computes them, the retro cites them.
+DOC_SUFFIXES = {".md", ".mdx", ".rst", ".txt", ".adoc"}
+
+
+def repo_kind(rel: str) -> str | None:
+    """docs · tests · code for a tracked file; None for anything else (config, lockfiles, assets, the status files)."""
+    p = Path(rel)
+    if rel.startswith(FRAG_DIR + "/") or p.name in ("STATUS.md",) or p.name in LOCKFILES:
+        return None
+    if p.suffix.lower() in DOC_SUFFIXES:
+        return "docs"
+    if p.suffix.lower() in REVIEW_CODE - {".yml", ".yaml", ".toml"}:
+        return "tests" if is_test(rel) else "code"
+    return None
+
+
+def process_retro(st: "Status") -> list[str]:
+    """The retro's evidence from the repo: tickets built against the plan's dates (and Day 1's starters), what the
+    commits since the last merged ticket added (docs vs code vs tests), the repo's docs vs code size now, and the
+    phase findings still open. [] outside a git checkout."""
+    base = st.base or Path(".")
+    if not git_dir(base):
+        return []
+    out = []
+    rows = {r[0]: r for r in st.rows["Tickets"]}
+    plan_text = releaseops_spine(base).get("Plan", "")
+    for ms, ids in (milestone_plan(base) or {}).items():
+        built = [t for t in ids if t in rows]
+        d = milestone_dates(plan_text, ms, st.today)
+        if not built and not (d and d[0] <= st.today):
+            continue  # a milestone not started: nothing to learn from yet
+        when = ""
+        if d:
+            total, gone = day_count(d[0], d[1]) + 1, day_count(d[0], st.today) + 1
+            when = (f" (planned {d[0]} → {d[1]}: day {gone} of {total})" if gone <= total else
+                    f" (planned {d[0]} → {d[1]}: ended {gone - total} days ago)")
+        merged = sum(1 for t in built if in_checkout(base, rows[t]))
+        out.append(f"{ms}{when}: {len(built)} of {len(ids)} tickets built, {merged} merged here"
+                   + (" - " + ", ".join(f"{t} {rows[t][1]}" for t in built[:6]) if built else ""))
+    tk = base / "TICKETS.md"
+    day1 = re.search(r"(?ims)^## Day 1.*?(?=^## |\Z)", read_text(tk)) if tk.is_file() else None
+    if day1:
+        starters = list(dict.fromkeys(TICKET_ID_BARE.findall(day1.group(0)) + TICKET_ID.findall(day1.group(0))))
+        if starters:
+            out.append("Day 1 starters (TICKETS.md): " + ", ".join(
+                f"{t} {'built ' + rows[t][1] if t in rows else 'not built'}" for t in starters[:8]))
+    built_ids = sorted(rows, key=lambda t: rows[t][1])
+    last = next((git(base, "log", "-1", "--format=%H", "-i", "-F", f"--grep={t}", "HEAD") for t in reversed(built_ids)
+                 if git(base, "log", "-1", "--format=%H", "-i", "-F", f"--grep={t}", "HEAD")), "")
+    if last:
+        added = {"docs": 0, "code": 0, "tests": 0}
+        for ln in git(base, "diff", "--numstat", last, "HEAD").splitlines():
+            n, _, rel = (ln.split("\t") + ["", ""])[:3]
+            k = repo_kind(rel)
+            if k and n.isdigit():
+                added[k] += int(n)
+        subjects = git(base, "log", "--format=%s", f"{last}..HEAD").splitlines()
+        out.append(f"Since the last merged ticket ({built_ids[-1]}, {last[:7]}): {len(subjects)} commit(s), lines "
+                   f"added - docs {added['docs']} · product code {added['code']} · tests {added['tests']}"
+                   + (" - " + " | ".join(s[:60] for s in subjects[:5]) if subjects else ""))
+    size = {"docs": 0, "code": 0, "tests": 0}
+    for rel in git(base, "ls-files").splitlines()[:5000]:
+        k = repo_kind(rel)
+        if k:
+            size[k] += read_text(base / rel).count("\n")
+    out.append(f"The repo now: docs {size['docs']:,} lines · product code {size['code']:,} · tests {size['tests']:,}")
+    still = [o for o in st.rows["Open items"] if not o[5]]
+    if still:
+        per: dict[str, int] = {}
+        for o in still:
+            per[o[2]] = per.get(o[2], 0) + 1
+        out.append(f"Findings still open: {len(still)} open item(s) - " + ", ".join(f"/{k} {v}" for k, v in per.items()))
+    gates = [f"/{p} {r[1]}{' ' + r[4].upper() if r[4] else ''} {r[2]}" for p in ("dev-check", "test", "eval")
+             for r in [st.phase(p)] if not (r[1] == "filled" and r[4] == "pass")]
+    if gates:
+        out.append("Gates not passed: " + " · ".join(gates))
+    return out
+
+
+# plain Claude's "iterate" (fix the unbuilt tickets) was the right call and the playbook offered no such
+# path - the decision list now names it, and the handoff sends it to /tickets
+ITERATE_PLAN = re.compile(r"(?i)\biterate (?:the|on the) plan\b")
+
+
+#  (2.4): /scope and /plan never read #Learnings, so a KILL or a deferred item's trigger recorded at the end
+# of a cycle never reached the next one. Their starts print the last cycle's decision whenever /learn has recorded one.
+def learnings_carry(secs: dict[str, str]) -> list[str]:
+    """The last /learn cycle's decision for the next cycle's /scope or /plan start ([] before the first one)."""
+    f = section_fields(re.sub(r"<!--.*?-->", "", secs.get("Learnings", ""), flags=re.S))
+    decided = (releaseops_field(f, r"^decided next") or "").strip()
+    if not decided or EMPTY_VALUE.match(decided):
+        return []
+    # 2.4 review: /learn saves its decision "(proposed)" until the owner keeps it - a start that called it "the
+    # decision" had /scope and /plan enforce a proposal nobody agreed to
+    if re.search(r"(?i)\(proposed\)", decided):
+        head = ("  - #Learnings, the last cycle's decision - proposed, not yet kept by the owner: offer it as the "
+                "(Recommended) option; never apply it unasked:")
+    else:
+        head = ("  - #Learnings, the last cycle's decision (from evidence - a KILLed feature stays out, a deferred "
+                "item comes back only when its trigger fired; quote the decision line in docs/scope.md or "
+                "docs/plan.md - this phase's document - for each item it names):")
+    return [head, f"      decided next: {' '.join(decided.split())[:600]}"]
+
+
+def learn_iterates_plan(st: "Status") -> bool:
+    secs = releaseops_spine(st.base or Path("."))
+    return bool(ITERATE_PLAN.search(releaseops_field(section_fields(secs.get("Learnings", "")), r"^decided next") or ""))
+
+
+def learn_warnings(base: Path) -> list[str]:
+    """A warning, never a refusal (prose): no metric readable, and a retro that cites no number from the repo."""
+    f = section_fields(releaseops_spine(base).get("Learnings", ""))
+    metric, retro = releaseops_field(f, r"^success metric") or "", releaseops_field(f, r"^retro") or ""
+    if metric and NOT_READABLE.search(metric) and retro and not re.search(r"\d", retro):
+        return ["#Learnings `Retro` cites no number while the metric is not readable - the start's process retro "
+                "(tickets built vs planned, docs vs code lines, findings open) is the evidence: name one each half"]
+    return []
+
+
+def learn_milestone(st: "Status") -> str:
+    """/learn's recommended metric answer: when #Evaluation said it becomes readable, else the #Plan milestone whose
+    line names the north star or the success metric, else #Plan's last milestone - the one that produces a number."""
+    secs = releaseops_spine(st.base or Path("."))
+    said = re.search(r"(?i)not readable until ([^.;:\n]+)", secs.get("Evaluation", ""))
+    if said:  # /eval already recorded when it becomes readable
+        return said.group(1).strip()
+    plan = secs.get("Plan", "")
+    lines = [ln for ln in plan.splitlines() if re.search(r"\bM\d+\b", ln)]
+    hit = next((ln for ln in lines if re.search(r"(?i)north star|success metric|metric", ln)), None)
+    ms = re.findall(r"\bM\d+\b", hit or (lines[-1] if lines else ""))
+    return f"{ms[0] if hit else ms[-1]} (from #Plan)" if ms else "<the #Plan milestone that produces it>"
 
 
 def learn_start_text(st: "Status") -> str:
@@ -4159,11 +6123,11 @@ def learn_start_text(st: "Status") -> str:
     cadence = ("compose /loop or /schedule to re-measure on a cadence" if playbook_tool() == "claude" else
                "no /loop or /schedule on this tool: name the cadence and who re-reads the metric (a calendar "
                "reminder the owner sets)")
+    retro_ = process_retro(st)
     out = ["/learn start - decide from these; read nothing else whole:",
            "  - #Vision (the goal the next move answers to):\n" + ("\n".join(pick) or "      (no north star)"),
            "  - Shipped: " + ("; ".join(f"{r[0]} {r[1][:90]} ({r[7][:60]})" for r in rel) if rel else
-                              "NOTHING - no release row: /learn is premature. Say so; go on only with the owner's "
-                              "reason: status.py bypass --from learn --gate ship --reason \"<their words>\""),
+                              "NOTHING - no release row: /learn is premature. " + gate_note(st, "learn", "ship")),
            f"  - Live: {url[:160] if url.strip() else '(no #Deployment URL)'}",
            f"  - #Evaluation: {ev[1]}{' ' + ev[4] if ev[4] else ''}" + (f" - {good[:220]}" if good.strip() else
            " - EMPTY: say so before drawing conclusions; a retro with no measured result is opinion - label the "
@@ -4171,11 +6135,15 @@ def learn_start_text(st: "Status") -> str:
            "  - #Scope's non-goals and deferred items (a next move that brings one back needs its trigger - Step 3c):\n"
            + ("\n".join("      " + s for s in scope) or "      (none recorded)"),
            # whole, so the move needs no read of PRODUCT.md or the companion (waste audit W26/P19)
-           ("  - The earlier cycle, whole - #Learnings is append-only: put it in docs/learnings.md under `## Cycle "
-            "<its date>`, word for word, in the same write as this cycle's notes:\n"
+           ("  - The earlier cycle, whole - #Learnings is append-only: put it in docs/learnings.md after this cycle's "
+            "text (the document opens with `## In short`), under `## Cycle <its date>`, word for word, in the same "
+            "write as this cycle's notes:\n"
             + "\n".join("      " + ln for ln in secs.get("Learnings", "").strip().splitlines())
             if prev.strip() else "  - First cycle: no earlier #Learnings entry"),
            f"  - Cadence: {cadence}.",
+           *(["  - Process retro from the repo (evidence that needs no metric - the retro cites these numbers, each "
+              "half; a metric not readable yet does not make the retro opinion):\n"
+              + "\n".join("      " + x for x in retro_)] if retro_ else []),
            "  - /learn decides; it builds nothing and changes no code - the next cycle does, starting at /scope.",
            "  - Run only: the query or export that reads the metric (once) - no test suite, lint or scan. "
            "docs/learnings.md is written, never read whole: the earlier cycle is printed above.",
@@ -4184,20 +6152,24 @@ def learn_start_text(st: "Status") -> str:
            "  - `set learn filled` refuses, every problem in one list: an empty field (a bare `n/a` too) · a result "
            "without its number and where it was read (not readable yet: `not readable until <date>`) · a user signal "
            "with no real source (none yet: say so and `status.py open --from learn ...`) · a retro without what "
-           "worked and what to change · no build / iterate / KILL · a deferred item without its trigger · an AI "
+           "worked and what to change · no decision (continue · iterate the plan · pivot · KILL) · a deferred item "
+           "without its trigger · an AI "
            "product's watch without cost · the earlier cycle's decision lost (append-only) · LaTeX.",
-           "  - Two rounds, each ONE message (numbered lines to answer by typing, or your ask tool's form). Round 1, "
-           "before drafting: 1. the success metric's number now and where it is read (or when it becomes readable) "
-           "· 2. the real user signal: which source and what it said · 3. anything the owner already wants next (an "
-           "idea, a complaint, a feature to kill) - recorded as theirs. Round 2: the retro, the evidence and the "
-           "proposed build / iterate / KILL with a trigger per deferred item, marked (proposed), any Step 3c clash, "
-           "and \"Anything to change? If not: Save this version of your project? (yes / no)\" as \"Keep as proposed "
-           "- save (Recommended)\" · \"Change something\" - the decision is the owner's: never record it unseen.",
-           "  - docs/learnings.md holds `## Owner's answers` for this cycle: round 1's answers word for word, numbered "
-           "as asked. Decision words `set` accepts: build · iterate · continue · KILL · drop · pause.",
+           f"  - ONE question round, before drafting - {QUESTION_FORM}: 1. the success metric: \"Not readable until "
+           f"{learn_milestone(st)} (Recommended)\" · \"Here is the number (and where it is read)\" · Other · 2. the "
+           "real user signal: \"None yet (Recommended)\" · \"Here is a signal (its source and what it said)\" · Other · 3. "
+           "anything the "
+           "owner already wants next: \"Nothing yet (Recommended)\" · \"Here is what I want (an idea, a complaint, a "
+           "feature to kill - recorded as theirs)\" · Other. Then draft the retro, the evidence and ONE decision with a trigger per deferred item, "
+           "marked (proposed) - continue (build the plan as written) · iterate the plan (change named unbuilt tickets: "
+           "which, and how - the next step is /tickets) · pivot (back to /scope) · KILL or stop (what is deprecated); " + LAST_ROUND_SAVES + " - the decision stays (proposed) until the owner "
+           "keeps or changes it there.",
+           "  - docs/learnings.md opens with `## In short` (3-5 plain sentences: the decision, the evidence behind "
+           "it, what happens next) and holds `## Owner's answers` for this cycle: round 1's answers word for word, "
+           "numbered as asked; `set` numbers every heading you leave unnumbered. Decision words `set` accepts: continue · iterate the plan · build · pivot · KILL · stop · drop · pause.",
            "  - Then ONE message: docs/learnings.md and the section file, then `set learn filled --section-from "
-           "<file> --commit \"<one line>\"` (no `--commit` on a no) records, saves and prints the rest of the close "
-           "and the next cycle's first command. Stopping at an unmet gate: `status.py set learn declined --reason "
+           "<file>` records, saves (no question) and prints the rest of the close and the next cycle's first "
+           "command. Stopping at an unmet gate: `status.py set learn declined --reason "
            "\"<what was missing>\" --gate <phase>`."]
     return "\n".join(out) + "\n\n" + releaseops_rules_text(
         st, "learn", not rel or not (ev[1] == "filled" and ev[4] == "pass"))
@@ -4236,11 +6208,133 @@ def ship_diff(base: Path) -> tuple[str, list[str], list[str], list[str]]:
     return mb, changed, commits, sorted({w.lower() for w in SECURITY_TICKET.findall(text)})
 
 
+# 2.2 (pre-check rows 1 and 10): a logged /ship read one small file per call 7 times (the
+# ticket row, the feature doc's review table, the diff), ran checks nobody asked for 6 times, never saw that CI on main
+# was red, re-reviewed commits /build had already reviewed, and left the merge and the tracker to commands a new user
+# would not run. The start prints those facts; land.py does the merge or the review hand-off.
+PLAIN_ID = re.compile(r"\b[A-Z][A-Z0-9]*-[A-Z0-9]+-\d+\b")
+DEP_SCANNER = re.compile(r"\b(pip-audit|npm audit|pnpm audit|yarn audit|osv-scanner|safety check|cargo audit|"
+                         r"govulncheck|bundle audit|trivy)\b")
+VERSION_HEADING = re.compile(r"(?m)^\+##\s*\[?v?\d+\.\d+")
+VERSION_LINE = re.compile(r"(?m)^\+\s*\"?version\"?\s*[:=]")
+PR_REF = re.compile(r"(?:/pull/|#)(\d+)\b")
+
+
+def gh_json(base: Path, *args: str):
+    """One `gh` call's JSON, or None when gh is missing, signed out, offline or the remote is not GitHub. Tests
+    replace this function."""
+    if "github" not in git(base, "remote", "get-url", "origin").lower():
+        return None
+    try:
+        r = subprocess.run(["gh", *args], cwd=base, capture_output=True, text=True, encoding="utf-8",
+                           errors="replace", timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    try:
+        return json.loads(r.stdout) if r.returncode == 0 and r.stdout.strip() else None
+    except ValueError:
+        return None
+
+
+def default_branch(base: Path) -> str:
+    return next((b for b in ("main", "master") if git(base, "rev-parse", "--verify", "--quiet", b)), "main")
+
+
+def ci_main_line(base: Path) -> str:
+    """the last CI run on the default branch, said FIRST when it failed. A logged project's CI had been
+    red on main since /foundation (an action version that does not exist) and no phase said so."""
+    runs = gh_json(base, "run", "list", "--branch", default_branch(base), "-L", "1", "--json",
+                   "conclusion,status,workflowName,url")
+    if not runs:
+        return ""
+    r = runs[0]
+    if r.get("conclusion") in ("failure", "startup_failure", "timed_out", "action_required"):
+        return (f"CI ON {default_branch(base).upper()} IS FAILING - say this to the user FIRST: {r.get('workflowName')} "
+                f"{r.get('conclusion')} ({r.get('url')}). A PR goes green only on a CI that works: fix it in this PR "
+                f"when the cause is the workflow file (a pinned action version that does not exist), else name it in "
+                f"the close.")
+    return ""
+
+
+def gate_dep_audit(base: Path) -> str:
+    """The dependency scanner the project's own check recipe already runs ('' when it runs none)."""
+    for name in ("justfile", "Justfile", ".justfile", "Makefile", "package.json"):
+        f = base / name
+        m = DEP_SCANNER.search(read_text(f)) if f.is_file() else None
+        if m:
+            return m.group(1)
+    return ""
+
+
+def ticket_reviewed_at(base: Path, row: list[str]) -> str:
+    """Pre-check row 1: the commit /build's review covered - the commit its row names, else the commit that saved its
+    row file (/build saves the row after the review's fixes). '' when neither is in git."""
+    for s in re.findall(r"\b[0-9a-f]{7,40}\b", row[5] if len(row) > 5 else ""):
+        if git(base, "rev-parse", "--verify", "--quiet", f"{s}^{{commit}}"):
+            return s
+    return git(base, "log", "-1", "--format=%h", f"-STicket: {row[0]}", "--", f"{FRAG_DIR}/{FRAG['Tickets']}")
+
+
+def feature_review(base: Path, doc: str) -> str:
+    """The feature doc's ### Review part (its round counts and findings table), at most 2,500 characters."""
+    f = base / doc.strip("` ")
+    if not doc.strip() or not f.is_file():
+        return ""
+    m = re.search(r"(?ms)^#{2,3} (?:\d+(?:\.\d+)*\.? )?Review\s*$(.*?)(?=^#{1,3} |\Z)", read_text(f))
+    return m.group(1).strip()[:2500] if m else ""
+
+
+def postmerge_line(st: "Status") -> str:
+    """the last release's PR, left for review. Merged since -> the post-merge steps run first (land.py
+    after); still open -> one line. '' when there is no PR or gh cannot tell."""
+    base = st.base
+    last = next((r for r in reversed(st.rows["Releases"]) if PR_REF.search(r[-1] or "")), None)
+    if base is None or last is None:
+        return ""
+    n = PR_REF.search(last[-1]).group(1)
+    pr = gh_json(base, "pr", "view", n, "--json", "state,number")
+    land = tool_file("ship", "land.py") or Path("commands/ship/land.py")
+    if pr and pr.get("state") == "MERGED":
+        return (f"PR #{n} ({last[1][:60]}) was merged since the last /ship: run `python \"{land.as_posix()}\" after "
+                f"--pr {n}` FIRST - it confirms the issue is closed, moves the card to Done, switches this folder to "
+                f"the updated {default_branch(base)} and reads it all back")
+    if pr and pr.get("state") == "OPEN":
+        return f"PR #{n} ({last[1][:60]}) is still open, waiting for review - its post-merge steps run once it merges"
+    return ""
+
+
+def ship_bump_gaps(st: "Status", a, base: Path) -> list[str]:
+    """ (g): a per-ticket /ship (--what names a ticket) adds to CHANGELOG ## [Unreleased] and never bumps the
+    version - the version belongs to the milestone's release, and two seats bumping it collide."""
+    if not PLAIN_ID.search(a.what) or not git_dir(base):
+        return []
+    mb = ship_diff(base)[0]
+    if not mb:
+        return []
+    out = []
+    if VERSION_HEADING.search(git(base, "diff", mb, "--", "CHANGELOG.md")):
+        out.append("a per-ticket /ship adds a version heading to CHANGELOG.md - put the entry under ## [Unreleased] "
+                   "(the version is the milestone release's, never one ticket's)")
+    bumped = [f for f in ("pyproject.toml", "package.json", "Cargo.toml", "manifest.json", "VERSION")
+              if (base / f).is_file() and (f == "VERSION" and git(base, "diff", mb, "--", f)
+                                           or VERSION_LINE.search(git(base, "diff", mb, "--", f)))]
+    if bumped:
+        out.append(f"a per-ticket /ship bumps the version in {', '.join(bumped)} - undo the bump; the entry goes under "
+                   f"CHANGELOG ## [Unreleased]")
+    return out
+
+
 def ship_release_gaps(st: "Status", a, base: Path) -> list[str]:
     """What `status.py release` refuses: round 1 named with its count (or the ticket row it cites), round 2 run or
     its skip recorded, the gate run once, security on an auth/data diff, the dependency scan, every unpassed phase in
     --skipped, a release record that exists, the rollback /deploy wrote, the docs named, and a PR or local-only."""
-    gaps, rv = [], a.reviews
+    #  (f): the 200-character cap is one more gap in this list - a logged run met it as a second refusal
+    gaps = [f"--{k} is {len(' '.join(str(v).split()))} characters; the limit is {CAP['cell']} - keep the counts here "
+            f"and the detail in the feature doc or the PR" for k, v in (
+                ("what", a.what), ("reviews", a.reviews), ("skipped", a.skipped), ("docs", a.docs),
+                ("record", a.record), ("rollback", a.rollback), ("pr", a.pr)) if len(" ".join(str(v).split())) > CAP["cell"]]
+    gaps += ship_bump_gaps(st, a, base)
+    rv = a.reviews
     r1 = REVIEW_COUNT.search(rv)
     if not r1 and not SHIP_CITED.search(rv):
         gaps.append("--reviews names no round 1 - `R1 (diff) 4 findings` / `R1 (diff) clean`, or the ticket row whose "
@@ -4290,13 +6384,50 @@ def ship_release_gaps(st: "Status", a, base: Path) -> list[str]:
     return gaps
 
 
-def ship_close_text(path: Path, today: str, commit: str | None) -> str:
-    """After the release row is written: the save, the rest of the close, the handoff - from a re-read STATUS.md,
-    where #ship is now filled (DERIVED), so the handoff names /learn and not /ship again."""
+def ship_push(base: Path) -> str:
+    """2.4: the release row is saved AFTER the PR opened, so that commit must reach the PR's branch, or `land.py
+    merge` merges a PR without the release record. Pushes only a branch that already has its copy on origin (the
+    one the PR was opened from), never the default branch, never --force; read back against origin."""
+    branch = git(base, "rev-parse", "--abbrev-ref", "HEAD")
+    if not branch or branch == "HEAD" or branch == default_branch(base):
+        return f"not pushed: on {branch or 'no branch'}, not a PR branch - push the PR's branch yourself"
+    if not git(base, "rev-parse", "--verify", "--quiet", f"refs/remotes/origin/{branch}"):
+        return (f"not pushed: {branch} has no copy on origin - the PR's branch: `git push -u origin {branch}`, "
+                f"then wait for its CI (`land.py merge` refuses a PR without this commit)")
+    r = subprocess.run(["git", "push", "origin", f"{branch}:{branch}"], cwd=base, capture_output=True, text=True,
+                       encoding="utf-8", errors="replace")
+    head = git(base, "rev-parse", "HEAD")
+    if r.returncode != 0 or head != git(base, "rev-parse", f"refs/remotes/origin/{branch}"):
+        return (f"NOT pushed: git push origin {branch} failed - {(r.stderr or r.stdout).strip()[:200]} - fix it and "
+                f"push before the merge question (`land.py merge` refuses a PR without this commit)")
+    return f"pushed: {branch} @ {head[:9]} - the PR carries the release row; its CI runs again on it"
+
+
+def ship_close_text(path: Path, today: str, commit: str | None, pr: str = "") -> str:
+    """After the release row is written: the save (pushed to the PR's branch), the rest of the close, the handoff -
+    from a re-read STATUS.md, where #ship is now filled (DERIVED), so the handoff names /learn and not /ship again."""
     st = Status.load(path)
     st.today = today
-    saved = save_commit(st.base, commit) if commit else None
-    return "\n".join(x for x in (saved, close_steps_text("ship", saved), handoff_card(st, "ship")) if x)
+    done = save_commit(st.base, commit) if commit else None
+    saved = done if done and done.startswith(("saved", "nothing to save")) else None
+    if done and done.startswith("saved") and re.search(r"https?://|#\d+", pr) and not re.search(r"(?i)local", pr):
+        done += "\n" + ship_push(st.base)
+    return "\n".join(x for x in (done, close_steps_text("ship", saved), handoff_card(st, "ship")) if x)
+
+
+# 2.4 review: /code-review starts its own reviewer, so on Claude Code it runs here and only the security review goes
+# to a helper (wrapping it reads the diff twice); Codex spawns only when the skill explicitly asks; off Claude no tool
+# has both review commands, so ONE helper reviews code and security against PRINCIPLES.md.
+SHIP_REVIEW_ROUTE = {
+    "claude": "in ONE message: run /code-review here (it starts its own reviewer - never inside a helper) and start ONE "
+              "helper (the Agent tool, run_in_background: true) that runs /security-review and returns only its "
+              "findings table",
+    "codex": "this skill explicitly asks you to spawn ONE reviewer agent (spawn_agent) that reviews code and security "
+             "against PRINCIPLES.md and returns only its findings table; then ONE `wait_agent` call",
+    "cursor": "ONE Task sub-agent reviews code and security against PRINCIPLES.md and returns only its findings table",
+    "antigravity": "`invoke_subagent` - ONLY if it is in your tool list: ONE subagent reviews code and security against "
+                   "PRINCIPLES.md and returns only its findings table",
+}
 
 
 def ship_start_text(st: "Status") -> str:
@@ -4322,33 +6453,69 @@ def ship_start_text(st: "Status") -> str:
             or (base / "requirements.txt").is_file() else "npm audit --omit=dev" if (base / "package.json").is_file()
             else "")
     gate, recipe = tool_file("build", "gate.py"), check_recipe(base)
-    out = [f"/ship start - {git(base, 'rev-parse', '--abbrev-ref', 'HEAD')} @ {git(base, 'rev-parse', '--short', 'HEAD')}"
-           f"; read nothing else whole:",
+    branch = git(base, 'rev-parse', '--abbrev-ref', 'HEAD')
+    # this PR's ticket(s): named by the branch or a commit; else the built ticket not shipped yet
+    ids = set(PLAIN_ID.findall(branch.upper() + " " + " ".join(commits)))
+    flow = ticket_flow(st) if st.base is not None else None
+    mine = [r for r in st.rows["Tickets"] if r[0] in ids] or [r for r in st.rows["Tickets"] if flow and
+                                                               flow["phase"] == "ship" and r[0] == flow["arg"]]
+    reviewed = ticket_reviewed_at(base, mine[-1]) if mine and git_dir(base) else ""
+    noise = (":(exclude)STATUS.md", f":(exclude){FRAG_DIR}")
+    since = [f for f in git(base, "diff", "--name-only", reviewed, "--", ".", *noise).splitlines()] if reviewed else []
+    shown_from = reviewed or mb
+    body = git(base, "diff", shown_from, "--", ".", *noise) if shown_from and git_dir(base) else ""
+    review_doc = feature_review(base, mine[-1][6]) if mine else ""
+    scanner = gate_dep_audit(base) if recipe else ""
+    seats = sorted(set(re.findall(r"\b[SJ]R\d+\b", read_text(base / "TICKETS.md")))) if (base / "TICKETS.md").is_file() else []
+    seat_list = ", ".join(seats)
+    never = re.search(r"(?i)\*\*merge:\*\*\s*never", secs.get("Project", ""))
+    land = (tool_file("ship", "land.py") or Path("commands/ship/land.py")).as_posix()
+    ci = ci_main_line(base) if git_dir(base) else ""
+    out = [f"/ship start - {branch} @ {git(base, 'rev-parse', '--short', 'HEAD')}"
+           f"; read nothing else whole - the diff, the ticket row and its review table are below:",
+           *([f"  - {ci}"] if ci else []),
            f"  - The diff since {mb[:9] or 'the first commit'}: {len(changed)} file(s), {len(commits)} commit(s): "
            + (", ".join(changed[:15]) + (" ..." if len(changed) > 15 else "") or "nothing changed - nothing to ship"),
            "  - What was already reviewed (Step 0's three paths - unchanged since that review: cite the row and skip; "
            "changed: re-run and name what changed; none: run it):\n"
-           + ("\n".join(f"      {r[0]} {r[1]}: review {r[5][:120] or '(none recorded)'}" for r in rows)
+           + ("\n".join(f"      {r[0]} {r[1]}: review {r[5] or '(none recorded)'} | " + " | ".join(
+               f"{c}: {v}" for c, v in zip(COLUMNS["Tickets"][2:], r[2:]) if c != "Review") for r in mine)
+              or "\n".join(f"      {r[0]} {r[1]}: review {r[5][:120] or '(none recorded)'}" for r in rows)
               or "      no ticket row - no recorded review: round 1 runs"),
+           *([f"  - /build reviewed {mine[-1][0]} at {reviewed}: " + (
+               f"{len(since)} file(s) changed since - round 1 and security cover ONLY these: {', '.join(since[:12])}"
+               if since else "nothing changed since - cite the row, no round 1")] if reviewed else []),
+           *([f"  - {mine[-1][6]} ### Review (/build's rounds and findings):\n"
+              + "\n".join("      " + ln for ln in review_doc.splitlines())] if review_doc else []),
+           *([f"  - The diff since {shown_from[:9]} ({len(body)} characters; the first 6,000 here - the rest: `git "
+              f"diff {shown_from[:9]} -- <file>`):\n```diff\n{body[:6000]}\n```"] if body.strip() else []),
            "  - Security surface in the diff: " + (", ".join(sec[:8]) + " - /security-review inside a subagent (or the "
                                                    "equivalent pass), unless a ticket row already ran it on this "
                                                    "unchanged surface" if sec else "none named"),
            "  - Gates: " + " · ".join(f"#{p}: {s}{' ' + v if v else ''}" for p, s, v in gates)
-           + (f" - not passed: {', '.join('/' + g[0] for g in unmet)}. Name each, recommend it; shipping anyway puts it "
+           + (f" - {gate_note(st, 'ship', 'dev-check')} --skipped: `{', '.join('/' + g[0] for g in unmet)}: "
+              f"{MILESTONE_REASON}`" if unmet and milestone_unfinished(st) else
+              f" - not passed: {', '.join('/' + g[0] for g in unmet)}. Name each, recommend it; shipping anyway puts it "
               f"in --skipped with the reason (a change to what the product does needs its tests)" if unmet else
               " - all passed"),
            "  - #Project policy: " + ("; ".join(policy) if policy else "none declared - the defaults (the user merges "
                                                                            "when they say so; CHANGELOG.md)"),
            "  - Release record: " + (f"CHANGELOG.md - its top: {top}" + (" - RETIRED: record `n/a — releases recorded "
-                                                                         "in <X>`" if SHIP_RETIRED.search(top) else "")
+                                                                         "in <X>`" if SHIP_RETIRED.search(top) else
+                                                                         " - a per-ticket PR adds its line under ## "
+                                                                         "[Unreleased] (add that heading when missing) "
+                                                                         "and never bumps the version: the version is "
+                                                                         "the milestone release's")
                                      if ch.is_file() else "no CHANGELOG.md - #Project policy names the record, else "
                                      "ask the user where releases are recorded"),
            f"  - Rollback: {'from docs/deployment.md §7 (/deploy ran): ' + rollback[:160] if rollback.strip() else 'no /deploy record - state it: revert PR · migration-down · flag-off (a data migration has no automatic down)'}",
            "  - No placeholder can boot this build: " + (f"the guard tests {', '.join(guards)} run in the gate - a red "
                                                          f"one stops the release" if guards else
                                                          "no guard test found - say so in the close (UNVERIFIED)"),
-           f"  - Dependency scan: {deps or 'name the scanner for this stack'} - its count goes in --reviews as `deps: "
-           f"<scanner> <count>` (not run: `deps: not run - <why>`)",
+           (f"  - Dependency scan: the gate's `{recipe[0]}` already runs {scanner} - its count in the gate's output is "
+            f"the evidence: `deps: {scanner} in the gate <count>` in --reviews; never a second run" if scanner else
+            f"  - Dependency scan: {deps or 'name the scanner for this stack'} - its count goes in --reviews as `deps: "
+            f"<scanner> <count>` (not run: `deps: not run - <why>`)"),
            (f"  - Gate - the full checks ONCE, after the last fix: python \"{gate.as_posix()}\" "
             f"\"{recipe[0] if recipe else '<the project check command>'}\"" if gate else
             "  - Gate - the project's full checks ONCE, after the last fix"),
@@ -4357,22 +6524,40 @@ def ship_start_text(st: "Status") -> str:
            "never merges without the user's explicit word (merging is deploying when the host builds on merge).",
            # unrequested checks on logged runs: mypy, a 4.8-min secret scan, a third prove (~0.6M each)
            "  - Run only: the reviews, the gate ONCE after the last fix, the dependency scan named above, and the test "
-           "files that import a module you changed while fixing - no other linter, type checker or scan of your own.",
-           # waste audit W56: a confirmation in a turn of its own cost ~680K across 4 tools
-           "  - Owner turns: round 1's result message also asks round 2 (yes/no, Recommended per Step 2) - and the "
-           "save goes in the same message as the dry run's result: \"Open the PR and save (Recommended)\" · \"Open the "
-           "PR, don't save yet\" · \"Change something\".",
-           "  - The order: reviews (round 1; round 2 is the user's call; no round 3) → security → docs → rollback → "
+           "files that import a module you changed while fixing - no other linter, type checker or scan of your own, and "
+           "no lint or type run per file (the gate runs them once).",
+           # waste audit W56: a confirmation in a turn of its own cost ~680K across 4 tools; 3 owner turns
+           "  - Owner turns, at most two: (1) round 1's result message asks round 2 (Recommended per Step 2) and, when "
+           "the Gates line asks one, the gate question - ONE options message, never a reason in the user's own words; "
+           "(2) the merge question below. A clean dry run: open the PR and record it - no save or \"open the PR?\" "
+           "question (`release` saves; `--no-commit` only when the user said not to save).",
+           #  (owner): the merge and the tracker were left as commands a new user would not run
+           ("  - Merge (no remote: none - local-only): after `release`, wait for the PR's CI in ONE call (`gh pr checks "
+            "<n> --watch`); red: fix it on the branch (the PR updates), ask nothing. " + (
+                f"#Project policy says merge: never - no question: `python \"{land}\" review --pr <n> --seat <the "
+                f"reviewing seat>` (card In Review, the reviewer named)." if never else
+                f"Green: ONE options question - Merge now{' (Recommended - one seat builds)' if len(seats) < 2 else ''} "
+                f"· Leave it for review{f' (Recommended - {len(seats)} seats: {seat_list}; a seat that did not build it reviews)' if len(seats) >= 2 else ''} "
+                f"· Other. Merge now: `python \"{land}\" merge --pr <n>` (merges, confirms the issue CLOSED, card to "
+                f"Done, this folder on the updated {default_branch(base)}, reads it all back). Review: `python \"{land}\" "
+                f"review --pr <n> --seat <reviewer>` (card In Review, the reviewer named); the next /build or /ship "
+                f"finds the merge and runs `land.py after`.") + " Quote its OK/FAIL lines in the close."),
+           "  - `--what` starts with the ticket id(s) this PR ships (`M1-API-01: ...`): `status.py next` then names "
+           "the seat's next ticket instead of this one again.",
+           "  - The order: round 1 and security together - " + SHIP_REVIEW_ROUTE.get(playbook_tool(), SHIP_REVIEW_ROUTE["claude"])
+           + " (no helper tool: both here, one after the other); round 2 is the user's call; no round 3 → docs → rollback → "
            "confidence → `status.py release ... --pr pending --dry-run` (fix every gap it names; a gap here means do "
            "not open the PR) → open the PR (`Closes #N` in the body) → `status.py release ... --pr <link> --commit "
-           "\"<one line>\"` records, saves and prints the rest of the close. No remote: no PR - `--pr \"local-only: "
+           "\"<one line>\"` records, saves (no question), pushes that commit to the PR's branch, moves the ticket's card to In Review (read back) and prints "
+           "the rest of the close. No remote: no PR - `--pr \"local-only: "
            "<branch> @ <sha>\"`. Stopping at an unmet gate: `status.py set ship declined --reason \"<what was "
            "missing>\" --gate <phase>`.",
            "  - `status.py release` refuses, every problem in one list: no round 1 (count or cited ticket) · round 1 "
            "found something and round 2 not recorded · no `gate ×1` · an auth/data diff with no security review · no "
            "dependency scan · --skipped none while a gate is not passed · n/a without where releases are recorded · a "
            "retired or missing CHANGELOG named · a rollback not from docs/deployment.md when /deploy ran · --docs "
-           "naming nothing · no PR link (or local-only without a remote) · a cell over 200 characters."]
+           "naming nothing · no PR link (or local-only without a remote) · a cell over 200 characters · a per-ticket PR "
+           "that adds a version heading or bumps the version."]
     return "\n".join(out) + "\n\n" + releaseops_rules_text(st, "ship", bool(unmet))
 
 
@@ -4498,7 +6683,152 @@ def deploy_gaps(base: Path, st: "Status") -> list[str]:
                 gaps.append(f"the built output carries a credential-like value in {p.relative_to(base).as_posix()} - "
                             f"remove it from the source, rebuild, and rotate it (it shipped to every visitor)")
                 break
+    return gaps + deploy_rollback_gaps(st, f) + deploy_secret_gaps(base, f)
+
+
+# ---- /deploy 2.2 ----------------------------------------------------------------------------
+# A logged /deploy wrote a rollback path it never tried. Plain Claude, same project, deployed a deliberately bad
+# release (an extra migration) to a fake host folder and rolled it back - and found the two traps a written path
+# hides: with no down-migrations the old code refused the newer schema, so the rollback was restoring the pre-deploy
+# database backup; and a release folder made by copying another still ran the old code, because its environment (a
+# Python virtualenv) pointed at the original folder. It also locked the secrets file to its owner and checked the
+# logs held no secret. The start prints the rehearsal; the close refuses a rollback path nobody rehearsed and a
+# secrets file or log a file check can fault.
+REHEARSAL = (
+    "  - Rehearse the rollback before you record it (the record refuses an untried one) - on a fake host folder or a "
+    "local copy, never the real host's data: 1. back up the database first (a copy of the file, or a dump); 2. build "
+    "each release in its own folder from the repo (`git archive` or a fresh checkout) - never copy a release folder: "
+    "an environment inside it (a Python virtualenv, linked packages) still points at the folder it came from and "
+    "quietly runs the old code; 3. deploy a deliberately bad release - this code plus ONE extra migration (no "
+    "database: a broken build), in the rehearsal folder only, never committed; 4. roll back the way docs/deployment.md "
+    "§7 says and start the old code against that database - with no down-migrations the old code may refuse the newer "
+    "schema, and then the rollback IS restoring the step-1 backup: §7 says so; 5. record `Rehearsed <date>: <what you "
+    "did> → <what answered after>` with its `evidence:` line in `Rollback path` and §7, then delete the rehearsal "
+    "folder. No runnable copy at all: `not rehearsed - <why>` in `Rollback path` and `status.py open --from deploy "
+    "--what \"rollback not rehearsed: <why>\" --clears \"a rollback rehearsal is recorded\"`.")
+SECRET_NAME = re.compile(r"(?i)secret|token|passw|pwd|api_?key|private|credential|dsn|_key$|^key$")
+PLACEHOLDER_VALUE = re.compile(r"(?i)^(?:change[-_ ]?me|placeholder|example|x+|\*+|todo|tbd|<.*>|\$\{.*\}|your[-_].*)$")
+OWN_HOST = re.compile(r"(?i)own machine|laptop|localhost|not public|\bvps\b|virtual server|bare server|droplet|"
+                      r"\bec2\b|lightsail|hetzner")
+
+
+def deploy_rollback_gaps(st: "Status", f: dict[str, str]) -> list[str]:
+    """`Rollback path` names a rehearsal with its evidence, or says why not with an open item."""
+    rb = releaseops_field(f, r"^rollback") or ""
+    if not rb.strip() or EMPTY_VALUE.match(rb.strip()):
+        return []  # an empty field is named by releaseops_empty
+    if re.search(r"(?i)\bnot rehearsed\b", rb):
+        if not any(o[2] == "deploy" and not o[5] and re.search(r"(?i)rehears", o[3]) for o in st.rows["Open items"]):
+            return ["#Deployment `Rollback path` says not rehearsed with no open item for it - status.py open --from "
+                    "deploy --what \"rollback not rehearsed: <why>\" --clears \"a rollback rehearsal is recorded\""]
+        return []
+    if not (re.search(r"(?i)\brehears", rb) and EVIDENCE.search(rb)):
+        return ["#Deployment `Rollback path` was written, not tried - rehearse it (the start's 5 steps: a deliberately "
+                "bad release with one extra migration on a fake host folder, then the rollback) and record `Rehearsed "
+                "<date>: ... → ...` with its `evidence:` line; no runnable copy: `not rehearsed - <why>` and an open item"]
+    return []
+
+
+def env_secrets(base: Path) -> dict[str, str]:
+    """The secret-looking values in the project's .env (name -> value), never printed: placeholders and short values
+    left out. A URL with a password in it counts whatever its name."""
+    out = {}
+    for m in re.finditer(r"(?m)^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$", read_text(base / ".env")):
+        name, val = m.group(1), m.group(2).strip().strip("'\"")
+        if len(val) >= 8 and not PLACEHOLDER_VALUE.match(val) and (SECRET_NAME.search(name) or
+                                                                     re.search(r"://[^/\s:@]+:[^/\s@]+@", val)):
+            out[name] = val
+    return out
+
+
+def log_files(base: Path) -> list[Path]:
+    """Where a run's output lands: *.log files and logs/ folders in the project, and devserver.py's log folder."""
+    import tempfile
+    out = [p for p in foundation_files(base) if p.suffix.lower() == ".log" or "logs" in p.relative_to(base).parts]
+    for cwd in {str(base), os.getcwd()}:
+        d = Path(tempfile.gettempdir()) / f"devserver-{hashlib.sha1(cwd.encode()).hexdigest()[:10]}"
+        out += sorted(d.glob("*.log")) if d.is_dir() else []
+    return out
+
+
+def env_file_open_to_others(p: Path) -> str:
+    """'' when only the owner can read the file; else who else can, in plain words."""
+    if os.name != "nt":
+        mode = p.stat().st_mode
+        return "" if not mode & 0o077 else f"mode {oct(mode & 0o777)[2:]} lets other users read it"
+    try:
+        r = subprocess.run(["icacls", str(p)], capture_output=True, text=True, encoding="utf-8", errors="replace",
+                           timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    wide = re.findall(r"(?im)(Everyone|BUILTIN\\Users|NT AUTHORITY\\Authenticated Users|\bUsers):\S+", r.stdout)
+    return f"its access list grants {', '.join(sorted(set(wide)))}" if wide else ""
+
+
+def deploy_secret_gaps(base: Path, f: dict[str, str]) -> list[str]:
+    """on the owner's machine or a server, the secrets file is readable by its owner only; on every host,
+    no secret value from .env appears in a log (named by variable, never by value)."""
+    gaps, env = [], base / ".env"
+    if not env.is_file():
+        return gaps
+    host = " ".join(releaseops_field(f, rx) or "" for rx in (r"^host", r"^live url"))
+    why = env_file_open_to_others(env) if OWN_HOST.search(host) else ""
+    if why:
+        gaps.append(f".env holds the secrets on this machine and {why} - lock it to its owner: `chmod 600 .env` "
+                    f"(Windows: `icacls .env /inheritance:r /grant:r \"<you>:F\"`, <you> = what `whoami` prints), "
+                    f"then `set` again")
+    secrets = env_secrets(base)
+    for p in log_files(base) if secrets else []:
+        text = read_text(p)
+        hit = sorted(n for n, v in secrets.items() if v in text)
+        if hit:
+            gaps.append(f"a log holds the value of {', '.join(hit)} ({p.name}) - mask it where it is logged, delete "
+                        f"that log, and rotate the secret if the log left this machine")
     return gaps
+
+
+def built_output_facts(base: Path) -> tuple[list[str], list[str]]:
+    """, done by the script: the hostnames the built output calls (what a visitor sees), and each build-time
+    variable whose committed value is missing from it (an unset build value fails open, silently)."""
+    files = [p for d in BUILT_DIRS for root in [base, *[c for c in base.iterdir() if c.is_dir() and c.name not in
+                                                         FOUNDATION_SKIP]] if (root / d).is_dir()
+             for p in (root / d).rglob("*") if p.suffix in (".js", ".html", ".css", ".json")]
+    if not files:
+        return [], []
+    text = "\n".join(read_text(p) for p in files[:400])
+    hosts = sorted({h for h in re.findall(r"https?://([a-z0-9.-]+\.[a-z]{2,})", text, re.I)
+                    if not re.search(r"(?i)w3\.org|reactjs\.org|react\.dev|mozilla\.org|example\.(com|org)", h)})
+    kinds, _ = deploy_env(base)
+    committed = {}
+    for name in (".env.production", ".env.production.local", ".env"):
+        for p in [base / name, *[c / name for c in base.iterdir() if c.is_dir() and c.name not in FOUNDATION_SKIP]]:
+            for m in re.finditer(r"(?m)^\s*([A-Z][A-Z0-9_]+)\s*=\s*(.+?)\s*$", read_text(p)):
+                committed.setdefault(m.group(1), m.group(2).strip("'\""))
+    missing = [n for n, k in sorted(kinds.items()) if k == "build" and committed.get(n) and committed[n] not in text]
+    return hosts[:20], missing
+
+
+def deploy_warnings(base: Path) -> list[str]:
+    """Warnings, never refusals (prose and built output): forward-only migrations with no backup in the rollback, and
+    a build-time value missing from the built output."""
+    f = section_fields(releaseops_spine(base).get("Deployment", ""))
+    mig, rb = releaseops_field(f, r"^migrations") or "", releaseops_field(f, r"^rollback") or ""
+    out = []
+    if mig and not re.search(r"(?i)\bnone\b|no database|not applicable", mig) and rb and \
+            not re.search(r"(?i)backup|restore|down-?migrat|downgrade|snapshot", rb):
+        out.append("#Deployment `Rollback path` names no database backup or down-migration - with forward-only "
+                   "migrations the old code may refuse the newer schema: the rollback restores the pre-deploy backup")
+    _, missing = built_output_facts(base)
+    if missing:
+        out.append(f"the built output does not contain the committed value of {', '.join(missing)} - an unset "
+                   f"build-time value fails open, silently: rebuild with it set, and check again")
+    return out
+
+
+#  (2.4): a logged /deploy asked its questions as text and only the first answer came back. As options
+# the round holds up to 6 questions, and Claude Code's question tool takes 4 per call - the start says how to ask more.
+FORM_SPLIT = ("more than 4 questions: two question-tool calls in the same reply (Claude Code's tool takes 4 at a time), "
+              "or, on a tool without one, all of them in the one numbered list - never a second turn")
 
 
 def deploy_start_text(st: "Status") -> str:
@@ -4535,6 +6865,7 @@ def deploy_start_text(st: "Status") -> str:
         if (base / n).is_file():
             pins.append(f"{n} {read_text(base / n).strip()[:20]}")
     dc = st.phase("dev-check")
+    hosts_, missing_ = built_output_facts(base)
     tpl = tool_file("templates", "deployment.md")
     fields = product_sections(read_text(tool_file("templates", "PRODUCT.md"))).get("Deployment", "") \
         if tool_file("templates", "PRODUCT.md") else ""
@@ -4546,9 +6877,10 @@ def deploy_start_text(st: "Status") -> str:
            "  - #Foundation (the boot guard - an unset boot variable is refused by name, by design):\n"
            + ("\n".join("      " + x for x in found) or "      (nothing about the guard recorded)"),
            "  - Why now - #Plan lines that need a URL: " + (" | ".join(plan) if plan else "none - ask the user's reason"),
-           f"  - #Dev-complete: {dc[1]}{' ' + dc[4] if dc[4] else ''}" + ("" if dc[1] == "filled" else
-           " - EMPTY: deploying an unfinished product is legitimate but a choice; ask what a stranger can reach and "
-           "spend once the URL is public, and record the answer"),
+           f"  - #Dev-complete: {dc[1]}{' ' + dc[4] if dc[4] else ''}" + ("" if dc[1] == "filled" and dc[4] == "pass"
+           else f" - {gate_note(st, 'deploy', 'dev-check')} What a stranger can reach and spend is question 2"
+           if milestone_unfinished(st) else " - not passed: deploying an unfinished product is legitimate but a "
+           "choice; question 2 asks what a stranger can reach and spend once the URL is public"),
            "  - The env list, GENERATED from what the code reads (copy it into docs/deployment.md §2; mark each secret "
            "or not, committed or pasted):\n"
            f"      read at boot: {', '.join(boot) or 'none found'}\n"
@@ -4558,8 +6890,10 @@ def deploy_start_text(st: "Status") -> str:
            f"      .env.example lacks: {', '.join(lacks) or 'none'} · lists but nothing reads: {', '.join(unread) or 'none'}",
            f"  - Host files in the repo: {', '.join(hostfiles) or 'none'} · runtime pins: {'; '.join(pins) or 'none found'}"
            " - check the host's build image against the pins",
-           f"  - Template: fill {tpl.as_posix() if tpl else 'templates/deployment.md'} into docs/deployment.md - all "
-           f"eight `##` sections in order; one that does not apply holds `Not applicable: <reason>`",
+           f"  - Template: fill {tpl.as_posix() if tpl else 'templates/deployment.md'} into docs/deployment.md - the "
+           f"`**In short:**` line first (3 plain sentences: where it runs and who can reach it, how to deploy it again, "
+           f"how to roll it back), then all eight numbered `##` sections in order; one that does not apply holds `Not "
+           f"applicable: <reason>`",
            "  - /deploy executes the recorded host: it never re-decides it, never writes or asks for a secret (the "
            "user pastes values into the host), never merges without the user's explicit word (merging is deploying "
            "when the host builds on merge), and never writes a DNS route into committed config.",
@@ -4570,7 +6904,15 @@ def deploy_start_text(st: "Status") -> str:
            "  - The host is building or DNS is spreading: ONE long wait (the tool's longest), then one request - "
            "never repeated status checks or curl loops; still not up: the `running` state with the user's date.",
            "  - Run only: the host's build (it is the build), one request per proof line, the migrations the way "
-           "docs/deployment.md says - no test suite, lint or scan of your own.",
+           "docs/deployment.md says, the rollback rehearsal - no test suite, lint or scan of your own.",
+           REHEARSAL,
+           "  - Secrets on the host: an env file on the owner's machine or a server is readable by its owner only - "
+           "`chmod 600 .env` (Windows: `icacls .env /inheritance:r /grant:r \"<you>:F\"`, <you> = what `whoami` "
+           "prints); `set` checks the file's permissions and searches every log (the project's *.log and logs/, the dev server's log) for each "
+           "secret value of .env, naming the variable, never the value. docs/deployment.md §2 says both were done.",
+           *([f"  - Built output already here - hostnames a visitor's browser calls: {', '.join(hosts_) or 'none'}"
+              + (f"; build-time values NOT in it: {', '.join(missing_)}" if missing_ else "")] if hosts_ or missing_
+             else []),
            "  - #Deployment is these fields, labels as written, in a scratch file outside the repo:\n" + fields,
            "  - `set deploy filled` refuses, every problem in one list: an empty field · a host #Architecture marks "
            "`(default taken, not user-chosen)` copied without that mark (an unmarked host is the user's: copy it as "
@@ -4578,27 +6920,30 @@ def deploy_start_text(st: "Status") -> str:
            "variable the code reads missing from it · a secret value written anywhere · no `evidence:` proof line, "
            "or none hitting a public https URL (own machine: `own machine - not public` in Live URL) · a static site "
            "without root AND deep link · previews not addressed · with #Dev-complete empty, spend not recorded · no "
-           "migration failure path · a credential-like value in the built output. Blocked by a quota, DNS or a paid "
+           "migration failure path · a credential-like value in the built output · a rollback path not rehearsed (or "
+           "`not rehearsed` with no open item) · a secrets file others can read (owner's machine or a server) · a "
+           "secret value in a log. Blocked by a quota, DNS or a paid "
            "tier: `status.py set deploy running --due <the date the USER gives> --reason \"<what blocks>\"`.",
-           "  - Two rounds, each ONE message (numbered lines to answer by typing, or your ask tool's form), after the "
-           "one-line build/deploy explanation. Round 1, before the first deploy: 1. why the URL is needed now (the "
-           "#Plan milestone, or the user's reason) · 2. with #Dev-complete empty: who can sign up and what each action "
-           "spends · 3. preview deployments: off (Recommended), or on against their own backend · 4. a custom domain "
-           "(the user's step at the dashboard) or the host's URL · 5. what a visitor can see (vendor names, account "
-           "names in the built site and its calls) - fine, or hidden behind our domain · 6. a proxy, CDN or "
-           "forwarder in front of the backend: does the backend key anything on the caller's IP, origin or host? "
-           "(one round, not later turns: each extra turn re-sends the whole conversation). Round 2, after the "
-           "deploy and the proof: what runs, the "
-           "proof, any Step 3c clash, and \"Anything to change? If not: Save this version of your project? (yes / "
-           "no)\" as \"Looks good - save (Recommended)\" · \"Change something\".",
+           f"  - ONE question round, after the one-line build/deploy explanation and before the first deploy - "
+           f"{QUESTION_FORM}: 1. why the URL is needed now: the #Plan milestone above (Recommended) · the user's "
+           "own reason (a demo, a first user) · Other · 2. with "
+           "#Dev-complete not passed: who can sign up and what each action spends - invite only (Recommended) · "
+           "anyone, with a spend cap · Other · 3. preview deployments: off (Recommended) · on against their own "
+           "backend · Other · 4. the address: the host's URL (Recommended) · a custom domain (the user's step at the "
+           "dashboard) · Other · 5. what a visitor can see (vendor names, account names in the built site and its "
+           "calls): fine (Recommended) · hidden behind our domain · Other · 6. a proxy, CDN or forwarder in front of "
+           "the backend: none (Recommended) · yes, and the backend keys on the caller's IP, origin or host · Other "
+           "(one round, not later turns: each extra turn re-sends the whole conversation; " + FORM_SPLIT + "). Then "
+           "deploy and prove; "
+           + LAST_ROUND_SAVES + " - what runs, the proof and any Step 3c clash are in that close.",
            "  - docs/deployment.md ends with `## Owner's answers`: round 1's answers word for word, numbered as asked. "
            "A long command output goes to a scratch file; cite its last lines in the evidence line.",
-           "  - Then ONE call: `set deploy filled --section-from <file> --commit \"<one line>\"` (no `--commit` on a "
-           "no) records, saves and prints the rest of the close. Stopping at an unmet gate: `status.py set deploy "
+           "  - Then ONE call: `set deploy filled --section-from <file>` records, saves (no question) and prints the "
+           "rest of the close. Stopping at an unmet gate: `status.py set deploy "
            "declined --reason \"<what was missing>\" --gate <phase>`.",
            "  - Order (each call re-sends all before it): reads and round 1 before any deploy command; "
            "docs/deployment.md and the section file are the last writes, in ONE call after the proof; `set` in the "
-           "call after the round-2 yes - no check of your own between (`set` checks the template, variables, secrets)."]
+           "next call - no check of your own between (`set` checks the template, variables, secrets)."]
     # §Context hygiene (2.1 KB) is no longer printed whole: its first items repeat RELEASEOPS_CLOSE and run_habits,
     # re-sent on every call (cost review: a start cut by half saved 118-171K a run); its one new rule is above
     return "\n".join(out) + "\n\n" + releaseops_rules_text(st, "deploy", not arch)
@@ -4606,19 +6951,24 @@ def deploy_start_text(st: "Status") -> str:
 
 RELEASEOPS_START = {"eval": eval_start_text, "learn": learn_start_text, "ship": ship_start_text,
                     "deploy": deploy_start_text}
-RELEASEOPS_GAPS = {"eval": lambda base, st, a: eval_gaps(base, st, a.verdict),
-                   "learn": lambda base, st, a: learn_gaps(base, st),
-                   "deploy": lambda base, st, a: deploy_gaps(base, st)}
-RELEASEOPS_WARN = {"eval": eval_warnings}
+RELEASEOPS_GAPS = {"eval": lambda base, st, a: companion_prep(base, "docs/evaluation.md", a) + eval_gaps(base, st,
+                                                                                                     a.verdict),
+                   "learn": lambda base, st, a: companion_prep(base, "docs/learnings.md", a) + learn_gaps(base, st),
+                   "deploy": lambda base, st, a: companion_prep(base, "docs/deployment.md", a) + deploy_gaps(base, st)}
+RELEASEOPS_WARN = {"eval": lambda base: eval_warnings(base) + companion_warnings(base, "docs/evaluation.md"),
+                   "dev-check": dev_check_warnings,
+                   "learn": lambda base: learn_warnings(base) + companion_warnings(base, "docs/learnings.md"),
+                   "deploy": lambda base: deploy_warnings(base) + companion_warnings(base, "docs/deployment.md"),
+                   "validate": lambda base: companion_warnings(base, "docs/validation.md")}
 # what the Antigravity start file holds (fit_start's START_HOLDS is defined further down; the start copies it in)
 RELEASEOPS_HOLDS = {"eval": "the #Vision lines /eval measures against, the gates, the\n    #Evaluation fields, the "
-                            "two rounds, this phase's rules",
-                    "learn": "the goal, what shipped, #Evaluation, the non-goals, the\n    #Learnings fields, the two "
-                             "rounds, this phase's rules",
+                            "one question round, this phase's rules",
+                    "learn": "the goal, what shipped, #Evaluation, the non-goals, the\n    #Learnings fields, the one "
+                             "question round, this phase's rules",
                     "ship": "the diff, the reviews already run, the gates, the policy,\n    the release record, the "
                             "order, what `release` refuses, this phase's rules",
-                    "deploy": "the recorded host, the env list from the code, the\n    #Deployment fields, the two "
-                              "rounds, this phase's rules"}
+                    "deploy": "the recorded host, the env list from the code, the\n    #Deployment fields, the one "
+                              "question round, this phase's rules"}
 RELEASEOPS_HEAD["ship"] =("This phase records ONE release row - `status.py release ... --dry-run` BEFORE the PR opens "
                            "(every gap at once, nothing written), then `status.py release ... --commit \"<one line>\"` "
                            "after it: it saves and prints the rest of the close (no git call of your own).",
@@ -4644,7 +6994,11 @@ PHASE_CLOSE_RULES["plan"] = {
 }
 PLAN_FIELDS = (("the milestones", r"^phases|milestones"), ("the timeline", r"^timeline"),
                ("the exit criteria", r"^exit criteria"), ("the four-risks rows", r"four[- ]risks"),
-               ("the usability checkpoint", r"^usability"), ("the concern-area coverage", r"^concern"))
+               ("the usability checkpoint", r"^usability"), ("the concern-area coverage", r"^concern"),
+               # what could slip and the slack kept (plain's plan had it; the four risks are product risks)
+               ("the schedule risks + buffer", r"^schedule"))
+# one list holds every number nobody decided (the field may say `none`)
+PLAN_OPEN = r"^open items"
 PLAN_AREAS = {"security": r"security", "ai-specific": r"ai(?:-specific)?", "observability": r"observability",
               "developer-experience": r"developer[- ]experience|dx", "testing": r"testing",
               "infra": r"infra(?:structure)?", "documentation": r"documentation|docs", "product": r"product"}
@@ -4773,6 +7127,9 @@ def plan_gaps(base: Path, st: Status) -> list[str]:
     for what, rx in PLAN_FIELDS:
         if not any(not EMPTY_VALUE.match(re.sub(r"[*_`\s]+", " ", l).strip().lower()) for l in field(rx)):
             gaps.append(f"#Plan field empty: {what}")
+    if fields and not any(re.search(PLAN_OPEN, k, re.I) for k in fields):
+        gaps.append("#Plan has no `Open items` line - every number or point nobody decided, with its recommended value "
+                    "(`none` when every number is the user's)")
     phases = field(PLAN_FIELDS[0][1])
     ids = list(dict.fromkeys(m.group(1).upper() for l in phases for m in [re.match(PLAN_MARK, l)] if m)) or \
         list(dict.fromkeys(re.findall(r"\bM\d+\b", "\n".join(phases))))
@@ -4833,7 +7190,7 @@ def plan_gaps(base: Path, st: Status) -> list[str]:
                         "row retires value, with the observable that proves it")
     if re.search(r"docs/plan\.md", " ".join(field(r"^read"))):
         gaps.append("the Read receipt quotes docs/plan.md, which this phase wrote - quote the input files it opened, "
-                    "or write `Read: none - only PRODUCT.md sections`")
+                    "or leave the `read` field out when only PRODUCT.md was read")
     doc = comp.read_text(encoding="utf-8") if comp.is_file() else ""
     answers = ""
     if not doc:
@@ -4847,10 +7204,11 @@ def plan_gaps(base: Path, st: Status) -> list[str]:
             gaps.append(f"{OWN_COMPANION['Plan']} has no `## Owner's answers` block - the user's answers to the "
                         f"questions, word for word")
     known = set()
-    for text in (answers, clean.get("Vision", ""), clean.get("Scope", ""), clean.get("Validation", "")):
+    for text in (answers, clean.get("Vision", ""), clean.get("Scope", ""), clean.get("Validation", ""),
+                 "\n".join(field(PLAN_OPEN))):  # a number listed under Open items is named as undecided
         known |= {n.replace(",", "") for n in re.findall(r"\d+(?:[.,]\d+)?", text)}
     loose = []
-    for rx in (r"^timeline", r"^exit criteria", r"four[- ]risks", r"^usability", r"^concern"):
+    for rx in (r"^timeline", r"^exit criteria", r"four[- ]risks", r"^usability", r"^concern", r"^schedule"):
         for l in field(rx):
             # a zero bar ("0 wrong refunds") is the absence of a failure, not an invented target
             new = [n for n in plan_numbers(l) if n.replace(",", "") not in known and float(n.replace(",", ".")) != 0]
@@ -4858,9 +7216,24 @@ def plan_gaps(base: Path, st: Status) -> list[str]:
                 loose.append(f"{', '.join(dict.fromkeys(new))} in {l.strip()[:70]!r}")
     if loose:
         gaps.append(f"{len(loose)} #Plan line(s) state numbers that are not in the user's answers, #Vision, #Scope "
-                    f"or #Validation, unmarked - end each such line `(proposed)` (a number you suggested; the user "
-                    f"confirms it) or `(derived: <the sum>)`: " + " · ".join(loose[:6])
+                    f"or #Validation, unmarked - ask it as an option, list it under `Open items` with its recommended value, or "
+                    f"end the line `(derived: <the sum>)`: " + " · ".join(loose[:6])
                     + (f" · and {len(loose) - 6} more" if len(loose) > 6 else ""))
+    # the reverse direction - every #Scope table stake marked "in now" sits in a milestone's exit criterion (a
+    # logged plan had accessibility and error states in no milestone, and its own check said "every milestone traces")
+    exit_text = "\n".join(field(r"^exit criteria") + phases)
+    for what, rx in scope_stakes(st.header):
+        stake = [i for i in scope_items(scope_fields(clean.get("Scope", "")).get(
+            next((k for k in scope_fields(clean.get("Scope", "")) if re.search(r"table[- ]stakes", k, re.I)), ""),
+            [])) if re.search(rx, i, re.I)]
+        if stake and any(re.search(r"(?i)\bin(?: scope)? now\b|:\s*\**in\**\s*(?:$|[-—(])", i) for i in stake) \
+                and not re.search(rx, exit_text, re.I):
+            gaps.append(f"#Scope's table stake {what.split(' - ')[0].split(' (')[0]!r} is in now, and no milestone's exit "
+                        f"criterion covers it - put it in one")
+    if docs_plan_missing := [ms for ms in ids if doc and not re.search(rf"\b{ms}\b", doc)]:
+        gaps.append(f"{OWN_COMPANION['Plan']} does not show {', '.join(docs_plan_missing)} - it is the whole plan a "
+                    f"person reads: every milestone with its dates, what it delivers and its exit criterion")
+    gaps += early_doc_layout_gaps(OWN_COMPANION["Plan"], doc)
     for part, keys in vision_constraints(clean.get("Vision", "")):
         if not any(re.search(rf"(?i)\b{re.escape(k)}\b", plan_text) for k in keys):
             gaps.append(f"#Vision's constraint {part[:60]!r} has no line in #Plan - a milestone that handles it, or "
@@ -4871,6 +7244,28 @@ def plan_gaps(base: Path, st: Status) -> list[str]:
     return gaps
 
 
+def plan_doc_warnings(base: Path, doc: str) -> list[str]:
+    """Warn-only: the human summary says what the demo will NOT prove, and each #Scope in-scope item shares a
+    word with a milestone (a word match is an estimate, so it never refuses)."""
+    warns = []
+    if doc and not re.search(r"(?i)\bnot (?:yet )?prove|will not show|won'?t prove|does not prove", doc):
+        warns.append(f"{OWN_COMPANION['Plan']}: the summary does not say what the demo will NOT prove yet")
+    prod = base / "PRODUCT.md"
+    secs = product_sections(prod.read_text(encoding="utf-8")) if prod.is_file() else {}
+    plan = secs.get("Plan", "").lower()
+    stop = {"with", "that", "this", "from", "into", "their", "they", "when", "done", "each", "only", "what", "user",
+            "users", "have", "will", "your", "there", "check", "anyone", "run", "and", "the"}
+    scope = scope_fields(re.sub(r"<!--.*?-->", "", secs.get("Scope", ""), flags=re.S))
+    items = next((v for k, v in scope.items() if re.search(r"^in[- ]scope", k, re.I)), [])
+    lost = [i for i in scope_items(items)
+            if not any(w in plan for w in re.findall(r"[a-z]{4,}", re.split(r"(?i)\bdone\b", i)[0].lower())
+                       if w not in stop)]
+    if lost:
+        warns.append(f"#Plan: {len(lost)} #Scope in-scope item(s) share no word with any milestone (first: "
+                     f"{lost[0][:50]!r}) - check each sits in a milestone")
+    return warns
+
+
 def plan_start_text(st: Status) -> str:
     """`next --phase plan`: the spine facts the plan is built from, the fields, what the close refuses, and the rules
     the questions need - one call, instead of three rule files and PRODUCT.md read whole."""
@@ -4878,46 +7273,54 @@ def plan_start_text(st: Status) -> str:
     prod = base / "PRODUCT.md"
     secs = product_sections(prod.read_text(encoding="utf-8")) if prod.is_file() else {}
     vision = section_fields(re.sub(r"(?m)^\*\*", "- **", re.sub(r"<!--.*?-->", "", secs.get("Vision", ""), flags=re.S)))
-    pick = [f"      {k}: {v}" for k, v in vision.items()
-            if re.search(r"^who|north star|riskiest|business|^ai\b|^constraint", k, re.I) and v.strip()]
+    # only what the plan uses - who-for, business model and AI repeat elsewhere; the constraints are
+    # printed as names only, since `set` checks each has a line
+    pick = [f"      {k}: {v}" for k, v in vision.items() if re.search(r"north star|riskiest|first users", k, re.I)
+            and v.strip()]  # the first users are carried exactly, or the change is named
+    names = [keys[0] for _, keys in vision_constraints(re.sub(r"(?m)^\*\*", "- **", secs.get("Vision", "")))]
+    if names:
+        pick.append(f"      constraints (each needs a line in #Plan): {', '.join(dict.fromkeys(names))}")
     v = st.phase("validate")
     val = {"running": f"RUNNING, due {v[3]} - plan provisionally; the timeline starts after that date or #Plan says "
                       f"provisional",
            "filled": "filled - a passing result retires value: cite it, never re-run it"}.get(
         v[1], "empty (/validate is optional and did not run) - value is UNTESTED: a milestone must retire it")
-    tpl = tool_file("templates", "PRODUCT.md")
-    fields = product_sections(tpl.read_text(encoding="utf-8")).get("Plan", "") if tpl else ""
-    fields = "\n".join("      " + l for l in fields.splitlines() if l.startswith("- **"))
     scope = re.sub(r"<!--.*?-->", "", secs.get("Scope", ""), flags=re.S).strip()
     out = ("/plan start - build the plan from these; read nothing else whole:\n"
            "  - #Vision (the fields the plan answers to):\n" + ("\n".join(pick) or "      (empty)") + "\n"
            f"  - #Validation: {val}\n"
+           + "".join(ln + "\n" for ln in learnings_carry(secs)) +  # the last cycle's decision
            f"  - Flags: AI product {st.header.get('AI product', 'unknown')} · Agent {st.header.get('Agent', 'unknown')}"
            + (" - an agent launches in stages: approval first, then unchecked, with a stop switch before public"
               if st.header.get("Agent") == "yes" else "") + "\n"
            "  - #Scope, whole:\n" + ("\n".join("      " + l for l in scope.splitlines()) or "      (empty - offer "
-                                     "/scope first)") + "\n"
+                                     "/scope first; the user goes on anyway -> ask the reason as options (Other = the "
+                                     "user's own words), then record it before going on: `status.py bypass --from "
+                                     "plan --gate scope --reason \"<the picked option's words>\"`)") + "\n"
            "  - Earlier companions (docs/vision.md, docs/scope.md ...) are reasoning, not decisions: open one by "
            "section only when a decision above points into it, and receipt it.\n"
-           "  - #Plan is these fields, labels as written, in a scratch file outside the repo; `set plan filled "
-           "--section-from <file>` writes it:\n" + fields + "\n"
-           "  - `set plan filled` refuses, every problem in one list: an empty field · a milestone without an id "
-           "(M1, M2 ...), an exit criterion, a `Needs:` prerequisite or a four-risks row · a usability checkpoint "
-           "naming no milestone · a concern area not marked now/next/later/N-A · a Timeline without capacity or "
-           "start date · a plan ending after the north-star date with no `North star:` line · a timeline before a "
-           "running experiment's due date, not marked provisional · four-risks citing #Vision, or an empty "
-           "#Validation · value untested while #Validation is empty · a receipt of docs/plan.md · no `## Owner's "
-           "answers` block in docs/plan.md · a number not in the answers or the spine without `(proposed)` or "
-           "`(derived: <sum>)` · a #Vision constraint (a law, a language) with no line in #Plan · LaTeX.\n"
-           "  - Two rounds, each ONE message or form: questions 1-3, then the draft with question 4, any #Scope clash "
-           "and \"Anything to change? If not: Save this version of your project? (yes / no)\" (either answer "
-           "records it). After it, docs/plan.md and the section file in ONE message, then "
-           "`set plan filled --section-from <file> --commit \"<one line>\"` (no `--commit` on a no) records, saves "
-           "and prints the rest of the close.\n"
+           "  - Questions: ONE round, every question 2-4 options + Recommended + Other: capacity from #Scope to "
+           "confirm (none there: people x hours a week, solo an option) · the start date · what follows the core · "
+           "every number or list the plan needs that nobody gave (testers, which moments, the demo date), each with "
+           "`I don't know yet - keep it open`. A second round only for a question an answer raised. The AI model and "
+           "its cost are chosen at /architect: never schedule a paid API or a key. A #Vision list (moments, first "
+           "users, targets) is copied exactly, or the change is named with its reason.\n"
+           + phase_fields_text("plan") + "\n"
+           "  - `set plan filled` refuses, every problem in one list: a field missing or empty, a table row without its "
+           "columns · a #Scope table stake in now with no `coverage` row and no exit criterion naming it · a "
+           "four-risks cell naming none of value · usability · feasibility · viability · a usability checkpoint "
+           "naming no milestone · a concern area not marked now/next/later/N-A · a start with no date · a plan "
+           "ending after the north-star date with no `north star` field · a timeline before a running experiment's "
+           "due date, not marked provisional · four-risks citing #Vision, or an empty #Validation · value untested "
+           "while #Validation is empty · LaTeX. Plain-words estimates (an unmarked number, a capacity wording, a "
+           "#Vision constraint's name) only warn.\n"
+           "  - No save question, never a save inside an option. After the answers, the fields file in ONE call, then "
+           "`set plan filled --from-fields <file> --commit \"<one line>\"` renders docs/plan.md and #Plan, records, "
+           "saves and prints the rest of the close (\"Change anything?\" is asked there).\n"
            "  - Order (each call re-sends all before it): every read before question 1, nothing opened after the "
-           "draft; docs/plan.md and the section file are the last writes; `set` in that call or the next, no check "
-           "of your own between (`set` checks both).\n\n")
-    return out + phase_rules_text("plan")
+           "answers; the fields file is the last write; `set` in that call or the next, no check of your own between "
+           "(`set` checks).\n\n")
+    return out + phase_rules_text("plan", skip=situational_skip("plan", st))
 
 
 # ---- /design-system (P1, P2, P4, P20, P23, P37) --------------------------------------------------------------------
@@ -4929,6 +7332,7 @@ def plan_start_text(st: Status) -> str:
 # `set design-system filled`, which refuses the record's countable gaps in one list - on its own close only, never in
 # phase_check (a design filled under older rules is never blocked later).
 QUESTION_PHASES += ("design-system",)
+CLOSE_CONFLICT["design-system"] = conflict_as_open_item("design-system")  # 2.4: never edits an earlier phase's record
 PHASE_RULES["design-system"] = {
     "PRINCIPLES.md": ["The 5-step spine", "Architecture & quality bar", "Communication"],
     "MECHANISMS.md": ["Spine resolution", "Re-run semantics", "Declined runs", "Status"],
@@ -5011,6 +7415,13 @@ FONT_URL = re.compile(r"(?i)https?://(?:fonts\.googleapis\.com|fonts\.gstatic\.c
                       r"fonts\.bunny\.net|api\.fontshare\.com|fonts\.cdnfonts\.com|rsms\.me|fast\.fonts\.net|"
                       r"[^\s\"')]*(?:/fonts?/|fontsource|\.woff2?\b|\.ttf\b|\.otf\b))[^\s\"')]*")
 STUDIO_MARK = "<!-- ===== THEME STUDIO"
+# who the sample is for. A logged run drew one customer card for a product shown to a jury; the sample made
+# without the playbook drew a presenter view of how the product decides, and the owner preferred it.
+DESIGN_DEMO = re.compile(r"(?i)\b(?:demo|pitch|challenge|jury|investors?|hackathon|showcase|presentation|"
+                         r"proof of concept|PoC)\b")
+DESIGN_FOR = (("main screen", "the end user's main screen"), ("presenter", "a demo / presenter view that shows how the "
+              "product decides"), ("both", "both: the presenter view, the end user's screen in its device frame"))
+DESIGN_A11Y = re.compile(r"(?i)accessib|a11y|wcag")
 LANG_CODES = {**DESIGN_LANGS, "English": "en"}
 AUDIT_LINE = "- **Audit (written by `status.py set`"
 HTML_TAGS = {"html", "head", "body", "div", "span", "p", "a", "button", "input", "form", "nav", "main", "section",
@@ -5119,7 +7530,9 @@ def design_start_text(st: "Status") -> str:
            "phase starts from is here; a reference is read by the section a line below names, in that step's turn):",
            f"  - Flags: UI {ui} · AI product {st.header.get('AI product', 'unknown')} · Agent "
            f"{st.header.get('Agent', 'unknown')}",
-           f"  - This skill's references: {R} (the `--step` calls below print what each turn needs from them)"]
+           f"  - This skill's references: {R} (the `--step` calls below print what each turn needs from them)",
+           f"  - Project folder: {base.resolve().as_posix()} - run every command from it (a logged `set` run from a "
+           f"subfolder found no STATUS.md)"]
     if ui == "no":
         out.append("  - UI gate: UI no - say in one message why a design system does not apply, write NOTHING (no "
                    "#Design, no DESIGN.md, no declined record) and stop: /foundation is next")
@@ -5151,6 +7564,12 @@ def design_start_text(st: "Status") -> str:
     elif not arch:
         out.append("  - #Architecture is empty: the UI framework is undecided - say so; the sample is a standalone "
                    "preview HTML")
+    if arch:  # a logged run added shadcn/ui + Tailwind to a stack that named neither, then filed the clash it made
+        src = next((m.group(0) for m in COMPONENT_SOURCE.finditer(arch)), None)
+        out.append(f"  - Components come from the source #Architecture names ({src}): never add a library or CSS "
+                   f"framework it does not name" if src else
+                   "  - #Architecture names no UI component source: build on plain CSS with the tokens and add no "
+                   "library; a library you would add is a Step 3c clash for /architect, not a choice made here")
     for name, line, domains in design_hosts(arch):
         out.append(f"  - Host: the UI lives inside {name} (#Architecture: \"{line[:160]}\"). Its CURRENT design rules "
                    f"decide the look: search them in round 2's turn ({' · '.join(domains)}); DESIGN.md links the page "
@@ -5176,13 +7595,17 @@ def design_start_text(st: "Status") -> str:
     if st.state("design-system") == "filled":
         out.append(f"  - #Design is filled ({st.phase('design-system')[2]}): a RE-RUN (§Re-run semantics below) - a "
                    f"replaced archetype, palette or type pairing keeps a dated `superseded <date>: <why>` line; so does "
-                   f"a family you proposed that the user reversed in this run")
+                   f"a family you proposed that the user reversed in this run. Rules added since may refuse the old "
+                   f"record: `set design-system filled --section-from <file> --dry-run` lists them now, not at the close")
     tpl = tool_file("templates", "PRODUCT.md")
     fields = product_sections(tpl.read_text(encoding="utf-8")).get("Design", "") if tpl else ""
+    demo = next((design_around(m) for l in vision.splitlines() for m in [DESIGN_DEMO.search(l)] if m), "")
     pre = (f"pre-filled: {', '.join(langs)}, from {lsrc}" + (", with a switch (Recommended)" if len(langs) > 1 else "")
            if langs else "pre-filled: English")
     out += [
-        "  - Round 1 - ONE message or form, before any family is named (proposing first fails the gate):",
+        "  - Round 1 - ONE message or form, before any family is named (proposing first fails the gate); b.-g. "
+        "through your question tool (AskUserQuestion on Claude Code), else numbered options - `(Recommended)` on one, "
+        "`Other` last:",
         "      a. 4-6 design principles from #Vision's purpose + audience, each with a one-line why (the levers: "
         "§Design principles below) - the user adjusts them",
         "      b. \"Do you have a look in mind — a product you admire, or bold vs minimal?\"",
@@ -5195,6 +7618,9 @@ def design_start_text(st: "Status") -> str:
             " (Recommended) - or a font service (Google Fonts): the owner chooses"),
         *(["      f. say what the sample will show because #Scope asks for it (the owner may add or drop one):"]
           + [f"         - {w} (data-must=\"{i}\") - #Scope: \"{l}\"" for i, w, l in must] if must else []),
+        "      g. \"What is this sample for?\" - " + " · ".join(
+            w + (" (Recommended)" if k == ("presenter" if demo else "main screen") else "") for k, w in DESIGN_FOR)
+        + (f" - #Vision: \"{demo}\"" if demo else ""),
         f"  - Then ONE call: `python {me} next --phase design-system --step foundations --family <N>` prints the "
         f"family's preset, the foundations, the palettes and the type, colour, depth, motion and token laws (no "
         f"`section` call per file, no `--help`); the host's searches beside it",
@@ -5205,7 +7631,8 @@ def design_start_text(st: "Status") -> str:
         "the answer), density, depth, layout, motion tier. Options, first: \"Keep as proposed (Recommended)\" · "
         "\"Change something\"",
         f"  - The sample, in one turn: `python {me} next --phase design-system --step sample` prints how; ONE screen "
-        f"of THIS product (the core feature, real content), its states marked `data-state=\"empty\"` · "
+        f"of THIS product, the one g. chose (a presenter view: the end user's screen in a frame marked "
+        f"`data-view=\"end-user\"`), real content, each #Scope action its own button, states `data-state=\"empty\"` · "
         f"`\"loading\"` · `\"error\"`" + (", each #Scope item above marked `data-must=\"<id>\"`" if must else "")
         + (", every interface language in it (`lang=\"<code>\"`) with a working switch when there are 2+" if
            len(langs) > 1 else "") + f", self-hosted fonts, buttons in Verb + Noun (a destructive one confirmed or "
@@ -5214,42 +7641,39 @@ def design_start_text(st: "Status") -> str:
         f"\"<the main action's text>\" --shots <the sample's folder>/shots` (saves 3 screenshots) and `python "
         f"{tool['audit.py']} <sample>`; fix every [FAIL]. NOT RUN: `python -m pip install playwright` (it uses an "
         f"installed Chrome or Edge; no browser at all: `python -m playwright install chromium`), run it again; "
-        f"cannot install: your tool's own browser at 375, 768 and 1440 px, the 3 screenshots saved in that folder",
+        f"cannot install: your tool's own browser at 375, 768 and 1280 px, saved in that folder as `<sample>-375.png`, "
+        f"`-768.png`, `-1280.png`",
         "  - The confirm - ONE message or form: the sample at ~375 px · 768 px · desktop (never desktop alone), what "
-        "both checks found, and two options: \"Looks good - save (Recommended)\" · \"Change something\" (the save "
-        "question rides on the first). Change -> regenerate, the same message again. No DESIGN.md before approval",
+        "both checks found, the line \"Open <the sample's absolute path> in your browser. The Theme Studio button "
+        "(bottom right) changes colour, fonts, text size, corners and light or dark, at phone, tablet and desktop "
+        "width - try it before you answer; Export copies the tokens.\", and "
+        "two options: \"I tried it - looks good (Recommended)\" · \"Change something\" (bolder · quieter · denser · "
+        "roomier · another font) - a looks-good is the go-ahead to write and save, never a separate save question. "
+        "Change -> regenerate, the same message again. No DESIGN.md before approval",
         f"  - After the approval, ONE message: `python {tool['theme_studio.py']} <sample> --remove` (no Theme "
         f"Studio in the approved sample); `python {me} next --phase design-system --step write` for DESIGN.md, the "
         f"stylesheet the app loads + its import and the #Design file; then `set design-system filled --section-from "
-        f"<file> --commit \"<one line>\"` in the foreground (~1 min: it re-renders the sample; no `--commit` on a "
-        f"no) records, runs the audit, writes its counts into DESIGN.md, saves and prints the rest of the close",
+        f"<file> --commit \"<one line>\"` in the foreground (~1 min: it re-renders the sample, retaking the screenshots without the "
+        f"studio) records, runs the audit, writes its counts and the front matter into DESIGN.md, adds new folders "
+        f"to STRUCTURE.md, saves and prints the rest of the close",
         "  - Order (each call re-sends all before it): reads and round 1 first; the sample written whole in ONE "
         "call, fixed by edits, never rewritten; DESIGN.md, the stylesheet and the #Design file are the last "
         "writes, `set` in that call or the next - no audit or render call of your own after them (`set` runs both)",
         "  - #Design is these fields, labels as written, in a scratch file outside the repo, plus `Own reference: "
         "\"<their words>\"`, `Picker answers (the owner's): <a> · <b> · <c>`, `Interface languages: <names> · "
-        "switch: yes|no`, `Font delivery: self-hosted (<files>)` (or `<service> - owner chose: \"<their words>\"`) "
+        "switch: yes|no`, `Sample for: <main screen|presenter|both> - <their answer>`, `Font delivery: self-hosted "
+        "(<files>)` (or `<service> - owner chose: \"<their words>\"`) "
         "and `evidence: python <...>/render_check.py <sample> --main \"<text>\" --shots <folder> → <its last line> · "
         "<date>` (or `evidence: screenshots <folder> (<tool>'s browser) · <date>`):",
         *("      " + l for l in fields.splitlines() if l.startswith("- **")),
-        "  - `set design-system filled` refuses, every problem in one list: an empty field · UI no (no UI writes "
-        "nothing) · not 4-6 principles · an archetype naming none of the 13 (or `Other: <their reference>`) · no "
-        "`Own reference`, `Picker answers`, `Interface languages` or `Font delivery` line · a sample that does not "
-        "exist, still holds the Theme Studio, shows numbers with no \"illustrative\" label, has no empty, loading or "
-        "error state (or an `App states: <which> not shown - <why>` line), leaves a #Scope item above unmarked (or "
-        "`Must-show: <id> not shown - <why>`) or is not in the interface language(s) · a font from a third-party "
-        "host the owner did not choose, or a self-hosted font file missing · no render_check line, NOT RUN, fewer "
-        "than 3 screenshots, or a sample failing it (`set` runs it again) · a Host above with no link on its docs · "
-        "DESIGN.md without its `## In short` (before §1: plain words, each principle with the #Vision or #Scope "
-        "line it comes from) or one of its 9 numbered sections, with a template placeholder left, Reference brands "
-        "the owner never named, an audit count typed by hand, no page inventory in §5 or no stylesheet path in §2 · "
-        "LaTeX · the audit failing a law, checking 0 things or a stylesheet no app file imports. A recorded "
-        "override (a #Design line with the word `override` and the user's reason) answers a render failure or NOT "
-        "RUN, no tokens and no stylesheet."]
+        "  - `set design-system filled` refuses, every problem in one list: each field, line, state, screenshot and "
+        "file named above that is missing; `--step write` prints the whole list, in the turn that writes the record. "
+        "A recorded " + DESIGN_OVERRIDE]
     rules = dict(PHASE_RULES["design-system"])
     rules["MECHANISMS.md"] = [s for s in rules["MECHANISMS.md"]
                               if (s != "Spine resolution" or not vision)
-                              and (s != "Re-run semantics" or st.state("design-system") == "filled")]
+                              and (s != "Re-run semantics" or st.state("design-system") == "filled")
+                              and s != "Status"]  # by name below, as /contracts: its part here is one sentence
     picker = print_sections(arc, ["The 3-question picker"]) if arc else ""
     loop = design_ref("build-loop.md")
     return "\n".join(out) + "\n\n" + "\n\n".join(x for x in [
@@ -5258,7 +7682,9 @@ def design_start_text(st: "Status") -> str:
             f"  {i}. {n}" for i, n in enumerate(design_families(), 1)),
         print_sections(loop, ["§Design principles"]) if loop else "",
         rules_text(rules, "Rules for /design-system, word for word from the rule files (these ARE the rule files "
-                          "for this phase - do not open them; the close's print at `set`):")] if x)
+                          "for this phase - do not open them; the close's print at `set`; `status.py rules "
+                          "design-system` prints them again, with §Status (" + CONTRACTS_BY_NAME["Status"] + ")):")]
+        if x)
 
 
 # One call per turn (next.68): a logged Cursor run made 25 `section` calls (up to 1.46M tokens), a Claude run 7 and an
@@ -5266,17 +7692,69 @@ def design_start_text(st: "Status") -> str:
 DESIGN_STEPS = {
     "foundations": "the family's preset, the foundations, the palettes, and the laws the foundations decide",
     "sample": "how to build and confirm the sample, its craft, the Theme Studio notes and the page laws",
-    "write": "the DESIGN.md skeleton and how to write it and the stylesheet",
+    "write": "what `set design-system filled` refuses, the DESIGN.md skeleton and how to write it and the stylesheet",
 }
+# The close's refusal list prints in the write turn, where the record and DESIGN.md are written: in the start it put
+# /design-system over its size cap on a real install's long path (each requirement is also on the start's own line
+# for its turn: the sample, the fonts, the screenshots). The override line stays in the start: a NOT RUN render at the
+# sample turn needs it.
+DESIGN_OVERRIDE = ("override (a #Design line with the word `override` and the user's reason) answers a render failure "
+                   "or NOT RUN, no tokens and no stylesheet.")
+DESIGN_REFUSES = (
+    "`set design-system filled` refuses, every problem in one list: an empty field · UI no (no UI writes "
+    "nothing) · not 4-6 principles · an archetype naming none of the 13 (or `Other: <their reference>`) · no "
+    "`Own reference`, `Picker answers`, `Interface languages`, `Sample for` or `Font delivery` line · a sample that "
+    "does not exist, a presenter sample with no `data-view=\"end-user\"` frame, still holds the Theme Studio, shows numbers with no \"illustrative\" label, has no empty, loading or "
+    "error state (or an `App states: <which> not shown - <why>` line), leaves a #Scope item the start lists unmarked (or "
+    "`Must-show: <id> not shown - <why>`) or is not in the interface language(s) · a font from a third-party "
+    "host the owner did not choose, or a self-hosted font file missing · no render_check line, NOT RUN, fewer "
+    "than 3 screenshots, or a sample failing it (`set` runs it again) · a Host the start names with no link on its docs · "
+    "DESIGN.md without its `## 0. In short` (before §1: plain words, each principle with the #Vision or #Scope "
+    "line it comes from) or one of its 9 numbered sections (and `## 10. Accessibility` when #Scope has the "
+    "accessibility baseline in now), with a template placeholder left, Reference brands "
+    "the owner never named, an audit count typed by hand, no page inventory in §5 or no stylesheet path in §2 · "
+    "LaTeX · the audit failing a law, checking 0 things or a stylesheet no app file imports. A recorded "
+    + DESIGN_OVERRIDE)
 
 
-def design_step_text(phase: str, step: str, family: str | None) -> str:
+# Antigravity only (2026-10-11): a logged run read every step's file up front, ran the after-approval `--remove`
+# itself and saved a design the owner never confirmed; it then read status.py ~20 times for what the save checks.
+# The write step and the save wait for the owner's answer, recorded beside this script (never committed).
+AG_APPROVAL = "design-approved.txt"
+AG_CONFIRM = ("STOP before the write step: your NEXT call is ask_question with the confirm - the sample at phone, "
+              "tablet and desktop, what both checks found, \"Open <the sample's absolute path> in your browser...\" and "
+              "two options: \"I tried it - looks good (Recommended)\" · \"Change something\". Only after the owner "
+              "answers: `next --phase design-system --step write --approved \"<their answer, word for word>\"`")
+AG_NO_SOURCE = ("What the save checks: `set design-system filled --section-from <file> --dry-run` names every gap at "
+                "once and writes nothing - never open status.py, render_check.py, audit.py or theme_studio.py; their "
+                "output says what to fix")
+
+
+def ag_approval(base: Path) -> str | None:
+    """The owner's recorded answer to the sample confirm for this project, or None (Antigravity only)."""
+    f = Path(__file__).resolve().parent / AG_APPROVAL
+    if not f.is_file():
+        return None
+    head, _, answer = f.read_text(encoding="utf-8").partition("\n")
+    return answer.strip() if head.strip() == base.resolve().as_posix() else None
+
+
+def design_step_text(phase: str, step: str, family: str | None, approved: str | None = None,
+                     today: str = "", base: Path | None = None) -> str:
     """`next --phase design-system --step <step> [--family <N>]`: every reference section one turn needs, word for
     word, in one call (P1, P25)."""
     if phase.lstrip("/") != "design-system" or step not in DESIGN_STEPS:
         raise Refused(f"--step goes with --phase design-system and is one of: {', '.join(DESIGN_STEPS)}")
+    if playbook_tool() == "antigravity" and step == "write":
+        if not (approved or "").strip():
+            raise Refused(AG_CONFIRM)
+        if re.search(r"(?i)\bchange\b", approved):
+            raise Refused("the owner asked for a change: regenerate the sample, run both checks again, and ask the same "
+                          "confirm again - the write step waits for \"looks good\"")
+        (Path(__file__).resolve().parent / AG_APPROVAL).write_text(
+            f"{(base or Path.cwd()).resolve().as_posix()}\n{today}: {approved.strip()[:200]}\n", encoding="utf-8")
     ref = {n: design_ref(n) for n in ("archetypes.md", "build-loop.md", "palettes.md", "universal-laws.md", "craft.md",
-                                       "theme-studio.md", "design-md-template.md")}
+                                       "theme-studio.md", "design-md-template.md", "page-patterns.md")}
     if any(v is None for v in ref.values()):
         raise Refused("this install has no design-system references folder - reinstall the playbook")
     names = design_families()
@@ -5303,14 +7781,17 @@ def design_step_text(phase: str, step: str, family: str | None) -> str:
                     and fam.split(" / ")[0].split()[0].lower() in l.lower()), "")
         bucket = "Bucket B" if "B ·" in row else "Bucket A" if row else None
         parts = [print_sections(ref["build-loop.md"], ["Build the sample page", "Confirm the sample"]),
-                 print_sections(ref["craft.md"], ["Two rules", "Archetype → bucket"]
-                                + ([bucket] if bucket else ["Bucket A"]) + ["Audit & Theme-Studio"]),
+                 # the index only routes (done above); its two rules are restated in §Build the sample page
+                 print_sections(ref["craft.md"], ([bucket] if bucket else ["Bucket A"]) + ["Audit & Theme-Studio"]),
                  print_sections(ref["theme-studio.md"], ["Notes"]),
+                 print_sections(ref["page-patterns.md"], ["Presenter", "Microcopy rules"]),
                  print_sections(ref["universal-laws.md"], ["F. Process", "G. Data", "H. Responsive",
                                                            "J. Accessibility"])]
     else:  # Step 6's self-check walks the laws over the sample AND DESIGN.md: it belongs to the write turn
-        parts = [print_sections(ref["design-md-template.md"], ["intro", "The skeleton"]),
+        parts = [DESIGN_REFUSES,
+                 print_sections(ref["design-md-template.md"], ["intro", "The skeleton"]),
                  print_sections(ref["build-loop.md"], ["Emit the token stylesheet", "Emit `DESIGN.md`"]),
+                 print_sections(ref["page-patterns.md"], ["Flows across screens"]),
                  print_sections(ref["universal-laws.md"], ["Self-check digest"])]
     full = (f"/design-system --step {step}" + (f" ({fam})" if fam else "") + f": {DESIGN_STEPS[step]} - word for "
             f"word from {ref['archetypes.md'].parent.as_posix()}; the whole of what this turn reads (no `section` "
@@ -5318,9 +7799,13 @@ def design_step_text(phase: str, step: str, family: str | None) -> str:
     if playbook_tool() != "antigravity":
         return full
     f = Path(__file__).resolve().parent / f"design-system-{step}.md"
-    f.write_text(full + "\n", encoding="utf-8")
+    f.write_text(full + {"sample": "\n\n" + AG_CONFIRM, "write": "\n\n" + AG_NO_SOURCE}.get(step, "") + "\n",
+                 encoding="utf-8")
     return (f"Your tool shows only the end of a long output, so this turn's reading is in a file: open "
-            f"`{f.as_posix()}` ONCE with view_file - {DESIGN_STEPS[step]}. Never open a reference or status.py.")
+            f"`{f.as_posix()}` ONCE with view_file - {DESIGN_STEPS[step]}. Never open a reference or status.py."
+            + {"sample": "\nSTOP when both checks pass: your next call asks the owner the confirm (the file's last "
+                         "line); the write step refuses until then.",
+               "write": "\nWhat the save checks: `set ... --dry-run`, never a script's source."}.get(step, ""))
 
 
 def design_record_gaps(base: Path, st: "Status", write: bool = False, today: str = "") -> list[str]:
@@ -5340,6 +7825,8 @@ def design_record_gaps(base: Path, st: "Status", write: bool = False, today: str
     # logged NOT RUN / no-screenshot records through
     override = any(re.search(r"(?i)\boverride\b", l) for l in body.splitlines())
     gaps: list[str] = []
+    if playbook_tool() == "antigravity" and ag_approval(base) is None:
+        gaps.append("the owner has not approved the sample - " + AG_CONFIRM)
     for label, rx in (("Has user-facing UI?", r"user-facing ui"), ("Design principles", r"principles"),
                       ("Archetype", r"archetype"), ("Foundations summary", r"foundations"), ("Tokens", r"^tokens"),
                       ("Approved sample page (path)", r"sample page")):
@@ -5386,6 +7873,10 @@ def design_record_gaps(base: Path, st: "Status", write: bool = False, today: str
                         f"{missing[-1]} state - the main screen also shows itself empty, loading and with an error "
                         f"(an inline form error counts), each marked data-state=\"empty|loading|error\". A screen "
                         f"that has none of one: a #Design line `App states: <which> not shown - <why>`")
+        sf = next((l for l in body.splitlines() if re.search(r"(?i)sample for\s*:", l)), "")
+        if re.search(r"(?i)presenter|demo|both", sf) and not re.search(r"data-view\s*=\s*[\"']?end-user\b", page):
+            gaps.append(f"{m.group(1)} is a presenter view with no end user's screen in it - the screen the person "
+                        f"receives, in a device frame marked data-view=\"end-user\" (page-patterns.md §Presenter)")
         if STUDIO_MARK in page:
             gaps.append(f"{m.group(1)} still holds the Theme Studio - the approved sample is the page as the user sees "
                         f"it: `python <...>/theme_studio.py {m.group(1)} --remove`")
@@ -5398,9 +7889,19 @@ def design_record_gaps(base: Path, st: "Status", write: bool = False, today: str
                         + "; ".join(f"{w} (data-must=\"{i}\")" for i, w in unmarked)
                         + " - show each, marked with its data-must, or a #Design line `Must-show: <id> not shown - "
                           "<why>`")
+    if not re.search(r"(?im)^\W*sample for\s*:.*\S", body):
+        gaps.append("who the sample is for is not recorded - a #Design line `Sample for: <main screen|presenter|both> - "
+                    "<their answer>` (round 1's \"What is this sample for?\")")
     gaps += design_language_gaps(body, page, m.group(1) if m else "")
     gaps += design_font_gaps(base, body, design, sample if page else None)
     gaps += design_render_gaps(base, body, override)
+    if write:  # /structure's check runs next at `set`: the folders this phase made get their tree line first
+        made = [sample.parent] if page else []
+        shot = re.search(r"--shots\s+[`\"']?([^\s`\"']+)|screenshots?\s+[`\"']?([\w./\\-]+/)", body)
+        if shot:
+            made.append(base / (shot.group(1) or shot.group(2)))
+        made += [f.parent for f in design_walk(base) if f.suffix.lower() in {".woff2", ".woff", ".ttf", ".otf"}]
+        design_register_folders(base, made)
     links = re.findall(r"https?://([^/\s)>\]`\"']+)(/[^\s)>\]`\"']*)?", body + "\n" + design)
     if not re.search(r"(?im)host platform:\s*none\b.{6,}", body):
         for name, line, domains in design_hosts(re.sub(r"<!--.*?-->", "", secs.get("Architecture", ""), flags=re.S)):
@@ -5427,6 +7928,10 @@ def design_record_gaps(base: Path, st: "Status", write: bool = False, today: str
         sec2 = re.search(r"(?ms)^##\s+2\..*?(?=^##\s|\Z)", design)
         if sec2 and not override and not re.search(r"[\w./-]+\.s?css\b", sec2.group(0)):
             gaps.append("DESIGN.md §2 names no stylesheet path - the file the app loads the tokens from")
+        a11y = design_scope_a11y(re.sub(r"<!--.*?-->", "", secs.get("Scope", ""), flags=re.S))
+        if a11y and not re.search(r"(?m)^##\s+(?:10\.\s*)?Accessibility\b", design):
+            gaps.append(f"DESIGN.md has no `## 10. Accessibility` - #Scope has the accessibility baseline in now "
+                        f"(\"{a11y[:100]}\"): target, keyboard, screen reader, motion and zoom, languages")
         gaps += design_doc_gaps(design, body)
     if LATEX.search(body) or LATEX.search(design):
         gaps.append("LaTeX in #Design or DESIGN.md - plain symbols (≤ →), never $...$")
@@ -5434,6 +7939,8 @@ def design_record_gaps(base: Path, st: "Status", write: bool = False, today: str
     if failed:
         gaps.append(failed)
     if not gaps and write and design:
+        design = design_front_matter(base, design, st)
+        design_p.write_text(design, encoding="utf-8", newline="\n")
         design_write_audit(base, design_p, design, m.group(1) if m and page else None, today)
     return gaps
 
@@ -5523,11 +8030,12 @@ def design_render_gaps(base: Path, body: str, override: bool) -> list[str]:
     if ev is None and shot_ev is None:
         return ["no rendered check recorded - run `python <...>/render_check.py <sample> --main \"<the main action's "
                 "text>\" --shots <folder>` and add `evidence: <that command> → <its last line> · <date>` (it cannot "
-                "run: your tool's own browser at 375, 768 and 1440 px, `evidence: screenshots <folder> · <date>`)"]
+                "run: your tool's own browser at 375, 768 and 1280 px, saved as `<sample>-375.png`, `-768.png`, "
+                "`-1280.png`, `evidence: screenshots <folder> · <date>`)"]
     gaps = []
     if ev and re.search(r"(?i)\bNOT RUN\b|\bunverified\b", ev) and not override:
         gaps.append("the rendered check is recorded as NOT RUN - a check that did not run is not a check: `python -m "
-                    "pip install playwright` and run it again, or use your tool's own browser at 375, 768 and 1440 px "
+                    "pip install playwright` and run it again, or use your tool's own browser at 375, 768 and 1280 px "
                     "and save the screenshots (only the owner's override, with their reason, answers it)")
     sm = re.search(r"--shots\s+[`\"']?([^\s`\"']+)", ev or "") or \
         re.search(r"(?i)screenshots?\s*(?:in|at|:)?\s+[`\"']?([\w./\\-]+)", shot_ev or "")
@@ -5542,7 +8050,7 @@ def design_render_gaps(base: Path, body: str, override: bool) -> list[str]:
     if ev and rm is None:
         gaps.append("the render_check evidence line needs the sample's path and --main \"<the main action's text>\"")
     elif rm is not None and not gaps:
-        code, text = render_recheck(base, rm.group(1), rm.group(2))
+        code, text = render_recheck(base, rm.group(1), rm.group(2), sm.group(1) if sm else None)
         if code == 1 and not override:
             fails = [l.strip() for l in text.splitlines() if "[FAIL]" in l or "REFUSED" in l]
             gaps.append(f"render_check fails on {rm.group(1)} now (`set` ran it): {'; '.join(fails[:4]) or text[:200]}"
@@ -5556,8 +8064,12 @@ def design_doc_gaps(design: str, body: str) -> list[str]:
     gaps = []
     head = re.split(r"(?m)^##\s+1\.", design, maxsplit=1)[0]
     traced = [l for l in head.splitlines() if re.search(r"#(?:Vision|Scope)\b", l)]
-    if not re.search(r"(?m)^##\s+\D", head) or len(traced) < 4:
-        gaps.append("DESIGN.md does not open for a reader - before `## 1.`, a `## In short` section: what this "
+    bare = unnumbered_headings(re.sub(r"\A---\n.*?\n---\n", "", design, flags=re.S))
+    if bare:  # every heading numbered - the reader's summary is `## 0. In short`, so §1-§10 keep their numbers
+        gaps.append(f"DESIGN.md: {len(bare)} heading(s) without a number - `## 0. In short`, `## 1. Visual Theme` ... "
+                    f"`### 2.1 <title>` (first: {bare[0][:50]!r})")
+    if not re.search(r"(?m)^##\s+(?:0\.\s+)?[A-Za-z]", head) or len(traced) < 4:
+        gaps.append("DESIGN.md does not open for a reader - before `## 1.`, a `## 0. In short` section: what this "
                     f"design is for in plain words, then each principle with the #Vision or #Scope line it comes "
                     f"from ({len(traced)} traced, 4-6 wanted)")
     own = next((l for l in body.splitlines() if re.search(r"(?i)own (?:reference|look)", l)), "")
@@ -5597,13 +8109,152 @@ def design_write_audit(base: Path, path: Path, design: str, sample: str | None, 
     path.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
 
-def render_recheck(base: Path, sample: str, main: str) -> tuple[int, str]:
-    """render_check.py over the recorded sample, as the evidence line names it: 0 pass, 1 fail, 3 not run here."""
+def design_scope_a11y(scope: str) -> str:
+    """#Scope's accessibility line when it is in now (a logged DESIGN.md had WCAG only under colour; plain wrote a
+    section)."""
+    off = False
+    for l in scope.splitlines():
+        if re.match(r"\s*-\s*\*\*", l):
+            off = bool(re.match(r"(?i)\s*-\s*\*\*\s*(?:deferred|non[- ]goals?)", l))
+        if not off and DESIGN_A11Y.search(l) and not re.search(r"(?i)\bdeferred\b|\bnot now\b|\blater\b", l):
+            return l.strip(" -*")
+    return ""
+
+
+DESIGN_TREE = re.compile(r"^([\s|`+\-│├└─]*)([A-Za-z0-9._\-]+)/\s*(?:#.*)?$")
+DESIGN_FOLDER_NOTE = {"shots": "screenshots of the approved design sample at 375, 768 and 1280 px",
+                      "fonts": "the self-hosted font files and their licence"}
+
+
+def design_tree(lines: list[str]) -> tuple[dict[str, tuple[int, int]], int | None]:
+    """STRUCTURE.md's drawn folders (name -> line, indent) and the line of the first tree block's closing fence."""
+    fence, drawn, end = False, {}, None
+    for i, l in enumerate(lines):
+        if l.strip().startswith("```"):
+            if fence and drawn and end is None:
+                end = i
+            fence = not fence
+            continue
+        m = DESIGN_TREE.match(l.rstrip()) if fence else None
+        if m:
+            drawn.setdefault(m.group(2), (i, len(m.group(1))))
+    return drawn, end
+
+
+def design_register_folders(base: Path, folders: list[Path], phase: str = "design-system",
+                            write: bool = True) -> list[str]:
+    """The folders /design-system made (the sample's, the screenshots', the fonts') get a tree line in STRUCTURE.md, so
+    /structure's check passes at `set` (a logged run was refused and edited STRUCTURE.md by hand: 4 calls). /foundation
+    and /contracts use it too (a logged /foundation run edited STRUCTURE.md by hand 6 times for its
+    frontend-audit/ folder), with a note naming what the folder holds. `write=False` (a dry run) only names them."""
+    smap = base / "STRUCTURE.md"
+    if not smap.is_file():
+        return []
+    lines = smap.read_text(encoding="utf-8").splitlines()
+    added: list[str] = []
+    for f in dict.fromkeys(folders):
+        try:
+            parts = f.resolve().relative_to(base.resolve()).parts
+        except ValueError:
+            continue
+        for k, name in enumerate(parts):
+            drawn, end = design_tree(lines)
+            if end is None or name in drawn or name.startswith(".") or name in DESIGN_SKIP - {"docs"}:
+                continue
+            parent = drawn.get(parts[k - 1]) if k else None
+            at, ind = (parent[0] + 1, parent[1] + 4) if parent else (end, 0)
+            if phase == "design-system":
+                note = DESIGN_FOLDER_NOTE.get(name, "the approved design sample" if k == len(parts) - 1 else
+                                              "design files")
+            else:
+                held = sorted(x.name for x in (base / Path(*parts[:k + 1])).iterdir() if x.is_file())[:2]
+                note = ("holds " + ", ".join(held)) if held else "its sub-folders"
+            lines.insert(at, f"{' ' * ind}{name}/   # {note} (added by /{phase})")
+            added.append("/".join(parts[:k + 1]))
+    if added and write:
+        smap.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
+    return added
+
+
+# what /structure's check never asks a project to draw (templates/check_structure.py IGNORE and the hidden folders)
+REGISTER_SKIP = SKIP_DIRS | {"coverage", "htmlcov", "target", ".gradle", ".idea", ".vscode", ".nuxt", ".turbo",
+                             ".svelte-kit", ".coverage", "status"}
+
+
+def phase_new_folders(base: Path) -> list[Path]:
+    """The folders that hold a file this phase added or changed (since the earlier phase's save, untracked included)."""
+    if not git_dir(base):
+        return []
+    since = phase_start_commit(base)
+    changed = set(git(base, "diff", "--name-only", since).splitlines()) if since else set()
+    changed |= set(git(base, "ls-files", "--others", "--exclude-standard").splitlines())
+    out = set()
+    for f in changed:
+        parts = Path(f.strip().strip('"')).parts[:-1]
+        if parts and not install_root(f) and not any(x.startswith(".") or x in REGISTER_SKIP for x in parts) \
+                and (base / Path(*parts)).is_dir():
+            out.add(base / Path(*parts))
+    return sorted(out)
+
+
+def register_phase_folders(base: Path, phase: str, dry_run: bool = False) -> str:
+    """`set foundation|contracts filled`: draw the folders this phase added in STRUCTURE.md before /structure's check
+    runs - the run never edits the map by hand. The line `set` prints, or ''. 2.4 review: a dry run drew them (it now
+    only names them), and "check the note on each line" sent a run to edit the map by hand."""
+    added = design_register_folders(base, phase_new_folders(base), phase, write=not dry_run)
+    return (f"\n  {'would draw' if dry_run else 'drew'} {len(added)} new folder(s) in STRUCTURE.md's map: "
+            f"{', '.join(added[:5])} (saved as written - never edit the map)") if added else ""
+
+
+DESIGN_FONT_ROLES = (("display", "--font-display", "--text-display"), ("h1", "--font-display", "--text-2xl"),
+                     ("h2", "--font-sans", "--text-xl"), ("body", "--font-sans", "--text-base"),
+                     ("small", "--font-sans", "--text-sm"), ("mono", "--font-mono", "--text-sm"))
+DESIGN_COLOUR = re.compile(r"(?i)^(?:oklch|oklab|lch|lab|rgba?|hsla?|hwb|color-mix)\(|^#[0-9a-f]{3,8}$")
+
+
+def design_front_matter(base: Path, design: str, st: "Status") -> str:
+    """DESIGN.md with a YAML front matter rendered from the token stylesheet, readable by Google's open DESIGN.md
+    format (`name`, `colors`, `typography`, `rounded`; oklch() is one of its colour formats). Written by the script on
+    every close, so it never disagrees with the stylesheet."""
+    body = re.sub(r"\A---\n.*?\n---\n+", "", design, flags=re.S)
+    tokens: dict[str, str] = {}
+    for s in dict.fromkeys(Path(x).name for x in re.findall(r"[\w./-]+\.css\b", body)):
+        f = find_in_project(base, s)
+        root = re.search(r"(?s):root\s*\{(.*?)\}", f.read_text(encoding="utf-8", errors="replace")) if f else None
+        for k, v in re.findall(r"--([\w-]+)\s*:\s*([^;]+);", root.group(1) if root else ""):
+            tokens.setdefault(k, " ".join(v.split()))
+    if not tokens:
+        return body
+    title = re.search(r"(?m)^#\s+(?:DESIGN\.md\s*[—-]\s*)?(.+?)(?:\s+design system)?\s*$", body)
+    name = (title.group(1) if title else st.header.get("Product", "")).strip() or "Design system"
+
+    def q(v: str) -> str:
+        return '"' + v.replace('"', "'") + '"'
+    out = ["---", "version: alpha", f"name: {q(name)}",
+           "description: \"Written by status.py set design-system filled from the token stylesheet - never edit by "
+           "hand\"", "colors:"]
+    out += [f"  {k}: {q(v)}" for k, v in tokens.items() if DESIGN_COLOUR.match(v)]
+    typo = [(r, tokens.get(font[2:]), tokens.get(size[2:])) for r, font, size in DESIGN_FONT_ROLES]
+    typo = [(r, f.split(",")[0].strip("\"' ") if f else None, s) for r, f, s in typo if s]
+    if typo:
+        out.append("typography:")
+        for r, f, s in typo:
+            out += [f"  {r}:", *([f"    fontFamily: {q(f)}"] if f else []), f"    fontSize: {s}"]
+    if "radius" in tokens:
+        out += ["rounded:", f"  md: {tokens['radius']}"]
+    return "\n".join(out + ["---", ""]) + body
+
+
+def render_recheck(base: Path, sample: str, main: str, shots: str | None = None) -> tuple[int, str]:
+    """render_check.py over the recorded sample, as the evidence line names it: 0 pass, 1 fail, 3 not run here. With
+    the evidence's --shots folder the screenshots are retaken: by now the Theme Studio is out of the page (a logged
+    run kept screenshots with its button over the phone controls)."""
     engine = tool_file("frontend-audit", "render_check.py")
     if engine is None or not (base / sample).is_file():
         return 3, ""
     try:
-        r = subprocess.run([sys.executable, str(engine), sample, "--main", main], cwd=base, capture_output=True,
+        r = subprocess.run([sys.executable, str(engine), sample, "--main", main, *(["--shots", shots] if shots else [])],
+                           cwd=base, capture_output=True,
                            text=True, encoding="utf-8", errors="replace", timeout=180)
     except subprocess.TimeoutExpired:
         return 3, ""
@@ -5676,10 +8327,10 @@ def vision_last() -> str:
 START_FILE = "vision-start.md"
 # what each phase's start file holds, named in the short start so the run knows it needs nothing else
 START_HOLDS = {
-    "vision": "the #Vision field labels, the docs/vision.md layout,\n    the close",
-    "scope": "the #Vision lines /scope builds on, the questions, the #Scope\n    labels and items, this phase's rules, "
+    "vision": "the fields file's field list (`### <field>` blocks),\n    the close",
+    "scope": "the #Vision lines /scope builds on, the questions, the fields\n    file's field list, this phase's rules, "
              "the close",
-    "plan": "#Scope whole, the questions, the #Plan labels, this phase's\n    rules, the close",
+    "plan": "#Scope whole, the questions, the fields file's field list,\n    this phase's rules, the close",
     "structure": "#Architecture whole, the Dev tooling files, the decision homes,\n    the #Structure labels, this "
                  "phase's rules",
     "dev-check": "the milestone's tickets, the gate and live-path commands,\n    #Plan's and #Scope's lines, this "
@@ -5695,17 +8346,54 @@ def fit_start(full: str, phase: str = "vision") -> str:
     a logged /vision run lost the #Vision field labels that way, then read status.py 18 times, a slice at a time, to
     rebuild them (3.05M tokens against plain's 0.59M, 2026-10-01; the file start: 1.12M). /scope's start is ~12 KB
     and /plan's ~14 KB, so they go the same way. There the full start goes to a file it opens once with view_file
-    (46 KB per read), and the output stays short. Every other tool gets the full text, unchanged."""
-    if playbook_tool() != "antigravity":
+    (46 KB per read), and the output stays short. Every other tool gets the full text, unchanged - except Cursor on
+    the phases in CURSOR_FILE_STARTS or with a start over CURSOR_INLINE_MAX."""
+    tool = playbook_tool()
+    cursor = tool == "cursor" and (phase in CURSOR_FILE_STARTS or len(full) > CURSOR_INLINE_MAX)
+    if tool != "antigravity" and not cursor:
         return full
-    f = Path(__file__).resolve().parent / (START_FILE if phase == "vision" else f"{phase}-start.md")
+    name = START_FILE if phase == "vision" else f"{phase}-start.md"
     last = vision_last() if phase == "vision" else ""
-    f.write_text(full + "\n\n" + last + "\n", encoding="utf-8")
+    f = Path(__file__).resolve().parent / name
+    # review 2.4 early-11: Cursor's user-wide install is ~/.cursor/product-playbook/ - outside the workspace (its
+    # sandbox may refuse the file, a read may ask approval) and shared by every window. The project's .git folder is
+    # this project's own and never committed, as /foundation's long start; no .git folder: the tools folder.
+    if cursor and (Path.cwd() / ".git").is_dir():
+        f = Path.cwd() / ".git" / f"playbook-{name}"
+    try:
+        f.write_text(full + "\n\n" + last + "\n", encoding="utf-8")
+    except OSError:
+        f = Path(__file__).resolve().parent / name
+        f.write_text(full + "\n\n" + last + "\n", encoding="utf-8")
+    how = "your file-read tool, whole" if cursor else "view_file"
     return "\n".join([
-        "Your tool shows only the end of a long output, so this phase's start is in a file:",
-        f"  - FIRST: open `{f.as_posix()}` ONCE with view_file - {START_HOLDS[phase]}. Everything you need is there: "
-        "never open status.py, the template or `set --help`.",
+        ("Your tool cuts long output" if cursor else "Your tool shows only the end of a long output")
+        + ", so this phase's start is in a file:",
+        f"  - FIRST: open `{f.as_posix()}` ONCE with {how} - {START_HOLDS.get(phase, START_HOLDS_ANY)}. Everything you need is there: "
+        "never open status.py or `set --help`; a template this start tells you to fill is opened once" + (", and never run this `next` again to see it." if
+                                                                cursor else "."),
         *([last] if last else [])])
+
+
+#  (owner 2026-10-09: Cursor's long starts go to a file, as on Antigravity): Cursor cut a logged
+# /architect and /structure start, re-ran `next` into a temp file, then read status.py's source 5 times hunting the
+# rules (~746K tokens est.). Other phases join this set as their groups adopt it.
+CURSOR_FILE_STARTS = {"architect", "structure"}
+# 2.4 merge: the owner's ruling covers every phase's LONG start. Logged Cursor runs read a ~12K start whole and cut
+# the 22-25K /architect and /structure ones, so a start over 15,000 characters goes to a file on any phase; a
+# shorter one stays inline (a file would only add a read call).
+CURSOR_INLINE_MAX = 15000
+# the phases whose start never registered what its file holds crashed on Antigravity with a KeyError (2.4 merge)
+START_HOLDS_ANY = "every step, rule and command this phase needs, and the close"
+START_HOLDS.update({
+    "tickets": "the milestones and contract names, the lanes and seats, the\n    fields file's shape, this phase's rules, "
+               "the close",
+    "ship": "the ticket row, the diff, the reviews to run, the release\n    record, this phase's rules, the close",
+    "eval": "the measures and the test data, the commands, the record\n    format, this phase's rules, the close",
+    "deploy": "the runtime target, the host steps, the rollback rehearsal,\n    the record format, this phase's rules, "
+              "the close",
+    "learn": "the metrics and #Plan's exit criteria, the retro, the\n    record format, this phase's rules, the close",
+})
 
 
 def vision_helper_line() -> str:
@@ -5716,10 +8404,11 @@ def vision_helper_line() -> str:
     brief = brief.as_posix() if brief else "agents/vision-research.md"
     route = HELPER_ROUTE.get(playbook_tool())
     # two rounds of questions (owner, 2026-10-01): the helper starts in the FIRST reply, beside round 1, so it
-    # researches while the owner answers
-    helper = (f"  - Research helper: in your first reply, beside round 1's questions, start {route}, brief `{brief}`, "
-              f"given the owner's requirement word for word (it names no product or user: start it after round 1, "
-              f"with the answers). It is the only research pass: never search yourself meanwhile, never open its "
+    # researches while the owner answers. a logged run wrote round 1 first and started the helper only after the
+    # owner answered (the owner waited ~2 min) - the start is now the reply's FIRST tool call, before round 1
+    helper = (f"  - Research helper: your FIRST tool call, before you write round 1, starts {route}, brief `{brief}`, "
+              f"given the user's idea or brief word for word (the user gave no idea yet: start it with round 1's "
+              f"answers). It is the only research pass: never search yourself meanwhile, never open its "
               f"files or log. Its report not in when round 1's answers arrive: say in one line that the market check "
               f"is still running and the user need not reply, then {HELPER_WAIT.get(playbook_tool(), 'wait for it')}; "
               f"then give the first verdict" if route else
@@ -5737,42 +8426,60 @@ def vision_helper_line() -> str:
     return helper
 
 
-def vision_start_text(new: bool = False) -> str:
+def vision_template() -> str:
+    """The path of templates/vision.md as this install has it (the layout of docs/vision.md, opened at write time
+    only, so the start does not grow)."""
+    t = tool_file("templates", "vision.md")
+    return t.as_posix() if t else "templates/vision.md"
+
+
+def vision_record_lines(base: Path | None) -> str:
+    """review 2.4 early-1: a refine run (PRODUCT.md holds a #Vision) gets the record in its start, like /plan's start
+    - the skill's Step 0 says `next` prints it; without it a run read PRODUCT.md whole."""
+    prod = (base or Path(".")) / "PRODUCT.md"
+    secs = product_sections(prod.read_text(encoding="utf-8")) if prod.is_file() else {}
+    fields = section_fields(re.sub(r"(?m)^\*\*", "- **", re.sub(r"<!--.*?-->", "", secs.get("Vision", ""), flags=re.S)))
+    lines = [f"      {k}: {v}" for k, v in fields.items() if v.strip()]
+    if not lines:
+        return ""
+    return ("  - Refining: PRODUCT.md#Vision now (read nothing else whole; a field the user does not change goes into "
+            "the fields file as it is):\n" + "\n".join(lines) + "\n")
+
+
+def vision_start_text(new: bool = False, base: Path | None = None) -> str:
     """`next --phase vision`: what to write and what `set vision filled` refuses, so a run meets it the first time."""
-    tpl = tool_file("templates", "PRODUCT.md")
-    fields = product_sections(tpl.read_text(encoding="utf-8")).get("Vision", "") if tpl else ""
-    fields = "\n".join(l for l in fields.splitlines() if l.startswith("- **") and "**Read" not in l)
     helper = vision_helper_line()
     return ("/vision start:\n"
             + ("  - Fresh start: no STATUS.md, no PRODUCT.md, no code - nothing to read or probe; ask round 1.\n"
-               if new else "")
+               if new else vision_record_lines(base) if base is not None else "")
             + "  - In your first reply: load your web-search tool now (a deferred tool costs a turn later). "
             "Commands run in the project folder already: never `cd <path> &&`.\n"
             + helper + "\n"
-            "  - #Vision is these fields, labels as written, each one line `- **<label>:** <value>`, in a scratch file "
-            "outside the repo:\n"
-            + "\n".join("      " + l for l in fields.splitlines()) + "\n"
-            "  - Keep the owner's answers in the conversation; write docs/vision.md ONCE, in one call, after round 2: "
-            "a founder's document in plain paragraphs (order in the skill's Step 3), then `## Appendix` with "
-            "`### Owner's answers` (each answer word for word, one per question) · `### Search list` (one line each: "
-            "`- why now · <query> · what it settled · <link>`; a `local ·` line - the market the owner named, in its "
-            "language(s), first - a `same job ·` line - this exact job anywhere - `nearby ·` lines, and a `rules ·` "
-            "line) · `### North-star terms` (`| Term | Number | From |`, From = owner · proposed · searched · derived; "
-            "the owner gave no bar: `bar: not set`)\n"
-            "  - Close (never measure line lengths or re-read files to check: `set` wraps and checks): "
-            "`set vision filled --section-from <file>` + (no STATUS.md yet) `--product \"<name>\"` + "
-            "`--ai yes|no --agent yes|no` + `--commit \"<one line>\"` (the drafts message asked "
-            "\"Anything to change? If not: Save this version of your project? (yes / no)\"; leave it out on a no): "
-            "one call writes PRODUCT.md (from the template when there is none), makes "
-            "STATUS.md, records the AI answer, fills the `Read:` line from README.md (nothing else to quote unless "
-            "you opened another input file) and saves - then prints the rest of the close. The first verdict opens "
-            "round 2's message, never a turn of its own. It refuses, every problem in one list: an empty field · a "
-            "target without a number and a date · "
-            "a search line without a link or with only a search redirect, no `why now ·` line (or the problem not "
-            "marked `why now: the owner's claim, "
-            "not verified`), no `local ·`, `same job ·` or `rules ·` line · no Owner's answers · a terms row with no number or "
-            "no From · the AI answer not recorded · an AI product's empty AI line · LaTeX.\n"
-            "  - Who it's for, who asks and the business model stay in the owner's words: never narrow or widen them.\n"
+            "  - Questions: every one is 2-4 options built from what the user gave (Recommended first, one-line reason) "
+            "+ Other; a number question also offers `I don't know yet - work it out in <phase>`. Two rounds, three owner "
+            "turns: the drafts (3 vision sentences, 3 names, the job to be done, any proposed target) are options "
+            "inside round 2, never a message of their own. A brief (more than one "
+            "sentence): each round-1 question it answers is quoted under `From your brief:`, never asked; never ask a "
+            "researchable fact (how it is solved today, competitors, prices, rules) - the market check finds it.\n"
+            "  - Keep the owner's answers in the conversation; after round 2's answers, write the fields file ONCE, "
+            "in one call (the searches: a `local ·` line - the market the owner named, in its language(s), first - a "
+            "`same job ·` line - this exact job anywhere - `nearby ·` lines and a `rules ·` line, each with its link; "
+            "`Not searched · <name> · <why>` needs no link):\n"
+            + phase_fields_text("vision") + "\n"
+            "  - Close (never measure line lengths or re-read files to check: `set` renders and checks): "
+            "`set vision filled --from-fields <file>` + (no STATUS.md yet) `--product \"<name>\"` + "
+            "`--ai yes|no --agent yes|no` + `--commit \"<one line>\"` (round 2's answers are the go-ahead - "
+            "never a separate save question; `--no-commit` only when the user said not to save): "
+            "one call renders docs/vision.md and PRODUCT.md#Vision (a new PRODUCT.md holds only the finished phases), "
+            "makes STATUS.md, records the AI answer, fills the `Read:` line from README.md and saves - then prints the "
+            "rest of the close. The first verdict opens round 2's message, never a turn of its own. It refuses, every "
+            "problem in one list: a field missing or empty, a table row without its columns · a target without a "
+            "number and a date · a search line without a link or with only a search redirect, no `why now ·` line (or "
+            "why now not marked `why now: the owner's claim, not verified`), no `local ·`, `same job ·` or `rules ·` "
+            "line · a terms row whose From is not owner · proposed · searched · derived · the AI answer not recorded · "
+            "an AI product's `n/a` AI line · no ```mermaid diagram · LaTeX. Plain-words estimates only warn.\n"
+            "  - Who it's for, the problem, why now, the riskiest assumption and the business model: never decide them - "
+            "propose additions as options; only what the user gives or picks goes in, nothing changes silently.\n"
             "  - The user stops after the first verdict: `status.py set vision declined --reason \"stopped after the "
             "first verdict: <their words>\" --gate vision` (no STATUS.md yet: add `--product \"<name>\"`) - never a "
             "filled record without round 2.")
@@ -5781,20 +8488,57 @@ def vision_start_text(new: bool = False) -> str:
 
 # A new project has no record to re-run, resolve or decline over (the declined command is in the start itself):
 # a logged Antigravity /vision said the start's rules were the bulk of every turn it re-sent
-NEW_PROJECT_SKIP = {"vision": {"Spine resolution", "Re-run semantics", "Declined runs"}}
+# Documentation-driven is about keeping docs current while building - never on /vision's normal path
+NEW_PROJECT_SKIP = {"vision": {"Spine resolution", "Re-run semantics", "Declined runs", "Documentation-driven"}}
 
 
-def phase_rules_text(phase: str, new: bool = False) -> str | None:
+def phase_rules_text(phase: str, new: bool = False, skip: set[str] | frozenset = frozenset()) -> str | None:
     want = PHASE_RULES.get(phase)
     if not want:
         return None
     if new and phase in NEW_PROJECT_SKIP:
         want = {k: [x for x in v if x not in NEW_PROJECT_SKIP[phase]] for k, v in want.items()}
+    if skip:
+        want = {k: [x for x in v if x not in skip] for k, v in want.items()}
     parts = [f"Rules for /{phase}, word for word from the rule files (these ARE the rule files for this phase - do "
              f"not open them):"]
     for name, secs in want.items():
         parts.append(f"===== {name} =====\n" + print_sections(rule_file(name), secs))
     return "\n\n".join(parts)
+
+
+#  (owner 2026-10-07), a start prints only the rule sections THIS run needs - decided by the script from
+# the project's facts, never by the model. A logged /plan start printed 8 sections (~7.4K chars); ~4.3K were for cases
+# that were not true in that run. `rules <phase>` still prints the whole list.
+def situational_skip(phase: str, st: "Status") -> set[str]:
+    base = getattr(st, "base", None) or Path(".")
+    skip = set()
+    if (base / "PRODUCT.md").is_file():  # Spine resolution is for a project WITHOUT PRODUCT.md
+        skip.add("Spine resolution")
+    rows = getattr(st, "rows", None)
+    state = st.state(phase) if rows else "empty"
+    if state in ("empty", "declined"):  # a first run re-runs nothing
+        skip.add("Re-run semantics")
+    gate = {"scope": "vision", "plan": "scope"}.get(phase)
+    states = [st.state(p) for p in CHAIN] if rows else []
+    if state != "declined" and "overridden" not in states and (gate is None or (rows and st.state(gate) == "filled")):
+        skip.add("Declined runs")  # the gate is met and nothing was declined or overridden: the stop is in the skill
+    if phase in ("vision", "plan"):  # about keeping docs current while building - never on their normal path
+        skip.add("Documentation-driven")
+    return skip
+
+
+def verify_skip(phase: str, st: "Status") -> set[str]:
+    """2.4: /dev-check's and /test's starts printed Spine resolution, Re-run semantics and Declined runs on every
+    run. The same facts decide here: no PRODUCT.md, a filled section, a declined or overridden phase. /test keeps
+    Declined runs while its gate line asks the dev-check question (not passed for a reason other than an unfinished
+    milestone): the Stop answer records a declined run."""
+    skip = situational_skip(phase, st)
+    if phase == "test" and getattr(st, "base", None) is not None:
+        dc = st.phase("dev-check")
+        if not (dc[1] == "filled" and dc[4] == "pass") and not milestone_unfinished(st):
+            skip.discard("Declined runs")
+    return skip
 
 
 # ---- /scope: P1 + P2 + P4 for the anti-creep phase ----------------------------------------------------------------
@@ -5810,7 +8554,13 @@ PHASE_RULES["scope"] = {
 PHASE_CLOSE_RULES["scope"] = {"PRINCIPLES.md": ["The exit-criteria gate"],
                               "MECHANISMS.md": ["Step 3b", "Step 3c", "Commit the work", "Plain-language close"]}
 SCOPE_FIELDS = (("THE core feature", r"core feature"), ("In scope (now)", r"^in[- ]scope"),
-                ("Deferred", r"^deferred"), ("Non-goals", r"non[- ]goal"), ("Table stakes", r"table[- ]stakes"))
+                ("Deferred", r"^deferred"), ("Non-goals", r"non[- ]goal"), ("Table stakes", r"table[- ]stakes"),
+                # capacity asked at /scope (plain asked it first and got a sharper MVP); /plan confirms it
+                ("Capacity", r"^capacity"))
+# an in-scope item says when it is done (plain had a Done when for all 10 items, the playbook for none)
+SCOPE_DONE = re.compile(r"(?i)\bdone\b|\bworks when\b|\bpasses when\b|\bcheck:")
+# a number carried from #Vision says where it came from (a vision question's EXAMPLE became a cost cap)
+SCOPE_ORIGIN = re.compile(r"(?i)\bfrom (?:the )?vision\b|\(owner|\bproposed\b|\bvision\b")
 # (what the start prints, the words that find its line in the record). The generic list was a consumer app's; on a
 # logged internal AI product plain Claude raised data-protection law, AI law and languages, and no playbook run did.
 SCOPE_STAKES = (
@@ -5966,6 +8716,25 @@ def scope_gaps(base: Path, st: "Status") -> list[str]:
             if bad:
                 gaps.append(f"#Scope number {bad[0]!r} is not in #Vision and not marked - `(proposed)` when you "
                             f"suggested it, `(owner)` when the user said it: {item[:70]!r}")
+    if got["Capacity"] is None and fields:
+        gaps[:] = [g for g in gaps if g != "#Scope field empty: Capacity"]
+        gaps.append("#Scope has no `Capacity` line - who builds the first version and how long (round 1's capacity "
+                    "question): `- **Capacity:** solo, ~20 h a week, 2 weeks`")
+    for item in scope_items(got["In scope (now)"] or []):
+        if not SCOPE_DONE.search(item) and not EMPTY_VALUE.match(item.lower()):
+            gaps.append(f"#Scope in-scope item with no Done when: {item[:70]!r} - `<item> - done when <a check anyone "
+                        f"can run>`")
+    for label, lines in fields.items():
+        if re.match(r"(?i)read|detail", label):
+            continue
+        for item in scope_items(lines):
+            text = re.sub(r"\b20\d\d(?:-\d\d){0,2}\b|`[^`]*`", "", item)
+            carried = [n for m in SCOPE_NUMBER.finditer(text)
+                       if not SCOPE_NUMBER_OK.search(text[:m.start()]) and (n := m.group(0).replace(",", "")) in vision
+                       and (len(re.sub(r"\D", "", n)) >= 2 or re.search(r"[€$£.%]", text[m.start():m.end() + 1]))]
+            if carried and not SCOPE_ORIGIN.search(item):
+                gaps.append(f"#Scope number {carried[0]!r} is carried from #Vision without saying so - add where it came "
+                            f"from: `(from vision: owner's answer, not yet worked out)`: {item[:60]!r}")
     if st.state("validate") == "running" and not re.search(r"(?i)provisional", body):
         gaps.append("#Validation is running and #Scope marks nothing `provisional` - mark each decision that depends "
                     "on the pending result")
@@ -5976,6 +8745,12 @@ def scope_gaps(base: Path, st: "Status") -> list[str]:
         # as /vision and /plan: the core feature and the items are checked against the owner's own words
         gaps.append(f"{OWN_COMPANION['Scope']} has no `## Owner's answers` - each answer word for word, one per "
                     f"question")
+    if comp.is_file():
+        doc = comp.read_text(encoding="utf-8")
+        gaps += early_doc_layout_gaps(OWN_COMPANION["Scope"], doc)
+        if "```mermaid" not in doc:
+            gaps.append(f"{OWN_COMPANION['Scope']} has no ```mermaid diagram of the core loop (templates/scope.md "
+                        f"section 1)")
     return gaps
 
 
@@ -5992,13 +8767,17 @@ def scope_start_text(st: "Status") -> str:
         out += [f"      {what}: {val[:500]}{'…' if len(val) > 500 else ''}" for what, val in dict(shown).items()]
     else:
         out.append("  - #Vision is empty: say \"/vision looks incomplete - scope without a vision drifts\", offer "
-                   "/vision first; the user goes on anyway -> record the override (Step 0)")
+                   "/vision first; the user goes on anyway -> ask "
+                   "the reason as options (Other = the user's own words), then record it before going on: "
+                   "`status.py bypass --from scope "
+                   "--gate vision --reason \"<the picked option's words>\"`")
     val = st.state("validate")
     out.append("  - #Validation " + {"empty": "is empty (optional): #Vision's riskiest assumption is UNTESTED - say so "
                                               "when the core feature is chosen",
                                      "running": "is running: proceed provisionally - mark every decision that depends "
                                                 "on the pending result `provisional`",
                                      }.get(val, f"is {val}: its verdict shapes the scope as recorded"))
+    out += learnings_carry(secs)  # the last cycle's KILL and triggers reach the next cycle
     doc = base / OWN_COMPANION["Vision"]
     lines = doc.read_text(encoding="utf-8").splitlines() if doc.is_file() else []
     listed = search_list_lines(lines)  # the search list, not the owner's answers (they hold `·` too since next.55)
@@ -6008,27 +8787,27 @@ def scope_start_text(st: "Status") -> str:
         out.append("  - What /vision's searches found (docs/vision.md) - what every comparable ships is a "
                    "table-stakes candidate; no new search is needed:")
         out += [f"      {l}" for l in found]
-    tpl = tool_file("templates", "PRODUCT.md")
-    fields = product_sections(tpl.read_text(encoding="utf-8")).get("Scope", "") if tpl else ""
-    out.append("  - #Scope is these fields, labels as written, in a scratch file outside the repo; `set scope filled "
-               "--section-from <file>` writes it:")
-    out += ["      " + l for l in fields.splitlines() if l.startswith("- **")]
-    out.append("  - Table stakes for THIS product, one line each - `<item>: in now` · `<item>: deferred - when "
-               "<trigger>` · `<item>: N/A - <reason>` (a table works too):")
+    out.append("  - Table stakes for THIS product - one `table stakes` row each: `| <item> | in now |` · `| <item> | "
+               "deferred - when <trigger> |` · `| <item> | N/A - <reason> |`:")
     out += [f"      {what}" for what, _ in scope_stakes(st.header)]
-    out += ["  - THE core feature and each item: in the user's words, each answer word for word under `## Owner's "
-            "answers` in docs/scope.md. A number #Vision does not hold is marked `(proposed)` when you suggest it, "
-            "`(owner)` when the user said it.",
-            "  - `set scope filled` refuses, every problem in one list: an empty field · more than one core feature (a "
-            "`·` or numbered list) · a Deferred item with no trigger (when / once / if / after / until) · a table "
-            "stake above with no line, no verdict, deferred with no trigger or N/A with no reason · a number not in "
-            "#Vision and not marked · #Validation running and nothing marked `provisional` · no docs/scope.md or no "
-            "`## Owner's answers` in it.",
-            "  - Two rounds, each ONE message or form: questions 1-3, then the table-stakes verdicts, question 5, "
-            "the recommendation, any #Vision clash and \"Anything to change? If not: Save this version of your "
-            "project? (yes / no)\" (either answer records it). After it, docs/scope.md and "
-            "the section file in ONE message, then `set scope filled --section-from <file> --commit \"<one line>\"` "
-            "(no `--commit` on a no) records, saves and prints the rest of the close."]
+    out += ["  - Every question: 2-4 options built from #Vision and the answers, Recommended first, plus Other. Round 1: "
+            "the core feature · the smallest set around it · \"Which of these should stay OUT of the first version? "
+            "You decide later or never for each next.\" · capacity (who builds it, how long). Round 2: each temptation "
+            "as its own question (later + trigger / never / in now), the table stakes, Done when per item, the fit "
+            "against the capacity.",
+            "  - THE core feature and each item: never decided for the user - proposed as options; each answer word for "
+            "word (a picked option as `picked: <option>`) under `answers`. A number #Vision does not hold is "
+            "`(proposed)` or `(owner)`; one carried from #Vision says `(from vision: owner's answer, not yet worked "
+            "out)`.",
+            phase_fields_text("scope"),
+            "  - `set scope filled` refuses, every problem in one list: a field missing or empty, a table row without its "
+            "columns · a table stake above with no row, or a Decision that is not in now / deferred / N/A · no "
+            "```mermaid core loop · #Validation running and nothing marked `provisional`. Plain-words estimates (an "
+            "unmarked number, a trigger word, a reason word) only warn.",
+            "  - Two rounds, each ONE message or form: round 1's four questions, then round 2 with the recommendation "
+            "and any #Vision clash (which wins, as options) - no save question. After the answers, the fields file in "
+            "ONE call, then `set scope filled --from-fields <file> --commit \"<one line>\"` renders docs/scope.md and "
+            "#Scope, records, saves and prints the rest of the close (\"Change anything?\" is asked there)."]
     return "\n".join(out)
 
 
@@ -6050,8 +8829,8 @@ CLOSE_STEPS["validate"] = (
     "customer or business model contradicts #Vision itself",
     "the fields, the bar's number and date, the result's date and the verdict word")
 QUESTION_PHASES = QUESTION_PHASES + ("validate",)
-START_HOLDS["validate"] = "the #Vision lines the bet comes from, the two rounds, the\n    #Validation labels, this " \
-                          "phase's rules, the close"
+START_HOLDS["validate"] = "the #Vision lines the bet comes from, the one question round,\n    the #Validation labels, " \
+                          "this phase's rules, the close"
 VALIDATE_FIELDS = (("the assumption under test", r"^assumption"), ("the experiment", r"^experiment"),
                    ("the pass/fail threshold", r"^pass"), ("the measured result", r"^measured"),
                    ("the verdict", r"^verdict"))
@@ -6072,6 +8851,10 @@ VALIDATE_COUNTED = re.compile(r"(?i)record|logg|tall(?:y|ied)|counted|tied|per (
                               # P23: a desk check counts products or pages found, each with its link
                               r"\blinks?\b|listed|\bpages?\b|\bsources?\b|\burls?\b")
 VALIDATE_VERDICT = re.compile(r"(?i)^\W*(proceed|pivot|kill)\b")
+# 2.3: the gate cascade rule - an unmet gate and a skipped test are options with a fixed reason, never typed
+VALIDATE_NO_BET = "#Vision has no riskiest assumption - the user stated it in /validate"
+VALIDATE_SKIP = ("Run the test (Recommended)", "Skip it: already shown elsewhere (a pre-sale, a design partner)",
+                 "Skip it: no time or money for a test now", "Other")
 
 
 def validate_previous(base: Path) -> str:
@@ -6174,8 +8957,12 @@ def validate_start_text(st: "Status") -> str:
         out.append("  - #Vision, what the experiment tests:")
         out += [f"      {what}: {val[:400]}" for what, val in shown.items() if val.strip()]
     else:
-        out.append("  - #Vision has no riskiest assumption: say \"/vision looks incomplete - there is nothing testable "
-                   "to validate\", offer /vision first; the user goes on -> ask them to state the assumption now")
+        out.append("  - #Vision has no riskiest assumption - there is nothing testable to validate. ONE options question: "
+                   "\"Run /vision first (Recommended)\" · \"State the assumption now\" · \"Other\". /vision first -> "
+                   "`status.py set validate declined --reason \"#Vision has no riskiest assumption\" --gate vision`, "
+                   "then stop. Now -> `status.py "
+                   f"bypass --from validate --gate vision --reason \"{VALIDATE_NO_BET}\"`, then the assumption is "
+                   "question 1. Never a typed reason")
     val = st.state("validate")
     row = st.phase("validate")
     out.append("  - #Validation " + {
@@ -6190,20 +8977,27 @@ def validate_start_text(st: "Status") -> str:
     out.append("  - #Validation is these fields, labels as written, in a scratch file outside the repo:")
     out += ["      " + l for l in fields.splitlines() if l.startswith("- **") and "**Read" not in l]
     out += [
-        "  - Two rounds, each ONE message: round 1 = Step 2's questions 1-4 (the bet, the cheapest test that can "
-        "falsify it, the failing result, who and how they are reached); round 2 = ONE recommendation (experiment + "
-        "bar + how each count is recorded + time box + due date), any #Vision clash, and two options: "
-        "\"Looks good - save (Recommended)\" / \"Change something\".",
-        "  - Then ONE message: docs/validation.md (reasoning; the owner's answers word for word under `## Owner's "
-        "answers`) and the section file, then ONE record call:",
+        "  - ONE question round: Step 2's questions 1-4 (the bet, the cheapest test that can falsify it, the "
+        "failing result, who and how they are reached), each as options with one (Recommended) and Other. Then ONE "
+        "recommendation (experiment + bar + how each count is recorded + time box + due date) - written and saved "
+        "straight away, no confirm or save question; the close shows it with any #Vision clash and asks \"Change "
+        "anything?\".",
+        "  - After the answers, ONE message: docs/validation.md (opening with `## In short` - 3-5 plain sentences: the "
+        "bet, the test and its bar, the result or when it is due; then the reasoning; the owner's answers word for word "
+        "under `## Owner's answers`; `set` numbers every heading you leave unnumbered) and the section file, then ONE "
+        "record call:",
         "      result in now (a desk check): `set validate filled --section-from <file> --note \"<result vs bar>\" "
         "--commit \"<one line>\"`",
         "      result takes days: result and verdict `PENDING`; `set validate running --due <YYYY-MM-DD> --reason "
         "\"<what is measured> · pass: <the bar>\" --section-from <file> --commit \"<one line>\"` - the gate is NOT "
         "closed; offer the three ways forward (wait · proceed provisionally · override)",
-        "      the user skips the test: `set validate overridden --reason \"<their words>\" --gate validate "
-        "--section-from <file>` - every field kept, each marked `— not run (override <date>)`",
-        "      (`--dry-run` lists every gap and writes nothing; leave `--commit` out on a no)",
+        "      the user skips the test - ONE options question: " + " · ".join(
+            f"\"{o}\"" for o in VALIDATE_SKIP) + "; the reason is the chosen option's words (an Other answer as given, "
+        "pressure-tested against #Vision below): `set validate overridden "
+        "--reason \"<the option's words>\" --gate validate --section-from <file>` - every field kept, each marked "
+        "`— not run (override <date>)`. An Other reason naming another customer or business model (\"just for me\") "
+        "contradicts #Vision: quote that line and offer /vision first",
+        "      (`--dry-run` lists every gap and writes nothing; `--no-commit` only when the user said not to save)",
         "  - `set` refuses, every problem in one list: an empty field (filled: a PENDING one) · a bet without "
         "`will` · a bet about what people do tested only by asking · a bar with no number, no date, or not saying "
         "how each count is recorded and tied to the person or unit · a result with no date or dated before the bar "
@@ -6246,7 +9040,8 @@ SUPPORT_HABIT = ("  - Commands run in PowerShell and bash: one command per call 
 # W32 / W66: the design round spent 449K on --help probes and ~1M reading the checkers' source
 AUDIT_ARGS = ("  - audit.py takes: <files or folders> [--baseline <git-ref>] (only findings NEW since <ref>); it prints "
               "a scorecard, its first line the engine version; exit 0 = no ERROR, 1 = an ERROR, 2 = git cannot answer "
-              "the --baseline. Never run --help or open audit.py.")
+              "the --baseline or the project's .frontend-audit.json is malformed. A finding's rule id is explained "
+              "in references/checks.md beside it. Never run --help or open audit.py.")
 
 
 PHASE_RULES["drift-check"] = {
@@ -6284,6 +9079,9 @@ def drift_start_text(path: Path, today: str) -> str:
         out += [f"      #{k}: {line[:200]}" for k, line in ev[:25]]
         missing = [f"#{k}: {p}" for k in secs for p in evidence_problems(text, base, k)]
         out += [f"  - CONTRADICTED before any run (the script checked the artefact): {m}" for m in missing[:15]]
+        story = [f for f in OWN_COMPANION.values() if (base / f).is_file()]
+        if story:  # docs/<phase>.md is the human story; plain is asked to check these against the code too
+            out.append(f"  - The human docs to hold against the code (Step 2 item 7): {', '.join(story[:10])}")
         if not secs.get("Validation", "").strip() and code_files(base, 1):
             out.append("  - #Validation is empty and code exists: name the riskiest assumption once as an untested "
                        "risk, not a finding (Step 2 item 4)")
@@ -6291,8 +9089,8 @@ def drift_start_text(path: Path, today: str) -> str:
         found = [n for n in SPINE_DOCS if (base / n).exists()]
         if found:
             out.append(f"  - Spine: Tier 2 - no PRODUCT.md; the project's own docs: {', '.join(found)} (open only "
-                       f"these, in this order). Never create a PRODUCT.md; drift goes to the user and, if the project "
-                       f"keeps a log/CHANGELOG, an offer to append it there")
+                       f"these, in this order). Never create a PRODUCT.md; report only - the close's What YOU do next "
+                       f"names /adopt to create one")
         else:
             out.append("  - Spine: Tier 3 - code only, no recorded intent: say scope/vision drift cannot be judged, "
                        "give the INFERRED summary, recommend bootstrapping a spine (/adopt); never 'on-track', never "
@@ -6309,14 +9107,52 @@ def drift_start_text(path: Path, today: str) -> str:
     if (prod.is_file() or (base / "STATUS.md").is_file()) and not real:
         out.append(f"  - NO agent instructions: {'only a generated block in ' + ', '.join(agents) if agents else 'no CLAUDE.md, AGENTS.md or GEMINI.md'} "
                    f"- a finding (Step 2 item 8)")
-    out += ["  - The report: on-track, or each drift with a cut / re-scope (+ trigger) / fix. One message ends it: "
-            "\"Record these drifts? Looks good - record (Recommended) / Change something\"; on a yes, one "
-            "`status.py drift --found \"<drift>\" --rec \"<cut / re-scope+trigger / fix>\"` per drift, all in that one "
-            "message (Tier 1 only).",
+    out += ["  - Check both ways: built but never scoped (creep), AND scoped but dropped (a core or in-scope item "
+            "with no code and no done ticket).",
+            "  - The report: on-track, or each drift with a cut / re-scope (+ trigger) / fix. Then, no question, ONE "
+            "call records and saves every drift (Tier 1 only): `status.py drift --found \"<drift 1>\" --rec \"<cut / "
+            "re-scope+trigger / fix>\" --found \"<drift 2>\" --rec \"<...>\"` - it commits STATUS.md and its rows "
+            "only. The close asks \"Change anything?\".",
             "  - Must NOT: change code, cut a feature, edit PRODUCT.md, create a PRODUCT.md, or call a claim met "
             "without re-running its evidence.",
             support_close(st, "drift-check")]
     return "\n".join(out)
+
+
+def drift_rows(st: "Status", found: list[str], recs: list[str], today: str) -> str:
+    """`drift --found <a> --rec <a> --found <b> --rec <b>`: every drift of one run in ONE call (2.3) - one call
+    per drift re-sent the whole conversation each time, and a "Record these drifts?" turn waited on the owner."""
+    if len(found) != len(recs):
+        raise Refused(f"each --found needs its own --rec, in order: {len(found)} --found, {len(recs)} --rec")
+    for f, r in zip(found, recs):
+        st.rows["Drift"].append([today, capped("found", f), capped("rec", r)])
+    return f"{len(found)} drift(s) recorded"
+
+
+def save_paths(base: Path, paths: list[str], msg: str, again: str) -> str:
+    """Save ONLY the files this call wrote: /drift-check and /adopt run on a repo that often holds the user's own
+    unfinished work, which `git add -A` (save_commit) would sweep into the playbook's commit; and leaving the record
+    uncommitted is how a logged run's files ended up in the next phase's commit (2026-10-07)."""
+    root = git(base, "rev-parse", "--show-toplevel")
+    if not root:
+        return "not saved: no git repository here - the record is written; " + NO_GIT_LINE
+    if Path(root).resolve().as_posix().lower() != base.resolve().as_posix().lower():  # as save_commit: never the parent
+        return (f"not saved: the git root is a PARENT folder ({root}) - the record is written; offer `git init` here "
+                f"(MECHANISMS.md §Commit)")
+    add = subprocess.run(["git", "add", "--", *paths], cwd=base, capture_output=True, text=True, encoding="utf-8",
+                         errors="replace")
+    c = subprocess.run(["git", "commit", "-q", "-m", msg, "--", *paths], cwd=base, capture_output=True, text=True,
+                       encoding="utf-8", errors="replace") if add.returncode == 0 else add
+    if c.returncode != 0:
+        return (f"not saved: {(c.stderr or c.stdout).strip()[:200]} - the record IS written: show the user this "
+                f"error; {again}")
+    return (f"saved: commit {git(base, 'rev-parse', '--short', 'HEAD')} \"{msg}\" ({', '.join(paths[:4])}"
+            f"{' ...' if len(paths) > 4 else ''} only - nothing else of yours) - no git call of your own")
+
+
+def drift_save(base: Path, written: list[str], n: int) -> str:
+    return save_paths(base, ["STATUS.md", *written], f"drift-check: {n} drift(s) recorded",
+                      "never run `drift` again (it would add every row twice)")
 
 
 SUPPORT_STARTS["drift-check"] = drift_start_text
@@ -6344,6 +9180,30 @@ ADOPT_ROUTE = re.compile(r"@(?:app|router|bp|blueprint|api)\.(?:get|post|put|pat
 ADOPT_SKIP_PHASES = VERIFY  # a verdict needs the verification phase itself: adopt leaves those rows empty
 
 
+# 2.3 leftover: the draft was templates/PRODUCT.md filled whole - a 13 KB file read, then every section
+# typed, the empty ones too, into a PRODUCT.md that now grows one section at a time. The start prints the field
+# names of the sections a repo can evidence; the model writes only what a file answers.
+ADOPT_SECTIONS = ("Vision", "Scope", "Architecture", "Structure", "Foundation", "Tests")
+
+
+def adopt_field_lines() -> list[str]:
+    """Each section /adopt can fill, with its field names from templates/PRODUCT.md (their hints cut)."""
+    tpl = tool_file("templates", "PRODUCT.md")
+    secs = product_sections(read_text(tpl)) if tpl else {}
+    out = []
+    for name in ADOPT_SECTIONS:
+        names = []
+        for line in secs.get(name, "").splitlines():
+            m = re.match(r"^- \*\*(.+?):?\*\*", line.strip())
+            if not m or re.match(r"(?i)detail|read \(", m.group(1)):
+                continue
+            label = re.match(r"^(\([^)]*\)\s*)?[^(]*", m.group(1)).group(0).strip().rstrip(":")
+            names.append(label)
+        if names:
+            out.append(f"      ## {name}: " + " | ".join(names))
+    return out
+
+
 def adopt_start_text(path: Path, today: str) -> str:
     base, st = path.resolve().parent, support_status(path)
     prod = base / "PRODUCT.md"
@@ -6351,7 +9211,8 @@ def adopt_start_text(path: Path, today: str) -> str:
            "files it names):"]
     if prod.is_file():
         secs = product_sections(prod.read_text(encoding="utf-8", errors="replace"))
-        empty = [k for k, v in secs.items() if not has_content(v)]
+        # review 2.4 early-9: only the sections /adopt drafts (one never written yet counts as empty)
+        empty = [k for k in ADOPT_SECTIONS if k not in secs or not has_content(secs[k])]
         out.append(f"  - STOP: PRODUCT.md exists - never overwrite it. Offer exactly one thing: fill only its empty "
                    f"sections ({', '.join('#' + k for k in empty) or 'none'}); every filled one stays as written")
     found = [n for n in ("CLAUDE.md", "README.md", "AGENTS.md") if (base / n).is_file()]
@@ -6373,24 +9234,33 @@ def adopt_start_text(path: Path, today: str) -> str:
             f"      package metadata: {', '.join(meta) or 'none'} · entry points: {', '.join(entries) or 'none found'}",
             f"      routes: {'; '.join(routes[:12]) or 'none found'}{' ...' if len(routes) > 12 else ''}",
             f"      tests: {', '.join(tests) or 'none found'} · CI: {', '.join(ci) or 'none found - a finding'}"]
-    tpl = tool_file("templates", "PRODUCT.md")
-    out += [f"  - The draft is the template ({tpl.as_posix() if tpl else 'templates/PRODUCT.md'}) filled from these "
-            "files ONLY, in a scratch file outside the repo; its first line the provenance: `_Adopted <YYYY-MM-DD> "
-            "from: <file>, <file>_`. Every inferred line ends `(inferred — confirm)` with its file. North star, "
-            "riskiest assumption, business model and Non-goals stay empty unless a file states them.",
-            "  - Two rounds, each ONE message: round 1 = the whole draft, every inferred line with its file, keep / "
-            "correct / drop per line, plus the owner-only questions (who it's for and why, the north star, the "
-            "riskiest assumption, the business model, what you will never build) - \"don't know\" leaves it empty; "
-            "round 2 = the corrected draft, any README-vs-code clash (Step 3c), and two options: \"Looks good - save "
-            "(Recommended)\" / \"Change something\".",
-            "  - Then ONE call: `status.py set adopt filled --section-from <draft> --product \"<name>\" --commit "
-            "\"<one line>\"` (`--dry-run` lists every gap, writes nothing; no `--commit` on a no). It writes PRODUCT.md "
+    out += ["  - The draft is ONE short file in a scratch file outside the repo, drawn from these files ONLY - never "
+            "the template copied whole: its first line the provenance `_Adopted <YYYY-MM-DD> from: <file>, <file>_`; "
+            "then, only for a section a repo file supports, `## <Section>` and only the field lines below a file "
+            "answers, each `- **<field>:** <text> (inferred — confirm) <file>`. A section or a field with no evidence "
+            "is left out (never written empty): the record call writes PRODUCT.md as its title and project policy, "
+            "the provenance line and these sections in the phases' order. North star, riskiest assumption, business "
+            "model and Non-goals stay out unless a file states them. The fields, per section (` | ` between them):",
+            *adopt_field_lines(),
+            "      A field named `(AI) ...` or `(Agent) ...` only when a repo file shows an AI feature or an agent "
+            "(keep the name as printed); otherwise it is left out.",
+            "  - ONE question round: print the whole draft as text first, every inferred line with its file; then ONE "
+            "form (or lettered list): \"Keep every inferred line (Recommended)\" · \"Other - name each line to correct "
+            "or drop, and the fix\"; and each "
+            "owner-only question (who it's for and why, the north star, the riskiest assumption, the business model, "
+            "what you will never build) as options: what a repo file states, if one does (Recommended) · \"Don't know "
+            "yet - leave it empty\" (Recommended when no file states it) · \"Other\" - " + FORM_SPLIT + ". After the "
+            "answers the corrected draft is written and saved straight away - no confirm or save question; the close "
+            "shows it with any README-vs-code clash (Step 3c) and asks \"Change anything?\".",
+            "  - Then ONE call: `status.py set adopt filled --section-from <draft> --product \"<name>\"` (`--dry-run` "
+            "lists every gap, writes nothing). It saves PRODUCT.md and STATUS.md only - never your other changes; "
+            "`--no-commit` only when the user said not to save. It writes PRODUCT.md "
             "(or only its empty sections), makes STATUS.md, records each confirmed section `filled` with \"adopted "
             "<date>\" (a verification phase stays empty: its verdict is its own run), and refuses, every problem in "
             "one list: a line still tagged `(inferred — confirm)` · no provenance line, or one naming a file that does "
-            "not exist · a filled section of an existing PRODUCT.md changed.",
+            "not exist · a section PRODUCT.md does not have · a filled section of an existing PRODUCT.md changed.",
             "  - Must NOT: write code, change the repo's files, guess a north star, an assumption, a business model "
-            "or a Non-goal, or write anything before round 2's yes."]
+            "or a Non-goal, or write anything before the question round's answers."]
     out.append(support_close(st, "adopt") if st is not None else
                "Close - after the report, never before; its last line is the `Open a NEW conversation` line the "
                "record call prints, word for word.")
@@ -6418,6 +9288,9 @@ def adopt_record(path: Path, a, today: str) -> str:
         named = [n.strip(" `_").rstrip(".") for n in re.split(r",|·|;", prov.group(2)) if n.strip(" `_.")]
         gaps += [f"the provenance names {n}, which is not in the repo" for n in named if not (base / n).exists()]
     new = product_sections(draft)
+    known = set(PHASE_SECTION.values())
+    gaps += [f"`## {k}` is not a PRODUCT.md section - use one of: {', '.join(ADOPT_SECTIONS)}" for k in new
+             if k not in known and k != "Project"]
     if prod.is_file():
         old = product_sections(prod.read_text(encoding="utf-8"))
         gaps += [f"#{k} is already filled in PRODUCT.md - adopt fills empty sections only; leave it as written"
@@ -6435,12 +9308,14 @@ def adopt_record(path: Path, a, today: str) -> str:
     with Lock(base):
         if prod.is_file():
             text = prod.read_text(encoding="utf-8")
-            old = product_sections(text)
-            for k, v in new.items():
-                if k in old and not has_content(old[k]) and has_content(v):
-                    text = replace_section(text, k, v)
-        else:
-            text = draft
+        else:  # the title and the policy, the provenance line, then only the sections the repo evidenced
+            text = product_header(a.product or (Status.load(path).product if path.is_file() else base.name))
+            title = text.split("\n", 1)[0]
+            text = text.replace(title, f"{title}\n\n{prov.group(0).strip()}", 1)
+        old = product_sections(text)
+        for k in [s for s in PHASE_SECTION.values() if s in new]:  # the phases' order, whatever the draft's
+            if (k not in old or not has_content(old[k])) and has_content(new[k]):
+                text = replace_section(text, k, new[k])  # a missing section is added in place
         prod.write_text(text, encoding="utf-8", newline="")
         st = Status.load(path) if path.is_file() else Status.new(a.product, today)
         st.base, st.today = base, today
@@ -6454,11 +9329,15 @@ def adopt_record(path: Path, a, today: str) -> str:
         errs, _ = problems(st, today, None)
         if errs:
             raise Refused("the result would be invalid: " + "; ".join(errs))
-        st.save(path)
+        written = st.save(path)
     msg = [f"adopted: PRODUCT.md written; recorded {', '.join('#' + p for p in done) or 'nothing new'} filled "
            f"(adopted {today})"]
-    saved = save_commit(base, a.commit) if a.commit else None
+    # 2.3: saved unasked - and only what this call wrote: an adopted repo often holds unfinished work
+    saved = None if getattr(a, "no_commit", False) else save_paths(
+        base, ["PRODUCT.md", "STATUS.md", *written], a.commit or "adopt: PRODUCT.md drawn from the repo, confirmed",
+        "fix the cause, then run this same `set adopt filled` call again")
     msg += [saved] if saved else []
+    saved = saved if saved and saved.startswith("saved") else None
     nxt, why = adopt_next(product_sections(text))
     card = "\n".join(l for l in handoff_card(st).splitlines() if not l.startswith(("Open a NEW", "Cost:")))
     msg += [close_steps_text("adopt", saved), *([card] if card.strip() else []),
@@ -6508,6 +9387,34 @@ def ui_changed(base: Path) -> list[str]:
     return [n for n in dict.fromkeys(names) if Path(n).suffix.lower() in UI_SUFFIXES and (base / n).is_file()]
 
 
+def render_line(ui: list[str], dev: tuple[str, str] | None = None) -> str:
+    """2.3: plain is asked for the layout at phone, tablet and desktop widths; audit.py reads CSS and cannot
+    see it. render_check.py draws the page at 375 / 768 / 1280 px - a built .html page, or the running app's URL."""
+    f = tool_file("commands", "frontend-audit", "render_check.py") or tool_file("frontend-audit", "render_check.py")
+    page = next((u for u in ui if u.endswith((".html", ".htm")) and "templates" not in u), None)
+    server = tool_file("foundation", "devserver.py")  # one call starts it in the background, one stops it
+    return (f"  - Layout at phone, tablet and desktop (375 / 768 / 1280 px), one call per main page: python "
+            f"\"{f.as_posix() if f else '<render_check.py beside audit.py>'}\" "
+            f"{page or '<the running app URL, e.g. http://localhost:<port>/>'} --main \"<the page's main action, "
+            f"its visible text>\" - exit 0 pass, 1 a failure (main action below the first phone screen, a menu over "
+            f"30% of it, small or low-contrast text, sideways scroll), 3 NOT RUN (no browser, or nothing answers at "
+            f"the URL) - a NOT RUN is reported as not run, never passed, and the user is told as-is: \"Start your app, "
+            f"then run /frontend-audit again to check phone, tablet and desktop layout.\" Never start a server in the "
+            f"foreground: it blocks until the call times out." + (
+                f" The project's dev command, in the background and stopped after: python \"{server.as_posix()}\" start "
+                f"--cmd \"{dev[0]}\" --port {dev[1]} · then this check · python \"{server.as_posix()}\" stop --port "
+                f"{dev[1]}" if dev and not page and server else ""))
+
+
+def frontend_dev(base: Path) -> tuple[str, str] | None:
+    """The project's own dev command and port (its recipe, #Foundation), or None - never invented."""
+    prod = base / "PRODUCT.md"
+    found = (product_sections(prod.read_text(encoding="utf-8", errors="replace")).get("Foundation", "")
+             if prod.is_file() else "")
+    cmd, port, _ = dev_server(base, found)
+    return (cmd, port) if cmd and port else None
+
+
 def frontend_audit_start_text(path: Path, today: str) -> str:
     base, st = path.resolve().parent, support_status(path)
     ui = design_ui_files(base, 40)
@@ -6524,6 +9431,7 @@ def frontend_audit_start_text(path: Path, today: str) -> str:
                    f"existing files - only what it ADDS counts: add `--baseline HEAD`")
     out += [f"  - Run, one call: python \"{audit_engine()}\" {'--baseline HEAD ' if changed else ''}{targets}",
             AUDIT_ARGS,
+            render_line(ui, frontend_dev(base)),
             "  - Repeat its first line (the engine version) and its `engine copy:` line to the user; an OLDER copy "
             "means hooks and CI pass on checks this run fails.",
             "  - Report: every ERROR (the floor - fix or name it), the WARNs triaged, and the list the audit prints "
@@ -6552,7 +9460,8 @@ def new_component_start_text(path: Path, today: str) -> str:
     homes = [l.strip()[:160] for l in read_text(struct).splitlines() if re.search(r"(?i)component", l)][:4] \
         if struct.is_file() else []
     out.append("  - Where components live (STRUCTURE.md): " + (" | ".join(homes) if homes else
-                                                               "STRUCTURE.md names no place - ask the user"))
+                                                               "STRUCTURE.md names no place and no ticket names the "
+                                                               "file - ask ONE options question for the folder"))
     issues = sorted((base / "docs" / "issues").glob("*.md")) if (base / "docs" / "issues").is_dir() else []
     menu, broken = [], []
     for f in issues:
@@ -6569,7 +9478,10 @@ def new_component_start_text(path: Path, today: str) -> str:
     if pending:
         first = re.match(r"M\d+", pending[0][0])
         ms = first.group(0) if first else ""
-        out.append(f"  - Components for {ms or 'the tickets'} (invoked bare: offer these, ONE is built per run):")
+        out.append(f"  - Components for {ms or 'the tickets'} (invoked bare: show this list as text, then ONE "
+                   f"options question - {pending[0][1]} (Recommended)"
+                   + "".join(f", {m[1]}" for m in [m for m in pending if not ms or m[0].startswith(ms)][1:3])
+                   + ", Other - type any name from the menu; ONE is built per run):")
         out += [f"      [{'x' if done else ' '}] {p} ({tid}){'' if done else ' - pending'}"
                 for tid, p, done in menu if not ms or tid.startswith(ms)][:15]
     elif not issues:
@@ -6578,6 +9490,11 @@ def new_component_start_text(path: Path, today: str) -> str:
             f"{sheets[0] if sheets else '<the token stylesheet>'} <the new component> - 0 errors, and no "
             f"`tokens-defined` error",
             AUDIT_ARGS,
+            # 2.3: plain is asked for the data states and a commit; the playbook offers at least that
+            "  - A component that shows data: its empty, loading and error states, each with a visible message.",
+            "  - 0 errors -> save the one file, two calls, no question: `git add -- <the new component>`, then "
+            "`git commit -m \"<Name>: new component\" -- <the new component>` (never `git add -A`: other work stays the "
+            "user's). The report says the file, the audit's result and the commit.",
             "  - Must NOT: build more than one component, invent a token or a components folder, edit DESIGN.md or "
             "the stylesheet, or suppress hydration warnings across every input.",
             support_close(st, "new-component")]
@@ -6616,11 +9533,18 @@ CLOSE_STEPS["architect"] = (
     "every number against #Vision and the owner's answers: a cost per use above #Vision's cap, a monthly total above "
     "answer 2's money",
     "#Scope and #Plan - a part built for a Deferred item or a non-goal (gold-plating), paid hosting before #Plan's "
-    "paid-infra trigger, a budget against #Vision's business model",
+    "paid-infra trigger, a budget against #Vision's business model; a choice the user made this run that changes "
+    "#Plan is already written there as a dated note (the plan notes field) - say it in one line, never ask which wins",
     "the fields, every row's provenance, the dev-tooling slots, the runtime targets, the adapters, the concern areas, "
-    "the model's release date, the ADR files and docs/architecture.md")
-START_HOLDS["architect"] = ("the #Vision, #Scope and #Plan lines the stack is chosen\n    against, the #Architecture "
-                            "labels, this phase's rules, the close")
+    "the model's release date and docs/architecture.md (rendered; an ADR only for a decision that changed)")
+START_HOLDS["architect"] = ("the #Vision, #Scope and #Plan lines the stack is chosen\n    against, the order to the "
+                            "fields file, this phase's rules, the close")
+# /architect closes on its fields file, not a section file (the other question phases' head says --section-from)
+ARCH_HEAD = ("This phase closes with ONE call - `status.py set architect filled --from-fields <file>`, the fields file "
+             "outside the repo (never an edit tool on PRODUCT.md or docs/architecture.md): it renders both, checks them, "
+             "names every problem at once, saves the project (round 2's yes is the go-ahead: never a separate save "
+             "question; `--no-commit` only when the user said not to save) - no git call of your own - and prints the "
+             "rest of the close.", *QUESTION_CLOSE[1:])
 # PRINCIPLES.md §Production safeguards, the bullets this phase decides, word for word (placeholders, test data,
 # measuring and rollout are /foundation's, /test's and /ship's): ~1.5 KB of the section's 3.2 KB
 ARCH_SAFEGUARDS = ("Security baseline", "AI-specific security", "Observability & audit", "Fail-safe errors",
@@ -6646,32 +9570,18 @@ ARCH_SHORTHAND_MAX = 10
 # (a model date, two rows) came after the document, costing 4 more calls with it in context. The dry-run now runs
 # before the document; these are the document's checks, printed at that moment (they left the start).
 def arch_docs_pending(agent: bool) -> str:
-    """What `set architect filled --dry-run` prints while the ADR files and docs/architecture.md are unwritten: how to
-    write them and what the save checks in them (they left the start: printed at the moment they are needed)."""
+    """What `set architect filled --section-from <file> --dry-run` prints while docs/architecture.md is unwritten: the
+    fields file renders it instead (owner 2026-10-07: no ADR files on day one; each fact written once)."""
     return "\n".join([
-        f"\n  The ADR files and {ARCH_DOC} are not written yet, so their checks wait for the save. Next, ONE message: "
-        f"write them, then - in that same message, after them - `set architect filled --section-from <file> --commit "
-        f"\"<one line>\"` (no `--commit` on a no). Never re-read what you wrote: `set` checks it.",
-        "  - ADR files: `docs/adr/NNNN-<slug>.md`, one per load-bearing choice"
-        + ("; the framework, the action tiers and staged autonomy + kill switch each get one" if agent else "")
-        + ". The shape (the template - do not open it): `# ADR-NNNN — <the decision, as a rule>` · `- **Status:** "
-        "accepted` · `- **Date:**` · `- **Provenance:**` · `## Decision` (1-2 sentences) · `## Why` (the constraint "
-        "that decided it) · `## What was rejected, and why it lost` (one line each) · `## Consequences` (what breaks "
-        "if it is ignored) · `## Superseding` (a reversal sets Status: superseded by ADR-NNNN; never delete the file).",
-        f"  - {ARCH_DOC}: the template you read, filled - every `##` section in its order, each `<...>` filled, every "
-        f"comment deleted (the comments are its rules: what each section holds, its size, which kind of product adds "
-        f"which lines). Round 2's table as approved becomes the `### D<n>.` blocks of `## Decisions`; round 1's "
-        f"answers go word for word in Appendix A, the searches in Appendix B"
-        + (", the framework table under `### Framework options` in Appendix C" if agent else "")
-        + ". Full sentences, no slash-joined word lists.",
-        "  - The save refuses: fewer than 2 ADR files or one with no Status"
-        + (" · no ADR for the framework, the tiers or the autonomy" if agent else "")
-        + " · a template section missing or out of order · no ```mermaid diagram in Overview or How it works, step "
-        f"by step · no R# rule with MUST or NEVER · a comment or `<...>` left · more than {ARCH_SHORTHAND_MAX} "
-        "slash-joined word lists · no Owner's answers (Appendix A) · no Search list (Appendix B: one line per search, "
-        "the page you opened - never a homepage)"
-        + (" · a framework table under 3 options, none beyond AGENT.md's examples, or no registry link" if agent
-           else "") + "."])
+        f"\n  {ARCH_DOC} is not written yet, so its checks wait for the save. Do not write it by hand: `status.py "
+        f"fields architect` prints the fields file; `set architect filled --from-fields <file>` renders the record "
+        f"and {ARCH_DOC} (numbered headings, the decisions once) and saves - no save question, no ADR files (an ADR "
+        f"is written only when a recorded decision changes later).",
+        "  - The save refuses: a template section missing or out of order · no ```mermaid diagram in Overview or How "
+        "it works, step by step · no R# rule with MUST or NEVER · a comment or `<...>` left · no Owner's answers "
+        "(Appendix A) · no Search list (Appendix B: one line per search, the page you opened - never a homepage) · a "
+        "#Plan milestone with no row in Mapping to the plan"
+        + (" · a framework table under 3 options, or no registry link" if agent else "") + "."])
 
 
 # templates/structure.md (owner 2026-10-05): the checker's six sections plus the parts the plain runs did best.
@@ -6771,17 +9681,10 @@ def arch_doc_shape_gaps(doc: str) -> list[str]:
     if "<!--" in doc or re.search(r"<3-5 sentences\.>|<product name>|\| <n> \|", doc):
         gaps.append(f"{ARCH_DOC} still holds template comments or placeholders - delete every `<!-- -->` comment and "
                     f"fill each `<...>`")
-    reader = doc[:found["Appendix A — Owner's answers"].start()] if "Appendix A — Owner's answers" in found else doc
-    reader = re.sub(r"(?s)```.*?```", "", reader)
-    reader = re.sub(r"https?://\S+|`[^`\n]*`|\]\([^)]*\)", "", reader)
-    short = ARCH_SHORTHAND.findall(reader)
-    if len(short) > ARCH_SHORTHAND_MAX:
-        gaps.append(f"{ARCH_DOC} is written in shorthand: {len(short)} slash-joined word lists (at most "
-                    f"{ARCH_SHORTHAND_MAX}), e.g. {', '.join(short[:4])} - full sentences a newcomer can read aloud")
-    return gaps
+    return gaps  # shorthand reads prose: a warning (architect_prose_warnings)
 ARCH_FIELDS = (("Stack + tools", r"^stack"), ("Data custody", r"^data custody"),
                ("Runtime target per deployable unit", r"^runtime"), ("Identity custody", r"^identity"),
-               ("Dev tooling", r"^dev tooling"), ("Key decisions / ADRs", r"^key decisions|^adrs?\b"),
+               ("Dev tooling", r"^dev tooling"), ("Key decisions", r"^key decisions|^adrs?\b"),
                ("Externals behind adapters", r"^externals"),
                ("Resilience · perf/cost budget · migrations", r"^resilience"))
 ARCH_AI = ("(AI) prompt-versioning · eval harness · tracing", r"^\(ai\)")
@@ -6837,8 +9740,6 @@ ARCH_AGENT_ROWS = (("1 framework", r"framework|tool loop|\bsdk\b"), ("2 action t
                    ("6 staged autonomy and kill switch", r"autonom|kill[- ]switch|stop switch|shadow"),
                    ("7 action audit log", r"\baudit"), ("8 memory", r"memory|persist"),
                    ("9 agent evals", r"\bevals?\b|golden|known-answer"), ("10 AI disclosure", r"disclos|ai[- ]drafted"))
-ARCH_AGENT_ADRS = (("the framework (row 1)", r"framework|tool loop"), ("the action tiers (row 2)", r"\btiers?\b"),
-                   ("staged autonomy and the kill switch (row 6)", r"autonom|kill[- ]switch|stop switch"))
 # AGENT.md §Architect row 1's example frameworks (test_status checks each is still named there): the table needs one
 # the open search found beyond them (F1: two logged runs only re-listed these)
 AGENT_EXAMPLES = ("langgraph", "microsoft agent framework", "crewai", "openai agents sdk", "claude agent sdk",
@@ -6901,9 +9802,10 @@ def arch_framework_rows(lines: list[str]) -> list[str]:
 
 
 def architect_warnings(base: Path, st: "Status") -> list[str]:
-    """N5, a WARNING (owner 2026-10-04): a cost per use with no working - a token count and a price per 1M. And the
-    document's body size against the template's 20,000-32,000 bytes (a warning: a small product may be shorter)."""
-    prod, doc_p = base / "PRODUCT.md", base / ARCH_DOC
+    """Printed with the save, never a refusal: N5 (owner 2026-10-04), the document's body size against the template's
+    20,000-32,000 bytes, and every check that READS PROSE (owner, 2.3: prose checks only warn - a logged save was
+    refused for the owner's own words "runs on the laptop only")."""
+    doc_p = base / ARCH_DOC
     warns: list[str] = []
     doc = doc_p.read_text(encoding="utf-8") if doc_p.is_file() else ""
     found = arch_doc_sections(doc)
@@ -6911,8 +9813,26 @@ def architect_warnings(base: Path, st: "Status") -> list[str]:
         size = len(doc[found["Overview"].start():found["Appendix A — Owner's answers"].start()].encode("utf-8"))
         if size > 36000:
             warns.append(f"{ARCH_DOC} body is {size:,} bytes (template: 20,000-32,000) - merge failure rows with the "
-                         f"same handling and cut repetition, never rules, Rejected lines or shorthand")
-    return warns + architect_cost_warnings(base, st)
+                         f"same handling and cut repetition, never a rule, a decision's options or shorthand")
+    # plain English in the document a person reads (sentence length, dash chains, labels, dead anchors); 
+    return (warns + architect_prose_warnings(base, st) + architect_cost_warnings(base, st)
+            + [w for w in early_doc_warnings(ARCH_DOC, doc) if "playbook words" not in w] + law_warnings(ARCH_DOC, doc))
+
+
+# a logged design cited GDPR Art. 22 and the EU AI Act as requiring human review, and its code refused drafts
+# without a disclaimer - neither law says so. A law named in the body points at the page that states the obligation.
+LAW_NAME = re.compile(r"\b(?:GDPR|DSGVO|RGPD|AI Act|HIPAA|CCPA|CPRA|PSD2|DORA|NIS ?2|eIDAS|DSA|DMA|CCD ?2|FiDA|"
+                      r"Art(?:icle|\.)\s?\d+[a-z]?|Directive \(EU\)|Regulation \(EU\))")
+
+
+def law_warnings(rel: str, doc: str) -> list[str]:
+    """Lines before the appendix that name a law with no link and no footnote mark `[n]` on the same line."""
+    body = re.split(r"(?im)^##\s+(?:appendix|[A-Z]\.\s)", re.sub(r"(?s)```.*?```", "", doc))[0]
+    bare = sorted({m.group(0) for l in body.splitlines() if not l.startswith("#") and not URL.search(l)
+                   and not re.search(r"\[\d+\]|\[\^\w+\]", l) for m in LAW_NAME.finditer(l)})
+    return [f"{rel} names a law with no source on the same line ({', '.join(bare[:4])}) - link the page that states "
+            f"the obligation or add a footnote `[n]` (a logged design cited a law for a duty it does not set)"] \
+        if bare else []
 
 
 def architect_cost_warnings(base: Path, st: "Status") -> list[str]:
@@ -6930,15 +9850,111 @@ def architect_cost_warnings(base: Path, st: "Status") -> list[str]:
     return []
 
 
-def architect_gaps(base: Path, st: "Status", doc_pending: bool = False) -> list[str]:
-    """What `set architect filled` needs, every problem named once in one list (P20). `doc_pending`: a --dry-run
-    before docs/architecture.md is written (P46: the long document is the last write) - its checks wait for the save."""
-    prod, doc_p = base / "PRODUCT.md", base / ARCH_DOC
+def architect_record(base: Path) -> tuple[dict[str, str], dict[str, list[str]], str]:
+    """PRODUCT.md's sections without comments, #Architecture's fields, and their values joined."""
+    prod = base / "PRODUCT.md"
     secs = product_sections(prod.read_text(encoding="utf-8")) if prod.is_file() else {}
     clean = {k: re.sub(r"<!--.*?-->", "", v, flags=re.S) for k, v in secs.items()}
     fields = plan_field_lines(clean.get("Architecture", ""))
-    body = "\n".join(l for v in fields.values() for l in v)  # the values only: every label names its own area
+    return clean, fields, "\n".join(l for v in fields.values() for l in v)
+
+
+def architect_prose_warnings(base: Path, st: "Status") -> list[str]:
+    """The checks that match words in free text - each one refused a logged run's correct record at least once
+    (P42: "laptop only", a plain LLMProvider, a later-host row, a labelled N/A external), so they WARN."""
+    clean, fields, body = architect_record(base)
     ai, agent = st.header.get("AI product") == "yes", st.header.get("Agent") == "yes"
+    warns: list[str] = []
+
+    def lines_of(rx: str) -> list[str]:
+        return [l for k, v in fields.items() if re.search(rx, k, re.I) for l in v]
+
+    def listed(rows: list[str], n: int = 4) -> str:
+        return " · ".join(repr(r[:60]) for r in rows[:n]) + (f" · and {len(rows) - n} more" if len(rows) > n else "")
+
+    every_row = [r for k in fields for r in arch_rows(fields[k])]
+    cons = " ".join(r for r in every_row if re.search(r"(?i)constraint", r))
+    # a rendered record names its constraints by key (team · money · infrastructure · lock-in): nothing to match
+    if cons.strip() and not re.search(r"(?i)\binfrastructure\b.*\block-in\b", cons):
+        miss = [what for what, rx in ARCH_CONSTRAINTS if not re.search(rx, cons, re.I)]
+        if miss:
+            warns.append("the constraint set may have no " + " · no ".join(miss) + " - check the line names each answer")
+    said = next((l.strip().lstrip("-* ") for l in clean.get("Scope", "").splitlines() if LOGIN.search(l)), "")
+    ids = arch_rows(lines_of(r"^identity"))
+    if said and ids and all(re.match(r"(?i)\W*(?:identity custody\W*)?n/?a\b", r) for r in ids):
+        warns.append(f"Identity custody is N/A, but #Scope says {said[:80]!r} - if a person logs in, record the login "
+                     f"(answer 6), how the app checks it (a stable user id, a role) and that it fails closed")
+    tooling = " ".join(lines_of(r"^dev tooling"))
+    if tooling.strip():
+        miss = [what for what, rx in ARCH_TOOLING if not re.search(rx, tooling, re.I)]
+        if miss:
+            warns.append(f"the Dev tooling line may name no {', no '.join(miss)} - /structure scaffolds exactly these five")
+        if re.search(r"(?i)\b(?:tbd|todo|to be decided|undecided)\b", tooling):
+            warns.append("the Dev tooling line leaves a slot undecided (TBD) - name one tool for each slot")
+    runtime = [r for r in arch_rows(lines_of(r"^runtime")) if not re.match(r"(?i)\W*\|?\s*unit\s*\|", r)]
+    later = re.compile(r"(?i)\W*\|?\s*(?:from|until|after|before|once|later|then)\b")
+    brand = [r for n, r in enumerate(runtime) if not ARCH_RUNTIME.search(r) and not re.search(r"(?i)\bn/?a\b", r)
+             and not (later.match(r) and any(ARCH_RUNTIME.search(x) for x in runtime[:n]))]
+    if brand:
+        warns.append(f"runtime target row(s) with no category word - container-anywhere · PaaS · VPS · user's machine · "
+                     f"static site / CDN (what /deploy executes), not only a brand: {listed(brand)}")
+    if runtime and not re.search(r"(?i)" + MONEY + r"|\bfree\b", " ".join(runtime)):
+        warns.append("the runtime target names no cost - what it costs, the free-tier limits and what happens at each")
+    ext = [r for r in arch_rows(lines_of(r"^externals"))
+           if not re.match(r"(?i)\W*(?:[^:—–\n]{0,60}(?::|\s[—–-])\s*)?(?:none|n/?a)\b", r)]
+    noadapter = [r for r in ext if not ARCH_INTERFACE.search(r)]
+    if noadapter:
+        warns.append(f"external(s) with no adapter interface name (LLMProvider, Storage - plain): {listed(noadapter)}")
+    nores = [r for r in ext if not ARCH_RESILIENCE.search(r)]
+    if nores:
+        warns.append(f"external(s) with no resilience words (timeout · retry · fallback or circuit breaker): "
+                     f"{listed(nores)}")
+    areas = ARCH_AREAS + (ARCH_AI_AREAS if ai else ())
+    miss = [what for what, rx in areas if not re.search(rx, body, re.I)]
+    if SQL_DBS.search(body) and not re.search(r"(?i)migration", body):
+        miss.append("the migrations approach")
+    if miss:
+        warns.append(f"concern area(s) the record may not name: {', '.join(miss)}")
+    if ai:
+        miss = [what for what, rx in ARCH_RUNTIME_CONFIG if not re.search(rx, body, re.I)]
+        if miss:
+            warns.append(f"the model runtime config may set no {', '.join(miss)} - the cost per use depends on them")
+        if not ARCH_PER_USE.search(body):
+            warns.append("no cost per use found - the dominant cost (the model call: tokens × price) worked out from "
+                         "the recorded model and config")
+    if agent:
+        text = " ".join(lines_of(ARCH_AGENT[1]))
+        miss = [what for what, rx in ARCH_AGENT_ROWS if not re.search(rx, text, re.I)]
+        if text.strip() and miss:
+            warns.append(f"the (Agent) field may have no row for AGENT.md §Architect {', '.join(miss)}")
+    doc_p = base / ARCH_DOC
+    doc = doc_p.read_text(encoding="utf-8") if doc_p.is_file() else ""
+    if doc:
+        warns += arch_trace_warnings(clean.get("Scope", ""), doc)
+        reader = re.sub(r"(?s)```.*?```", "", doc.split("## Appendix A")[0])
+        reader = re.sub(r"https?://\S+|`[^`\n]*`|\]\([^)]*\)", "", reader)
+        short = ARCH_SHORTHAND.findall(reader)
+        if len(short) > ARCH_SHORTHAND_MAX:
+            warns.append(f"{ARCH_DOC} is written in shorthand: {len(short)} slash-joined word lists (at most "
+                         f"{ARCH_SHORTHAND_MAX}), e.g. {', '.join(short[:4])} - full sentences a newcomer can read aloud")
+        if agent:
+            options = arch_framework_rows(doc.splitlines())
+            if len(options) >= 3 and not re.search(r"(?i)none beyond", doc) and all(
+                    any(x in o for x in AGENT_EXAMPLES) or re.search(r"no framework|plain|vendor sdk|^none", o)
+                    for o in options):
+                warns.append("every framework option is one of AGENT.md's examples - add one the open search found, "
+                             "or the line `the search found none beyond AGENT.md's examples`")
+    return warns
+
+
+def architect_gaps(base: Path, st: "Status", doc_pending: bool = False) -> list[str]:
+    """What `set architect filled` refuses, every problem named once in one list (P20) - only what can be COUNTED:
+    a field, a flag, a fixed value, a link, a diagram, a heading, an ID. What reads prose warns
+    (architect_prose_warnings). `doc_pending`: a --dry-run before docs/architecture.md is written (P46)."""
+    doc_p = base / ARCH_DOC
+    clean, fields, body = architect_record(base)
+    agent = st.header.get("Agent") == "yes"
+    ai = st.header.get("AI product") == "yes"
     gaps: list[str] = []
 
     def lines_of(rx: str) -> list[str]:
@@ -6952,13 +9968,20 @@ def architect_gaps(base: Path, st: "Status", doc_pending: bool = False) -> list[
             gaps.append(f"#Architecture field empty: {what}")
     if st.header.get("UI", "unknown") == "unknown":
         gaps.append("the UI answer is not recorded - `status.py flag --ui yes|no` (does a person use a screen of it?)")
+    elif st.header.get("UI") == "yes" and not COMPONENT_SOURCE.search(body):
+        # /design-system builds on this row; with none, a logged run picked shadcn/ui + Tailwind itself and filed the
+        # clash with #Architecture it had just made
+        gaps.append("UI yes, but no Stack + tools row names the UI component source - add one (a component library "
+                    "such as shadcn/ui with Tailwind, or plain CSS with our own components) with its why and "
+                    "provenance: /design-system builds on it and never adds one")
     if st.header.get("AI product") != "no" and st.header.get("Agent", "unknown") == "unknown":
         gaps.append("the Agent answer is not recorded - ask round 1's agent question, then `status.py flag --agent "
                     "yes|no`")
     rows = {rx: arch_rows(lines_of(rx)) for rx in ARCH_PROVENANCE_FIELDS + ((ARCH_AGENT[1],) if agent else ())}
     bare = [r for rs in rows.values() for r in rs if not re.search(r"(?i)\buser-chosen\b", r)
             and not THIRD_PROVENANCE.search(r)  # refused above as a third value: each problem once (P20)
-            and not re.match(r"(?i)\W*constraint", r) and "superseded" not in r.lower()]
+            and not re.match(r"(?i)\W*constraint", r) and "superseded" not in r.lower()
+            and not re.match(r"(?i)\W*\|?\s*unit\s*\|", r)]
     if bare:
         gaps.append(f"{len(bare)} row(s) with no provenance - end each with `user-chosen` (the user picked it) or "
                     f"`default taken, not user-chosen` (you recommended it; \"go with your recommendation\" "
@@ -6969,68 +9992,6 @@ def architect_gaps(base: Path, st: "Status", doc_pending: bool = False) -> list[
     if not cons.strip():
         gaps.append("no `Constraint set:` row - the first row under Stack + tools: the owner's answers 1-4 in short "
                     "(team and hours · money a month · infrastructure they run · lock-in they accept)")
-    else:
-        miss = [what for what, rx in ARCH_CONSTRAINTS if not re.search(rx, cons, re.I)]
-        if miss:
-            gaps.append("the constraint set has no " + " · no ".join(miss))
-    said = next((l.strip().lstrip("-* ") for l in clean.get("Scope", "").splitlines() if LOGIN.search(l)), "")
-    ids = rows[r"^identity"]
-    if said and ids and all(re.match(r"(?i)\W*(?:identity custody\W*)?n/?a\b", r) for r in ids):
-        gaps.append(f"Identity custody is N/A, but #Scope says {said[:80]!r} - a person logs in: record the login "
-                    f"(the company's identity provider, answer 6), how the app checks it (a stable user id, a role) "
-                    f"and that it fails closed")
-    tooling = " ".join(lines_of(r"^dev tooling"))
-    if tooling.strip():
-        miss = [what for what, rx in ARCH_TOOLING if not re.search(rx, tooling, re.I)]
-        if miss:
-            gaps.append(f"the Dev tooling line names no {', no '.join(miss)} - /structure scaffolds exactly these five")
-        if re.search(r"(?i)\b(?:tbd|todo|to be decided|undecided)\b", tooling):
-            gaps.append("the Dev tooling line leaves a slot undecided (TBD) - name one tool for each slot")
-    runtime = rows[r"^runtime"]
-    # a row that only says when the same unit moves ("From M4, <host>: ...") keeps the category a row above it gave
-    # (a logged run was refused for one; P42)
-    later = re.compile(r"(?i)\W*(?:from|until|after|before|once|later|then)\b")
-    brand = [r for n, r in enumerate(runtime) if not ARCH_RUNTIME.search(r) and not re.search(r"(?i)\bn/?a\b", r)
-             and not (later.match(r) and any(ARCH_RUNTIME.search(x) for x in runtime[:n]))]
-    if brand:
-        gaps.append(f"runtime target row(s) with no category - container-anywhere · PaaS · VPS · user's machine · static "
-                    f"site / CDN (what /deploy executes), not only a brand: {listed(brand)}")
-    if runtime and not re.search(r"(?i)" + MONEY + r"|\bfree\b", " ".join(runtime)):
-        gaps.append("the runtime target names no cost - what it costs, the free-tier limits and what happens at each "
-                    "(throttled, blocked or billed)")
-    # "<label>: N/A - <reason>" is no external (a logged run was refused for one; P42)
-    ext = [r for r in arch_rows(lines_of(r"^externals"))
-           if not re.match(r"(?i)\W*(?:[^:—–\n]{0,60}(?::|\s[—–-])\s*)?(?:none|n/?a)\b", r)]
-    noadapter = [r for r in ext if not ARCH_INTERFACE.search(r)]
-    if noadapter:
-        gaps.append(f"external(s) with no adapter interface (an interface name such as LLMProvider or Storage, plain; "
-                    f"backticks only around a path): {listed(noadapter)}")
-    nores = [r for r in ext if not ARCH_RESILIENCE.search(r)]
-    if nores:
-        gaps.append(f"external(s) with no resilience strategy (timeout · retry transient only · fallback or circuit "
-                    f"breaker): {listed(nores)}")
-    areas = ARCH_AREAS + (ARCH_AI_AREAS if ai else ())
-    miss = [what for what, rx in areas if not re.search(rx, body, re.I)]
-    if SQL_DBS.search(body) and not re.search(r"(?i)migration", body):
-        miss.append("the migrations approach")
-    if miss:
-        gaps.append(f"concern area(s) neither recorded nor marked N/A: {', '.join(miss)}")
-    if ai:
-        miss = [what for what, rx in ARCH_RUNTIME_CONFIG if not re.search(rx, body, re.I)]
-        if miss:
-            gaps.append(f"the model runtime config sets no {', '.join(miss)} - the cost per use depends on them")
-        if not ARCH_PER_USE.search(body):
-            cap = next((v for k, v in section_fields(re.sub(r"(?m)^\*\*", "- **", clean.get("Vision", ""))).items()
-                        if re.search(AI_LINE, k, re.I)), "")
-            m = re.search(r"(?i)" + MONEY + r"[^\n·]{0,40}", cap)
-            gaps.append("no cost per use - the dominant cost (the model call: tokens × price) worked out from the "
-                        "recorded model and config" + (f", against #Vision's {m.group(0).strip()!r}" if m else ""))
-    if agent:
-        text = " ".join(lines_of(ARCH_AGENT[1]))
-        miss = [what for what, rx in ARCH_AGENT_ROWS if not re.search(rx, text, re.I)]
-        if text.strip() and miss:
-            gaps.append(f"the (Agent) field has no row for AGENT.md §Architect {', '.join(miss)} - each recorded or "
-                        f"`N/A — <reason>`")
     for l in body.splitlines():
         if re.search(r"\bVERIFIED\b", l) and "evidence:" not in l:
             gaps.append(f"#Architecture says VERIFIED with no `evidence:` command: {l.strip()[:70]!r} - a decision is "
@@ -7041,18 +10002,17 @@ def architect_gaps(base: Path, st: "Status", doc_pending: bool = False) -> list[
     if not doc and doc_pending:
         pass  # checked at the save; the dry-run's note says what the save checks (arch_docs_pending)
     elif not doc:
-        gaps.append(f"no {ARCH_DOC} - fill templates/architecture.md: every section in its order, the owner's "
-                    f"answers word for word and the search list in the appendix" + (" with the framework table" if agent
-                                                                                   else ""))
+        gaps.append(f"no {ARCH_DOC} - write the fields file (`status.py fields architect`) and save with `set "
+                    f"architect filled --from-fields <file>`: it renders the document")
     else:
         lines = doc.splitlines()
-        # A5/P42: the reader's part first - 0 of 4 logged playbook docs had a diagram (3 of 4 plain ones did), and
-        # the round-2 table the owner approved was saved nowhere
+        # A5/P42: the reader's part first - 0 of 4 logged playbook docs had a diagram (3 of 4 plain ones did)
         gaps += arch_doc_shape_gaps(doc)
         dec = arch_doc_sections(doc).get("Decisions")
-        if dec and not re.search(r"(?m)^\s*(?:###\s+D\d|\||[-*]\s|\d+[.)]\s)", arch_doc_body(doc, "Decisions")):
-            gaps.append(f"{ARCH_DOC} `## Decisions` is empty - one `### D<n>.` block per decision: Why · Trade-off we "
-                        f"accept · Rejected · Revisit when · Rule · ADR · Provenance")
+        if dec and not re.search(r"(?m)^\s*(?:###\s+(?:\d+\.\d+\s+)?D\d|\||[-*]\s|\d+[.)]\s)",
+                                 arch_doc_body(doc, "Decisions")):
+            gaps.append(f"{ARCH_DOC} `## Decisions` is empty - one `### D<n>.` block per decision: the problem · the "
+                        f"options considered · why this one · what it costs or rules out · when to revisit")
         m = PLAN_ANSWERS.search(doc)
         nxt = re.search(r"(?m)^#{1,6}\s", doc[m.end():]) if m else None
         if not m or not (doc[m.end():m.end() + nxt.start()] if nxt else doc[m.end():]).strip():
@@ -7069,45 +10029,576 @@ def architect_gaps(base: Path, st: "Status", doc_pending: bool = False) -> list[
         if home:
             gaps.append(f"{ARCH_DOC} search line(s) citing only a homepage or a search redirect - link the page that "
                         f"says the fact (the pricing page, the model list): {listed(home)}")
+        # every #Plan milestone has a home (by its ID - countable)
+        marks = arch_plan_marks(clean.get("Plan", ""))
+        mapping = arch_doc_body(doc, "Mapping to the plan")
+        lost = [m_ for m_ in marks if not re.search(rf"\b{m_}\b", mapping)]
+        if "Mapping to the plan" in arch_doc_sections(doc) and lost and "not applicable" not in mapping.lower():
+            gaps.append(f"{ARCH_DOC} `## Mapping to the plan` has no row for {', '.join(lost)} - one row per #Plan "
+                        f"milestone")
         if agent:
-            options = arch_framework_rows(lines)
-            if len(options) < 3:
+            if len(arch_framework_rows(lines)) < 3:
                 gaps.append(f"{ARCH_DOC} has no framework table of 3-4 options under a heading naming the framework - "
                             f"the table shown to the user before the question (AGENT.md §Architect row 1)")
-            elif not re.search(r"(?i)none beyond", doc) and all(
-                    any(x in o for x in AGENT_EXAMPLES) or re.search(r"no framework|plain|vendor sdk|^none", o)
-                    for o in options):
-                gaps.append("every framework option is one of AGENT.md's examples - add one the open search found, or "
-                            "the line `the search found none beyond AGENT.md's examples`")
             if not REGISTRY.search(doc):
                 gaps.append("no framework version from a package registry page (pypi.org · npmjs.com · crates.io) - "
                             "read each version and its date there, this run")
-    adr_dir = base / "docs" / "adr"
-    adrs = sorted(p for p in adr_dir.glob("*.md") if re.match(r"\d{4}-", p.name)) if adr_dir.is_dir() else []
-    adrs = [] if doc_pending else adrs  # written with the document, after the dry-run (P46)
-    texts = {p.name: p.read_text(encoding="utf-8", errors="replace") for p in adrs}
-    if len(adrs) < 2 and not doc_pending:
-        gaps.append(f"{len(adrs)} ADR file(s) - the load-bearing choices go in 2-4 files, `docs/adr/NNNN-<slug>.md` "
-                    f"in the ADR shape the dry-run printed")
-    nostatus = [n for n, t in texts.items() if not re.search(r"(?im)^\W*status\b", t)]
-    if nostatus:
-        gaps.append(f"ADR file(s) with no `Status:` line: {', '.join(nostatus)}")
-    if agent and adrs:
-        # an ADR naming an option of the framework table is the framework's ADR (a logged run's "Use Pydantic AI behind
-        # a provider-neutral agent boundary" was refused until renamed; P42)
-        names = [o.split("(")[0].strip() for o in arch_framework_rows(doc.splitlines())]
-        heads = [" ".join((f + " " + t.split("\n", 1)[0]).replace("-", " ").lower().split()) for f, t in texts.items()]
-        named = any(len(n) > 2 and n in h for n in names for h in heads)  # in its title or file name
-        miss = [what for what, rx in ARCH_AGENT_ADRS if not any(re.search(rx, t, re.I) for t in texts.values())
-                and not (named and what.startswith("the framework"))]
-        if miss:
-            gaps.append(f"no ADR file for {', '.join(miss)} - AGENT.md §Architect gives rows 1, 2 and 6 one each")
-    for name, text in (("#Architecture", body), (ARCH_DOC, doc), *texts.items()):
+        # owner 2026-10-07: no ADR on day one; a decision that CHANGED names its ADR, and the ADR exists
+        adr_dir = base / "docs" / "adr"
+        names = {p.name[:4] for p in adr_dir.glob("[0-9][0-9][0-9][0-9]-*.md")} if adr_dir.is_dir() else set()
+        for ref in sorted(set(re.findall(r"(?i)superseded[^\n]{0,40}?\bADR-(\d{4})", doc))):
+            if ref not in names:
+                gaps.append(f"{ARCH_DOC} says a decision is superseded by ADR-{ref}, but docs/adr/{ref}-*.md is missing "
+                            f"- `### change D<n>` in the fields file writes it")
+    for name, text in (("#Architecture", body), (ARCH_DOC, doc)):
         if re.search(r"(?i)confiden\w*[^\n]{0,30}?\b100\s?%", text):
             gaps.append(f"{name} states 100% confidence - never 100%; with no criterion VERIFIED by a command, at most 80%")
         if LATEX.search(text):
             gaps.append(f"{name} has LaTeX ({LATEX.search(text).group(0)}...) - plain symbols (≤ ≥ →)")
     return gaps
+
+
+# ---- /architect fields -> rendered record + document ----------------------------------------------------
+# A logged run typed decisions D1-D5 three times (PRODUCT.md#Architecture, docs/architecture.md, 4 ADRs ~5K chars),
+# read the 25.8K-char template, edited #Plan by hand and left open items uncommitted. The run now writes ONE fields
+# file (templates/product-architecture.md lists the fields; `### <field>` blocks, the syntax the early phases'
+# fields use); the script renders the record, the numbered document and - only for a decision that CHANGED on a
+# re-run - its ADR, writes the #Plan note and the open items, works out the cost per use, all in the save call.
+# Local to /architect on purpose (named arch_*): the generic fields -> render mechanism can absorb it later.
+ARCH_FIELDS_TEMPLATE = "product-architecture.md"
+ARCH_REQUIRED = ("constraints", "stack", "data custody", "runtime", "identity", "dev tooling", "externals", "concerns",
+                 "decisions", "overview", "what drives the design", "rules", "how it works", "building blocks", "data",
+                 "conventions and terms", "security and privacy", "running it", "mapping to the plan",
+                 "risks and open questions", "answers", "searches")
+ARCH_KEYS = {"constraints": ("team", "money", "infrastructure", "lock-in", "data location", "login"),
+             "dev tooling": ("hook runner", "secret scanner", "task runner", "formatter/linter", "dependency manifest"),
+             "concerns": ("resilience", "budget", "migrations", "security", "observability"),
+             "ai": ("prompt versioning", "eval harness", "tracing", "model", "runtime config"),
+             "cost per use": ("use", "input tokens", "output tokens", "input price per 1m", "output price per 1m",
+                              "currency")}
+ARCH_DECISION_KEYS = (("problem", "Problem it solves"), ("options", "Options considered"), ("why", "Why this one"),
+                      ("costs", "What it costs or rules out"), ("revisit", "Revisit when"))
+ARCH_CATEGORIES = re.compile(r"(?i)container|paas|\bvps\b|machine|laptop|desktop|static|cdn|\bci\b|serverless|"
+                             r"kubernetes|on[- ]prem")
+# (document section, the field that holds it); the appendices follow, lettered
+ARCH_LAYOUT = (("Overview", "overview"), ("What drives the design", "what drives the design"),
+               ("Rules the code must keep", "rules"), ("How it works, step by step", "how it works"),
+               ("Building blocks", "building blocks"), ("Data", "data"), ("Conventions and terms", "conventions and terms"),
+               ("Decisions", "decisions"), ("Security and privacy", "security and privacy"), ("AI part", "ai part"),
+               ("Running it", "running it"), ("Mapping to the plan", "mapping to the plan"),
+               ("Risks and open questions", "risks and open questions"))
+ARCH_APPENDICES = (("A", "Owner's answers", "answers"), ("B", "Search list", "searches"),
+                   ("C", "Options considered", "options"), ("D", "Sources and what is not verified", "sources"))
+# the record's labels, word for word as templates/PRODUCT.md has them (test_status checks the two stay in step)
+ARCH_LABELS = {
+    "stack": "Stack + tools (and why, 2026 OSS-first)",
+    "data custody": "Data custody (local/self-hosted · managed-serverless · embedded) + why (privacy/cost/portability/"
+                    "lock-in)",
+    "runtime": "Runtime target per deployable unit (container-anywhere · PaaS · VPS · user's machine · static site / "
+               "CDN) + cost and free-tier limits — decides what `/structure` scaffolds",
+    "identity": "Identity custody (self-hosted auth · vendor auth + RLS) — or N/A",
+    "dev tooling": "Dev tooling (hook runner · secret scanner · task runner · formatter/linter · dependency manifest — "
+                   "`/structure` scaffolds exactly these)",
+    "decisions": "Key decisions (patterns applied · anti-patterns avoided) — the full blocks: docs/architecture.md "
+                 "§Decisions",
+    "externals": "Externals behind provider/adapter interfaces (+ resilience strategy each)",
+    "concerns": "Resilience · perf/cost budget · migrations approach",
+    "ai": "(AI) prompt-versioning · eval harness · tracing",
+    "agent": "(Agent) the ten AGENT.md §Architect rows (framework · action tiers · caps · untrusted input · hand-off · "
+             "staged autonomy + kill switch · audit log · memory · agent evals · AI disclosure) — or N/A"}
+ARCH_NA = re.compile(r"(?i)^\W*(?:n/?a|none|not applicable)\b")
+ARCH_TOOL_ARROW = re.compile(r"(?m)(?:--?>|->>|-->>)\s*\|?[^|\n]*`[^`\n]+`|(?:--?>|->>)[^\n]*\b(?:just|make|npm run|"
+                             r"uv run|python -m)\s+[a-z]")
+CURRENCY = {"eur": "€", "euro": "€", "euros": "€", "€": "€", "usd": "$", "$": "$", "dollar": "$", "dollars": "$",
+            "gbp": "£", "£": "£"}
+
+
+def arch_fields_parse(text: str) -> dict[str, str]:
+    """`### <field>` blocks (outside code fences) -> field name (lower case, one space) -> its text."""
+    out: dict[str, list[str]] = {}
+    cur, fence = None, False
+    for line in text.replace("\r\n", "\n").split("\n"):
+        if line.lstrip().startswith("```"):
+            fence = not fence
+        m = None if fence else re.match(r"^###\s+(.+?)\s*$", line)
+        if m:
+            cur = " ".join(m.group(1).strip().strip(":").lower().split())
+            out[cur] = []
+        elif cur is not None:
+            out[cur].append(line)
+    return {k: "\n".join(v).strip("\n") for k, v in out.items()}
+
+
+def arch_kv(block: str) -> dict[str, str]:
+    """`- <key>: <value>` lines -> key (lower case) -> value; a deeper line continues the value above it."""
+    out: dict[str, str] = {}
+    last = None
+    for line in block.splitlines():
+        m = re.match(r"^[-*]\s+\**([^:*\n]{1,40}?)\**\s*:\s*(.*)$", line.strip()) if not line.startswith(
+            ("  ", "\t")) else None
+        if m:
+            last = " ".join(m.group(1).lower().split())
+            out[last] = m.group(2).strip()
+        elif last and line.strip():
+            out[last] = (out[last] + " " + line.strip()).strip()
+    return out
+
+
+def arch_table(block: str) -> tuple[list[str], list[list[str]]]:
+    """A field's table: (header cells, data rows), the |---| line skipped."""
+    rows = [[c.strip() for c in l.strip().strip("|").split("|")] for l in block.splitlines() if l.strip().startswith("|")]
+    rows = [r for r in rows if not all(re.fullmatch(r":?-{2,}:?", c) or not c for c in r)]
+    return (rows[0], rows[1:]) if rows else ([], [])
+
+
+def arch_md_table(head: list[str], rows: list[list[str]], indent: str = "") -> str:
+    return "\n".join(indent + "| " + " | ".join(r) + " |" for r in [head, ["---"] * len(head), *rows])
+
+
+def arch_number(text: str) -> float | None:
+    m = re.search(r"(\d[\d,]*(?:\.\d+)?)\s*([km])?\b", text.replace(" ", "").replace(" ", ""), re.I)
+    if not m:
+        return None
+    n = float(m.group(1).replace(",", ""))
+    return n * {"k": 1e3, "m": 1e6}.get((m.group(2) or "").lower(), 1)
+
+
+def arch_money(n: float) -> str:
+    return f"{n:,.4f}".rstrip("0").rstrip(".") if n < 1 else f"{n:,.2f}"
+
+
+def arch_cost(kv: dict[str, str], cap: str) -> tuple[str, list[str], list[str]]:
+    """The cost per use worked out from the recorded numbers (a run saved a figure with no working):
+    (the line, gaps, warnings). The cap is #Vision's AI line; compared only in the same currency."""
+    gaps, warns = [], []
+    nums = {}
+    for key in ("input tokens", "output tokens", "input price per 1m", "output price per 1m", "calls per use",
+                "worst case calls", "cached input tokens", "cached price per 1m"):
+        if key in kv and not ARCH_NA.match(kv[key]):
+            v = arch_number(kv[key])
+            if v is None:
+                gaps.append(f"cost per use: `{key}: {kv[key][:30]}` is not a number")
+            nums[key] = v
+    cur_word = kv.get("currency", "").strip().lower()
+    cur = CURRENCY.get(cur_word) or next((s for s in "€$£" if s in kv.get("currency", "")), "")
+    if not cur:
+        gaps.append(f"cost per use: `currency: {kv.get('currency', '')[:20]}` - write € , $ or £ (or EUR, USD, GBP)")
+    if gaps or any(nums.get(k) is None for k in ("input tokens", "output tokens", "input price per 1m",
+                                                  "output price per 1m")):
+        return "", gaps, warns
+    inp, out, pin, pout = (nums[k] for k in ("input tokens", "output tokens", "input price per 1m",
+                                             "output price per 1m"))
+    cin, pc = nums.get("cached input tokens") or 0, nums.get("cached price per 1m") or 0
+    calls = nums.get("calls per use") or 1
+    worst = nums.get("worst case calls") or calls
+    per_call = (inp * pin + cin * pc + out * pout) / 1_000_000
+    use = kv.get("use", "use").strip() or "use"
+    cached = f" + {cin:,.0f} cached input tokens × {cur}{pc:g} per 1M" if cin else ""
+    line = (f"({inp:,.0f} input tokens × {cur}{pin:g} per 1M{cached} + {out:,.0f} output tokens × {cur}{pout:g} per "
+            f"1M) / 1,000,000 = {cur}{arch_money(per_call)} per call; × {calls:g} call(s) = "
+            f"{cur}{arch_money(per_call * calls)} per {use}; worst case {worst:g} calls = "
+            f"{cur}{arch_money(per_call * worst)} per {use} (worked out by status.py"
+            + (f"; prices: {kv['source'].strip()}" if kv.get("source") else "") + ")")
+    m = re.search(r"([€$£])\s?(\d[\d,]*(?:\.\d+)?)", cap) or re.search(
+        r"(\d[\d,]*(?:\.\d+)?)\s?(eur|usd|gbp)\b", cap, re.I)
+    if m:
+        sym, val = (m.group(1), m.group(2)) if m.group(1) in "€$£" else (CURRENCY[m.group(2).lower()], m.group(1))
+        capv = float(val.replace(",", ""))
+        if sym != cur:
+            warns.append(f"the cost per use is in {cur}, #Vision's cap ({m.group(0)}) in {sym} - not compared; say "
+                         f"in the close which is higher")
+        elif per_call * calls > capv:
+            warns.append(f"the cost per use {cur}{arch_money(per_call * calls)} is over #Vision's cap "
+                         f"{m.group(0)} - name it in round 2's clash list and the close")
+        elif per_call * worst > capv:
+            warns.append(f"the worst case ({worst:g} calls, {cur}{arch_money(per_call * worst)}) is over #Vision's cap "
+                         f"{m.group(0)} - the loop limit or the cap check before each call must hold it")
+    return line, gaps, warns
+
+
+def arch_body_lines(block: str, num: int, letter: str = "") -> str:
+    """A field's text for the document: its `##`-`####` headings become numbered `###` sub-headings."""
+    out, k, fence = [], 0, False
+    for line in block.splitlines():
+        if line.lstrip().startswith("```"):
+            fence = not fence
+        m = None if fence else re.match(r"^#{2,4}\s+(?:[A-Z]?\d+(?:\.\d+)*\.?\s+)?(.+?)\s*$", line)
+        if m:
+            k += 1
+            out.append(f"### {letter or num}.{k} {m.group(1)}")
+        else:
+            out.append(line)
+    return "\n".join(out).strip("\n")
+
+
+def arch_decisions(block: str) -> list[dict[str, str]]:
+    """`#### D<n>. <title>` blocks with their `- key: value` lines."""
+    out, cur = [], None
+    for line in block.splitlines():
+        m = re.match(r"^#{2,4}\s+(?:\d+(?:\.\d+)*\.?\s+)?(D\d+)\.?\s+(.+?)\s*$", line)
+        if m:
+            cur = {"id": m.group(1).upper(), "title": m.group(2).strip(), "body": ""}
+            out.append(cur)
+        elif cur is not None:
+            cur["body"] += line + "\n"
+    for d in out:
+        d.update(arch_kv(d.pop("body")))
+    return out
+
+
+def arch_old_decisions(doc: str) -> dict[str, str]:
+    """The D# titles of the committed document (any heading level, numbered or not)."""
+    return {m.group(1).upper(): m.group(2).strip() for m in re.finditer(
+        r"(?m)^#{2,4}\s+(?:\d+(?:\.\d+)*\.?\s+)?(D\d+)\.?\s+(.+?)\s*$", doc)}
+
+
+def arch_render(base: Path, st: "Status", f: dict[str, str], today: str) -> dict:
+    """The fields -> {record, doc, adrs, product (PRODUCT.md with #Plan's notes), opens, gaps, warns}. Every gap is a
+    missing or malformed FIELD (structural); what reads prose is a warning (owner, 2.3: prose checks only warn)."""
+    ai, agent = st.header.get("AI product") == "yes", st.header.get("Agent") == "yes"
+    gaps: list[str] = []
+    warns: list[str] = []
+    need = ARCH_REQUIRED + (("ai", "cost per use", "ai part") if ai else ()) + (("agent",) if agent else ())
+    miss = [n for n in need if not f.get(n, "").strip()]
+    if miss:
+        gaps.append(f"the fields file has no `### {'`, `### '.join(miss)}` - every field `status.py fields architect` "
+                    f"lists, its text under the heading")
+    kvs = {k: arch_kv(f.get(k, "")) for k in ARCH_KEYS}
+    for k, keys in ARCH_KEYS.items():
+        if k in miss or (k in ("ai", "cost per use") and not ai):
+            continue
+        lack = [x for x in keys if not kvs[k].get(x, "").strip()]
+        if lack:
+            gaps.append(f"`### {k}` has no `- {': ...` · `- '.join(lack)}: ...` line")
+    login = kvs["constraints"].get("login", "")
+    if f.get("identity") and ARCH_NA.match(f["identity"]) and login and not re.match(r"(?i)\W*none\b", login):
+        gaps.append(f"identity is N/A, but answer 6 (login) is {login[:60]!r} - record the login, how the app checks it "
+                    f"(a stable user id, a role) and that it fails closed; N/A only with `login: none`")
+    # runtime and externals: a table, each cell a field of its own (no word matching)
+    _, rrows = arch_table(f.get("runtime", ""))
+    if f.get("runtime") and not rrows:
+        gaps.append("`### runtime` has no table rows - `| Unit | Category | Host and region | Cost and free-tier limits "
+                    "| Provenance |`, one row per deployable unit")
+    for r in rrows:
+        cells = r + [""] * (5 - len(r))
+        empty = [h for h, c in zip(("Unit", "Category", "Host and region", "Cost and free-tier limits",
+                                    "Provenance"), cells) if not c.strip()]
+        if empty:
+            gaps.append(f"runtime row {cells[0][:30]!r} has no {', no '.join(empty)}")
+        elif not ARCH_CATEGORIES.search(cells[1]) and not re.match(r"(?i)\W*(?:from|until|after|once|later)\b",
+                                                                   cells[0]):
+            warns.append(f"runtime row {cells[0][:30]!r}: category {cells[1][:30]!r} is none of container-anywhere · "
+                         f"PaaS · VPS · user's machine · static site / CDN · CI (what /deploy executes)")
+    _, xrows = arch_table(f.get("externals", ""))
+    if f.get("externals") and not xrows and not ARCH_NA.match(f["externals"].strip()):
+        gaps.append("`### externals` has no table rows (or `N/A - <why>` when the product calls nothing it does not own)")
+    for r in xrows:
+        cells = r + [""] * (6 - len(r))
+        if ARCH_NA.match(cells[1]) or ARCH_NA.match(cells[0]):
+            continue
+        empty = [h for h, c in zip(("Adapter interface", "Timeout · retry · if it is down"), cells[2:4]) if not c.strip()]
+        if empty:
+            gaps.append(f"external {cells[0][:30]!r} has no {', no '.join(empty)}")
+    # decisions: once, here; the record and the document both render from them
+    decs = arch_decisions(f.get("decisions", ""))
+    if f.get("decisions") and not decs:
+        gaps.append("`### decisions` has no `#### D1. <the decision>` block")
+    for d in decs:
+        lack = [k for k, _ in ARCH_DECISION_KEYS if not d.get(k, "").strip()]
+        prov = d.get("provenance", "").strip().strip("`").lower()
+        if lack:
+            gaps.append(f"{d['id']} has no `- {': ...` · `- '.join(lack)}: ...`")
+        if prov not in ("user-chosen", "default taken, not user-chosen"):
+            gaps.append(f"{d['id']} provenance {prov[:40]!r} - `user-chosen` or `default taken, not user-chosen`")
+    if decs and not 4 <= len(decs) <= 10:
+        warns.append(f"{len(decs)} decision(s) - the document holds 4-10 load-bearing ones")
+    # a decision that CHANGED on a re-run gets its ADR (owner 2026-10-07: never on day one)
+    doc_p = base / ARCH_DOC
+    old = arch_old_decisions(doc_p.read_text(encoding="utf-8")) if doc_p.is_file() and st.state(
+        "architect") in ("filled", "overridden") else {}
+    new = {d["id"]: d["title"] for d in decs}
+
+    def norm(s: str) -> str:
+        return " ".join(re.sub(r"[^\w ]", " ", s.lower()).split())
+
+    changes = {k.split()[1].upper(): arch_kv(v) for k, v in f.items() if re.fullmatch(r"change d\d+", k)}
+    for i, t in old.items():
+        if norm(new.get(i, "")) != norm(t) and i not in changes:
+            gaps.append(f"{i} changed (was {t[:50]!r}, now {new.get(i, 'removed')[:50]!r}) - add `### change {i}` "
+                        f"with `- was:` · `- now:` · `- why:` · `- affects:`; the script writes its ADR")
+    adrs: dict[str, str] = {}
+    adr_dir = base / "docs" / "adr"
+    nxt = max([int(p.name[:4]) for p in adr_dir.glob("[0-9][0-9][0-9][0-9]-*.md")] + [0]) + 1 if adr_dir.is_dir() else 1
+    superseded: dict[str, str] = {}
+    for i, kv in sorted(changes.items()):
+        lack = [k for k in ("was", "now", "why", "affects") if not kv.get(k, "").strip()]
+        if lack:
+            gaps.append(f"`### change {i}` has no `- {': ...` · `- '.join(lack)}: ...`")
+            continue
+        name = f"{nxt:04d}-{slug(kv['now'])}.md"
+        adrs[f"docs/adr/{name}"] = (
+            f"# ADR-{nxt:04d} — {kv['now']}\n\n- **Status:** accepted\n- **Date:** {today}\n- **Changes:** {i} of "
+            f"docs/architecture.md §Decisions\n\n## What it was\n\n{kv['was']}\n\n## What it is now\n\n{kv['now']}\n\n"
+            f"## Why it changed\n\n{kv['why']}\n\n## What this affects\n\n{kv['affects']}\n")
+        superseded[i] = f"ADR-{nxt:04d} ({today}) - was: {kv['was']}"
+        nxt += 1
+    # the cost per use, worked out here
+    prod_p = base / "PRODUCT.md"
+    product = prod_p.read_text(encoding="utf-8") if prod_p.is_file() else ""
+    secs = product_sections(product) if product else {}
+    clean = {k: re.sub(r"<!--.*?-->", "", v, flags=re.S) for k, v in secs.items()}
+    vis = section_fields(re.sub(r"(?m)^\*\*", "- **", clean.get("Vision", "")))
+    cap = next((v for k, v in vis.items() if re.search(AI_LINE, k, re.I)), "")
+    cost = ""
+    if ai and f.get("cost per use"):
+        cost, g, w = arch_cost(kvs["cost per use"], cap)
+        gaps += g
+        warns += w
+    # the #Plan notes: the user's answer this run wins; the script writes the dated note on the line it changes
+    plan_body = secs.get("Plan", "")
+    new_plan = plan_body
+    for line in (l.strip() for l in f.get("plan notes", "").splitlines() if l.strip().startswith(("-", "*"))):
+        m = re.match(r"^[-*]\s+(.+?):\s+(.+)$", line)
+        if not m:
+            gaps.append(f"plan note {line[:50]!r} - `- <M5 or the #Plan line's first words>: <what changes> - because "
+                        f"<the answer>`")
+            continue
+        key, note = m.group(1).strip().strip("`*"), m.group(2).strip()
+        rx = re.compile(rf"\b{re.escape(key)}\b" if re.fullmatch(r"(?i)M\d+", key) else re.escape(key), re.I)
+        lines = new_plan.split("\n")
+        at = next((n for n, l in enumerate(lines) if rx.search(l)), None)
+        if at is None:
+            gaps.append(f"plan note: no #Plan line holds {key!r} - name the milestone (M5) or the line's first words")
+            continue
+        lines[at] = lines[at].rstrip() + f" — superseded {today} by /architect: {note}"
+        new_plan = "\n".join(lines)
+    if new_plan != plan_body:
+        product = replace_section(product, "Plan", new_plan)
+    opens = []
+    for line in (l.strip() for l in f.get("open items", "").splitlines() if l.strip().startswith(("-", "*"))):
+        what, _, clears = line.lstrip("-* ").partition("|")
+        if not clears.strip():
+            gaps.append(f"open item {what[:50]!r} - `- <what is open> | <what clears it>`")
+        else:
+            opens.append((what.strip(), clears.strip()))
+    # #Plan milestones and #Scope's "in now" items each have a home (G5)
+    marks = arch_plan_marks(clean.get("Plan", ""))
+    mapping = f.get("mapping to the plan", "")
+    lost = [m for m in marks if not re.search(rf"\b{m}\b", mapping)]
+    if mapping and lost:
+        gaps.append(f"`### mapping to the plan` has no row for {', '.join(lost)} - one row per #Plan milestone")
+    warns += arch_trace_warnings(clean.get("Scope", ""), "\n".join(f.values()))
+    for name in ("overview", "how it works"):
+        text = f.get(name, "")
+        if text and "```mermaid" not in text and not ARCH_NA.match(text.strip()):
+            gaps.append(f"`### {name}` has no ```mermaid diagram")
+    flow = f.get("how it works", "")
+    if "```mermaid" in flow and not re.search(r"(?m)^\s*alt\b|\{[^}\n]+\}", flow):
+        warns.append("the step-by-step diagram draws no branch - each check that holds, blocks or reroutes is an "
+                     "`alt` (or a `{decision}` node)")
+    if ARCH_TOOL_ARROW.search(f.get("overview", "") + flow):
+        warns.append("a diagram arrow names a tool command - plain words on arrows (\"run the pilot\")")
+    # the human document carries no playbook words; the appendices are workings and may
+    reader = "\n".join(f.get(field, "") for _, field in ARCH_LAYOUT)
+    words = sorted(set(re.findall(r"(?<![\w/`])/(?:vision|scope|plan|architect|structure|design-system|foundation|"
+                                  r"contracts|tickets|build|ship|dev-check|test|eval|deploy|learn)\b", reader)))
+    if words:
+        warns.append(f"the document names playbook commands ({', '.join(words)}) - say what happens in plain words "
+                     f"(\"when the folders are laid out\"), a reader does not know the playbook")
+    if gaps:
+        return {"gaps": gaps, "warns": warns}
+    return {"gaps": [], "warns": warns, "adrs": adrs, "opens": opens, "plan_changed": new_plan != plan_body,
+            "record": arch_render_record(f, kvs, decs, rrows, xrows, cost, ai, agent),
+            "doc": arch_render_doc(f, kvs, decs, superseded, rrows, xrows, cost, ai, st.product or base.name, today),
+            "product": product}
+
+
+def arch_plan_marks(plan: str) -> list[str]:
+    """#Plan's milestone ids (M1 ...), in order."""
+    ids = {re.match(PLAN_MARK, l.strip().lstrip("-* ")).group(1).upper() for k, v in plan_field_lines(plan).items()
+           if re.search(r"^phases|milestones", k, re.I) for l in v if re.match(PLAN_MARK, l.strip().lstrip("-* "))}
+    return sorted(ids, key=lambda x: int(x[1:]))
+
+
+def arch_trace_warnings(scope: str, text: str) -> list[str]:
+    """#Scope's "in now" items and table stakes the architecture never names (a WARNING: it matches words)."""
+    sf = scope_fields(scope)
+    items = [l for k, v in sf.items() if re.search(r"^in[- ]scope", k, re.I) for l in v]
+    items += [l for k, v in sf.items() if re.search(r"table[- ]stakes", k, re.I) for l in v
+              if re.search(r"(?i)\bnow\b", l)]
+    low = text.lower()
+    lost = []
+    for item in items:
+        name = re.split(r"\s[—–-]\s|:|\(|;", re.sub(r"^[-*+]\s+|\*\*", "", item.strip()))[0].strip().lower()
+        words = re.findall(r"[a-z0-9]{4,}", name)[:3]
+        if words and not all(w in low for w in words):
+            lost.append(name[:40])
+    return [f"#Scope item(s) the architecture never names: {'; '.join(lost[:8])} - give each a home (a block, a rule, "
+            f"a decision) or say why it needs none"] if lost else []
+
+
+def arch_render_record(f: dict, kvs: dict, decs: list, rrows: list, xrows: list, cost: str, ai: bool,
+                       agent: bool) -> str:
+    """PRODUCT.md#Architecture: the AI's summary, in the labels later phases parse."""
+    cons = kvs["constraints"]
+    lab = ARCH_LABELS
+    out = [f"- **{lab['stack']}:** the reasoning is docs/architecture.md; each row ends with its provenance.",
+           "  - Constraint set: " + "; ".join(f"{k} {cons[k]}" for k in (*ARCH_KEYS["constraints"], "already chosen")
+                                             if cons.get(k))]
+    out += ["  - " + re.sub(r"^[-*+]\s+", "", l.strip()) for l in f["stack"].splitlines() if l.strip()]
+    out.append(f"- **{lab['data custody']}:** {' '.join(f['data custody'].split())}")
+    out += [f"- **{lab['runtime']}:**", "",
+            arch_md_table(["Unit", "Category", "Host and region", "Cost and free-tier limits", "Provenance"],
+                          [(r + [""] * 5)[:5] for r in rrows], "  ")]
+    out.append(f"- **{lab['identity']}:** {' '.join(f['identity'].split())}")
+    dev = kvs["dev tooling"]
+    out.append(f"- **{lab['dev tooling']}:** " + " · ".join(f"{k}: {dev[k]}" for k in ARCH_KEYS["dev tooling"])
+               + (f" · type checker: {dev['type checker']}" if dev.get("type checker") else ""))  # optional
+    out.append(f"- **{lab['decisions']}:** " + " · ".join(
+        f"{d['id']} {d['title']} ({d.get('provenance', '').strip('`')})" for d in decs))
+    if not xrows:
+        out.append(f"- **{lab['externals']}:** {' '.join(f['externals'].split())}")
+    else:
+        out.append(f"- **{lab['externals']}:**")
+        out += [f"  - {r[0]}: {(r + [''] * 6)[2]} - {(r + [''] * 6)[3]}" for r in xrows]
+    con = kvs["concerns"]
+    out.append(f"- **{lab['concerns']}:**")
+    out += [f"  - {k.capitalize()}: {con[k]}" for k in ARCH_KEYS["concerns"] if con.get(k)]
+    if cost:
+        out.append(f"  - Cost per use: {cost}")
+    a = kvs["ai"]
+    if ai:
+        out.append(f"- **{lab['ai']}:**")
+        out += [f"  - {k.capitalize()}: {a[k]}" for k in ("prompt versioning", "eval harness", "tracing") if a.get(k)]
+        out += [f"  - Model: {a.get('model', '')}", f"  - Model runtime config: {a.get('runtime config', '')}"]
+    else:
+        out.append(f"- **{lab['ai']}:** N/A - no model in the product")
+    if agent:
+        out.append(f"- **{lab['agent']}:**")
+        out += ["  " + l.strip() for l in f["agent"].splitlines() if l.strip()]
+    else:
+        out.append(f"- **{lab['agent']}:** N/A - no agent")
+    return "\n".join(out) + "\n"
+
+
+def arch_render_doc(f: dict, kvs: dict, decs: list, superseded: dict, rrows: list, xrows: list, cost: str, ai: bool,
+                    product: str, today: str) -> str:
+    """docs/architecture.md: the human story, every heading numbered, the decisions written once."""
+    defaults = [d["id"] for d in decs if d.get("provenance", "").strip("` ").lower().startswith("default")]
+    out = [f"# Architecture — {product}", "",
+           f"> **Status:** approved by the owner on {today} · written {today} from the vision, scope and plan. **Owner:** "
+           f"read 1 Overview, 2 What drives the design, 8 Decisions (its first line lists the defaults waiting for your "
+           f"confirmation), 11 Running it (the monthly cost) and 13 Risks and open questions. **Developers and coding "
+           f"agents:** all of it; start with 3 Rules the code must keep. A decision that changes later gets an ADR in "
+           f"`docs/adr/` and a Superseded line in 8. The workings are the appendix."]
+    for n, (title, field) in enumerate(ARCH_LAYOUT, 1):
+        out += ["", f"## {n}. {title}", ""]
+        if field == "decisions":
+            out.append(f"**Defaults waiting for the owner's confirmation:** {' · '.join(defaults) or 'none'}")
+            for k, d in enumerate(decs, 1):
+                out += ["", f"### {n}.{k} {d['id']}. {d['title']}"]
+                out += [f"- **{label}:** {d[key]}" for key, label in ARCH_DECISION_KEYS if d.get(key)]
+                out.append(f"- **Rule:** {d.get('rule') or 'none'} · **Provenance:** {d.get('provenance', '').strip()}")
+                if d["id"] in superseded:
+                    out.append(f"- **Superseded:** {superseded[d['id']]}")
+            continue
+        body = arch_body_lines(f.get(field, ""), n)
+        if field == "ai part" and not ai:
+            body = body or "Not applicable: no model in the product."
+        if field == "ai part" and ai:
+            a = kvs["ai"]
+            out += [f"- **Model and runtime:** {a.get('model', '')} · {a.get('runtime config', '')}",
+                    f"- **Cost per use:** {cost}", ""]
+        if field == "running it":
+            out += ["**Where each part runs:**", "",
+                    arch_md_table(["Unit", "Category", "Host and region", "Cost and free-tier limits", "Provenance"],
+                                  [(r + [""] * 5)[:5] for r in rrows]), "",
+                    "- **Tooling:** " + " · ".join(f"{k}: {kvs['dev tooling'][k]}" for k in ARCH_KEYS["dev tooling"])
+                    + (f" · type checker: {kvs['dev tooling']['type checker']}"
+                       if kvs["dev tooling"].get("type checker") else ""),
+                    ""]
+        out.append(body)
+        if field == "building blocks":
+            out += ["", "**External systems, each behind an adapter:**", ""]
+            out.append(arch_md_table(["External", "Used for", "Adapter interface", "Timeout · retry · if it is down",
+                                      "Stand-in for local work and CI", "How to replace it"],
+                                     [(r + [""] * 6)[:6] for r in xrows]) if xrows else
+                       " ".join(f["externals"].split()))
+    out += ["", "---"]
+    for letter, title, field in ARCH_APPENDICES:
+        out += ["", f"## Appendix {letter} — {title}", "",
+                arch_body_lines(f.get(field, ""), 0, letter) or "Not applicable: none."]
+    return "\n".join(out).rstrip() + "\n"
+
+
+def arch_fields_guide(st: "Status") -> str:
+    """`status.py fields architect`: the fields file's shape (templates/product-architecture.md), only the fields this
+    product has - instead of the 25.8K-char document template."""
+    tpl = tool_file("templates", ARCH_FIELDS_TEMPLATE)
+    if tpl is None:
+        raise Refused(f"the playbook's templates/{ARCH_FIELDS_TEMPLATE} is missing - reinstall the playbook")
+    text = re.sub(r"(?s)<!--.*?-->\s*", "", tpl.read_text(encoding="utf-8"))
+    ai, agent = st.header.get("AI product") == "yes", st.header.get("Agent") == "yes"
+    rerun = st.state("architect") in ("filled", "overridden")
+    keep, skip = [], False
+    for line in text.splitlines():
+        if line.startswith("- "):
+            skip = (("[AI product]" in line and not ai) or ("[Agent: yes]" in line and not agent)
+                    or ("[re-run only]" in line and not rerun))
+        elif not line.startswith(" "):
+            skip = False
+        if not skip:
+            keep.append(line)
+    return ("/architect fields file - write it outside the repo (`### <field>`, its text under it), then in the SAME "
+            "message `status.py set architect filled --from-fields <file>` (it renders PRODUCT.md#Architecture, "
+            f"{ARCH_DOC} with numbered headings and any changed decision's ADR, works out the cost per use, writes "
+            "the #Plan notes and open items, and saves - no save question). Never open the templates.\n\n"
+            + "\n".join(keep).strip() + "\n")
+
+
+def arch_set_from_fields(st: "Status", a, today: str, prod: Path) -> str:
+    """`set architect filled --from-fields <file>`: render, write, run the phase's checks; a refusal or a dry-run puts
+    every file back (P45)."""
+    src = Path(a.from_fields)
+    if not src.is_file() or not prod.is_file():
+        raise Refused(f"--from-fields needs {prod.name} and {src} to exist")
+    base = prod.parent
+    r = arch_render(base, st, arch_fields_parse(src.read_text(encoding="utf-8")), today)
+    r["gaps"], waived = apply_waivers(st, "architect", r["gaps"])  # the owner's per-check waiver, recorded
+    warn_txt = waived + "".join(f"\n  ! {w}" for w in r["warns"])
+    if r["gaps"]:
+        msg = f"{len(r['gaps'])} gap(s) in the fields file:\n" + "\n".join(f"  - {g}" for g in r["gaps"]) + warn_txt
+        if getattr(a, "dry_run", False):
+            raise DryRun(msg)
+        raise Refused(f"#architect: {msg}\nFix the fields file, then run this same command again.")
+    files = [prod, base / ARCH_DOC, *(base / p for p in r["adrs"])]
+    before = {p: (p.read_text(encoding="utf-8") if p.is_file() else None) for p in files}
+    try:
+        (base / ARCH_DOC).parent.mkdir(parents=True, exist_ok=True)
+        (base / ARCH_DOC).write_text(r["doc"], encoding="utf-8", newline="\n")
+        for p, t in r["adrs"].items():
+            (base / p).parent.mkdir(parents=True, exist_ok=True)
+            (base / p).write_text(t, encoding="utf-8", newline="\n")
+        prod.write_text(replace_section(r["product"], "Architecture", r["record"]), encoding="utf-8", newline="")
+        for what, clears in r["opens"]:  # in STATUS.md before the save, so the commit takes them
+            st.rows["Open items"].append([new_open_id(st), today, "architect", capped("what", what),
+                                          capped("clears", clears), ""])
+        msg = cmd_set(st, a, today)
+    except Refused as e:
+        for p, t in before.items():
+            if t is None:
+                p.unlink(missing_ok=True)
+            else:
+                p.write_text(t, encoding="utf-8", newline="")
+        if r["opens"]:
+            del st.rows["Open items"][-len(r["opens"]):]
+        raise type(e)(str(e) + warn_txt) from None
+    a.section_from = str(src)  # the close prints the repo facts as for a section file
+    return (msg + f"\nwrote #Architecture, {ARCH_DOC}" + "".join(f", {p}" for p in r["adrs"])
+            + (", #Plan's notes" if r["plan_changed"] else "")
+            + (f", {len(r['opens'])} open item(s)" if r["opens"] else "") + f" from {src.name}" + warn_txt
+            + ("\n  (a warning, not a refusal: the record is saved as written - mention it in the close)"
+               if r["warns"] else ""))
 
 
 def arch_template_path() -> str:
@@ -7134,6 +10625,40 @@ def architect_rules_text(st: "Status") -> str:
                        + "):")
             + "\n\n===== PRINCIPLES.md §Production safeguards - the bullets /architect decides =====\n"
             + principle_bullets("Production safeguards", ARCH_SAFEGUARDS))
+
+
+#  / A3 (owner 2026-10-09: in this batch): a logged run's 7 searches + 10 page opens grew the main context
+# 67K -> 83K, re-sent on every later call (~16K x 10 calls); on another tool the search results were 49% of the run.
+# The two research turns run in a helper with its own context; the main conversation gets a short sourced table. ONE
+# call, waited for in the same turn (the next step needs it), no owner turn; a tool without a helper: the two turns
+# itself, as before.
+ARCH_HELPER_ROUTE = {
+    "claude": "ONE Agent tool call, not in the background (the next step needs its report): the agent whose name ends "
+              "`architect-research` (else a general-purpose one told to read and follow the brief)",
+    "cursor": "ONE Task sub-agent, waited for (not in the background): `architect-research` from .cursor/agents/ (or one "
+              "told to read and follow the brief)",
+    "antigravity": "`invoke_subagent` - ONLY if it is in your tool list: the subagent `architect-research` from "
+                   ".agents/agents/ (or one told to read and follow the brief), then wait for it",
+    "codex": "spawn_agent - this skill explicitly asks you to spawn it: one agent told to read and follow the brief; "
+             "then ONE `wait_agent` call in the same turn",
+}
+
+
+def arch_helper_line(today: str = "") -> str:
+    """The research step of /architect's start, for the tool this copy serves. Today's date goes to the helper: a
+    helper on another model took its training year for "current" (2.4 review)."""
+    brief = tool_file("agents", "architect-research.md")
+    brief = brief.as_posix() if brief else "agents/architect-research.md"
+    route = ARCH_HELPER_ROUTE.get(playbook_tool())
+    fallback = ("Turn A (one search per open row, all in one message), then Turn B (one page open per fact, at most "
+                "12, all in one message), as the brief says")
+    return (f"  - Research, after round 1's answers: {route}, brief `{brief}`, given today's date ({today or "<today>"}), "
+            f"the open decision rows and answers 1-7 word for word. It runs the searches and page opens in its own context and returns the "
+            f"search list, the facts with links and (AI product) both model routes priced: paste its search lines "
+            f"into the `searches` field; never search yourself meanwhile, never open its files. No such tool in your "
+            f"list: {fallback} yourself."
+            if route else f"  - Research, after round 1's answers: no helper on this tool - {fallback}, brief "
+                          f"`{brief}`.")
 
 
 def architect_start_text(st: "Status") -> str:
@@ -7193,48 +10718,44 @@ def architect_start_text(st: "Status") -> str:
     ui, ai, agent = (st.header.get(k, "unknown") for k in ("UI", "AI product", "Agent"))
     out.append(f"  - Flags: UI {ui} · AI product {ai} · Agent {agent}"
                + (" - UI unknown: decide it from #Scope (does a person use a screen of it?) and run `status.py flag "
-                  "--ui yes|no` in the call that writes the section file, never in a call of its own" if ui == "unknown" else "")
-               + (" - Agent unknown: round 1 asks the agent question" if ai != "no" and agent == "unknown" else ""))
-    tpl = tool_file("templates", "PRODUCT.md")
-    labels = product_sections(tpl.read_text(encoding="utf-8")).get("Architecture", "") if tpl else ""
-    out += ["  - #Architecture is these fields, labels as written, in a scratch file outside the repo; `set architect "
-            "filled --section-from <file>` writes it:"]
-    out += ["      " + l for l in labels.splitlines() if l.startswith("- **")]
-    out += ["  - One decision per row (a sub-bullet or a table row) under Stack + tools, Data custody, Runtime target, "
-            "Identity custody" + (" and (Agent)" if agent == "yes" else "") + "; each row ends with its provenance: "
-            "`user-chosen` (the user picked it) or `default taken, not user-chosen` (you recommended it; \"go with "
-            "your recommendation\" included) - no other words. The first row under Stack + tools: `Constraint set: "
-            "<answers 1-4 in short>`. Data custody and Identity custody follow answers 5 and 6: identity is N/A only "
-            "when no person logs in. Each external names its interface plain (LLMProvider, Storage); backticks "
-            "only around a real path."
-            + (" The cost per use shows its working: `(<input tokens> × <price per 1M> + <output tokens> × <price per "
-               "1M>) / 1,000,000 ≈ <amount> per <use>`." if ai == "yes" else ""),
+                  "--ui yes|no` in the message that writes the fields file, as its own command before `set`"
+                  if ui == "unknown" else "")
+               + (" - Agent unknown: round 1 asks the agent question" if ai != "no" and agent == "unknown" else "")
+               + (" - UI yes or unknown: a Stack + tools row names the UI component source (a library, or plain CSS "
+                  "on purpose); /design-system builds on it" if ui != "no" else ""))
+    # the record, the document and a changed decision's ADR are rendered from ONE fields file - the template
+    # (25.8K chars), the ADR shape and the record's labels left the start
+    out += ["  - Each fact is written ONCE, in a fields file outside the repo: `set architect filled --from-fields "
+            "<file>` renders #Architecture, docs/architecture.md (numbered headings) and works out the cost per use. "
+            "Never open templates/architecture.md, never write PRODUCT.md, docs/architecture.md or an ADR yourself, "
+            "never an edit tool on PRODUCT.md (a choice that changes #Plan is a `plan notes` line; something still "
+            "open is an `open items` line - both go in with the save). No ADR on a first run: an ADR is written only "
+            "when a recorded decision changes later.",
+            "  - Provenance on every stack, custody, runtime and identity row and every decision: `user-chosen` (the "
+            "user picked that option) or `default taken, not user-chosen` (you recommended it; \"go with your "
+            "recommendation\" included) - no other words. Identity is N/A only when answer 6 is `none`.",
             "  - The model row says `released YYYY-MM-DD`, from the model's page this run. A fact you could "
             "not verify is written `UNVERIFIED` with an open item - record the phase `filled` on the owner's yes, "
             "never `declined` (only the owner declines a phase).",
             "  - A package version and its release date come from the package's normal web page "
             "(`pypi.org/project/<name>/`, `npmjs.com/package/<name>`) - never its `/json` data.",
-            # P46: a logged run read the template at call 6 and wrote the document at call 8 of 14 - both rode on
-            # every later call, and the save's refusal came after them (4 more calls)
-            f"  - The order - each call re-sends everything before it, so small things first and the long documents "
-            f"last: round 1 → the searches → round 2 → on the yes, ONE message: the section file, `status.py flag --ui "
-            f"yes|no` if unknown, `set architect filled --section-from <file> --dry-run` and the one read of "
-            f"{arch_template_path()} (whole, in one read - never earlier). Fix every gap the dry-run names while the "
-            f"documents are unwritten; it then prints how to write the ADR files and {ARCH_DOC}. Then ONE message: "
-            f"the ADR files, {ARCH_DOC} and, after them in that same message, `set architect filled --section-from "
-            f"<file> --commit \"<one line>\"` (no `--commit` on a no).",
-            "  - `set architect filled` refuses, every problem in one list - beyond the provenance, the "
-            "`Constraint set:` row (team + hours, money a month, infrastructure, lock-in), identity and the model's "
-            "date above: an empty field · a Dev tooling line missing one of its five slots or saying TBD · a runtime row with no category, or no "
-            "cost · an external with no adapter interface or no resilience strategy · a concern area unrecorded "
-            "(resilience, budget, secrets, observability, migrations for a SQL database"
-            + ("; prompt-versioning, evals, tracing; the runtime config's max_tokens, timeout, thinking effort, retry "
-               "and caching; no cost per use (one with no working - a token count and a price per 1M tokens - is a "
-               "warning); a model id over a year old" if ai == "yes" else "") + ")"
-            + (" · an (Agent) row missing" if agent == "yes" else "")
-            + " · the UI or Agent flag unknown · VERIFIED with no `evidence:` · 100% confidence · LaTeX · the ADR "
-            "files and the document (the dry-run prints their checks).",
-            "  - `set architect filled` prints the rest of the close and the git facts for the save question."]
+            # P46: the long write is the last call and nothing long is read before it
+            "  - The order - each call re-sends everything before it: round 1 (the question form) → the research, "
+            "with `status.py fields architect` in the same message (the fields file's shape - never earlier) → round "
+            "2 (one message: the table, the questions) → on the yes, ONE message: the fields "
+            "file, `status.py flag --ui yes|no` if unknown, then `status.py set architect filled --from-fields <file>` "
+            "(it saves - no save question). Refused: fix the fields file, run the same command.",
+            arch_helper_line(st.today),
+            "  - `set architect filled` refuses only what it can count, every problem in one list: a field or key "
+            "missing · a runtime or external row with an empty cell · a decision without its problem, options, why, "
+            "costs, revisit or provenance · identity N/A while answer 6 names a login · a #Plan milestone with no "
+            "mapping row · no diagram in overview or how it works · no MUST or NEVER rule · a search line with no "
+            "link · the UI or Agent flag unknown · a third provenance value · VERIFIED with no `evidence:` · 100% · "
+            "LaTeX" + (" · no model release date or one over a year old · cost numbers that are not numbers"
+                      if ai == "yes" else "")
+            + ". What reads words (the constraint set, tool names, categories, #Scope items, shorthand, the cost "
+            "against #Vision's cap) is a warning: mention it in the close, never re-run `set` for it.",
+            "  - `set architect filled` saves and prints the rest of the close."]
     maybe = ai != "no" and agent == "unknown"  # round 1 asks; a yes must not cost a second start call
     if agent == "yes" or maybe:
         rules = Path(agent_rules())
@@ -7259,6 +10780,7 @@ PHASE_RULES["structure"] = {
 }
 PHASE_CLOSE_RULES["structure"] = {"PRINCIPLES.md": ["The exit-criteria gate"],
                                   "MECHANISMS.md": ["Step 3b", "Step 3c", "Commit the work", "Plain-language close"]}
+CLOSE_CONFLICT["structure"] = conflict_as_open_item("structure")
 CLOSE_STEPS["structure"] = (
     "every number this phase introduced (a port, a cap, a version) against #Vision and #Architecture",
     "#Architecture, its Dev tooling line above all - every scaffolding file is the tool recorded there - and its "
@@ -7271,8 +10793,8 @@ CLOSE_STEPS["structure"] = (
 STRUCTURE_HEAD = (
     "This phase closes with ONE call - `status.py set structure filled --section-from <file>`, #Structure in a "
     "scratch file outside the repo (never an edit tool on PRODUCT.md): it runs check_structure.py itself, names every "
-    "gap at once, and prints the rest of the close. To see the gaps first, add `--dry-run`: the same checks, nothing "
-    "written. Every rule they apply is printed below - the scripts' source says nothing more (P45).",
+    "gap at once, and prints the rest of the close. Every rule they apply is "
+    "printed below - the scripts' source says nothing more (P45).",
     "Commands work in PowerShell and in bash: one command per call - no &&, tail, grep or export; never `cd <path> &&`. "
     "The same command fails 3 times: stop and tell the user what fails. Plain symbols (≤ →), never LaTeX.",
     "No commit during the run - not even a STATUS.md the last phase left: the one save at the close takes every "
@@ -7312,6 +10834,15 @@ STRUCTURE_PORT = re.compile(r"(?<![\w/.])([A-Z][A-Za-z0-9]*(?:Provider|Port|Clie
 SECRET_NAME = re.compile(r"(?i)key|secret|token|password|passwd|credential|private|salt|signing")
 DATASTORE = re.compile(r"(?i)postgres|mysql|mariadb|sqlite|mongo|database|\bneon\b|supabase|dynamo|firestore")
 AGENT_DIRS = ("tools", "guards", "adapters", "tests")
+# 2.3: a document's `##` heading may carry its number (`## 2. Modules`); the finders read both forms, so a file written
+# before the numbering still passes
+HEAD_NUMBER = r"(?:\d+(?:\.\d+)*[.)]?\s+)?"
+
+
+def numbered_section(text: str, name: str) -> str | None:
+    """The body under `## <name>` or `## <n>. <name>`, or None when the heading is absent."""
+    m = re.search(rf"(?ms)^##\s+{HEAD_NUMBER}{re.escape(name)}\s*$(.*?)(?=^##\s|\Z)", text)
+    return m.group(1) if m else None
 
 
 def structure_fields(body: str) -> dict[str, str]:
@@ -7421,8 +10952,7 @@ STRUCTURE_CODE_LINES = 40  # the logged runs' module files: 1-13 lines; the run 
 def structure_product_code(base: Path, text: str) -> list[tuple[str, int]]:
     """Code files inside the modules STRUCTURE.md lists (tests and the config loader left out) longer than
     STRUCTURE_CODE_LINES non-blank, non-comment lines."""
-    mods = re.search(r"(?ms)^##\s+Modules\s*$(.*?)(?=^##\s|\Z)", text)
-    roots = [base / m for m in re.findall(r"(?m)^\s*\|\s*`([^`\n]+)`", mods.group(1) if mods else "")]
+    roots = [base / m for m in re.findall(r"(?m)^\s*\|\s*`([^`\n]+)`", numbered_section(text, "Modules") or "")]
     loaders = set(structure_loaders(base))
     out = []
     for root in (r for r in roots if r.is_dir()):
@@ -7464,10 +10994,9 @@ def structure_gaps(base: Path, st: "Status") -> list[str]:
         gaps += [f"check_structure: {l.strip()[7:].strip()}" for l in lines if "[FAIL]" in l]
         if code and not any("[FAIL]" in l for l in lines):
             gaps.append(f"check_structure: {lines[-1] if lines else f'exit {code}'}")
-    if text and not re.search(r"(?i)\bdomain modules?\b|\bby concern\b|\blayer(?:s|ed)\b|\bsteps\b", text):
-        gaps.append("STRUCTURE.md names no shape - one line: domain modules, layers or steps, and why")
-    if text:
-        gaps += doc_order_gaps(text, STRUCT_DOC_SECTIONS, "STRUCTURE.md", "templates/structure.md")
+    if text:  # its shorthand count is a prose rule: a warning (structure_warnings), never a refusal
+        gaps += [g for g in doc_order_gaps(text, STRUCT_DOC_SECTIONS, "STRUCTURE.md", "templates/structure.md")
+                 if "written in shorthand" not in g]
         if len(text.encode("utf-8")) > 20000:
             gaps.append(f"STRUCTURE.md is {len(text.encode('utf-8')):,} bytes (template: at most 14,000) - a path "
                         f"appears in the tree, then in ONE table")
@@ -7599,29 +11128,6 @@ def structure_gaps(base: Path, st: "Status") -> list[str]:
             gaps.append(f"{len(loaders)} config loaders read platform.yaml: "
                         f"{', '.join(p.relative_to(base).as_posix() for p in loaders)} - keep one, delete the others")
     dirs = project_dirs(base)
-    # decisions with a home on disk
-    for what, rx, home in STRUCTURE_HOMES:
-        hit = re.search(rx, values)
-        if not hit or re.search(rf"(?i)\bno\s+{re.escape(hit.group(0))}", values):
-            continue
-        if what == "migrations" and not any(d.name in ("migrations", "alembic", "prisma", "drizzle", "migrate")
-                                            for d in dirs):
-            gaps.append(f"#Architecture records {hit.group(0)}, and there is no {home} on disk - create it and list "
-                        f"it under ## Where decisions live")
-        if what == "container" and not any(base.glob("**/Dockerfile")) and not any(base.glob("**/*.Dockerfile")):
-            gaps.append(f"#Architecture records a {hit.group(0).lower()}, and there is no {home} - create it and "
-                        f"list it under ## Where decisions live")
-        decide = re.search(r"(?ms)^##\s+Where decisions live\s*$(.*?)(?=^##\s|\Z)", text)
-        if what == "background worker" and decide and not re.search(r"(?i)worker|queue|\bjobs?\b", decide.group(1)):
-            gaps.append(f"#Architecture records a {hit.group(0)} - no worker or queue row under ## Where decisions live")
-    if re.search(r"(?i)compose", values) is None and any(base.glob("*compose*.y*ml")):
-        gaps.append("docker-compose file at the root, but #Architecture's runtime target uses none - delete it, or "
-                    "record why in #Architecture")
-    squeezed = re.sub(r"[\s`_-]", "", text).lower()  # "LLM Provider adapter" names `LLMProvider`
-    for port in sorted(set(STRUCTURE_PORT.findall(values))):
-        if text and port.lower() not in squeezed:
-            gaps.append(f"#Architecture's adapter `{port}` has no home in STRUCTURE.md - a row under ## Where decisions "
-                        f"live naming the module's adapters/ folder")
     # AI and agent homes
     struct = structure_fields(secs.get("Structure", ""))
     if st.header.get("AI product") == "yes":
@@ -7652,6 +11158,114 @@ def structure_gaps(base: Path, st: "Status") -> list[str]:
         gaps.append("#Structure has no `evidence:` line naming check_structure.py - `evidence: python "
                     "scripts/check_structure.py → <its last line> · STRUCTURE.md · <date>` (this `set` runs it)")
     return gaps
+
+
+# 2.3 (owner: prose rules warn, never refuse): what /structure reads out of #Architecture's PROSE, or a word count in
+# STRUCTURE.md, only warns. A live run was refused "#Architecture records a container, and there is no Dockerfile"
+# because "container-anywhere" stood in an "Alternatives if a URL is ever needed" line while the runtime was the demo
+# laptop; the run could not bypass it and wrote a Dockerfile nobody wanted, which /foundation then asked about.
+# The container warning reads the recorded Runtime target field only, and drops its alternative / later lines.
+NOT_THE_CHOICE = re.compile(r"(?i)alternative|\bif\b[^.\n]*\bever\b|\blater\b|\bfuture\b|instead of|not chosen|"
+                            r"rejected|ruled out|superseded|\bfallback\b|\bmoves? to\b|\bopen\b[^.\n]*\bmove\b")
+
+
+def runtime_choice(arch: dict[str, str]) -> str:
+    """#Architecture's Runtime target field, without the lines that name an alternative or a later move."""
+    field = next((v for k, v in arch.items() if re.search(r"(?i)runtime target|\bruntime\b|running it", k)), "")
+    return "\n".join(l for l in field.splitlines() if not NOT_THE_CHOICE.search(l))
+
+
+def structure_warnings(base: Path, st: "Status") -> list[str]:
+    """Printed at `set structure filled` (and its --dry-run), never a refusal: homes matched in #Architecture's prose,
+    the shape named in words, shorthand, and headings without their number."""
+    warns: list[str] = []
+    smd = base / "STRUCTURE.md"
+    text = smd.read_text(encoding="utf-8") if smd.is_file() else ""
+    prod = base / "PRODUCT.md"
+    secs = product_sections(prod.read_text(encoding="utf-8")) if prod.is_file() else {}
+    arch = structure_fields(secs.get("Architecture", ""))
+    values = "\n".join(l for v in arch.values() for l in v.splitlines() if not NOT_THE_CHOICE.search(l))
+    dirs = project_dirs(base)
+    for what, rx, home in STRUCTURE_HOMES:
+        hit = re.search(rx, runtime_choice(arch) if what == "container" else values)
+        if not hit or re.search(rf"(?i)\bno\s+{re.escape(hit.group(0))}", values):
+            continue
+        if what == "migrations" and not any(d.name in ("migrations", "alembic", "prisma", "drizzle", "migrate")
+                                            for d in dirs):
+            warns.append(f"#Architecture names {hit.group(0)}, and there is no {home} on disk - if it is the choice, "
+                         f"create it and list it under ## Where decisions live")
+        if what == "container" and not any(base.glob("**/Dockerfile")) and not any(base.glob("**/*.Dockerfile")):
+            warns.append(f"#Architecture's runtime target names a {hit.group(0).lower()}, and there is no {home} - if "
+                         f"a unit runs in one, create it and list it under ## Where decisions live")
+        decide = numbered_section(text, "Where decisions live")
+        if what == "background worker" and decide is not None and not re.search(r"(?i)worker|queue|\bjobs?\b", decide):
+            warns.append(f"#Architecture names a {hit.group(0)} - no worker or queue row under ## Where decisions live")
+    if re.search(r"(?i)compose", values) is None and any(base.glob("*compose*.y*ml")):
+        warns.append("docker-compose file at the root, but #Architecture's runtime target names none - delete it, or "
+                     "record why in #Architecture")
+    squeezed = re.sub(r"[\s`_-]", "", text).lower()  # "LLM Provider adapter" names `LLMProvider`
+    for port in sorted(set(STRUCTURE_PORT.findall(values))):
+        if text and port.lower() not in squeezed:
+            warns.append(f"#Architecture's adapter `{port}` has no home in STRUCTURE.md - a row under ## Where decisions "
+                         f"live naming the module's adapters/ folder")
+    if text and not re.search(r"(?i)\bdomain modules?\b|\bby concern\b|\blayer(?:s|ed)\b|\bsteps\b", text):
+        warns.append("STRUCTURE.md names no shape - one line: domain modules, layers or steps, and why")
+    if text:
+        warns += [g for g in doc_order_gaps(text, STRUCT_DOC_SECTIONS, "STRUCTURE.md", "templates/structure.md")
+                  if "written in shorthand" in g]
+        bare = [h for lv, h, _ in doc_headings(text) if lv == 2 and not DOC_H2_OK.match(h)]
+        if bare:
+            warns.append(f"STRUCTURE.md: {len(bare)} `##` heading(s) without their number (`## 2. Modules`, as "
+                         f"templates/structure.md writes them) - first: {bare[0][:40]!r}")
+        # plain English outside the tables (it names the phases that add files: no playbook-words warning)
+        warns += [w for w in early_doc_warnings("STRUCTURE.md", text) if "playbook words" not in w]
+    return warns
+
+
+def phase_warnings_23(phase: str):
+    """/structure, /foundation, /contracts and /design-system: their own warnings, the plain-English estimates of the
+    document a person reads (warn-only like vision/scope/plan) and an earlier phase's document edited."""
+    def warn(base: Path, st: "Status") -> list[str]:
+        own = {"structure": structure_warnings, "foundation": foundation_warnings}.get(phase)
+        doc = {"foundation": RUNBOOK_FILES[0], "contracts": CONTRACTS_DOC}.get(phase)
+        prose = early_doc_warnings(doc, read_text(base / doc)) if doc and (base / doc).is_file() else []
+        if phase == "design-system":
+            prose = design_prose_warnings(base)
+        return (own(base, st) if own else []) + prose + earlier_doc_edits(base, phase)
+    return warn
+
+
+def design_prose_warnings(base: Path) -> list[str]:
+    """DESIGN.md's reader's part (`## 0. In short`) in plain English - the token sections are reference tables, and
+    the principles' #Vision quotes are required there, so only the summary is estimated (warn-only)."""
+    design = read_text(base / "DESIGN.md") if (base / "DESIGN.md").is_file() else ""
+    m = re.search(r"(?ims)^##\s+(?:0\.\s+)?in short\b.*?(?=^##\s|\Z)", design)
+    if not m:
+        return []
+    return [w for w in early_doc_warnings("DESIGN.md (In short)", m.group(0)) if "playbook words" not in w]
+
+
+PHASE_WARN_23 = {p: phase_warnings_23(p) for p in ("structure", "foundation", "contracts", "design-system")}
+
+
+def earlier_doc_edits(base: Path, phase: str) -> list[str]:
+    """2.3: a later phase never edits an earlier phase's document as a side effect (a live /structure folded a
+    docs/architecture.md change into its save answer; a live /contracts changed an interface row there). The earlier
+    documents this run changed, uncommitted - a warning that names each one and the record to make instead."""
+    if not git_dir(base):
+        return []
+    # the decision documents; STRUCTURE.md is the living map a later phase adds its folders to
+    owners = {"vision": ["docs/vision.md"], "scope": ["docs/scope.md"], "plan": ["docs/plan.md"],
+              "architect": ["docs/architecture.md", "docs/adr/"]}
+    earlier = [d for p in CHAIN[:CHAIN.index(phase)] for d in owners.get(p, [])]
+    # a changed file git already holds; a new file (an added ADR) is an addition, not an edit
+    changed = [l[3:].strip().strip('"') for l in git(base, "status", "--porcelain").splitlines()
+               if len(l) > 3 and l[:2] not in ("??", "A ")]
+    hit = sorted({f for f in changed for d in earlier if f == d or (d.endswith("/") and f.startswith(d))})
+    return [f"{f} belongs to an earlier phase and this run changed it - a clash is never fixed in another phase's "
+            f"document: put it back (`git checkout -- {f}`), say both sides on a line of their own in the close, and "
+            f"record it: status.py open --from {phase} --what \"Clash: <both sides>\" --clears \"/<that phase> decides\""
+            for f in hit]
 
 
 # ---- /structure ends RUNNABLE and writes its boilerplate in ONE call (owner decisions 2026-10-04) -------------
@@ -7748,9 +11362,8 @@ def structure_run_gaps(base: Path, struct_md: str, section: str) -> list[str]:
         if "CHANGE_ME" not in t:
             gaps.append(f"{rel} never shows a CHANGE_ME value failing the boot - set one and assert the loader refuses "
                         f"it (a placeholder that boots is a live incident)")
-        mods = re.search(r"(?ms)^##\s+Modules\s*$(.*?)(?=^##\s|\Z)", struct_md)
         names = [m.rstrip("/").rsplit("/", 1)[-1] for m in re.findall(r"(?m)^\s*\|\s*`([^`\n]+)`",
-                                                                     mods.group(1) if mods else "")]
+                                                                     numbered_section(struct_md, "Modules") or "")]
         missing = [n for n in names if not re.search(rf"\b{re.escape(n)}\b", t)]
         if missing and not IMPORT_WALK.search(t):
             gaps.append(f"{rel} does not import every module ({', '.join(missing[:4])}) - import each one, or walk the "
@@ -7771,9 +11384,9 @@ def structure_run_gaps(base: Path, struct_md: str, section: str) -> list[str]:
             gaps.append(f"the linter's evidence shows a failure: {lint_ev[0].strip()[:120]!r}")
     # STRUCTURE.md's "Checks you run" results come from the printed lines: a logged run typed "All checks passed!"
     # and "3 passed" there before prove ran, prove then stopped at `lock pending`, and the table was never corrected
-    checks = re.search(r"(?ms)^##\s+Checks you run\s*$(.*?)(?=^##\s|\Z)", struct_md)
+    checks = numbered_section(struct_md, "Checks you run")
     printed = " ".join(lines).lower()
-    for row in re.findall(r"(?m)^\|(.+)\|\s*$", checks.group(1) if checks else ""):
+    for row in re.findall(r"(?m)^\|(.+)\|\s*$", checks or ""):
         cells = [c.strip() for c in row.split("|")]
         if len(cells) < 3 or set(cells[-1]) <= set("-: ") or cells[0].lower() in ("check",):
             continue
@@ -7781,7 +11394,7 @@ def structure_run_gaps(base: Path, struct_md: str, section: str) -> list[str]:
         if "check_structure" in cmd or re.search(r"(?i)lock pending|not run|not decided", result):
             continue  # set runs the structure check itself; an honest not-run is fine
         said = re.sub(r"^\s*\d{4}-\d{2}-\d{2}\s*[:·-]?\s*", "", result).strip().strip("`").lower()
-        if said and said not in printed:
+        if said and said not in printed and said not in printed.replace("|", "/"):
             gaps.append(f"STRUCTURE.md `## Checks you run` says {result[:60]!r} for `{cmd[:40]}`, but no evidence line "
                         f"in #Structure printed it - copy the result from `status.py prove`'s lines (or write "
                         f"`not run: <why>`), never a result typed by hand")
@@ -7898,8 +11511,8 @@ def structure_map_dirs(text: str) -> tuple[dict[str, str], list[str]]:
     tests/, each folder home under ## Where decisions live, each folder under ## Where does a new file go? the tree
     draws."""
     def rows(heading: str) -> list[list[str]]:
-        m = re.search(rf"(?ms)^##\s+{re.escape(heading)}\s*$(.*?)(?=^##\s|\Z)", text)
-        out = [[c.strip() for c in line.strip().strip("|").split("|")] for line in (m.group(1) if m else "").splitlines()
+        body = numbered_section(text, heading) or ""
+        out = [[c.strip() for c in line.strip().strip("|").split("|")] for line in body.splitlines()
                if line.lstrip().startswith("|") and not set(line.strip()) <= set("|-: ")]
         return out[1:]  # the header row
 
@@ -7973,8 +11586,7 @@ def structure_starters(base: Path, bundle_names: list[str], dev: str) -> list[st
     # the .gitignore lines every project needs (added to the file, never replacing a line)
     gi = base / ".gitignore"
     have = gi.read_text(encoding="utf-8", errors="replace") if gi.is_file() else ""
-    lines = {l.strip() for l in have.splitlines()}
-    add = [l for l in STARTER_IGNORE[""] + STARTER_IGNORE.get(stack, ()) if l not in lines]
+    add = new_ignore_lines(have, list(STARTER_IGNORE[""] + STARTER_IGNORE.get(stack, ())))
     pats = [l.strip() for l in (have + "\n" + "\n".join(add)).splitlines() if l.strip() and not l.startswith("#")]
     if ignored(pats, ".env.example"):  # an earlier `!.env.example` is overridden by a later `.env.*`
         add.append("!.env.example")
@@ -8026,6 +11638,36 @@ def structure_starters(base: Path, bundle_names: list[str], dev: str) -> list[st
     return said
 
 
+def ignore_key(line: str) -> str:
+    """A .gitignore line as the pattern it means: `/x`, `x/`, `**/x` and `x` are one line (comments kept apart)."""
+    s = line.strip()
+    if not s or s.startswith("#"):
+        return s
+    neg = s.startswith("!")
+    s = re.sub(r"^(?:\*\*/|/)+", "", s.lstrip("!")).rstrip("/")
+    return ("!" if neg else "") + s
+
+
+def new_ignore_lines(have: str, lines: list[str]) -> list[str]:
+    """The lines to add to a .gitignore holding `have`: none it already has (exactly or pattern-equivalent), none
+    twice; blank lines and comments of a new block kept."""
+    seen = {ignore_key(l) for l in have.splitlines() if l.strip() and not l.lstrip().startswith("#")}
+    out: list[str] = []
+    for l in lines:
+        k = ignore_key(l)
+        if not l.strip() or l.lstrip().startswith("#"):
+            if out or not have.strip():
+                out.append(l.rstrip())
+            continue
+        if k in seen:
+            continue
+        seen.add(k)
+        out.append(l.strip())
+    while out and not out[-1].strip():
+        out.pop()
+    return out
+
+
 def scaffold(base: Path, src: Path, dev: str) -> str:
     """`status.py scaffold --from <bundle>`: every folder and starter file in ONE call. An existing .gitignore is added
     to, any other existing file kept; .gitattributes, the gitleaks config and scripts/check_structure.py come from the
@@ -8051,12 +11693,14 @@ def scaffold(base: Path, src: Path, dev: str) -> str:
             continue
         f = base / rel
         f.parent.mkdir(parents=True, exist_ok=True)
-        if f.is_file() and f.name == ".gitignore":  # merge, never replace: a committed line stays
-            have = f.read_text(encoding="utf-8", errors="replace")
-            add = [l for l in body.splitlines() if l.strip() and l.strip() not in {x.strip() for x in have.splitlines()}]
-            if add:
-                f.write_text(have.rstrip("\n") + "\n" + "\n".join(add) + "\n", encoding="utf-8", newline="\n")
-                merged += len(add)
+        if f.name == ".gitignore":  # merge, never replace: a committed line stays; never the same line twice
+            have = f.read_text(encoding="utf-8", errors="replace") if f.is_file() else ""
+            add = new_ignore_lines(have, body.splitlines())
+            if add or not f.is_file():
+                f.write_text((have.rstrip("\n") + "\n" if have.strip() else "") + "\n".join(add) + "\n",
+                             encoding="utf-8", newline="\n")
+                merged += len(add) if have.strip() else 0
+                made += 0 if have.strip() else 1
             continue
         if f.exists():
             kept.append(rel)
@@ -8091,11 +11735,60 @@ def scaffold(base: Path, src: Path, dev: str) -> str:
          "start printed the commands for this stack)"])
 
 
+def prove_rows(base: Path, results: list[tuple[str, str]], today: str) -> int:
+    """Write each run command's printed last line into STRUCTURE.md's `## Checks you run` row whose Command cell is
+    that command (`Last result` = `<date>: <line>`); the model never types a result. The rows written."""
+    smd = base / "STRUCTURE.md"
+    if not smd.is_file() or not results:
+        return 0
+    text = smd.read_text(encoding="utf-8")
+    body = numbered_section(text, "Checks you run")
+    if body is None:
+        return 0
+    norm = lambda s: " ".join(s.strip().strip("`").split()).lower()  # noqa: E731
+    # split on "\n", not splitlines(): splitlines drops the section's last newline, and each run glued the next
+    # heading closer to the table until a logged save refused "missing section"
+    rows, n = body.split("\n"), 0
+    for i, row in enumerate(rows):
+        cells = row.strip().strip("|").split("|") if row.lstrip().startswith("|") else []
+        if len(cells) < 3 or set(row.strip()) <= set("|-: "):
+            continue
+        cmd = norm(cells[-2])
+        hit = next((r for c, r in results if cmd and (norm(c) == cmd or norm(c) in cmd or cmd in norm(c))), None)
+        if hit is None:
+            continue
+        cells[-1] = f" {today}: {hit.replace('|', '/')} "
+        rows[i] = "|" + "|".join(cells) + "|"
+        n += 1
+    if n:
+        start = text.index(body)
+        smd.write_text(text[:start] + "\n".join(rows) + text[start + len(body):], encoding="utf-8", newline="\n")
+    return n
+
+
+# stderr is read after stdout, so a task runner's echo ("> eslint .", "$ ...") and npm's notices land last; a logged
+# run's passing smoke test read as "shows no pass" until it rewrote its task file to quiet them
+PROVE_NOISE = re.compile(r"(?i)^(?:npm (?:notice|warn)\b|>\s|\$\s|\+\s)")
+PROVE_RESULT = re.compile(rf"(?i)(?:{SMOKE_PASS.pattern.removeprefix('(?i)')})|\ball checks passed|\b(?:resolved|"
+                          r"installed|audited|"
+                          r"checked|prepared|added)\s+\d+\s+packages?\b|\bup to date\b|\bfound 0 vulnerabilities\b|"
+                          r"\bno issues found\b")
+
+
+def evidence_line(lines: list[str]) -> str:
+    """The line that shows a command's result: the last result-like line that is not runner noise, else the last line
+    that is not noise, else the last line."""
+    real = [l for l in lines if not PROVE_NOISE.match(l)]
+    hit = next((l for l in reversed(real) if PROVE_RESULT.search(l) and not RUN_FAIL.search(l)), None)
+    return hit or (real[-1] if real else (lines[-1] if lines else ""))
+
+
 def prove(base: Path, cmds: list[str], today: str) -> tuple[int, str]:
     """`status.py prove "<cmd>" ...`: run the lock, install, lint and smoke-test commands in order, stop at the first
     failure, and print the evidence lines to paste (the script writes them: never a hand-typed result). No network on
     a failing command: the `lock pending` line instead - an accepted outcome, never a failure."""
     out: list[str] = []
+    done: list[tuple[str, str]] = []
     for c in cmds:
         try:
             r = subprocess.run(c, shell=True, cwd=base, capture_output=True, text=True, encoding="utf-8",
@@ -8104,9 +11797,10 @@ def prove(base: Path, cmds: list[str], today: str) -> tuple[int, str]:
         except subprocess.TimeoutExpired:
             text, code = "timed out after 900 s", 124
         lines = [l.strip() for l in text.splitlines() if l.strip()]
-        last = lines[-1] if lines else f"exit {code}"
+        last = evidence_line(lines) or f"exit {code}"
         if code == 0:
             out.append(f"evidence: {c} → {last[:160]} · {today}")
+            done.append((c, last[:160]))
             continue
         # once an earlier command here succeeded (a logged `uv lock` resolved 119 packages) the network works: a
         # later download error is a real failure to fix, never `lock pending`
@@ -8115,12 +11809,21 @@ def prove(base: Path, cmds: list[str], today: str) -> tuple[int, str]:
             out.append(f"evidence: lock pending - no network ({net[:120]}) · {today}")
             out.append(f"  `{c}` could not reach the network: paste the line above into #Structure (the lockfile, the "
                        f"install, lint and the smoke test wait for /foundation); nothing else to do now")
-            return 0, "Paste these lines into #Structure as they are:\n" + "\n".join(out)
+            rows = prove_rows(base, done + [(x, f"lock pending: no network ({net[:80]})") for x in cmds[len(done):]],
+                              today)
+            return 0, "Paste these lines into #Structure as they are:\n" + "\n".join(out) + prove_rows_note(rows)
         out.append(f"FAILED (exit {code}): {c}")
         out += [f"  {l[:200]}" for l in lines[-15:]]
         out.append("Fix what it names and run `status.py prove` again with the same commands.")
         return 1, "\n".join(out)
-    return 0, "Paste these lines into #Structure as they are:\n" + "\n".join(out)
+    return 0, "Paste these lines into #Structure as they are:\n" + "\n".join(out) + prove_rows_note(
+        prove_rows(base, done, today))
+
+
+def prove_rows_note(n: int) -> str:
+    return (f"\nSTRUCTURE.md `## Checks you run`: {n} result(s) written by prove - never retype one" if n else
+            "\nSTRUCTURE.md has no `## Checks you run` row with these commands - write each row's Command cell as "
+            "the command run here, then run prove again: it writes the results")
 
 
 def structure_run_commands(dev: str) -> str:
@@ -8186,7 +11889,9 @@ def structure_rules_text(brownfield: bool, filled: bool, arch_empty: bool, spine
          "open them; `status.py rules structure` prints the sections whole):",
          "===== PRINCIPLES.md =====\n" + "\n".join(bar).rstrip() + "\n\n" + "\n".join(safe)]
         + (["===== MECHANISMS.md =====\n" + print_sections(rule_file("MECHANISMS.md"), mech)] if mech else [])
-        + (["===== root-scaffolding.md (this skill's references/) =====\n" + root.read_text(encoding="utf-8").strip()] if root else []))
+        # its `>` note is the why of the Dev tooling line above (scaffold exactly the recorded tools): not re-sent
+        + (["===== root-scaffolding.md (this skill's references/) =====\n"
+            + re.sub(r"(?m)^>.*\n", "", root.read_text(encoding="utf-8")).strip()] if root else []))
 
 
 # the provenance tag /architect writes on each line: /structure derives from the decision, not from who chose it
@@ -8247,17 +11952,20 @@ def structure_start_text(st: "Status") -> str:
     else:
         out.append("  - #Architecture, whole (it decides every scaffolding file; open an ADR only where a line points "
                    "into it):")
-        out += ["      " + PROVENANCE.sub("", l) for l in arch_body.splitlines() if l.strip()]
+        out += ["    " + PROVENANCE.sub("", l) for l in arch_body.splitlines() if l.strip()]  # nested under its bullet
         tools = structure_tools(next((v for k, v in arch.items() if re.match(r"(?i)dev tooling", k)), ""))
         want = [f"{slot}: {t[0]} → {t[1][0]}" for slot, t in tools.items() if t]
         if want:
             out.append("  - The Dev tooling line's files (scaffold exactly these; any other hook runner or task runner "
                        "is refused): " + " · ".join(want))
-        homes = [f"{what} → {home}" for what, rx, home in STRUCTURE_HOMES if re.search(rx, values)]
-        ports = sorted(set(STRUCTURE_PORT.findall(values)))
+        chosen = "\n".join(l for l in values.splitlines() if not NOT_THE_CHOICE.search(l))  # not an alternative
+        homes = [f"{what} → {home}" for what, rx, home in STRUCTURE_HOMES
+                 if re.search(rx, runtime_choice(arch) if what == "container" else chosen)]
+        ports = sorted(set(STRUCTURE_PORT.findall(chosen)))
         if homes or ports:
             out.append("  - Decisions with a home on disk (a row each under `## Where decisions live`, the path "
-                       "created now): " + " · ".join(homes + [f"`{p}` → its module's adapters/" for p in ports]))
+                       "created now; a container only for a unit the runtime target runs in one): "
+                       + " · ".join(homes + [f"`{p}` → its module's adapters/" for p in ports]))
     if st.header.get("Agent") == "yes":
         agent = Path(agent_rules())
         if agent.is_file():
@@ -8270,8 +11978,8 @@ def structure_start_text(st: "Status") -> str:
     out += [
         "  - THE ORDER (each call re-sends the whole conversation): 1. decide the shape, modules and homes; ask the "
         "user anything open - before any file · 2. ONE bundle, then `status.py scaffold --from <bundle>` · 3. ONE "
-        "`status.py prove` · 4. ONE message: what was laid out, any Step 3c clash, the save question; a yes = ONE call, "
-        "`status.py set structure filled --section-from <file> --commit \"<one line>\"`. NEVER run: a type checker, "
+        "`status.py prove` · 4. ONE call, `status.py set structure filled --section-from <file> --commit \"<one line>\"` - "
+        "it saves (no save question); the close says what was laid out, any Step 3c clash, and \"Change anything?\". NEVER run: a type checker, "
         "a secret-scan sweep, a separate lint, test or check_structure.py run, a second prove after a pass, a "
         "--dry-run before the save - prove and set run every check counted here.",
         f"  - STRUCTURE.md: the form is {struct_template_path()} (read in your first turn), sections in order: "
@@ -8284,7 +11992,10 @@ def structure_start_text(st: "Status") -> str:
         "module file over 40 lines of code is refused). Never edit or run scripts/check_structure.py (`set` runs it).",
         "  - prove, ONE call: `status.py prove " + structure_run_commands(dev) + "` - a real lockfile, the install, "
         "the linter, the smoke test; it stops at the first failure (fix it, run it again) and prints the evidence "
-        "lines; no network: a `lock pending` line instead.",
+        "lines; no network: a `lock pending` line instead. It writes the `## Checks you run` results (a row's Command "
+        "cell = the command; never type a result).",
+        "  - A clash with an earlier phase: both sides on a line of their own in the close, recorded with `status.py "
+        "open` - never an edit of its record or document.",
         "  - #Structure is these fields, labels as written, in a scratch file outside the repo, plus `evidence: python "
         "scripts/check_structure.py → <its last line> · STRUCTURE.md · <date>` and the lines `prove` printed:",
         *("      " + l for l in fields.splitlines() if l.startswith("- **")),
@@ -8292,8 +12003,8 @@ def structure_start_text(st: "Status") -> str:
         "failure (map vs tree, a placeholder test, a print-only task, a hook skipping the check) · a "
         "hook/task runner the Dev tooling line does not name · a `lint` task skipping its linter · a .gitignore that "
         "lost a committed line · two loaders · a stub lockfile · a Checks-you-run result no evidence line printed · "
-        "a Dockerfile copying a missing file · a compose file the runtime target does not use · no `evidence:` line. "
-        "It prints the rest of the close.",
+        "a Dockerfile copying a missing file · no `evidence:` line. What it reads in prose only WARNS. It prints the "
+        "rest of the close.",
     ]
     return "\n".join(out) + "\n\n" + structure_rules_text(bool(code), filled, not arch_body, prod.is_file())
 
@@ -8314,6 +12025,7 @@ PHASE_CLOSE_RULES["contracts"] = {
     "PRINCIPLES.md": ["The exit-criteria gate", "Reviews, vision & confidence"],
     "MECHANISMS.md": ["Step 3b", "Step 3c", "Commit the work", "Plain-language close"],
 }
+CLOSE_CONFLICT["contracts"] = conflict_as_open_item("contracts")
 CLOSE_STEPS["contracts"] = (
     "every unit and number against #Architecture and #Vision: a run cap in the policy above #Vision's cost per use, "
     "a unit named one way in the code and another in #Architecture",
@@ -8341,13 +12053,14 @@ CONTRACTS_HEAD = (
 # before the dry-run and round 2 and re-sent on each of their calls. The dry-run before it prints its shape and checks
 # (they left the start: printed when they are needed).
 CONTRACTS_DOC_PENDING = (
-    f"\n  {CONTRACTS_DOC} is not written yet, so its checks wait for the save. After round 2's looks-good, ONE "
-    f"message: write it, then - in that same message, after it - `set contracts filled --section-from <file> --commit "
-    f"\"<one line>\"` (no `--commit` on \"don't save yet\"). Its shape, "
-    f"the reader's part first: `## Overview` (3-5 plain sentences, then ONE ```mermaid erDiagram: the tables, their "
-    f"links, the tenant key) · `## Boundary units` (boundary · the unit both sides use · the test that proves it) · "
-    f"`## PII` (a table: field · why kept · how long · deletion path) · then the workings: "
-    f"`## Owner's answers` (round 1, word for word) · `## Versioning` and the rest. The save refuses it missing, not starting with the Overview and its diagram, or with no PII table or "
+    f"\n  {CONTRACTS_DOC} is not written yet, so its checks wait for the save. Next, ONE "
+    f"message (no confirm or save question): write it, then - in that same message, after it - `set contracts filled --section-from <file> --commit "
+    f"\"<one line>\"` (it saves). Its shape, "
+    f"the reader's part first, every `##` numbered: `## 1. Overview` (3-5 plain sentences, then ONE ```mermaid "
+    f"erDiagram: the tables, their links, the tenant key) · `## 2. Boundary units` (boundary · the unit both sides use "
+    f"· the test that proves it) · `## 3. Personal data` (a table: field · why kept · how long · deletion path) · then "
+    f"the workings: `## 4. Owner's answers` (round 1, word for word) · `## 5. Versioning` and the rest. The save "
+    f"refuses it missing, not starting with the Overview and its diagram, or with no personal-data table or "
     f"Owner's answers. Never re-read what you wrote: `set` checks it.")
 # PRINCIPLES.md §Production safeguards, the bullets the data's shape decides (~1.6 of 3.2 KB)
 CONTRACTS_SAFEGUARDS = ("Security baseline", "Tests never touch", "AI-specific security", "Observability & audit",
@@ -8378,12 +12091,12 @@ def contracts_rules_text(st: "Status") -> str:
     base = st.base if st.base is not None else Path(".")
     skip = {"Spine resolution"} if (base / "PRODUCT.md").is_file() else set()
     skip |= set(CONTRACTS_BY_NAME)
-    if not all(st.state(p) in ("filled", "overridden") for p in ("architect", "structure", "foundation")):
-        skip.discard("Declined runs")
+    # an earlier gate unmet: the run may stop or go on - its two commands are printed, the section stays by name
+    # (its ~900 characters put the start over its size cap on a real install's long path)
+    unmet = [p for p in ("architect", "structure", "foundation") if st.state(p) not in ("filled", "overridden")]
     if st.state("contracts") not in ("filled", "overridden"):
         skip.add("Re-run semantics")  # its trigger cannot fire
     named = [f"§{s} ({why})" for s, why in CONTRACTS_BY_NAME.items() if s in skip]
-    named = named or ["nothing more"]
     want = {k: [s for s in v if s not in skip] for k, v in PHASE_RULES["contracts"].items()}
     # its history paragraph is no rule; items 2-3 (a progress line per step, the open decisions asked first) are
     # the start's order and round 1 - the rest word for word
@@ -8392,9 +12105,21 @@ def contracts_rules_text(st: "Status") -> str:
     hygiene = re.sub(r"(?s)\n2\. \*\*One progress line.*?(?=\n4\. )",
                      "\n(items 2-3, a progress line per step and the open decisions asked first: the order and round 1 "
                      "above)", hygiene)
+    # item 1's redirect, verdict-line and edit-tool sentences are the head, verify.md §Evidence lines and the notes
+    # above, word for word in substance: printed once (the start was over its size cap on a real install's long path)
+    hygiene = re.sub(r"(?s)\n1\. \*\*Bulky output goes to a file\.\*\*.*?(?=Read a file in full only)",
+                     "\n1. **Bulky output goes to a file** (an output over 30 lines: the head above; cite the verdict "
+                     "line: verify.md §Evidence lines; the edit tool, never a patch script: the notes above). ", hygiene)
+    hygiene = re.sub(r"(?s)(read back the lines you changed, never the file\.)\s+Write code and tests with the edit "
+                     r"tool.*?quoting\.", r"\1", hygiene)
+    g = unmet[0] if len(unmet) == 1 else "<" + " or ".join(unmet) + ">"
+    gate = (f"\n\nMECHANISMS.md §Declined runs, while #{' · #'.join(unmet)} is unmet: a stop is `status.py set "
+            f"contracts declined --reason \"<what was missing>\" --gate {g}`; going on is RECORDED before "
+            f"continuing - `status.py bypass --from contracts --gate {g} --reason \"<the user's own words>\"`; "
+            f"before recording either, `status.py rules contracts` prints the section whole") if unmet else ""
     return (rules_text(want, "Rules for /contracts, word for word from the rule files (these ARE the rule files for "
                              "this phase - do not open them; `status.py rules contracts` prints them again, with "
-                             + " · ".join(named) + "; the close's rules come with `set contracts filled`):")
+                             + " · ".join(named) + "; the close's rules come with `set contracts filled`):") + gate
             + "\n\n===== PRINCIPLES.md §Production safeguards - the bullets /contracts decides =====\n"
             + principle_bullets("Production safeguards", CONTRACTS_SAFEGUARDS) + "\n\n" + hygiene)
 
@@ -8431,8 +12156,8 @@ def contracts_start_text(st: "Status") -> str:
             + [f"      {cut(l)}" for l in core] if core else ["  - #Scope is empty: warn and offer /scope first"])
     struct = field(clean.get("Structure", ""), "Folder")
     out.append(f"  - #Structure (STRUCTURE.md holds the whole map): {cut(struct, 420)}" if struct.strip() else "  - #Structure is empty: warn (Step 0)")
-    out.append("      A folder this phase adds (docs/contracts/, a schemas folder) goes into STRUCTURE.md's map in the "
-               "same message - #structure's check refuses a folder the map does not draw.")
+    out.append("      A folder this phase adds (docs/contracts/) is drawn in STRUCTURE.md's map by `set` - never edit the "
+               "map by hand.")
     test_db = field(clean.get("Foundation", ""), "Isolated test datastore")
     out.append(f"  - #Foundation's test datastore: {cut(test_db)}" if test_db.strip() else
                "  - #Foundation records no test datastore: warn - migrations need one to run on (Step 0); the user "
@@ -8444,9 +12169,9 @@ def contracts_start_text(st: "Status") -> str:
              for l in clean.get(k, "").splitlines() if re.search(r"/contracts\b", l)]
     ui, ai, agent = (st.header.get(k, "unknown") for k in ("UI", "AI product", "Agent"))
     out.append(f"  - Flags: UI {ui} · AI product {ai} · Agent {agent}")
-    out += ["  - Round 1 - ONE message, numbered as written, each with 2-4 ready choices ((Recommended) first) and "
-            "room for their own words; an answer the lines above already give is shown to confirm, never asked "
-            "blank. These are the owner's - never decided for them:",
+    out += ["  - Round 1 - ONE message, numbered as written, through your question tool (AskUserQuestion on Claude "
+            "Code), else numbered options: 2-4 choices, `(Recommended)` on one, `Other` last; an answer the lines "
+            "above already give is shown to confirm, never asked blank. These are the owner's - never decided for them:",
             "      1. Who calls it from outside the app - nothing · a webhook another service sends · a public API · a "
             "client in another repo? (nothing: the versioning field says `N/A — <reason>`; else an exported contract "
             "file + /v1 additive-only)",
@@ -8469,15 +12194,15 @@ def contracts_start_text(st: "Status") -> str:
             "  - Then, in order - reads first, the long document last: every file you need to read (an ADR, an "
             "existing model) in ONE call now · the five steps below (one line printed as each lands) · their proofs "
             "(`evidence:` lines) · the section file and `set contracts filled --section-from <file> --dry-run` in ONE "
-            "message - fix every gap it lists · round 2: ONE message - a table of what was frozen (table · tenant key "
-            "· units · personal data kept how long · contract file), any clash with #Architecture or #Scope (Step "
-            "3c), then one question: \"Looks good - save (Recommended)\" · \"Looks good - don't save yet\" · "
-            "\"Change something\" · on a looks-good, ONE message: docs/contracts.md (the dry-run prints its shape) "
-            "and, after it in that same message, `set contracts filled --section-from <file> --commit \"<one "
-            "line>\"` (no `--commit` on \"don't save yet\").",
+            "message - fix every gap it lists · `status.py secreview contracts` (a helper reviews this phase's code; "
+            "fix HIGH/MEDIUM; its `security review:` line in the section file) · then ONE message, no confirm or save "
+            "question: docs/contracts.md (the dry-run prints its shape) and, after it in that same message, `set "
+            "contracts filled --section-from <file> --commit \"<one line>\"` (it saves) · the close: a table of what "
+            "was frozen (table · tenant key · units · personal data kept how long · contract file), any clash with "
+            "#Architecture or #Scope on a line of its own, and \"Change anything?\".",
             "  - What this phase must NOT do: no product logic - a declared route returns 501 until /build; no edit "
-            "of a migration that has run (add a new one); no change to a decision #Architecture recorded (a clash is "
-            "Step 3c); no commit before the close."]
+            "of a migration that has run (add a new one); no change to a decision #Architecture recorded or to its "
+            "document (a clash: `status.py open`); no commit before the close."]
     here = Path(__file__).resolve().parent
     refs = next((d for d in (here.parent / "commands" / "contracts" / "references",
                              here.parent / "skills" / "contracts" / "references") if d.is_dir()), None)
@@ -8494,15 +12219,13 @@ def contracts_start_text(st: "Status") -> str:
                 "decision, the paths in backticks, an `evidence:` line under it; nothing to record: `N/A — <reason>`:"]
     out += ["      " + l for l in labels.splitlines() if l.startswith("- **")]
     out += ["  - `set contracts filled` refuses, every problem in one list: each refusal the steps and proofs above "
-            "name (no migration file, or app code that builds the schema · money as a float · a table without the "
-            "tenant key · no evidence line that ran a migration · a cited file or `file::test` that is not there) · a "
-            "path #Contracts names that does not exist · no "
+            "name · a path #Contracts names that does not exist · no "
             "exported contract file named, unless the versioning field says N/A · "
             + ("an (Agent) row missing by name (tool schemas · action policy · model output · trace · hand-off · "
                "eval case) · " if agent == "yes" else "")
             + f"{CONTRACTS_DOC}'s shape (the dry-run prints it) · an earlier filled phase whose check fails now · a "
-            "Read quote not found in its file.",
-            "  - `set contracts filled` prints the rest of the close and the git facts for the save."]
+            "Read quote not found in its file · its code with no `security review:` line.",
+            "  - `set contracts filled` prints the rest of the close."]
     if agent == "yes" or (ai != "no" and agent == "unknown"):
         rules = Path(agent_rules())
         if rules.is_file():
@@ -8533,19 +12256,21 @@ CLOSE_STEPS["tickets"] = (
     "every ticket's files, lane, owner, security line, Depends On, consumed names, shared files, strategy and Demo, "
     "every milestone, and TICKETS.md's lanes, graph and day-1 table")
 TICKETS_HEAD = (
-    "This phase closes with ONE call - `status.py set tickets filled --commit \"<one line>\"`, after the ticket files "
-    "and TICKETS.md are written (no --section-from: /tickets writes no PRODUCT.md section, its record is "
-    "docs/issues/*.md + TICKETS.md): it checks every ticket and the plan, names every problem at once, saves the "
+    "This phase closes with ONE call - `status.py set tickets filled --from-fields <file> --commit \"<one line>\"`, "
+    "after the fields file is written (no --section-from: /tickets writes no PRODUCT.md section, its record is "
+    "docs/issues/*.md + TICKETS.md, which it renders): it checks every ticket and the plan, names every problem at once, saves the "
     "project (no git call of your own) and prints the rest of the close. To see the gaps first, add `--dry-run`: the "
     "same checks, nothing written. Every rule they apply is printed below - the scripts' source says nothing more (P45).",
     "Commands work in PowerShell and in bash: one command per call - no &&, tail, grep or export; never `cd <path> &&`. "
     "The same command fails 3 times: stop and tell the user what fails. Plain symbols (≤ →), never LaTeX.",
     "No commit during the run: the one save at `set` takes every change and leaves the playbook's install out.",
-    "This phase writes docs/issues/*.md, TICKETS.md and the two .github templates - never product code, a spine "
+    "This phase writes docs/issues/*.md, TICKETS.md and the two .github templates (`set` adds each module's agent "
+    "rule file) - never product code, a spine "
     "section or another doc (a logged run edited a module docstring and STRUCTURE.md mid-run, and the hook refused "
     "its commit): a mismatch you find goes in the close, for the phase that owns it (P44).",
-    "Two question rounds, each ONE message (round 1: the numbered questions below; round 2: the whole proposal) - "
-    "never answer a question for the user; a reply that skips one is asked again, never read as a yes.",
+    "ONE question round (the questions below, as options; " + FORM_SPLIT + ") - never answer a question for the "
+    "user; a reply that skips one is asked again, never read as a yes. Then write the tickets and save: no proposal "
+    "turn, no save turn.",
 )
 TICKET_SKIP = SKIP_DIRS | {"htmlcov"}
 TICKETS_INLINE = 28000  # characters of the whole `next --phase tickets` output; Claude Code shows 30,000
@@ -8616,11 +12341,12 @@ def py_contract_names(src: str) -> str:
 PLAN_SKIP = re.compile(r"(?i)^- \*\*(?:four[- ]risks|usability checkpoint|north[- ]star|concern[- ]area|detail|read)\b")
 
 
-def plan_for_tickets(plan: str) -> str:
+def plan_for_tickets(plan: str, numbered: bool = False) -> str:
+    """`numbered`: the exit criteria are printed numbered below, so they are left out here (never twice)."""
     out, skip = [], False
     for line in plan.splitlines():
         if re.match(r"^- ", line):
-            skip = bool(PLAN_SKIP.match(line))
+            skip = bool(PLAN_SKIP.match(line)) or (numbered and bool(re.match(r"(?i)^- \*\*exit criteria", line)))
         elif not line.startswith(" "):
             skip = False
         if not skip:
@@ -8628,7 +12354,9 @@ def plan_for_tickets(plan: str) -> str:
     return "\n".join(out)
 
 
-def contract_names_text(base: Path, files: list[str], cap: int = 300) -> list[str]:
+def contract_names_text(base: Path, files: list[str], cap: int = 0) -> list[str]:
+    """Every name each contract file defines (a 300-character cap sent a logged run to grep and read the
+    code, 94K tokens). `cap` > 0 only when the whole start would not fit what the tool shows."""
     out = []
     for p in files:
         if p.startswith("migrations/") or TICKET_SPINE.fullmatch(f"`{p}`"):  # tables, never a migration's internals
@@ -8637,36 +12365,41 @@ def contract_names_text(base: Path, files: list[str], cap: int = 300) -> list[st
             out.append(f"      {p}")
             continue
         line = py_contract_names((base / p).read_text(encoding="utf-8", errors="replace"))
-        out.append(f"      {p}: {line[:cap]}" + (" … (more: open the file by line range)" if len(line) > cap else ""))
+        cut = cap and len(line) > cap
+        out.append(f"      {p}: {line[:cap] if cut else line}" + (" … (more: open the file by line range)" if cut else ""))
     return out
 
 
 def tickets_rules_text(filled: bool, gate: bool, whole: bool = False) -> str:
     """The rules this run applies, word for word: re-run and declined rules only when the run is one. The start
-    leaves out the principles the skill's header names and the spine resolution the start itself does; `rules
-    tickets` (whole) prints them too."""
-    mech = PHASE_RULES["tickets"]["MECHANISMS.md"] if whole else ["Re-run semantics"] * filled + ["Declined runs"] * gate
+    leaves out the principles the skill's header names, the spine resolution the start itself does, and TICKETS.md's
+    shape (the script renders it); `rules tickets` (whole) prints them too. An unmet gate names §Declined runs, not
+    prints it: the start's GATE line gives both its commands (stop, go on), and the section's ~900 characters put the
+    start over its size cap on a real install's long path."""
+    mech = PHASE_RULES["tickets"]["MECHANISMS.md"] if whole else ["Re-run semantics"] * filled
     slicing, plan_md = tickets_ref("slicing.md"), tickets_ref("tickets-md.md")
     parts = ["Rules for /tickets, word for word from the rule files and this skill's references (these ARE the files "
-             "for this phase - do not open them; `status.py rules tickets` prints them with the principles):",
+             "for this phase - do not open them; `status.py rules tickets` adds the principles):",
              *(["===== PRINCIPLES.md =====\n" + print_sections(rule_file("PRINCIPLES.md"),
                                                              PHASE_RULES["tickets"]["PRINCIPLES.md"])] if whole else []),
-             *(["===== MECHANISMS.md =====\n" + print_sections(rule_file("MECHANISMS.md"), mech)] if mech else [])]
+             *(["===== MECHANISMS.md =====\n" + print_sections(rule_file("MECHANISMS.md"), mech)] if mech else []),
+             *(["MECHANISMS.md §Declined runs: the GATE line above gives its two commands; before recording either, "
+                "`status.py rules tickets` prints the section whole"] if gate and not whole else [])]
     if slicing:
         parts.append(f"===== {slicing.as_posix()} (§Vertical slicing, §Horizontal slicing and §Per-ticket content: "
-                     f"`status.py section <this path> \"<§>\"` - the template below carries the per-ticket fields) "
+                     f"`status.py section <this path> \"<§>\"`, only when a field is unclear) "
                      f"=====\n" + print_sections(slicing, ["§Lanes are modules", "§Epics", "§Waiting or building against",
                                                           "§Choose the strategy", "§Size by behaviour"]))
-    if plan_md:
+    if plan_md and whole:
         parts.append(f"===== {plan_md.as_posix()} =====\n" + print_sections(plan_md, ["§The sections", "§The flow graph",
-                                                                                  "§Day 1"]))
+                                                                                  "§Seats", "§Day 1"]))
     return "\n\n".join(parts)
 
 
 def tickets_start_text(st: "Status", lead: int = 0) -> str:
-    """`next --phase tickets`: what the backlog derives from, the two question rounds, the record's shape and what
-    `set tickets filled` refuses - one call, instead of four commands, the schema files and the references (P1, P25).
-    `lead`: the characters `next` printed above it (its notes vary with the project's open items)."""
+    """`next --phase tickets`: what the backlog derives from, the one question round, the fields file and what
+    `set tickets filled` refuses - one call, with the rules inline: no `rules tickets` call, no scratch read-back (P1,
+    P25, P47). `lead`: the characters `next` printed above it (its notes vary with the project's open items)."""
     base = st.base if st.base is not None else Path(".")
     prod = base / "PRODUCT.md"
     secs = product_sections(prod.read_text(encoding="utf-8")) if prod.is_file() else {}
@@ -8678,7 +12411,9 @@ def tickets_start_text(st: "Status", lead: int = 0) -> str:
            "the skill's references whole - what the backlog derives from is here):",
            f"  - Mode: no argument or a planning phrase -> Mode A, this start. A described bug, gap or debt item -> Mode "
            f"B: `status.py section {adhoc.as_posix() if adhoc else 'references/adhoc-capture.md'} intro` and its "
-           f"sections are the whole procedure; nothing below applies. Unsure which -> ask, never regenerate a backlog."]
+           f"sections are the whole procedure; nothing below applies. Unsure which -> ask, never regenerate a backlog.",
+           "  - Every milestone of #Plan is ticketed in full, now (owner, 2026-10-08): the lane and seat plan for the "
+           "whole product is the point - never only the next milestone."]
     gates = [p for p, sec in (("plan", plan), ("contracts", contracts))
              if st.state(p) not in ("filled", "overridden") or not sec]
     for p in gates:
@@ -8701,110 +12436,609 @@ def tickets_start_text(st: "Status", lead: int = 0) -> str:
             epics[m.group(1)] = max(epics.get(m.group(1), 0), int(m.group(2)))
     if old or (base / "TICKETS.md").is_file() or filled:
         out.append(f"  - A re-run ({len(old)} file(s) in docs/issues/; TICKETS.md {'exists' if (base / 'TICKETS.md').is_file() else 'missing'}): "
-                   f"keep every epic code, a new ticket takes the next number, skip a ticket that exists, rewrite "
-                   f"TICKETS.md from the confirmed proposal (publishing.md §An earlier backlog)."
+                   f"keep every epic code, a new ticket takes the next number, list a ticket that exists as "
+                   f"{{\"id\": \"...\"}} alone (its file is kept); TICKETS.md is rendered again from the fields "
+                   f"(publishing.md §An earlier backlog). The seats or lanes changed (the team grew or shrank): "
+                   f"publish with `--reseat` - every card's Owner, Lane and Seat follow the new plan, Status stays."
                    + (" Epics and their last number: " + " · ".join(f"{e}-{n:02d}" for e, n in sorted(epics.items()))
                       if epics else "")
-                   + (" docs/issues/README.md remains from an earlier backlog: migrate its plan into TICKETS.md and delete it."
+                   + (" docs/issues/README.md remains from an earlier backlog: migrate its plan into the fields and delete it."
                       if (folder / "README.md").is_file() else ""))
+    crit = exit_criteria(plan)
     if plan:
-        out.append("  - #Plan (each milestone becomes epics; a milestone with no ticket gets one line in TICKETS.md: "
-                   "'<M>: no tickets - <why>', e.g. a phase that owns it; the risks, checkpoint, detail and Read "
-                   "fields left out):")
-        out += ["      " + l for l in plan_for_tickets(plan).splitlines() if l.strip()]
+        out.append("  - #Plan (each milestone becomes epics; a milestone with no ticket gets \"skip\": \"<why>\" in the "
+                   "fields, e.g. a phase that owns it; the risks, checkpoint, detail and Read fields left out):")
+        out += ["      " + l for l in plan_for_tickets(plan, bool(crit)).splitlines() if l.strip()]
+    if crit:
+        out.append("  - #Plan's exit criteria, numbered - a ticket's \"serves\" names the ones it delivers; each number of "
+                   "a ticketed milestone is served by a ticket or listed under its milestone's \"uncovered\" with why:")
+        out += [f"      `{c}` {w}" for v in crit.values() for c, w in v]
     scope = scope_fields(clean(secs.get("Scope", "")))
     keep = [(k, " ".join(v)) for k, v in scope.items() if re.search(r"(?i)core feature|non[- ]goal", k)]
     if keep:
         out.append("  - #Scope (Step 3c: no ticket builds a non-goal):")
         out += [f"      {k}: {v[:500]}{'…' if len(v) > 500 else ''}" for k, v in keep]
+    names_at = len(out)
     if have:
-        out.append("  - The names the contract files define - a ticket's Consumes uses these exact names, backticked; a "
-                   "name the ticket itself creates is marked `(new)`; `set` refuses any other:")
+        out.append("  - The names the contract files define (all of them - never grep or open the files) - a ticket's "
+                   "consumes uses these exact names; a name the ticket itself creates is marked `(new)`; `set` refuses "
+                   "any other:")
         out += contract_names_text(base, have)
+    names_end = len(out)
     structure = (base / "STRUCTURE.md").read_text(encoding="utf-8") if (base / "STRUCTURE.md").is_file() else ""
     for name in ("Modules", "Hub files"):
-        m = re.search(rf"^## {name}\s*$(.*?)(?=^## |\Z)", structure, re.M | re.S)
-        if m:
+        m = numbered_section(structure, name)
+        if m is not None:
             out.append(f"  - STRUCTURE.md ## {name}" + (" (one lane per module, named after its folder):"
-                                                        if name == "Modules" else ":"))
-            out += ["      " + l for l in clean(m.group(1)).splitlines() if l.strip()]
-    if structure and not re.search(r"\bissues/", structure):  # the structure check `set` runs refuses an undrawn folder
-        out.append("  - STRUCTURE.md does not draw docs/issues/ yet: in the turn that writes the tickets, add "
-                   "`issues/  # one file per ticket, written by /tickets` under docs/ in its tree and one dated line "
-                   "under ## Changes - the only STRUCTURE.md edit this phase makes (a logged run's save was refused "
-                   "for it).")
+                                                        if name == "Modules" else
+                                                        " (one-line registries: list them under \"hubs\"; a shared file "
+                                                        "NOT here, or a change of more than one line, is a /structure "
+                                                        "finding for the close):"))
+            out += ["      " + l for l in clean(m).splitlines() if l.strip()]
     remote = git(base, "remote", "get-url", "origin")
     out.append(f"  - Remote: origin = {remote} - round 1 asks whether to publish; publish.py checks `gh` and its scopes "
                f"before writing anything" if remote else
                "  - Remote: none - local files only; say so in the close, never `gh repo create`, ask no publish question")
-    tpl, pr = tool_file("templates", "feature_ticket_template.md"), tool_file("templates", "pull_request_template.md")
-    copies = [f"`cp {src.as_posix()} {dst}`" for src, dst in ((tpl, ".github/ISSUE_TEMPLATE/feature_ticket.md"),
-                                                               (pr, ".github/PULL_REQUEST_TEMPLATE.md"))
-              if src and not (base / dst).is_file()]
-    if copies:
-        out.append("  - Templates missing - copy them in the turn that writes the tickets (make .github/ISSUE_TEMPLATE/ "
-                   "first): " + " · ".join(copies))
     lanes = sorted({m.group(1).strip("/").rsplit("/", 1)[-1] for m in re.finditer(
-        r"^\|\s*`([^`]+)`", (re.search(r"^## Modules\s*$(.*?)(?=^## |\Z)", structure, re.M | re.S) or [None, ""])[1]
+        r"^\|\s*`([^`]+)`", numbered_section(structure, "Modules") or ""
         if structure else "", re.M)})
     out += [
-        "  - Round 1 - ask these in ONE message, numbered as written, each with your recommendation, before any proposal:",
+        "  - ONE question round, before any writing: each question with options, yours marked (Recommended), Other "
+        "last - in your question tool when you have one, else numbered options in one message:",
         f"      1. Who builds: how many seats side by side on day one (1, or 2-10), each a person, an agent, or an agent "
-        f"a person operates (who reviews its PRs)? Pre-fill from #Plan's capacity line (\"2 developers x 15 h - still "
-        f"right?\"); {len(lanes) or 'the'} lanes - say how many can start at once.",
+        f"a person operates (who reviews its PRs), and which lanes a Junior owns (Senior on every lane: Recommended)? "
+        f"Pre-fill from #Plan's capacity line (\"2 developers x 15 h - still right?\"); {len(lanes) or 'the'} lanes - "
+        f"say how many can start at once.",
         "      2. The slicing strategy per milestone - one line per milestone with your recommendation (vertical unless "
         "the milestone has no user-visible surface): keep or switch? (The invocation named one: skip this question.)",
-        "      3. Owners: Senior on every lane (Recommended), or name the lanes a Junior owns.",
-        *(["      4. Publish to GitHub: issues + Delivery Board (Recommended) · issues only, no board · local files only."]
+        *(["      3. Publish to GitHub: issues + Delivery Board (Recommended) · issues only, no board · local files only."]
           if remote else []),
-        f"      {5 if remote else 4}. One question per decision a ticket needs that no section records (where a field "
+        f"      {4 if remote else 3}. One question per decision a ticket needs that no section records (where a field "
         f"comes from, who flips a switch), with your recommendation - never decided silently (a logged run read "
         f"\"proceed\" as a yes to two it never asked). None: say so in one line.",
-        "  - Round 2 - ONE message: the whole proposal - milestone → epic → ticket, every ticket `ID · title · lane · "
-        "owner · depends on · builds against`, every title with \"and\" flagged, the parallel table and the day-1 rows - "
-        "then two options: \"Looks good - write and save\" / \"Change something\". A change -> show the changed list "
-        "and ask again. That yes is the save: no third question.",
-        "  - After the yes, few calls: the templates (if missing), every ticket file and TICKETS.md (several per call), "
-        "then `status.py set tickets filled --commit \"tickets: <n> tickets in <e> epics across <l> lanes\"`; a "
-        "refusal names every problem once - fix them all, run it again. Order (each call re-sends all before it): "
-        "the ticket files and TICKETS.md are the last writes - nothing read or run between the yes and them, no "
-        "check of your own after them (`set` checks every file).",
-        "  - Each ticket: docs/issues/<ID>_<slug>.md, ID = M<n>-<EPIC>-<nn> (EPIC: an uppercase code unique in its "
-        "milestone, never SLICE, TICK or ADHOC), no front matter, the template's headings as written (shown below "
-        "without its comments). Field rules: Epic `[M<n>-<EPIC>] <name>` · Lane = one module, every ticket of an epic "
-        "in its lane · Owner = Senior unless round 1 named a Junior lane · Target Files = one backticked file per line, "
-        "everything /build will write: code, its tests, `docs/features/<feature>.md` · Consumes / Exposes = backticked "
-        "names, `(new)` before a name this ticket creates · Depends On = the IDs whose merge it waits for, or None · "
-        "Builds Against = the IDs whose contract it uses before they merge, or None · Demo = what a reviewer sees "
-        "working after the merge (vertical: never n/a) · the DoD keeps every security line.",
-        *(["      " + l for l in re.sub(r"<!--.*?-->\n?", "", tpl.read_text(encoding="utf-8").split("\n---\n", 1)[-1],
-                                       flags=re.S).strip().splitlines() if l.strip()] if tpl else []),
-        "  - `set tickets filled` refuses, every problem in one list: no ticket files · a ticket file not named "
-        "<ID>_<slug>.md · one ID in two files · front matter · not exactly one Slice Strategy ticked · no exact target "
-        "file (a file with its extension, never a folder) · PRODUCT/CHANGELOG/STRUCTURE/TICKETS/STATUS.md in Target "
-        "Files · no docs/features/<feature>.md, or no test file in a ticket that is not docs-only · a lane that is no STRUCTURE.md module · "
-        "no Owner · no security line in the DoD · a vertical slice with no Demo · a Depends On that does not exist, or a "
-        "cycle · a consumed name the code does not have (mark a name the ticket creates `(new)`) · two tickets of one "
-        "milestone writing the same file with no Depends On between them (order them, or list the file under "
-        "TICKETS.md ## Hub files) · a #Plan milestone with no ticket and no reason in TICKETS.md · no TICKETS.md, no "
-        "Mermaid graph, a lane with no `lane_<name>` box or a box that is no lane · a status mark in TICKETS.md "
-        "(checkbox, Status column, done mark) · a day-1 ticket with a Depends On · docs/issues/README.md that remains.",
-        "  - Publish (round 1 chose it) after the save - an issue body is its committed file: write <scratch>/plan.json "
-        "and run `python " + (tool_file("tickets", "publish.py") or Path("commands/tickets/publish.py")).as_posix()
-        + " <scratch>/plan.json` (`--no-board` = issues only; `--dry-run` = what it would create). Its OK/FAIL lines "
-        "are the close's evidence. plan.json: {\"product\": \"<name>\", \"seat\": \"SR1\", \"milestones\": [{\"title\": "
-        "\"M1 - ...\", \"due\": \"YYYY-MM-DD\" or null}], \"epics\": [{\"id\": \"M1-LOG\", \"name\": \"...\", "
-        "\"milestone\": \"M1 - ...\", \"lane\": \"events\", \"owner\": \"Senior\"}], \"tickets\": [{\"id\": "
-        "\"M1-LOG-01\", \"title\": \"...\", \"file\": \"docs/issues/M1-LOG-01_x.md\", \"epic\": \"M1-LOG\", "
-        "\"depends_on\": []}]}."]
+        "  - " + LAST_ROUND_SAVES + ": the close shows the whole result - milestone → epic → ticket, every ticket "
+        "`ID · title · lane · owner · depends on · builds against`, every title with \"and\" flagged, the parallel "
+        "table and the day-1 rows. A change -> edit the fields file and run the `set` again (it renders and saves again).",
+        TICKET_FIELDS_HELP,
+        "  - After the answers, two calls: write the fields file, then `status.py set tickets filled --from-fields "
+        "<file> --commit \"tickets: <n> tickets in <e> epics across <l> lanes\"`. A refusal names every problem once - "
+        "fix the fields file, run it again. Nothing read or run between the answers and the fields file, no check of "
+        "your own after `set` (it checks every file it wrote).",
+        "  - `set tickets filled` refuses, every problem in one list (most cannot happen in rendered files): a "
+        "target that is a folder, or a spine file / TICKETS.md · no docs/features/<feature>.md, or no test file in a "
+        "code ticket · a lane that is no STRUCTURE.md module · no security line · a vertical slice with no demo · a "
+        "depends that does not exist, or a cycle · a consumed name the code does not have (mark a created one "
+        "`(new)`) · two tickets of one milestone writing one file with neither depending on the other (order them, or "
+        "list the file under hubs) · a milestone with no ticket and no skip · a criterion of a ticketed milestone "
+        "neither served nor uncovered, a ticket serving none, a number #Plan lacks · a day-1 ticket with a depends · "
+        "docs/issues/README.md that remains.",
+        "  - Publish (round 1 chose it) after the save - run from the project folder `python "
+        + (tool_file("tickets", "publish.py") or Path("commands/tickets/publish.py")).as_posix()
+        + "` (no plan file: it reads the plan from the committed TICKETS.md and docs/issues/; `--no-board` = issues "
+        "only; `--dry-run` = what it would create). Its OK/FAIL lines are the close's evidence; a re-run is the same "
+        "command."]
     rules = tickets_rules_text(filled, bool(gates))
-    if playbook_tool() != "antigravity" and lead + len("\n".join(out)) + len(rules) > TICKETS_INLINE:
-        # Claude Code shows 30,000 characters of a command's output: a big project's start goes over, and round 1
-        # needs none of the slicing rules - round 2 does
-        out.append("  - The slicing and TICKETS.md rules (word for word) were left out to keep this start readable: "
-                   "run `status.py rules tickets` in your first call after the round-1 answers, before the proposal.")
+    size = lambda: lead + len("\n".join(out)) + len(rules) + 2  # noqa: E731
+    if playbook_tool() != "antigravity" and size() > TICKETS_INLINE and have:
+        # a big project: the names per file are cut first - the rules stay inline (no second command)
+        cap = max(200, (TICKETS_INLINE - (size() - sum(len(x) + 1 for x in out[names_at + 1:names_end])))
+                  // max(1, names_end - names_at - 1) - 60)
+        out[names_at + 1:names_end] = contract_names_text(base, have, cap)
+    if playbook_tool() != "antigravity" and size() > TICKETS_INLINE:
+        out.append("  - The slicing rules (word for word) were left out to keep this start readable: run `status.py "
+                   "rules tickets` in your first call after the answers, before writing the fields file.")
         return "\n".join(out)
     return "\n".join(out) + "\n\n" + rules
+
+
+# ---- /tickets: the script writes the files, the model writes short fields -------------
+# A logged run typed 48 ticket files (41-85% repeated wording) in 6 batches, each re-sent on every later call
+# (~595K tokens of "writing files"), then a 47K plan.json into a scratch folder, then copied the templates and edited
+# STRUCTURE.md by hand (calls 10-12). Now the model writes ONE short fields file; `set tickets filled --from-fields`
+# renders docs/issues/*.md from the template, TICKETS.md (tables, graph, day 1) from the same fields, copies the
+# templates and draws docs/issues/ in STRUCTURE.md; publish.py reads its plan from the committed files.
+EXIT_SPLIT = re.compile(r";\s+|(?<=\.)\s+(?=[A-Z])")
+LAYER_KEYS = ("data", "domain", "ui", "verify")
+
+
+def exit_criteria(plan: str) -> dict[str, list[tuple[str, str]]]:
+    """#Plan's exit criteria, numbered per milestone: `M2.3` is milestone 2's third clause (split at `;` and at a
+    sentence end). A ticket names the number it serves; `set` refuses a criterion of a ticketed milestone no ticket
+    serves - matched by number, never by wording."""
+    block = re.search(r"(?ims)^- \*\*exit criteria[^\n]*$(.*?)(?=^- \*\*|\Z)", plan)
+    out: dict[str, list[tuple[str, str]]] = {}
+    for m in re.finditer(r"(?m)^\s+-\s*\**(M\d+)\**\s*:\s*(.+)$", block.group(1) if block else ""):
+        parts = [p.strip().rstrip(".").strip() for p in EXIT_SPLIT.split(m.group(2).strip())]
+        out[m.group(1)] = [(f"{m.group(1)}.{i}", p) for i, p in enumerate([p for p in parts if p], 1)]
+    return out
+
+
+def milestone_titles(plan: str) -> dict[str, str]:
+    """`M1 — Core slice: one fake employee ...` -> {"M1": "Core slice"} (the text before the first colon)."""
+    out: dict[str, str] = {}
+    for m in re.finditer(r"(?m)^\s*-\s*\**(M\d+)\**\s*[—–:-]+\s*([^:\n]+)", plan):
+        out.setdefault(m.group(1), m.group(2).strip().rstrip(".*").strip())
+    return out
+
+
+TICKET_FIELDS_HELP = (
+    "  - Write ONE fields file (JSON, any path) - never a ticket file, TICKETS.md, plan.json, a template or "
+    "STRUCTURE.md: `set tickets filled --from-fields <file>` renders the ticket files from the template and TICKETS.md "
+    "(tables, lane seats, coordination points from depends/builds across lanes, the graph, one day-1 row per seat), "
+    "copies the templates, draws docs/issues/ in STRUCTURE.md, writes each module's agent rule file, checks and "
+    "saves. Shape:\n"
+    "      {\"seats\": [{\"id\": \"SR1\", \"operator\": \"person\"}, {\"id\": \"JR1\", \"operator\": \"agent+person\"}],\n"
+    "       \"lanes\": {\"<module>\": {\"owner\": \"Senior\", \"seat\": \"SR1\"}},\n"
+    "       \"milestones\": {\"M1\": {\"strategy\": \"vertical\"}, \"M2\": {\"strategy\": \"horizontal\", "
+    "\"uncovered\": {\"M2.4\": \"<why>\"}}, \"M3\": {\"skip\": \"<why no tickets>\"}},\n"
+    "       \"epics\": {\"M1-PAY\": {\"name\": \"Payslips arrive\", \"lane\": \"<module>\"}},\n"
+    "       \"tickets\": [{\"id\": \"M1-PAY-01\", \"title\": \"\", \"serves\": [\"M1.1\"], \"goal\": \"\", "
+    "\"layers\": [\"data\", \"domain\", \"ui\", \"verify\"], \"files\": [], \"consumes\": [\"PayslipMonth\"], "
+    "\"exposes\": [\"(new) load(id) -> PayslipMonth\"], \"depends\": [], \"builds\": [\"M1-EXPL-01\"], \"demo\": \"\", "
+    "\"tasks\": [], \"dod\": [], \"verify\": \"<command>\"}],\n"
+    "       \"hubs\": {\"<file>\": \"<the one line each lane adds>\"}, \"later\": [\"<item> -> /<phase>, at M<n>\"]}\n"
+    "    A seat: SR<n> senior, JR<n> junior; operator person · agent · agent+person (an agent a person operates). "
+    "Every lane one seat (split so the seats carry about the same number of tickets). ID = M<n>-<EPIC>-<nn> (EPIC "
+    "unique in its milestone, never SLICE, TICK or ADHOC); its epic is the ID without the number, and gives its lane, "
+    "owner and seat. files = every file /build writes, exact: code, its tests, docs/features/<feature>.md. depends = "
+    "IDs whose merge it waits for; builds = IDs whose contract it uses before they merge. demo = what a reviewer sees "
+    "working (vertical: never n/a). dod = lines beyond the template's security lines (always kept). Names are "
+    "backticked by the script; `(new)` first for a name the ticket creates. Brownfield: a ticket with a file is "
+    "listed as {\"id\": \"...\"} alone - its file is kept.")
+
+
+def _tk_bt(item: str) -> str:
+    item = str(item).strip()
+    if "`" in item:
+        return item
+    new = re.match(r"(?i)\(new\)\s*", item)
+    return f"(new) `{item[new.end():]}`" if new else f"`{item}`"
+
+
+def _tk_list(xs) -> list[str]:
+    return [str(x) for x in (xs if isinstance(xs, list) else [xs] if xs else [])]
+
+
+def render_ticket(tpl_body: str, t: dict, epic: dict, lane: dict, ms_title: str, strategy: str,
+                  criteria: dict[str, str]) -> str:
+    """One ticket file: the template's headings in its order, each filled from the fields; a heading the fields do not
+    fill keeps the template's own lines (the security DoD, the layer boxes)."""
+    tid = t["id"]
+    ms = tid.split("-")[0]
+    body = re.sub(r"<!--.*?-->\n?", "", tpl_body, flags=re.S)
+    parts = re.split(r"(?m)^(### [^\n]*)$", body)
+    out = [f"# [{tid}] {t.get('title', '').strip()}", ""]
+    for i in range(1, len(parts), 2):
+        head, default = parts[i], parts[i + 1].strip("\n")
+        h = head.lower()
+        fill = None
+        if "goal" in h:
+            fill = f"**{ms} — {ms_title}.** {t.get('goal') or t.get('title', '')}".strip()
+        elif "exit criterion" in h:
+            fill = "\n".join(f"- `{c}` {criteria.get(c, '')}".rstrip() for c in _tk_list(t.get("serves"))) or "None"
+        elif "slice strategy" in h:
+            fill = "\n".join(re.sub(r"^- \[ \]", "- [x]", ln) if strategy.lower() in ln.lower() else ln
+                             for ln in default.splitlines())
+        elif h.endswith("epic"):
+            fill = f"[{epic['id']}] {epic.get('name', '')}"
+        elif "lane" in h:
+            fill = epic.get("lane", "")
+        elif "owner" in h:
+            fill = lane.get("owner", "Senior")
+        elif "layer" in h:
+            want = {LAYER_KEYS.index(k) for k in _tk_list(t.get("layers")) if k in LAYER_KEYS}
+            fill = "\n".join(re.sub(r"^- \[ \]", "- [x]", ln) if n in want else ln
+                             for n, ln in enumerate(default.splitlines()))
+        elif "target files" in h:
+            fill = "\n".join(f"- [ ] `{f.strip('`')}`" for f in _tk_list(t.get("files")))
+        elif "contract" in h:
+            fill = "\n".join(["- **Consumes:**", *(f"  - {_tk_bt(x)}" for x in _tk_list(t.get("consumes"))),
+                              "- **Exposes:**", *(f"  - {_tk_bt(x)}" for x in _tk_list(t.get("exposes")))])
+        elif "depends on" in h:
+            fill = ", ".join(_tk_list(t.get("depends"))) or "None"
+        elif "builds against" in h:
+            fill = ", ".join(_tk_list(t.get("builds"))) or "None"
+        elif "demo" in h:
+            fill = str(t.get("demo") or "")
+        elif "implementation tasks" in h:
+            fill = "\n".join(f"- [ ] {n}. {x}" for n, x in enumerate(_tk_list(t.get("tasks")), 1)) or default
+        elif "definition of done" in h:
+            lines = default.splitlines()
+            extra = [f"- [ ] {x}" for x in _tk_list(t.get("dod"))]
+            at = next((n for n, ln in enumerate(lines) if "Tests written" in ln), len(lines))
+            doc = next((f.strip("`") for f in _tk_list(t.get("files")) if f.strip("`").startswith("docs/features/")),
+                       "docs/features/<feature>.md")
+            fill = "\n".join(lines[:at] + extra + lines[at:]).replace("lane: <name>", f"lane: {epic.get('lane', '')}") \
+                .replace("docs/features/<feature>.md", doc)
+        elif "verification command" in h:
+            fill = f"```bash\n{t.get('verify', '')}\n```"
+        out += [head, (fill if fill is not None else default).strip("\n"), ""]
+    return "\n".join(out).rstrip() + "\n"
+
+
+def _tk_slug(title: str, n: int = 40) -> str:
+    """A ticket file's name part: the title in lower case, cut at the last whole word within n characters (a cut
+    mid-word read `...-approv`); one word longer than n is cut at n. The same title always gives the same name."""
+    s = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+    if len(s) > n:
+        at = s[:n + 1].rfind("-")
+        s = s[:at] if at > 0 else s[:n]
+    return s or "ticket"
+
+
+# what a seat is, asked in round 1 (seats, each a person, an agent, or an agent a person operates) and
+# until now never stored. The fields file names it per seat; TICKETS.md's Lanes table and the board's Seat options
+# carry it. A seat given as a bare id ("SR1") takes its type from the prefix (SR senior, JR junior).
+SEAT_OPERATORS = {"person": "person", "agent": "agent", "agent+person": "agent, a person reviews its PRs"}
+
+
+def seat_roster(fields: dict) -> tuple[dict[str, dict[str, str]], list[str]]:
+    """{seat id: {"type": senior|junior|"", "operator": words|""}} from the fields file's "seats", and its problems."""
+    out, probs = {}, []
+    for x in fields.get("seats") or []:
+        x = x if isinstance(x, dict) else {"id": str(x)}
+        sid = str(x.get("id") or x.get("seat") or "").strip()
+        if not sid:
+            probs.append(f"a seat with no id: {x}")
+            continue
+        kind = str(x.get("type") or {"SR": "senior", "JR": "junior"}.get(sid[:2], "")).lower()
+        op = str(x.get("operator") or "").strip().lower().replace(" ", "")
+        if kind and kind not in ("senior", "junior"):
+            probs.append(f"seat {sid}: type {kind!r} is not senior or junior")
+        if op and op not in SEAT_OPERATORS:
+            probs.append(f"seat {sid}: operator {x.get('operator')!r} is not one of {', '.join(SEAT_OPERATORS)}")
+        out[sid] = {"type": kind, "operator": SEAT_OPERATORS.get(op, "")}
+    return out, probs
+
+
+def longest_wait_chain(tickets: list[dict]) -> list[str]:
+    """The longest Depends On chain (body item 3, the cheap half of "staff N"): the tickets that must merge one
+    after another however many seats there are - the backlog's shortest possible duration in tickets."""
+    deps = {t["id"]: [d for d in t.get("depends") or [] if d] for t in tickets}
+    memo: dict[str, list[str]] = {}
+
+    def chain(tid: str, seen: frozenset) -> list[str]:
+        if tid in memo:
+            return memo[tid]
+        best: list[str] = []
+        for d in deps.get(tid, []):
+            if d in deps and d not in seen:  # a cycle is refused by `set` (T16); never loop on one here
+                c = chain(d, seen | {d})
+                best = c if len(c) > len(best) else best
+        memo[tid] = best + [tid]
+        return memo[tid]
+
+    return max((chain(t, frozenset({t})) for t in deps), key=len, default=[])
+
+
+def seat_load_lines(tickets: list[dict], lane_of: dict[str, str], seat: dict[str, str],
+                    roster: dict[str, dict[str, str]]) -> list[str]:
+    """ body items 2, 3 and the owner's 2026-10-04 note: how many tickets each seat carries, the PRs a person
+    reviews for agent seats, and the longest chain of waits - so an uneven split or an idle seat shows before day 1."""
+    seats = list(roster) or sorted(set(seat.values()))
+    count = {s: sum(1 for t in tickets if seat.get(lane_of.get(t["id"], "")) == s) for s in seats}
+    out = ["", "## Seat load", "", "| Seat | Operator | Tickets | Lanes |", "|---|---|---|---|"]
+    for s in seats:
+        out.append(f"| {s} | {(roster.get(s) or {}).get('operator') or 'not recorded'} | {count[s]} | "
+                   f"{', '.join(ln for ln, x in seat.items() if x == s) or '-'} |")
+    reviewed = [s for s in seats if (roster.get(s) or {}).get("operator", "").startswith("agent")]
+    if reviewed:
+        out += ["", f"PRs a person reviews for agent seats: {sum(count[s] for s in reviewed)} ("
+                + ", ".join(f"{s} {count[s]}" for s in reviewed) + ") - one person operating them all reviews every one."]
+    chain = longest_wait_chain(tickets)
+    if len(chain) > 1:
+        out += ["", f"Longest chain of waits: {len(chain)} tickets, one after another however many seats there are - "
+                + " → ".join(f"`{t}`" for t in chain) + "."]
+    return out
+
+
+def seat_load_warnings(plan_md: str) -> list[str]:
+    """A seat with no ticket, or seats far apart in load, from TICKETS.md's ## Seat load table (a warning: the user
+    chose the seats and lanes; moving a lane is theirs)."""
+    sec = re.search(r"(?ims)^## Seat load\s*$(.*?)(?=^## |\Z)", plan_md)
+    rows = []
+    for row in re.findall(r"(?m)^\|(.+)\|\s*$", sec.group(1) if sec else ""):
+        cells = [c.strip() for c in row.split("|")]
+        if len(cells) >= 3 and cells[2].isdigit():
+            rows.append((cells[0], int(cells[2])))
+    warns = [f"seat {s} has no ticket: it is idle from day 1 - give it a lane (move one from the busiest seat) or "
+             f"drop the seat" for s, n in rows if n == 0]
+    busy = [n for _, n in rows if n]
+    if len(busy) > 1 and max(busy) >= 2 * min(busy) and max(busy) - min(busy) >= 3:
+        hi = max(rows, key=lambda r: r[1])
+        lo = min((r for r in rows if r[1]), key=lambda r: r[1])
+        warns.append(f"seat {hi[0]} carries {hi[1]} tickets, seat {lo[0]} {lo[1]}: move a lane from {hi[0]} to "
+                     f"{lo[0]} so the seats finish together")
+    return warns
+
+
+def render_tickets_md(product: str, fields: dict, tickets: list[dict], epics: dict, titles: dict[str, str],
+                      plan_ms: list[str]) -> str:
+    lanes = fields.get("lanes") or {}
+    mss = fields.get("milestones") or {}
+    lane_of = {t["id"]: epics.get(t["epic"], {}).get("lane", "") for t in tickets}
+    out = [f"# Tickets — {product}", "",
+           f"> The plan: epics, lanes, and who starts what. Status lives on GitHub, on the *{product} — Delivery "
+           f"Board*, and never in this file.", ""]
+    for ms in plan_ms:
+        out.append(f"## {ms} — {titles.get(ms, ms)}")
+        out.append("")
+        mine = [e for e in epics.values() if e["id"].split("-")[0] == ms]
+        info = mss.get(ms) or {}
+        if not mine:
+            out += [f"{ms}: no tickets - {info.get('skip') or 'not decided yet'}", ""]
+            continue
+        out += [f"Strategy: {info.get('strategy', 'vertical')}.", "",
+                "| Epic | Lane | Owner | Tickets in build order |", "|---|---|---|---|"]
+        for e in mine:
+            ts = " · ".join(f"`{t['id']}` {t['title']}" for t in tickets if t["epic"] == e["id"])
+            out.append(f"| `{e['id']}` {e.get('name', '')} | {e.get('lane', '')} | "
+                       f"{lanes.get(e.get('lane', ''), {}).get('owner', 'Senior')} | {ts} |")
+        out += [f"\n{c}: no ticket - {why}" for c, why in (info.get("uncovered") or {}).items()]
+        out.append("")
+    used = list(dict.fromkeys(e.get("lane", "") for e in epics.values() if e.get("lane")))
+    seat = {ln: (lanes.get(ln) or {}).get("seat", "SR1") for ln in used}
+    roster = seat_roster(fields)[0]
+    out += ["## Lanes", "", "| Lane | Owner | Seat | Seat type | Operator | Epics | Runs alongside |",
+            "|---|---|---|---|---|---|---|"]
+    for ln in used:
+        side = [x for x in used if seat[x] != seat[ln]]
+        who = roster.get(seat[ln]) or {"type": {"SR": "senior", "JR": "junior"}.get(seat[ln][:2], ""), "operator": ""}
+        out.append(f"| {ln} | {(lanes.get(ln) or {}).get('owner', 'Senior')} | {seat[ln]} | {who['type'] or '-'} | "
+                   f"{who['operator'] or 'not recorded'} | "
+                   + ", ".join(f"`{e['id']}`" for e in epics.values() if e.get("lane") == ln)
+                   + f" | {', '.join(side) or '-'} |")
+    out += seat_load_lines(tickets, lane_of, seat, roster)
+    points, arrows = [], []
+    for t in tickets:
+        for kind, key in (("waits for", "depends"), ("builds against", "builds")):
+            for d in t.get(key) or []:
+                if d in lane_of and lane_of[d] != lane_of[t["id"]]:
+                    tail = " to merge" if kind == "waits for" else ""
+                    points.append(f"- `{t['id']}` ({lane_of[t['id']]}) {kind} `{d}` ({lane_of[d]}){tail}.")
+                    arrow = "-->" if kind == "waits for" else "-.->"
+                    arrows.append(f"  lane_{lane_of[d]} {arrow}|\"{t['id']} {kind} {d}\"| lane_{lane_of[t['id']]}")
+    out += ["", "## Coordination points", "", *(points or ["None - no ticket needs another lane's work."]), "",
+            "## Hub files", ""]
+    out += [f"- `{f}` — {why}" for f, why in (fields.get("hubs") or {}).items()] or ["None."]
+    out += ["", "## Flow graph", "", "```mermaid", "flowchart LR",
+            *(f"  lane_{ln}[\"{ln} · {(lanes.get(ln) or {}).get('owner', 'Senior')}\"]" for ln in used),
+            *arrows, "```", "",
+            "Solid arrow: wait for the merge. Dotted arrow: build against the contract — a stub is enough to start.",
+            "", "## Day 1 — who starts what", "", "| Seat | Lane | Starts | Why it does not wait |", "|---|---|---|---|"]
+    first = next((ms for ms in plan_ms if any(t["id"].startswith(ms + "-") for t in tickets)), "")
+    for s in list(roster) or sorted(set(seat.values())):
+        pick = next((t for t in tickets if t["id"].startswith(first + "-") and seat.get(lane_of[t["id"]]) == s
+                     and not t.get("depends")), None)
+        if pick:
+            why = ("builds against " + ", ".join(f"`{b}`" for b in pick["builds"]) + " with a stub"
+                   if pick.get("builds") else "depends on nothing")
+            out.append(f"| {s} | {lane_of[pick['id']]} | `{pick['id']}` {pick['title']} | {why} |")
+        else:
+            out.append(f"| {s} | - | nothing startable in {first} | every ticket in its lanes waits for a merge |")
+    agents = [s for s, who in roster.items() if who.get("operator", "").startswith("agent")]
+    out += ["", "When a seat frees up, it takes the next startable ticket on the board, its own lanes first.", "",
+            *([f"Agent seats ({', '.join(agents)}): each works in its own folder and branch, so two seats never share "
+               f"a working copy - `git worktree add ../<this folder>-<seat> -b <the ticket's branch>` (one per seat). "
+               # 2.4 review: git holds neither .env nor a project-scope install, so a new worktree has neither
+               f"Then copy `.env` into it, and the playbook's install folders this project has (`.claude/`, "
+               f"`.agents/`, `.cursor/`) - or install the playbook at user scope; then `/build` in that folder; "
+               f"each next ticket of that seat, in the same folder: `git fetch`, then `git switch -c <ticket id>-<short "
+               f"title> origin/main` (no remote: `main`).", ""] if agents else []),
+            "## Handed to later phases", "", *([f"- {x}" for x in _tk_list(fields.get("later"))] or ["None."])]
+    return "\n".join(out).rstrip() + "\n"
+
+
+def render_tickets(base: Path, src: Path, product: str) -> list[str]:
+    """Write docs/issues/<ID>_<slug>.md and TICKETS.md from a fields file. Returns what it wrote; raises Refused on a
+    fields file it cannot render (bad JSON, a ticket whose epic or lane is missing)."""
+    import json as _json
+    try:
+        fields = _json.loads(src.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        raise Refused(f"--from-fields {src}: not readable JSON ({e})")
+    tpl = tool_file("templates", "feature_ticket_template.md")
+    if tpl is None:
+        raise Refused("the ticket template is missing from the playbook install - reinstall the playbook")
+    tpl_body = tpl.read_text(encoding="utf-8").split("\n---\n", 1)[-1]
+    prod = base / "PRODUCT.md"
+    plan = product_sections(prod.read_text(encoding="utf-8")).get("Plan", "") if prod.is_file() else ""
+    titles, crit = milestone_titles(plan), exit_criteria(plan)
+    words = {c: w for v in crit.values() for c, w in v}
+    epics = {eid: {"id": eid, **(e if isinstance(e, dict) else {"name": str(e)})}
+             for eid, e in (fields.get("epics") or {}).items()}
+    lanes, mss = fields.get("lanes") or {}, fields.get("milestones") or {}
+    folder = base / "docs" / "issues"
+    existing: dict[str, list[Path]] = {}
+    for f in sorted(folder.glob("*.md")) if folder.is_dir() else []:
+        if m := TICKET_FILE.match(f.name):
+            existing.setdefault(m.group(1), []).append(f)
+    probs, tickets, written = list(seat_roster(fields)[1]), [], []
+    renders: list[tuple[Path, str, list[Path]]] = []
+    for t in fields.get("tickets") or []:
+        tid = str(t.get("id", ""))
+        if not re.fullmatch(r"M\d+-[A-Z0-9]+-\d+", tid):
+            probs.append(f"ticket id {tid!r} is not M<n>-<EPIC>-<nn>")
+            continue
+        t = {**t, "epic": tid.rsplit("-", 1)[0]}
+        if set(t) <= {"id", "epic"}:  # brownfield: the file that exists is kept, read back for TICKETS.md
+            f = (existing.get(tid) or [None])[0]
+            if f is None:
+                probs.append(f"{tid} is listed by id alone but has no file in docs/issues/")
+                continue
+            x = f.read_text(encoding="utf-8", errors="replace")
+            h = re.search(rf"(?m)^# \[{re.escape(tid)}\]\s*(.+)$", x)
+            sec = lambda w: (re.search(rf"(?ims)^#{{2,3}} [^\n]*{w}[^\n]*$(.*?)(?=^#{{2,3}} |\Z)", x) or [0, ""])[1]  # noqa: E731
+            t.update(title=h.group(1).strip() if h else f.stem.split("_", 1)[-1].replace("-", " "),
+                     depends=re.findall(r"\bM\d+-[A-Z0-9]+-\d+\b", sec("Depends On")),
+                     builds=re.findall(r"\bM\d+-[A-Z0-9]+-\d+\b", sec("Builds Against")))
+            if t["epic"] not in epics:
+                lane = next((ln.strip().strip("`/") for ln in sec("Lane").splitlines() if ln.strip()), "")
+                ename = re.search(r"\[[^\]]+\]\s*(.+)", sec("Epic"))
+                epics[t["epic"]] = {"id": t["epic"], "name": ename.group(1).strip() if ename else t["epic"], "lane": lane}
+            tickets.append(t)
+            continue
+        if t["epic"] not in epics:
+            probs.append(f"{tid}: its epic {t['epic']} is not under \"epics\"")
+            continue
+        lane_name = epics[t["epic"]].get("lane", "")
+        if lane_name not in lanes:
+            probs.append(f"{tid}: lane {lane_name!r} of epic {t['epic']} is not under \"lanes\" (owner and seat)")
+            continue
+        ms = tid.split("-")[0]
+        strategy = t.get("strategy") or (mss.get(ms) or {}).get("strategy", "vertical")
+        text = render_ticket(tpl_body, t, epics[t["epic"]], lanes[lane_name], titles.get(ms, ms), strategy, words)
+        # stable: a ticket whose title did not change keeps the file name it has (an older 40-character cut too)
+        same = [p for p in existing.get(tid, []) if text.split("\n", 1)[0] ==
+                p.read_text(encoding="utf-8", errors="replace").split("\n", 1)[0]]
+        f = same[0] if same else folder / f"{tid}_{_tk_slug(str(t.get('title', '')))}.md"
+        renders.append((f, text, [p for p in existing.get(tid, []) if p != f]))
+        tickets.append(t)
+    if probs:
+        raise Refused("the fields file cannot be rendered - fix it, then run this `set` again:\n  - " + "\n  - ".join(probs))
+    removed = []
+    for f, text, old in renders:  # nothing is written or removed before the whole fields file renders
+        for p in old:  # a renamed title: the file under the old name goes - never two files for one ticket
+            p.unlink()
+            removed.append(p)
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(text, encoding="utf-8", newline="\n")
+        written.append(f.relative_to(base).as_posix())
+    listed = {t["id"] for t in tickets}
+    for tid, paths in existing.items():  # a ticket the fields file no longer lists (its id renamed, or dropped)
+        if tid not in listed:
+            for p in paths:
+                p.unlink()
+                removed.append(p)
+    plan_ms = sorted(set(re.findall(r"\b(M\d+)\b", plan)) | {t["id"].split("-")[0] for t in tickets},
+                     key=lambda x: int(x[1:]))
+    (base / "TICKETS.md").write_text(render_tickets_md(product, fields, tickets, epics, titles, plan_ms),
+                                     encoding="utf-8", newline="\n")
+    return written + ["TICKETS.md"] + [f"removed {p.relative_to(base).as_posix()} (its ticket was renamed or is no "
+                                       f"longer in the fields file; git keeps the old copy)" for p in removed]
+
+
+def provision_tickets(base: Path, today: str) -> list[str]:
+    """What the start used to tell the model to do by hand (a logged run: calls 10-12): copy the two templates that are
+    missing, and draw docs/issues/ in STRUCTURE.md's tree with one dated line under ## Changes."""
+    done = []
+    for src, dst in ((tool_file("templates", "feature_ticket_template.md"), ".github/ISSUE_TEMPLATE/feature_ticket.md"),
+                     (tool_file("templates", "pull_request_template.md"), ".github/PULL_REQUEST_TEMPLATE.md")):
+        if src is not None and not (base / dst).is_file():
+            (base / dst).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(src, base / dst)
+            done.append(dst)
+    smd = base / "STRUCTURE.md"
+    text = smd.read_text(encoding="utf-8") if smd.is_file() else ""
+    if not text or not (base / "docs" / "issues").is_dir() or re.search(r"(?m)^[^\n#]*\bissues/", text):
+        return done
+    lines = text.split("\n")
+    fence, at = False, None
+    for n, ln in enumerate(lines):
+        if ln.lstrip().startswith("```"):
+            fence = not fence
+            continue
+        if fence and re.match(r"^[\s|`+\-│├└─]*features/", ln):
+            at = n
+            break
+    if at is None:
+        return done
+    prefix = re.match(r"^[\s|`+\-│├└─]*", lines[at]).group(0)
+    lines.insert(at + 1, f"{prefix}issues/  # one file per ticket, written by /tickets")
+    text = "\n".join(lines)
+    line = f"- {today} - docs/issues/ added: one file per ticket, written by /tickets."
+    if re.search(r"(?m)^## Changes\s*$", text):
+        text = re.sub(r"(?ms)(^## Changes\s*$.*?)(?=^## |\Z)", lambda m: m.group(1).rstrip() + "\n" + line + "\n\n",
+                      text, count=1)
+    else:
+        text = text.rstrip() + "\n\n## Changes\n\n" + line + "\n"
+    smd.write_text(text.rstrip() + "\n", encoding="utf-8", newline="\n")
+    return done + ["STRUCTURE.md (docs/issues/ drawn)"]
+
+
+def tickets_warnings(base: Path) -> list[str]:
+    """Item 6: a hub file is a /structure finding only when STRUCTURE.md's ## Hub files does not name it - a one-line
+    registry several lanes touch is normal (a logged run flagged four one-line registries as noise)."""
+    plan_md = (base / "TICKETS.md").read_text(encoding="utf-8") if (base / "TICKETS.md").is_file() else ""
+    smd = (base / "STRUCTURE.md").read_text(encoding="utf-8") if (base / "STRUCTURE.md").is_file() else ""
+    hubs = re.search(r"(?ims)^#{2,3} [^\n]*hub files[^\n]*$(.*?)(?=^#{1,3} |\Z)", plan_md)
+    known = re.search(r"(?ims)^## Hub files\s*$(.*?)(?=^## |\Z)", smd)
+    known_paths = set(re.findall(r"`([^`\s]+)`", known.group(1))) if known else set()
+    missing = [p for p in re.findall(r"(?m)^\s*-\s*`([^`\s]+)`", hubs.group(1) if hubs else "") if p not in known_paths]
+    warns = [f"hub file(s) {', '.join(missing)} are not under STRUCTURE.md ## Hub files: a structure finding for "
+             f"/structure - name it in the close (a hub STRUCTURE.md names is a one-line merge, never a finding)"] \
+        if missing else []
+    return warns + lane_seat_warnings(plan_md) + seat_load_warnings(plan_md) + cross_seat_file_warnings(base, plan_md)
+
+
+def cross_seat_file_warnings(base: Path, plan_md: str) -> list[str]:
+    """ body item 6: two tickets of DIFFERENT milestones on DIFFERENT seats writing one file with no Depends On
+    between them can be open at once (one seat still on M1 while another starts M2) - a merge conflict waiting. The
+    same milestone is refused by `set` (T17); across milestones it warns: the order is often implied by the plan."""
+    lanes = re.search(r"(?ims)^## Lanes\s*$(.*?)(?=^## |\Z)", plan_md)
+    seat_of = {}
+    for row in re.findall(r"(?m)^\|(.+)\|\s*$", lanes.group(1) if lanes else ""):
+        cells = [c.strip() for c in row.split("|")]
+        if len(cells) >= 3 and cells[0].lower() != "lane" and not set(cells[0]) <= set("-: "):
+            seat_of[cells[0].strip("`/")] = cells[2]
+    folder = base / "docs" / "issues"
+    info: dict[str, tuple[str, set[str], list[str]]] = {}
+    for f in sorted(folder.glob("*.md")) if folder.is_dir() else []:
+        m = TICKET_FILE.match(f.name)
+        if not m or not m.group(1).startswith("M"):
+            continue
+        secs = ticket_sections(f.read_text(encoding="utf-8", errors="replace"))
+        lane = next((ln.strip().strip("`/") for ln in secs.get("Lane", "").splitlines() if ln.strip()), "")
+        info[m.group(1)] = (seat_of.get(lane, ""), set(re.findall(r"\bM\d+-[A-Z0-9]+-\d+\b", secs.get("Depends On", ""))),
+                            TARGET.findall(secs.get("Target Files", "")))
+
+    def before(t: str) -> set[str]:
+        seen, todo = set(), list(info.get(t, ("", set(), []))[1])
+        while todo:
+            d = todo.pop()
+            if d not in seen:
+                seen.add(d)
+                todo += info.get(d, ("", set(), []))[1]
+        return seen
+
+    hubs = set(re.findall(r"`([^`\s]+)`", (re.search(r"(?ims)^## Hub files\s*$(.*?)(?=^## |\Z)", plan_md) or [0, ""])[1]))
+    writers: dict[str, list[str]] = {}
+    for tid, (_, _, targets) in info.items():
+        for p in dict.fromkeys(targets):
+            if p not in hubs and not p.startswith("docs/features/"):
+                writers.setdefault(p, []).append(tid)
+    pairs = []
+    for p, ts in writers.items():
+        for i, a in enumerate(ts):
+            for b in ts[i + 1:]:
+                sa, sb = info[a][0], info[b][0]
+                if a.split("-")[0] != b.split("-")[0] and sa and sb and sa != sb \
+                        and a not in before(b) and b not in before(a):
+                    pairs.append(f"{a} ({sa}) + {b} ({sb}): {p}")
+    return [f"{len(pairs)} pair(s) of tickets on different seats write one file with no Depends On between them, so "
+            f"both can be open at once: {'; '.join(pairs[:4])} - add the Depends On, or keep both in one seat"] \
+        if pairs else []
+
+
+def lane_seat_warnings(plan_md: str) -> list[str]:
+    """2.3 review: TICKETS.md's Lanes table read back - a seat with no operator (a bare "SR1" in the fields file drops
+    round 1's person/agent answer) and a lane whose owner and seat type disagree (/build would pick one of the two)."""
+    lanes = re.search(r"(?ims)^## Lanes\s*$(.*?)(?=^## |\Z)", plan_md)
+    warns, seen = [], set()
+    for row in re.findall(r"(?m)^\|(.+)\|\s*$", lanes.group(1) if lanes else ""):
+        cells = [c.strip() for c in row.split("|")]
+        if len(cells) < 5 or cells[0].lower() == "lane" or set(cells[0]) <= set("-: "):
+            continue
+        ln, owner, seat, kind, op = cells[:5]
+        if op.lower() == "not recorded" and seat not in seen:
+            seen.add(seat)
+            warns.append(f"seat {seat}: no operator - write round 1's answer: \"person\", \"agent\" or "
+                         f"\"agent+person\"")
+        if owner.lower() in ("senior", "junior") and kind.lower() in ("senior", "junior") \
+                and owner.lower() != kind.lower():
+            warns.append(f"lane {ln}: owner {owner} but seat {seat} is {kind.lower()} - give the lane a "
+                         f"{owner[0].upper()}R seat, or make the owner {kind.capitalize()}")
+    return warns
 
 
 # LEAN: /build's first call prints only what THIS ticket needs. On a logged pair run (same ticket, same commit) the
@@ -8834,16 +13068,41 @@ def build_early() -> dict[str, list[str]]:
     return BUILD_EARLY
 
 
-def build_close_text() -> str:
-    """`rules build --close`: the close's order and rules, printed by gate.py --close when the close gate passes."""
-    return (BUILD_CLOSE_ORDER + "\n\n" + "\n".join(CLOSE_CHECKLIST) + "\n\n"
+def build_close_text(lean: bool = False) -> str:
+    """`rules build --close`: the close's order and rules, printed by gate.py --close when the close gate passes.
+    /build's own close, never the generic phase checklist (`set <phase> filled --section-from`, four
+    blocks) - a logged lean build got that, and it contradicted the lean path's three blocks."""
+    if lean:
+        return BUILD_LEAN_CLOSE
+    own = [l.replace("<phase>", "build") for l in CLOSE_CHECKLIST
+           if not l.startswith(("  1. status.py set", "Read: lines", "An `evidence:` line", "An input gate"))]
+    return (BUILD_CLOSE_ORDER + "\n\n" + "\n".join(own) + "\n\n"
             + rules_text(BUILD_LATE, "Rules for the close, word for word from the rule files:"))
+
+
+BUILD_LOW_RULE = ("LOW findings the reviews left unfixed: ONE grouped issue (gh issue create --title \"<id>: low "
+                  "findings from the review\"), its number in `status.py ticket --low \"#<n>\"`, or --low \"not filed: "
+                  "<why>\"")
+BUILD_LEAN_CLOSE = (
+    "The close (lean path), in this order, each once - nothing else:\n"
+    "  (1) this close gate - done; never re-run it to be safe (`ticket --dry-run` names a file changed since)\n"
+    "  (2) commit the feature doc\n"
+    "  (3) `status.py ticket <id> --dod yes|partial --verified \"<command> -> <result>\" --doc "
+    "docs/features/<feature>.md --review \"<round scopes>\"` - say every line it prints; it moves the board card to "
+    "In Review and reads it back. " + BUILD_LOW_RULE + "\n"
+    "  (4) `status.py set build filled` - it saves the record; never a save question\n"
+    "  (5) three short blocks: What just happened (what the reviews caught, in plain words) · What I did not check · "
+    "What YOU do next, ending \"Saved (commit <hash>). Change anything?\"")
+BUILD_LEAN_NEXT = ("Next: `status.py set build filled` (it saves the record - never a save question), then three short "
+                   "blocks: What just happened · What I did not check · What YOU do next, ending \"Saved (commit "
+                   "<hash>). Change anything?\"")
 
 
 BUILD_CLOSE_ORDER = ("The close, in this order, each once: (1) this close gate - done; (2) Step 3c's contradiction "
                      "check; (3) the feature doc in ONE write - the review table, this gate's numbers, Step 3c's "
-                     "result, each changed file the ticket did not name with why; (4) commit it; (5) `status.py ticket`; "
-                     "(6) `status.py set build filled`, the save question (it commits the record - the code was "
+                     "result, each changed file the ticket did not name with why; (4) commit it; (5) `status.py ticket` "
+                     "(it moves the board card to In Review; LOW findings left unfixed: one grouped issue, --low); "
+                     "(6) `status.py set build filled` (it saves the record unasked - the code was "
                      "committed before review), the transition guard, the four-block close.")
 
 
@@ -9052,6 +13311,172 @@ def module_rules(base: Path, files: list[str]) -> str | None:
             "ask about):\n" + "\n".join(f"  {m} may import: {rows[m]}" for m in mods))
 
 
+# ----  (2.x, the engineering half): area rule files, written by a script from what the phases already decided ----
+# The root agent file (CLAUDE.md / AGENTS.md) rides on every call. A rule that only matters inside one module can live
+# in that module's own file, which a tool loads only when it works in the folder: Claude Code a CLAUDE.md in the folder,
+# Codex a nested AGENTS.md, Cursor a .cursor/rules/<name>.mdc with globs. The content is copied from STRUCTURE.md's
+# ## Modules row, the docs/architecture.md rules (R<n>) that name the folder, #Contracts' project-wide rules for the
+# module that stores data and DESIGN.md's Do's & Don'ts for the UI module - nothing new is decided. Wired (owner
+# 2026-10-09): `set tickets filled` writes them for the tool this install serves, in the same save - /tickets is the
+# last planning phase, so every record they copy exists; /build's start names a file that drifted from its records.
+AREA_MARK = ("<!-- written by status.py area-rules from STRUCTURE.md, docs/architecture.md, #Contracts and DESIGN.md: "
+             "edit those, then run it again -->")
+AREA_MARKS = (AREA_MARK, "<!-- written by status.py area-rules from STRUCTURE.md and docs/architecture.md")
+AREA_TOOLS = ("claude", "codex", "cursor")
+STORE_AREA = re.compile(r"(?i)\b(?:store|stores|storage|database|db|persist\w*|repositor\w*|migrations?|tables?|"
+                        r"schemas?|models?|data access)\b")
+UI_AREA = re.compile(r"(?i)\b(?:ui|web|frontend|front-end|screens?|pages?|components?|views?|templates?|styles?|css)\b")
+
+
+def area_contract_rules(base: Path) -> list[str]:
+    """#Contracts' project-wide rules (units, scale, format, versioning, PII, tenant key, idempotency) - the lines
+    /build's start prints for every ticket, here kept beside the code that stores data."""
+    prod = base / "PRODUCT.md"
+    contracts = product_sections(prod.read_text(encoding="utf-8", errors="replace")).get("Contracts", "") \
+        if prod.is_file() else ""
+    return [ln.strip() for ln in contracts.splitlines()
+            if re.match(r"(?i)- \*\*[^*]*(unit|scale|format|version|pii|tenant|idempot|migration)", ln.strip())
+            and "evidence:" not in ln][:12]
+
+
+def area_design_rules(base: Path) -> list[str]:
+    """DESIGN.md's Do's & Don'ts lines (at most 12) for the UI module."""
+    f = base / "DESIGN.md"
+    m = re.search(r"(?ims)^##\s+(?:\d+\.\s+)?Do'?s\b[^\n]*$(.*?)(?=^##\s|\Z)",
+                  f.read_text(encoding="utf-8", errors="replace")) if f.is_file() else None
+    return [ln.strip() for ln in (m.group(1) if m else "").splitlines()
+            if re.match(r"\s*[-*|]", ln) and not re.match(r"^\|[\s:|-]+\|?\s*$", ln.strip())][:12]
+
+
+def _md_table(text: str, heading: str) -> list[list[str]]:
+    """The rows (header first) of the table under `## <heading>` (a numbered heading too: `## 3. Modules`)."""
+    body = re.search(rf"(?ims)^#{{2,3}}\s+(?:\d+(?:\.\d+)*\.?\s+)?{re.escape(heading)}\s*$(.*?)(?=^#{{1,3}}\s|\Z)", text)
+    return [[c.strip() for c in ln.strip().strip("|").split("|")] for ln in (body.group(1) if body else "").splitlines()
+            if ln.strip().startswith("|") and not re.match(r"^\|[\s:|-]+\|?\s*$", ln.strip())]
+
+
+def area_rules(base: Path) -> dict[str, str]:
+    """{module folder: the body of its rule file}: the module's ## Modules row of STRUCTURE.md (every column, under
+    its own header) and the docs/architecture.md rules (R<n> rows) whose cells name the folder."""
+    smd = base / "STRUCTURE.md"
+    if not smd.is_file():
+        return {}
+    arch = base / "docs" / "architecture.md"
+    rules = []
+    for ln in (arch.read_text(encoding="utf-8", errors="replace").splitlines() if arch.is_file() else []):
+        cells = [c.strip() for c in ln.strip().strip("|").split("|")] if ln.strip().startswith("|") else []
+        if len(cells) >= 2 and re.fullmatch(r"R\d+", cells[0]):
+            named = [p.strip("/") for p in re.findall(r"`([^`\s]+)`", " ".join(cells))]
+            rules.append((cells[0], cells[1], [p for p in named if p]))
+    table = _md_table(smd.read_text(encoding="utf-8", errors="replace"), "Modules")
+    out = {}
+    data_rules, ui_rules = area_contract_rules(base), area_design_rules(base)
+    for row in table[1:]:
+        path = next(iter(re.findall(r"`([^`\s]+)`", row[0])), "").strip("/")
+        if not path or path.startswith("<"):
+            continue
+        lines = [AREA_MARK, f"# Rules for `{path}/`", ""]
+        lines += [f"- **{h}:** {v}" for h, v in zip(table[0][1:], row[1:]) if v.strip() not in ("", "-")]
+        lines.append("- A new dependency, or a file that belongs to another module, is a design change: ask before "
+                     "making it (STRUCTURE.md).")
+        mine = [(rid, text) for rid, text, paths in rules
+                if any(p == path or p.startswith(path + "/") or path.endswith("/" + p) for p in paths)]
+        if mine:
+            lines += ["", "Rules from docs/architecture.md that guard this folder:"]
+            lines += [f"- **{rid}:** {text}" for rid, text in mine]
+        about = " ".join([path.replace("/", " ").replace("_", " "), *row])
+        if data_rules and STORE_AREA.search(about):
+            lines += ["", "Rules from #Contracts for the data this folder stores (PRODUCT.md #Contracts):", *data_rules]
+        if (base / "DESIGN.md").is_file() and UI_AREA.search(about):
+            lines += ["", "Screens and components here follow DESIGN.md: its tokens only (never a raw colour, size or "
+                          "font), its components first; /frontend-audit checks them.", *ui_rules]
+        out[path] = "\n".join(lines) + "\n"
+    return out
+
+
+def tickets_area_rules(base: Path, dry: bool) -> str:
+    """, wired: `set tickets filled` writes the area rule files for the tool this install serves (one call, no
+    question, saved with the backlog). Antigravity has no confirmed route for a folder's own rules: its rules stay in
+    the root agent file, said in one line."""
+    tool = playbook_tool()
+    if tool not in AREA_TOOLS:
+        return (f"\n  area rule files: none on {tool.capitalize()} - each folder's rules stay in the root agent file "
+                f"(no per-folder rule file is confirmed for this tool)")
+    code, text = area_rules_cmd(base, [tool], write=not dry, check=False)
+    lines = text.splitlines()
+    if len(lines) < 2:
+        return ""
+    done = [ln.strip() for ln in lines[1:]]
+    return (f"\n  area rule files ({tool}, one per module - your tool loads one only when work touches its folder): "
+            + "; ".join(done[:6]) + (f" ... (+{len(done) - 6})" if len(done) > 6 else ""))
+
+
+def area_drift_line(base: Path, files: list[str]) -> str:
+    """/build's start: the area rule files of the ticket's folders - named for a tool that loads none by itself
+    (Codex reads a nested AGENTS.md only below its working folder), and a file that no longer matches its records."""
+    tool = playbook_tool()
+    if tool not in AREA_TOOLS:
+        return ""
+    areas = area_rules(base)
+    if not any((base / area_file(p, tool)).is_file() for p in areas):
+        return ""
+    mine = [p for p in areas if any(f == p or f.startswith(p + "/") for f in files)]
+    out = []
+    if tool == "codex" and mine:
+        out.append("Area rules for this ticket's folders (open each once, before the first edit): "
+                   + ", ".join(area_file(p, tool) for p in mine))
+    code, text = area_rules_cmd(base, [tool], write=False, check=True)
+    stale = [ln.split()[1].rstrip(":") for ln in text.splitlines()[1:] if ln.strip().startswith(("drift", "missing"))]
+    if stale:
+        out.append(f"! area rule file(s) no longer match STRUCTURE.md / docs/architecture.md / #Contracts / DESIGN.md: "
+                   f"{', '.join(stale[:5])} - say so in the close; /ship's `land.py after` rewrites them on the base "
+                   f"branch once a merge moved the records (never on this ticket's branch)")
+    return "\n".join(out)
+
+
+def area_file(path: str, tool: str) -> str:
+    return {"claude": f"{path}/CLAUDE.md", "codex": f"{path}/AGENTS.md",
+            "cursor": f".cursor/rules/{path.replace('/', '-')}.mdc"}[tool]
+
+
+def area_text(path: str, body: str, tool: str) -> str:
+    if tool != "cursor":
+        return body
+    return f"---\ndescription: Rules for {path}/\nglobs: {path}/**\nalwaysApply: false\n---\n" + body
+
+
+def area_rules_cmd(base: Path, tools: list[str], write: bool, check: bool) -> tuple[int, str]:
+    """Print (default), write (--write) or compare (--check) each module's rule file for each tool. Never overwrites a
+    file it did not write (no AREA_MARK); --check exits 1 when a written file no longer matches the records."""
+    areas = area_rules(base)
+    if not areas:
+        return 0, "area-rules: STRUCTURE.md has no ## Modules row with a path - nothing to write"
+    lines, drift = [], 0
+    for tool in tools:
+        for path, body in areas.items():
+            rel, want = area_file(path, tool), area_text(path, body, tool)
+            f = base / rel
+            have = f.read_text(encoding="utf-8", errors="replace").replace("\r\n", "\n") if f.is_file() else None
+            if have is not None and not any(m in have for m in AREA_MARKS):
+                lines.append(f"  skip {rel}: a file this script did not write is there - left as it is")
+                continue
+            if check:
+                state = "missing" if have is None else "ok" if have == want else "drift"
+                drift += state != "ok"
+                lines.append(f"  {state} {rel}" + (f": does not match STRUCTURE.md / docs/architecture.md - run "
+                                                    f"`status.py area-rules --write --tool {tool}`"
+                                                    if state != "ok" else ""))
+            elif write:
+                f.parent.mkdir(parents=True, exist_ok=True)
+                f.write_text(want, encoding="utf-8", newline="\n")
+                lines.append(f"  wrote {rel} ({len(want)} characters)")
+            else:
+                lines.append(f"  would write {rel} ({len(want)} characters)")
+    head = f"area-rules ({', '.join(tools)}): {len(areas)} module(s)" + (
+        " - nothing written; --write writes them" if not write and not check else "")
+    return (1 if drift else 0), "\n".join([head, *lines])
+
+
 TICKET_CMD = re.compile(r"status\.py[\"']?\s+ticket\s+([A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+)")
 
 
@@ -9076,7 +13501,210 @@ def this_conversation(base: Path) -> str:
         return ""
 
 
-def build_start_text(st: Status, tid: str, today: str, lean: bool = False) -> str:
+def board_module():
+    """tools/board.py - the one card mover /build and /ship's land.py share - imported from wherever this install
+    keeps it (beside this script on every route); None when it is not shipped."""
+    f = tool_file("board.py")
+    if f is None:
+        return None
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("playbook_board", f)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def board_line(base: Path, tid: str, status: str, seat: str | None = None) -> str:
+    """the ticket's card moved and read back, or ONE line saying why not - never a claim without it."""
+    mod = board_module()
+    if mod is None:
+        return f"Board: not moved - board.py is not installed; move {tid}'s card to {status} by hand"
+    try:
+        return mod.move(tid, status, seat, base=str(base))
+    except Exception as e:  # a board problem is a line in the output, never a failed start or record
+        return f"Board: not moved - {type(e).__name__}: {str(e)[:120]}; move {tid}'s card to {status} by hand"
+
+
+def per_edit_commands(base: Path, files: list[str]) -> str:
+    """the exact checks to run while coding, from the project's own tools - a logged lean build ran the
+    project's format and lint checks 3-4 times unasked (~396K tokens) because the start only said "lint"."""
+    cfg = "\n".join((base / n).read_text(encoding="utf-8", errors="replace") for n in
+                    ("pyproject.toml", "justfile", "Justfile", "Makefile", "package.json", ".pre-commit-config.yaml",
+                     "setup.cfg", "ruff.toml") if (base / n).is_file())
+    py = [f for f in files if f.endswith(".py")]
+    js = [f for f in files if Path(f).suffix in {".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".vue", ".svelte"}]
+    lines = []
+    if py or ((base / "pyproject.toml").is_file() and not js):
+        x = "uv run " if (base / "uv.lock").is_file() else "poetry run " if (base / "poetry.lock").is_file() else ""
+        tests = [f for f in py if is_test(f)]
+        lines.append(f"tests: {x}pytest -q {' '.join(tests) or '<the test files that import a module you changed>'}"
+                     f"  (still failing: the same command with --lf)")
+        names = " ".join(py) or "<the .py files you changed>"
+        if re.search(r"\bruff\b", cfg):
+            lines.append(f"format + lint, ONCE, just before the commit: {x}ruff format {names} · {x}ruff check --fix "
+                         f"{names}")
+        elif re.search(r"\bblack\b|\bflake8\b", cfg):
+            tool = "black" if re.search(r"\bblack\b", cfg) else "flake8"
+            lines.append(f"format/lint, ONCE, just before the commit: {x}{tool} {names}")
+    if js:
+        x = "pnpm exec " if (base / "pnpm-lock.yaml").is_file() else "yarn " if (base / "yarn.lock").is_file() \
+            else "npx "
+        tests = [f for f in js if is_test(f)]
+        runner = "vitest run" if "vitest" in cfg else "jest" if "jest" in cfg else ""
+        if runner:
+            lines.append(f"tests: {x}{runner} {' '.join(tests) or '<the test files that import what you changed>'}")
+        fix = [f"{x}eslint --fix {' '.join(js)}"] * bool(re.search(r"\beslint\b", cfg)) \
+            + [f"{x}prettier --write {' '.join(js)}"] * bool(re.search(r"\bprettier\b", cfg))
+        if fix:
+            lines.append("format + lint, ONCE, just before the commit: " + " · ".join(fix))
+    if not lines:
+        return ""
+    return ("Per edit - the ONLY checks while coding (never the gate, the full suite, or a project-wide format or "
+            "lint: the close gate runs those once; a commit hook that formats counts as the format):\n  "
+            + "\n  ".join(lines))
+
+
+def tickets_md_table(base: Path, heading: str) -> list[dict[str, str]]:
+    """The rows of TICKETS.md's table under `## <heading>...`, keyed by the header cells (lower-case)."""
+    f = base / "TICKETS.md"
+    if not f.is_file():
+        return []
+    body = re.search(rf"(?ims)^##\s+{re.escape(heading)}[^\n]*\n(.*?)(?=^##\s|\Z)", f.read_text(encoding="utf-8"))
+    rows = [[c.strip() for c in l.strip().strip("|").split("|")] for l in (body.group(1) if body else "").splitlines()
+            if l.strip().startswith("|") and not re.match(r"^\|[\s:|-]+\|?\s*$", l.strip())]
+    if not rows:
+        return []
+    head = [h.lower() for h in rows[0]]
+    return [dict(zip(head, r)) for r in rows[1:]]
+
+
+def ticket_lanes(base: Path) -> dict[str, str]:
+    """Each planned ticket's lane, from the milestone tables of TICKETS.md (Epic · Lane · Owner · Tickets)."""
+    out: dict[str, str] = {}
+    f = base / "TICKETS.md"
+    if not f.is_file():
+        return out
+    head: list[str] = []
+    for line in f.read_text(encoding="utf-8").splitlines():
+        if not line.strip().startswith("|"):
+            head = []
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if not head:
+            head = [c.lower() for c in cells]
+        elif "lane" in head and not re.match(r"^[\s:-]*$", "".join(cells)):
+            lane = cells[head.index("lane")] if head.index("lane") < len(cells) else ""
+            for t in TICKET_ID.findall(line):
+                out.setdefault(t, lane.strip("` "))
+    return out
+
+
+DEPENDS_ID = re.compile(r"\b[A-Z][A-Z0-9]*-[A-Z0-9]+-\d+\b")
+
+
+def pick_build_ticket(st: Status, seat: str | None = None) -> tuple[str | None, str]:
+    """`/build` with no ticket id. The seat's Day-1 ticket while nothing is built, else the next ticket of
+    the current milestone, in the seat's lanes, whose Depends On are all built and in this checkout, and whose board
+    card (when the board can be read) is still Todo. A logged run read TICKETS.md itself to choose (2 calls)."""
+    base = st.base
+    plan = milestone_plan(base) if base else None
+    if not plan:
+        return None, "no TICKETS.md - name the ticket: /build <ticket id>"
+    rows = {r[0]: r for r in st.rows["Tickets"]}
+    lanes = ticket_lanes(base)
+    mine = {r.get("lane", "").strip("` ") for r in tickets_md_table(base, "Lanes")
+            if seat and r.get("seat", "").strip("` ") == seat}
+    day1 = next((t for r in tickets_md_table(base, "Day 1") if seat and r.get("seat", "").strip("` ") == seat
+                 for t in TICKET_ID.findall(" ".join(r.values()))), None)
+    mod = None if os.environ.get("PLAYBOOK_BOARD", "").lower() == "off" else board_module()
+    repo = mod.repo_of(str(base)) if mod else None
+    for ms, ids in plan.items():
+        todo = [t for t in ids if t not in rows]
+        if not todo:
+            continue
+        if seat and mine:
+            others = [t for t in todo if lanes.get(t) not in mine]
+            todo = [t for t in todo if lanes.get(t) in mine]
+        else:
+            others = []
+        if day1 in todo:
+            todo.remove(day1)
+            todo.insert(0, day1)
+        skipped, asked = [], 0
+        for t in todo:
+            tf = find_ticket(base, t)
+            deps = DEPENDS_ID.findall(ticket_sections(tf.read_text(encoding="utf-8", errors="replace"))
+                                      .get("Depends On", "")) if tf else []
+            waiting = [x for x in deps if x != t and not (x in rows and in_checkout(base, rows[x]))]
+            if tf is None:
+                skipped.append(f"{t} (no ticket file)")
+                continue
+            if waiting:
+                skipped.append(f"{t} (waits for {', '.join(waiting)} to merge)")
+                continue
+            if repo and asked < 5:  # the board says who has it: a card past Todo is someone else's
+                asked += 1
+                try:
+                    _, card = mod.find_card(t, repo)
+                    taken = mod.value(card, "statusValue") if card else ""
+                except Exception:
+                    taken, repo = "", None  # the board cannot be read: decide from the files alone
+                if taken.lower() in ("in progress", "in review", "done"):
+                    skipped.append(f"{t} (board: {taken})")
+                    continue
+            why = (f"{seat}'s Day-1 ticket" if t == day1 and not rows else
+                   f"the next {ms} ticket{' in ' + seat + chr(39) + 's lanes' if seat and mine else ''} with nothing "
+                   f"to wait for")
+            return t, (f"No ticket named: picked {t} - {why}"
+                       + (f"; passed over: {'; '.join(skipped[:6])}" if skipped else "")
+                       + ("" if seat else " (no seat named: add --seat <SR1> to pick from your own lanes)"))
+        free = [t for t in others if find_ticket(base, t)]
+        return None, (f"No ticket named, and nothing startable{' in ' + seat + chr(39) + 's lanes' if seat else ''} "
+                      f"in {ms}: {'; '.join(skipped[:8]) or 'every ticket is taken'}"
+                      + (f". Other lanes' tickets ({', '.join(free[:5])}) are another seat's - ask the user"
+                         if free else "") + ". Name one: /build <ticket id>")
+    return None, "every planned ticket is built - run /ship for an unshipped one, or /dev-check"
+
+
+#  (owner 2026-10-09: in this batch, cheap): an independent reviewer for /build - a helper with a fresh
+# context, which did not write the code. One start line per tool, one helper call at step 4, no extra owner turn. A
+# logged Gemini build reviewed its own diff in its own conversation and missed two bugs a separate review found.
+REVIEWER_ROUTE = {
+    "claude": "the Agent tool with run_in_background: true: the agent whose name ends `build-reviewer` (a general-purpose "
+              "one told to read and follow the brief, when that name is not listed)",
+    "cursor": "a Task sub-agent: `build-reviewer` from .cursor/agents/ (or one told to read and follow the brief)",
+    "antigravity": "`invoke_subagent` - ONLY if it is in your tool list: the subagent `build-reviewer` from "
+                   ".agents/agents/ (or one told to read and follow the brief)",
+    "codex": "spawn_agent - this skill explicitly asks you to spawn ONE reviewer agent, told to read and follow the "
+             "brief; then ONE `wait_agent` call",
+}
+
+
+def reviewer_line(base: Path, tid: str, branch: str, security: bool) -> str:
+    """The lean start's reviewer: who reviews, with what, and the fallback for a tool with no helper agent (a review
+    of your own code is recorded as `self-review` and never signs off security)."""
+    tool = playbook_tool()
+    brief = tool_file("agents", "build-reviewer.md")
+    rules = tool_file("build", "references", "review-stretch.md")
+    which = ("security" if tool == "claude" else "code and security") if security else "code"
+    given = (f"given: ticket {tid}, folder {base.resolve().as_posix()}, branch {branch}, range `git merge-base HEAD "
+             f"{default_branch(base)}`...HEAD, the DoD lines, the review `{which}`, rules "
+             f"{rules.as_posix() if rules else 'commands/build/references/review-stretch.md'} §In the helper")
+    if tool == "claude" and not security:
+        return ("Reviewer: `/code-review` (it starts its own reviewer with a fresh context) - no helper needed; record "
+                "`--review \"code review R1 <n> findings ...\"`")
+    head = (f"Reviewer (a fresh context that did not write the code; step 4, once): start {REVIEWER_ROUTE[tool]}, "
+            f"brief `{brief.as_posix() if brief else 'agents/build-reviewer.md'}`, {given}. It reports and never edits; "
+            f"you fix, commit and write ## Review from its table. Record its route: `helper agent`.")
+    if tool == "claude":
+        head += " Run `/code-review` yourself meanwhile."
+    fallback = (" No such tool in your list: review the diff yourself against the brief, record `self-review` - a "
+                "self-review never signs off security: `status.py ticket` prints the question that sends the security "
+                "review to another tool." if tool in ("antigravity", "cursor", "codex") else "")
+    return head + fallback
+
+
+def build_start_text(st: Status, tid: str, today: str, lean: bool = False, seat: str | None = None) -> str:
     base = st.base
     tf = find_ticket(base, tid)
     if tf is None:
@@ -9094,6 +13722,12 @@ def build_start_text(st: Status, tid: str, today: str, lean: bool = False) -> st
     pre = env_precheck(base)
     if pre:
         parts.insert(0, pre)
+    if not lean:  # the full path lives in its own file, so a lean run never loads it
+        full = tool_file("build", "references", "full.md")
+        parts.insert(0, f"Mode: full - open {full.as_posix() if full else 'commands/build/references/full.md'} now, "
+                        f"whole, and follow it: it is the run (SKILL.md's lean path is not)")
+    # the card moves when the work starts, read back - the board's live seat
+    parts.append(board_line(base, tid, "In Progress", seat))
     plan = base / "TICKETS.md"
     if plan.is_file() and tid not in plan.read_text(encoding="utf-8", errors="replace"):
         parts.append(f"! {tid} is not in TICKETS.md - confirm with the user that it is in scope before building")
@@ -9107,6 +13741,9 @@ def build_start_text(st: Status, tid: str, today: str, lean: bool = False) -> st
     mr = module_rules(base, TARGET.findall(secs.get("Target Files", "")))
     if mr:
         parts.append(mr)
+    ad = area_drift_line(base, TARGET.findall(secs.get("Target Files", "")))  # 
+    if ad:
+        parts.append(ad)
     locs = contract_locations(base, secs.get("Contract", ""))
     if locs:
         parts.append("Contract names, where each is defined:\n" + "\n".join(locs))
@@ -9158,6 +13795,7 @@ def build_start_text(st: Status, tid: str, today: str, lean: bool = False) -> st
         tools = [t for t in tools if t[0] != "wire cuts"]
     parts.append("Commands (one call each; every path is absolute):\n" + "\n".join(
         f"  {name}: python \"{p.as_posix()}\" {args}" for name, p, args in tools if p))
+    parts.append(per_edit_commands(base, TARGET.findall(secs.get("Target Files", ""))))
     claims = [] if lean else demo_claims(text)
     if claims:  # DP1-DP3: what `status.py ticket` checks, told before the first line of code
         parts.append("Demo claims - each needs a test that FAILS when you break the code doing it: one wire cut per "
@@ -9166,7 +13804,7 @@ def build_start_text(st: Status, tid: str, today: str, lean: bool = False) -> st
                      + "\n".join(f"  D{i}: {c}" for i, c in enumerate(claims, 1))
                      + "\nA changed file that calls an outside service (HTTP client, vendor SDK) needs a RED cut of "
                        "its own that breaks what it SENDS - a fake that accepts any request passes every test.")
-    touches = sorted({w.lower() for w in SECURITY_TICKET.findall(text)})
+    touches = ticket_security_words(text)
     if touches or OUTSIDE_CALL.search(text):
         parts.append("Real-world reach: before round 1, ask what REAL thing this code could touch by mistake (a real "
                      "shop, account, inbox, payment, user) and guard it with a test; the feature doc carries "
@@ -9183,6 +13821,7 @@ def build_start_text(st: Status, tid: str, today: str, lean: bool = False) -> st
                  "tenant, money, secret, personal data or upload; code you add that touches one needs it after all "
                  "(`ticket` checks the diff): otherwise the code review covers it; say so in --review")
     if lean:
+        parts.append(reviewer_line(base, tid, branch, bool(touches)))
         mark_rules_read(base, "build", today)
         return "\n\n".join(p for p in parts if p)
     review = tool_file("build", "references", "review-stretch.md")
@@ -9389,10 +14028,10 @@ def migrate(text: str, today: str, archive_path: str, tickets_md: bool = False, 
 # filled`, which refuses every countable gap - the tree's and the record's - in one list, on /foundation's own close
 # only (phase_check keeps the older, smaller foundation_gaps, so a project filled under older rules is never blocked).
 FOUNDATION_HEAD = (
-    "This phase closes with ONE call once Step 3b's proofs pass and the user said yes: `status.py set foundation "
+    "This phase closes with ONE call once Step 3b's proofs pass (no save question): `status.py set foundation "
     "filled --section-from <file> --commit \"<one line>\"` (the section in a scratch file outside the repo, never an "
     "edit tool on PRODUCT.md). It checks the record and the tree, names every problem at once, saves through the "
-    "commit hooks and prints the rest of the close: no git call of your own (no `--commit` on a no).",
+    "commit hooks and prints the rest of the close: no git call of your own.",
     "An `evidence:` line: <command> → <result> · <a file in THIS repo that the command checks, never a playbook "
     "script> · <date> - `set` resolves every file and `file::test` it cites. Cite the command you ran.",
     "The same command fails 3 times: stop. Tell the user what fails, what you tried and what you need - never a "
@@ -9419,10 +14058,11 @@ PHASE_CLOSE_RULES["foundation"] = {
                       "Documentation-driven", "Composed skills"],
     "MECHANISMS.md": ["Step 3b", "Step 3c", "Commit the work", "Plain-language close"],
 }
-CLOSE_STEPS["foundation"] = (  # /foundation runs steps 2-3 before its save question: here only after a later fix
-    "(done before the save question; again only if a fix since changed a number) every number this phase introduced "
+CLOSE_CONFLICT["foundation"] = conflict_as_open_item("foundation")
+CLOSE_STEPS["foundation"] = (  # /foundation runs steps 2-3 before its record call: here only after a later fix
+    "(done before the record call; again only if a fix since changed a number) every number this phase introduced "
     "against #Vision and #Architecture: a port, a pinned version, a price the tracer uses",
-    "(done before the save question; again only after a fix) #Architecture (adapters · tool choices · CI approach · "
+    "(done before the record call; again only after a fix) #Architecture (adapters · tool choices · CI approach · "
     "the datastore and its custody, test datastore included) and #Structure's map",
     "the cited files and tests, the hooks, the lockfiles, fallback secrets, the test engine and variable, CI's run and "
     "scans, the placeholder boot proof, the bot and the runbook")
@@ -9649,7 +14289,179 @@ def foundation_close_gaps(base: Path, st: "Status") -> list[str]:
             and not re.search(r"(?i)roll(?:s|ed)? back|rollback", body):
         gaps.append("the test datastore has no variable of its own in .env.example (TEST_DATABASE_URL or the chosen "
                     "datastore's equivalent): sharing the development datastore is not isolation (test-datastore.md)")
-    return gaps + foundation68_gaps(base, st, body, arch, evidence)
+    return gaps + foundation68_gaps(base, st, body, arch, evidence) + own_review_gaps(base, "foundation", body) + \
+        ci_health_gaps(base, evidence)
+
+
+# ---- 2.3: /foundation and /contracts review their OWN code before the save ----------------------------------------
+# A logged /dev-check found 4 MEDIUMs, all in code /foundation and /contracts wrote and no review ever read (/build
+# reviews a ticket's code, nothing reviewed the phases before it): test settings pointing at the development
+# database, a case-sensitive injection delimiter, a model guard accepting any reply, no tenant check on a by-id route.
+# `status.py secreview <phase>` lists only the code this phase changed (since the last phase's save) and prints the
+# helper's prompt with those four classes first; the record's `security review:` line is refused when missing; the
+# save's commit carries `Security-reviewed: /<phase> since <sha>`, so /dev-check counts those files as reviewed.
+OWN_REVIEW_PHASES = ("foundation", "contracts")
+OWN_REVIEW_LINE = re.compile(r"(?im)^\s*(?:[-*]\s*)?`?(?:\*\*)?security review(?:\*\*)?:(?:\*\*)?\s*(.+)$")
+OWN_REVIEW_CHECKS = (
+    "test settings, fixtures or CI that can reach the development or production datastore (the test target must "
+    "differ, and the code must refuse the dev one)",
+    "a marker that wraps untrusted text (a <data> tag, a delimiter) matched case-sensitively, or one the text itself "
+    "can close or forge",
+    "a check on a model's reply that accepts any reply (no schema, an empty or refused answer passing)",
+    "a route or query that reads or changes a record by id without checking the caller's tenant or owner",
+    "a secret with a fallback value, printed, logged or committed; a dev credential usable in production",
+    "input reaching SQL, a shell, a file path or a template unescaped")
+
+
+def phase_start_commit(base: Path) -> str:
+    """The last commit that saved STATUS.md - the earlier phase's save; '' when there is none."""
+    return git(base, "log", "-1", "--format=%H", "--", "STATUS.md")
+
+
+def own_code_files(base: Path) -> list[str]:
+    """The code files this phase added or changed: since the earlier phase's save (committed in between or not) plus
+    the untracked ones - never the playbook's install, docs, lockfiles or a byte-equal copy of a playbook script."""
+    since = phase_start_commit(base)
+    changed = set(git(base, "diff", "--name-only", since).splitlines()) if since else set(
+        git(base, "ls-files").splitlines())
+    changed |= set(git(base, "ls-files", "--others", "--exclude-standard").splitlines())
+    out = []
+    for f in sorted(changed):
+        p = base / f
+        if not p.is_file() or p.stat().st_size == 0 or install_root(f) or f.startswith(("docs/", FRAG_DIR + "/")):
+            continue
+        if not (p.suffix.lower() in REVIEW_CODE or p.name.startswith("Dockerfile")) or p.name in LOCKFILES:
+            continue
+        own = next((tool_file(*parts) for parts in (("templates", p.name), ("frontend-audit", p.name),
+                                                    ("foundation", p.name)) if tool_file(*parts)), None)
+        if own is not None and own.read_bytes().replace(b"\r\n", b"\n") == p.read_bytes().replace(b"\r\n", b"\n"):
+            continue  # the playbook's own script, copied: reviewed where it is made
+        out.append(f)
+    return out
+
+
+def own_review_text(base: Path, phase: str, today: str) -> str:
+    """`status.py secreview <phase>`: what to review and the helper's prompt, word for word."""
+    files = own_code_files(base)
+    if not files:
+        return f"secreview: /{phase} changed no code file - no review needed; write no `security review:` line"
+    d = git_dir(base)
+    listing = (d if d else base) / f"playbook-secreview-{phase}.txt"
+    listing.write_text("\n".join(files) + "\n", encoding="utf-8")
+    checks = "".join(f" ({i}) {c};" for i, c in enumerate(OWN_REVIEW_CHECKS, 1))
+    return "\n".join([
+        f"secreview: /{phase} added or changed {len(files)} code file(s) (since the last phase's save) - review ONLY "
+        f"these, never the whole repo:", *by_folder(files),
+        "Give ONE helper agent exactly this (CAPABILITIES.md §Subagents and parallel work - never `/security-review` "
+        "here: these files are not committed; a tool with no helper: do it yourself, recorded as self-review):",
+        f"> Security review of /{phase}'s own code in the project at {base.resolve().as_posix()}: ONLY the files "
+        f"listed in {listing.as_posix()} (not committed yet - read each file whole; `git diff` cannot show them). "
+        f"Look first for:{checks} then anything else in PRINCIPLES.md §Production safeguards. Change no file. Return "
+        "ONLY a table - severity (HIGH / MEDIUM / LOW) · file:line · what would go wrong for a user - or CLEAN, and "
+        "one line per file saying what you checked.",
+        "Then: fix every HIGH and MEDIUM now (a LOW: fix it or name it in the close), and add this line to the "
+        "record you pass to `set`:",
+        f"- security review: <helper agent | self-review | another tool: <name>> · {len(files)} files · <CLEAN | "
+        f"<n> found, <n> fixed> · {today}",
+        "A self-review is recorded, but /dev-check reviews these files again."])
+
+
+def own_review_gaps(base: Path, phase: str, body: str) -> list[str]:
+    files = own_code_files(base) if git_dir(base) else []
+    if not files:
+        return []
+    m = OWN_REVIEW_LINE.search(re.sub(r"<!--.*?-->", "", body, flags=re.S))
+    if not m:
+        return [f"no `security review:` line - this phase wrote {len(files)} code file(s) and no review has read them "
+                f"(/dev-check later found 4 MEDIUMs in such code): `status.py secreview {phase}` lists them and "
+                f"prints the helper's prompt; fix what it finds, then record its line"]
+    n = re.search(r"(\d+)\s+files?\b", m.group(1))
+    if n and int(n.group(1)) < len(files):
+        return [f"the security review covered {n.group(1)} file(s), but this phase now changes {len(files)} - run "
+                f"`status.py secreview {phase}` again over the new ones and record the line again"]
+    return []
+
+
+def own_review_trailer(base: Path, phase: str) -> str:
+    """The save commit's trailer: which phase's review covers the files changed since which commit."""
+    if phase not in OWN_REVIEW_PHASES:
+        return ""
+    prod = base / "PRODUCT.md"
+    body = product_sections(read_text(prod)).get(PHASE_SECTION.get(phase, ""), "") if prod.is_file() else ""
+    since = phase_start_commit(base)
+    m = OWN_REVIEW_LINE.search(re.sub(r"<!--.*?-->", "", body, flags=re.S))
+    # R3-3: a review of your own code cannot sign off security work - a self-review is recorded but writes no
+    # trailer, so /dev-check reviews these files again
+    if not m or not since or re.search(r"(?i)self-review", m.group(1)):
+        return ""
+    return f"\n\nSecurity-reviewed: /{phase} since {since[:12]}"
+
+
+def phase_reviews(base: Path, files: list[str], seen: set[str]) -> dict[str, list[str]]:
+    """For /dev-check: the files a /foundation or /contracts review covered, unchanged since its save."""
+    out: dict[str, list[str]] = {}
+    log = git(base, "log", "--format=%H%x00%B%x01", "--grep=^Security-reviewed: /", "HEAD")
+    for entry in log.split("\x01"):
+        if "\x00" not in entry:
+            continue
+        sha, msg = entry.strip().split("\x00", 1)
+        m = re.search(r"(?m)^Security-reviewed: /([\w-]+) since ([0-9a-f]{7,40})\s*$", msg)
+        if not m:
+            continue
+        touched = set(git(base, "diff", "--name-only", m.group(2), sha).splitlines())
+        changed = set(git(base, "diff", "--name-only", sha, "HEAD").splitlines())
+        mine = sorted(f for f in files if f in touched and f not in changed and f not in seen)
+        if mine:
+            out[f"/{m.group(1)} review at {sha[:7]}"] = mine
+            seen.update(mine)
+    return out
+
+
+# ---- 2.3 CI health: the workflow's action versions exist, and CI ran once -----------------------------------------
+# A plain run found `astral-sh/setup-uv@v10` (a version that does not exist) had broken CI since /foundation: every
+# push failed at that step, and no local replay could see it (ci_local.py lists a `uses:` step as covered).
+def ci_health_gaps(base: Path, evidence: list[str]) -> list[str]:
+    gaps = []
+    wfs = [f for f in sorted((base / ".github" / "workflows").glob("*.y*ml"))] if (base / ".github").is_dir() else []
+    ci = tool_file("foundation", "ci_local.py")
+    if wfs and ci is not None and os.environ.get("PLAYBOOK_ACTION_CHECK", "on") != "off":
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("ci_local_playbook", ci)
+        mod = importlib.util.module_from_spec(spec)
+        keep, sys.dont_write_bytecode = sys.dont_write_bytecode, True
+        try:
+            spec.loader.exec_module(mod)
+        finally:
+            sys.dont_write_bytecode = keep
+        for wf in wfs:
+            bad, _ = mod.missing_actions(read_text(wf), ACTION_LISTER or mod.remote_refs)
+            if bad:
+                gaps.append(f"{wf.relative_to(base).as_posix()} uses action version(s) that do not exist: "
+                            f"{', '.join(bad)} - CI fails at that step on every push; pin a tag the action has")
+    if wfs and not any(re.search(r"ci_local\.py|\bgh run\b|/actions/runs/", evidence_command(e) + e)
+                       for e in evidence):
+        gaps.append("CI never ran: no evidence line from `ci_local.py` (one replay of the workflow's steps; it also "
+                    "checks each action version exists) or from a CI run on the remote - run it once and record "
+                    "its line")
+    return gaps
+
+
+ACTION_LISTER = None  # tests: a function repo -> its tag/branch names (None = the network)
+CHECKSUM = re.compile(r"(?i)sha256sum|shasum|sha256|checksum|--hash|Get-FileHash|cosign|--verify")
+DOWNLOAD = re.compile(r"(?i)\b(?:curl|wget|Invoke-WebRequest|iwr)\b[^\n]*https?://")
+
+
+def foundation_warnings(base: Path, st: "Status") -> list[str]:
+    """, a warning: a tool the CI downloads by URL with no checksum check (a plain run pinned gitleaks to a
+    version and its SHA-256)."""
+    out = []
+    for wf in sorted((base / ".github" / "workflows").glob("*.y*ml")) if (base / ".github").is_dir() else []:
+        text = read_text(wf)
+        hits = [l.strip() for l in text.splitlines() if DOWNLOAD.search(l)]
+        if hits and not CHECKSUM.search(text):
+            out.append(f"{wf.relative_to(base).as_posix()} downloads a tool by URL with no checksum check "
+                       f"(`{hits[0][:60]}`) - pin the version and verify its SHA-256 (`sha256sum -c`)")
+    return out
 
 
 # next.68 - what the logged 4-tool /foundation round found that the record checks let through (each a refusal below):
@@ -9729,6 +14541,7 @@ def runbook_gaps(base: Path, arch: str) -> list[str]:
     out = []
     keys = re.findall(r"(?m)^\s*([A-Z][A-Z0-9_]*)\s*=", read_text(base / ".env.example"))
     for name, text in runbook_texts(base):
+        out += early_doc_layout_gaps(name, text)  # every heading numbered, like every document a person reads
         if (base / ".env.example").is_file() and ".env.example" not in text:
             out.append(f"{name} never says how .env is made from .env.example: a newcomer's first boot stops at the "
                        f"guard - add the step (copy it, then the values to set and how to make each)")
@@ -9764,8 +14577,8 @@ def type_check_gaps(base: Path, body: str, st: "Status") -> list[str]:
     out = []
     if names & {"pyproject.toml", "setup.py", "setup.cfg"} and not re.search(PY_TYPECHECK, text, re.I):
         out.append("a Python project with no type checker in the hooks or CI (pyright or mypy): add the one "
-                   "#Architecture recorded, or the user's choice from the step-0 card, failing on an error - or "
-                   "record why not: a #Foundation line `no type checker: <the user's reason>`")
+                   "#Architecture recorded, else pyright, failing on an error - or record why not: a #Foundation line "
+                   "`no type checker: <the user's reason>`")
     if "tsconfig.json" in names and not re.search(TS_TYPECHECK, text, re.I):
         out.append("a TypeScript project with no type check in the hooks or CI (`tsc --noEmit`, or vue-tsc / "
                    "svelte-check): add it, failing on an error - or record why not (`no type checker: <reason>`)")
@@ -10056,8 +14869,11 @@ def foundation_facts(st: "Status", base: Path, found: str) -> list[str]:
     secs = product_sections(read_text(base / "PRODUCT.md")) if (base / "PRODUCT.md").is_file() else {}
     arch = secs.get("Architecture", "")
     engines = sorted({m.group(1).lower() for m in DATASTORES.finditer(arch)})
+    pick = (chosen_datastore(arch) or (engines[0] if len(engines) == 1 else "")).lower()
     custody = [" ".join(l.split())[:220] for l in arch.splitlines() if re.search(r"(?i)custody", l)][:1]
-    out.append(f"  - #Architecture's datastore: {', '.join(engines) or 'none named'}"
+    out.append(f"  - #Architecture's datastore: {pick or ', '.join(engines) or 'none named'}"
+               + (f" (also named, not chosen: {', '.join(e for e in engines if e != pick)})"
+                  if pick and len(engines) > 1 else "")
                + (f" · {custody[0]}" if custody else "") + " - the tests use the same engine (test-datastore.md)")
     ui = (base / "DESIGN.md").is_file()
     out.append("  - UI: " + ("DESIGN.md exists - the frontend audit joins the hooks and CI (step 6), the tokens or the "
@@ -10078,8 +14894,9 @@ def foundation_facts(st: "Status", base: Path, found: str) -> list[str]:
                 f"  - leave it running / stop it: devserver.py start ... · devserver.py stop --port <port> - never a "
                 f"background start of your own (a logged run spent 14 calls on a port Windows kept)"]
     if ci:
-        out.append(f"  - CI's steps here (Step 3b, after a commit): python {ci.as_posix()} - one replay; a step "
-                   f"failing for this machine's reason: --skip it (UNVERIFIED); after a fix, --only that step")
+        out.append(f"  - CI's steps here (Step 3b, no commit needed): python {ci.as_posix()} --with-changes - one replay "
+                   f"(it also checks every action version exists); a step failing for this machine's reason: --skip it "
+                   f"(UNVERIFIED); after a fix, --only that step")
     pf = tool_file("foundation", "proof.py")
     if pf:
         out.append(f"  - every other proof (Step 3b): python {pf.as_posix()} -- <command> (it logs what the run printed; "
@@ -10096,8 +14913,12 @@ def foundation_facts(st: "Status", base: Path, found: str) -> list[str]:
         tc = re.search(rf"(?i){PY_TYPECHECK}|{TS_TYPECHECK}", words)
         out.append(f"  - type checker ({', '.join(langs)}): " + (
             f"{tc.group(0)} (#Architecture) - in the hooks and CI (step 6)" if tc else
-            "#Architecture names none - ask in the step-0 card: pyright (Recommended) / mypy / tsc --noEmit / none "
-            "(the user's reason, recorded as `no type checker: <reason>`)"))
+            # a question here cost an owner turn; the language's own default is a decision, said once
+            "#Architecture names none - no question: " + " and ".join(
+                {"Python": "pyright", "TypeScript": "tsc --noEmit"}[x] for x in langs)
+            + " (the language's default), in the hooks and CI (step 6); one #Foundation line `type checker: <name> - "
+            "default, #Architecture named none` and one line in the close; the user later says none -> `no type "
+            "checker: <their reason>`"))
     missing = []
     if not (base / ".gitattributes").is_file() and tool_file("templates", "gitattributes"):
         missing.append(f"no .gitattributes: copy {tool_file('templates', 'gitattributes').as_posix()}")
@@ -10176,19 +14997,31 @@ def foundation_start_text(st: "Status") -> str:
            "TEST_ datastore variable · an evidence line the proof log never saw, or a result it did not print · "
            "a planted fake secret the hook lets through (set plants it) · a scanner that cannot fail · gitleaks "
            "allowlisting .env.example by path · an install or personal path in the runbook, task runner or record · "
-           "a runbook with no .env step, no database step, a missing file or a shell-only recipe · no type checker · "
+           "a runbook with no .env step, no database step, a missing file, a shell-only recipe or a heading without "
+           "its number · no type checker · "
            "a fake model that echoes its input · AI: no evidence for the real adapter and its failure path · "
-           "localhost in .env.example's connection URLs.",
-           "  - The order: step-0 card (only a decision an earlier section left open, or a tool not found) · the "
-           "eight steps, one progress line each · Step 3b's proofs, each ending in an `evidence:` line · Step 3c and "
-           "the #Vision numbers · ONE message: what runs and what was proven (a line each), what is owed, any clash, "
-           "then \"Anything to change? If not: Save this "
-           "version of your project? (yes / no)\" · on a yes, close each open item this phase settled (`status.py "
-           "close <n> --how \"...\"` - the save commits STATUS.md with it), then `set foundation filled "
-           "--section-from <file> --commit \"<one line>\"`.",
+           "localhost in .env.example's connection URLs · a CI action version that does not exist, or CI never run "
+           "once (`ci_local.py` checks the versions too) · code this phase wrote with no `security review:` line. It "
+           "only WARNS for a CI download with no checksum and an earlier document this run changed.",
+           f"  - The order: step-0 card (only a decision an earlier section left open, or a tool not found; "
+           f"{QUESTION_FORM}; {FORM_SPLIT}) · the "
+           "eight steps, one progress line each - when the hook runner is pre-commit, run `pre-commit "
+           "install-hooks` in the background as soon as its config exists (a tool that cannot run a command in the "
+           "background: run it then, once), run the formatter on what you write before the "
+           "first lint, and the type checker ONCE after every file exists (never fix rounds file by file) · Step "
+           "3b's proofs, each ending in an `evidence:` line · `status.py secreview foundation`: ONE helper reviews "
+           "only this phase's code (it prints the prompt); fix every HIGH and MEDIUM, add its `security review:` "
+           "line · Step 3c and the #Vision numbers - a clash on a line of its own, recorded with `status.py open`, "
+           "never an edit of an earlier phase's record or document · close each open item this phase settled (`status.py close <n> --how \"...\"` - "
+           "the save commits STATUS.md with it), then `set foundation filled --section-from <file> --commit \"<one "
+           "line>\"` - it saves, no save question · the close (each block at most 2 lines): what runs and what was proven, what is "
+           "owed, any clash, and \"Change anything?\".",
            "  - Order (each call re-sends all before it): reads and the step-0 card first; docs/runbook.md and the "
-           "section file are the last writes, in ONE call after every proof passed, before the ONE message; on the "
-           "yes, `set` in the next call - no check of your own between (`set` checks the record and the tree)."]
+           "section file are the last writes, in ONE call after every proof passed, then `set` in the next call - no check of your own between (`set` checks the record and the tree).",
+           "  - docs/runbook.md, written for someone who was not here, every heading numbered: `## 1. Start it` · `## 2. "
+           "The .env values and how to make each` · `## 3. What each guard refuses, and how to prove it` · `## 4. "
+           "Reset and re-seed` · `## 5. Run the tests` (`### 2.1 ...` below them); one idea per sentence. A folder this "
+           "phase adds (the audit copy's) is drawn in STRUCTURE.md by `set` - never edit the map by hand."]
     names = ["Architecture", "Structure"] + (["Design"] if ui else []) + (["Foundation"] if has_content(found) else [])
     policy = re.sub(r"<!--.*?-->", "", secs.get("Project policy", ""), flags=re.S).strip()
     out.append("\n===== PRODUCT.md - the sections this phase derives from =====")
@@ -10249,15 +15082,24 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--file", default="STATUS.md")
     ap.add_argument("--today", default=dt.date.today().isoformat())
     sub = ap.add_subparsers(dest="cmd", required=True, parser_class=HelpfulParser)
-    sub.add_parser("show")
+    p = sub.add_parser("show")
+    p.add_argument("--cost", action="store_true", help="also the cost per milestone, from this folder's Claude Code "
+                                                       "conversation logs")
     p = sub.add_parser("next"); p.add_argument("--phase"); p.add_argument("--ticket")
+    p.add_argument("--seat", help="/build: the seat this session works (SR1): picks its ticket, fills the card's Seat")
     p.add_argument("--mode", choices=["lean", "full"], help="the user's choice (`/build <id> full`); none: the tool decides")
     p.add_argument("--step", help="/design-system: what one turn needs (foundations | sample | write)")
     p.add_argument("--family", help="/design-system --step: the chosen family, its number or name")
+    p.add_argument("--approved", help="/design-system --step write on Antigravity: the owner's answer to the sample "
+                                      "confirm, word for word")
     sub.add_parser("how")
     sub.add_parser("route")
     p = sub.add_parser("rules"); p.add_argument("phase"); p.add_argument("--close", action="store_true")
+    p = sub.add_parser("fields"); p.add_argument("phase")  # /architect: the fields file's shape
     p = sub.add_parser("refs"); p.add_argument("phase")
+    p = sub.add_parser("area-rules", help="one rule file per STRUCTURE.md module, per tool, from the records")
+    p.add_argument("--tool", action="append", choices=AREA_TOOLS, help="claude, codex or cursor (repeat for more); Antigravity: none yet")
+    p.add_argument("--write", action="store_true"); p.add_argument("--check", action="store_true")
     p = sub.add_parser("engine"); p.add_argument("--write", action="store_true")
     p = sub.add_parser("section"); p.add_argument("path"); p.add_argument("names", nargs="*")
     p.add_argument("--own", action="append", default=[]); p.add_argument("--headings", action="store_true")
@@ -10274,13 +15116,22 @@ def main(argv: list[str]) -> int:
     p.add_argument("--product", help="set vision on a new project: the product's name - STATUS.md is created")
     p.add_argument("--ai", choices=["yes", "no"]); p.add_argument("--agent", choices=["yes", "no"])
     p.add_argument("--commit", metavar="MESSAGE", help="with filled: save the project (git add + commit) in this call")
-    p.add_argument("--no-commit", dest="no_commit", action="store_true", help="dev-check / test: record without "
-                   "saving (they save by default; only when the user said not to save)")
+    p.add_argument("--no-commit", dest="no_commit", action="store_true", help="record without saving (every "
+                   "phase saves by default; only when the user said not to save)")
     p.add_argument("--dry-run", dest="dry_run", action="store_true", help="run every check, list every gap, write "
                    "nothing (P45: instead of reading the scripts or running a check by hand)")
+    p.add_argument("--security-from", dest="security_from", help="/dev-check: the security helper's findings table "
+                   "(a file): counted per severity against #Dev-complete's security line, kept as a receipt")
+    p.add_argument("--from-fields", "--fields-from", dest="from_fields", help="a fields file the script renders the "
+                   "phase's files from, then checks: /vision, /scope, /plan (`### <field>` blocks or JSON: "
+                   "docs/<phase>.md and the PRODUCT.md section), /architect (`### <field>` blocks: #Architecture "
+                   "and docs/architecture.md) and /tickets (JSON: the ticket files and TICKETS.md)")
     p = sub.add_parser("save"); p.add_argument("-m", "--message", required=True)
+    p.add_argument("--status-only", action="store_true",
+                   help="commit STATUS.md and status/ only - the project's other changes stay uncommitted")
     p = sub.add_parser("scaffold"); p.add_argument("--from", dest="src", required=True)
     p = sub.add_parser("prove"); p.add_argument("cmds", nargs="+", metavar="COMMAND")
+    p = sub.add_parser("secreview"); p.add_argument("phase", choices=list(OWN_REVIEW_PHASES))
     p = sub.add_parser("flag"); p.add_argument("--ui", choices=["yes", "no"]); p.add_argument("--ai", choices=["yes", "no"])
     p.add_argument("--agent", choices=["yes", "no"]); p.add_argument("--order-override")
     p = sub.add_parser("ticket"); p.add_argument("id"); p.add_argument("--dod", required=True)
@@ -10291,13 +15142,21 @@ def main(argv: list[str]) -> int:
                    "for, write nothing")
     p.add_argument("--uncut", action="append", default=[])
     p.add_argument("--self-review-ok", dest="self_review_ok")
+    p.add_argument("--low", help="the grouped issue holding the unfixed LOW findings, or \"not filed: <why>\"")
     p = sub.add_parser("release")
     for o in ("--what", "--reviews", "--skipped", "--docs", "--record", "--rollback", "--pr"):
         p.add_argument(o, required=True)
     p.add_argument("--dry-run", action="store_true"); p.add_argument("--commit")  # /ship's close (v2 alignment)
-    p = sub.add_parser("drift"); p.add_argument("--found", required=True); p.add_argument("--rec", required=True)
+    p.add_argument("--no-commit", dest="no_commit", action="store_true", help="record without saving (the release "
+                   "row saves by default; only when the user said not to save)")
+    p = sub.add_parser("drift"); p.add_argument("--found", required=True, action="append")
+    p.add_argument("--rec", required=True, action="append")  # 2.3: every drift of a run in ONE call, in pairs
+    p.add_argument("--no-commit", dest="no_commit", action="store_true", help="record without saving (the drift "
+                   "rows save by default; only when the user said not to save)")
     p = sub.add_parser("open"); p.add_argument("--from", dest="frm", required=True)
     p.add_argument("--what", required=True); p.add_argument("--clears", required=True)
+    p = sub.add_parser("waive"); p.add_argument("--from", dest="frm", required=True)  # one false refusal
+    p.add_argument("--check", required=True); p.add_argument("--reason", required=True)
     p = sub.add_parser("bypass"); p.add_argument("--from", dest="frm", required=True)
     p.add_argument("--gate", required=True); p.add_argument("--reason", required=True)
     p = sub.add_parser("close"); p.add_argument("n"); p.add_argument("--how", required=True)
@@ -10307,6 +15166,16 @@ def main(argv: list[str]) -> int:
     for k, v in vars(a).items():
         if isinstance(v, str) and k != "file":
             setattr(a, k, undo_msys_path(v))
+    # 2.4 review: waive, bypass and flag from a sub-folder still failed
+    if a.cmd in ("set", "close", "open", "save", "waive", "bypass", "flag") and a.file == "STATUS.md" \
+            and not Path("STATUS.md").exists() \
+            and not getattr(a, "product", None) and not Path("PRODUCT.md").exists():  # a new project starts here
+        #, a logged run: a `set` run from a sub-folder found no STATUS.md (3 calls: refused, change folder, retry).
+        # The record a write command means is the git project's own - never a folder above it.
+        top = git(Path("."), "rev-parse", "--show-toplevel")
+        if top and (Path(top) / "STATUS.md").is_file():
+            a.file = str(Path(top) / "STATUS.md")
+            print(f"(STATUS.md is at the project root {Path(top).as_posix()} - used from there; run status.py from it)")
     path, today = Path(a.file), a.today
     lock = None
     try:
@@ -10314,11 +15183,14 @@ def main(argv: list[str]) -> int:
         if a.cmd == "next" and a.ticket and (a.phase or "").lstrip("/") != "build":
             raise Refused("--ticket goes with --phase build")
         if a.cmd == "next" and getattr(a, "step", None):  # /design-system: one turn's reading in one call
-            print(design_step_text(a.phase or "", a.step, a.family))
+            print(design_step_text(a.phase or "", a.step, a.family, getattr(a, "approved", None), today,
+                                   path.resolve().parent))
             return 0
         if a.cmd == "next" and (a.phase or "").lstrip("/") in SUPPORT_STARTS:  # 2.0: a skill outside the chain,
             skill = a.phase.lstrip("/")                                          # STATUS.md or not
-            rules = phase_rules_text(skill)
+            # §Spine resolution is for a project without PRODUCT.md - /drift-check and /adopt print it only then
+            rules = phase_rules_text(skill, skip={"Spine resolution"} if skill in ("drift-check", "adopt") and (
+                path.resolve().parent / "PRODUCT.md").is_file() else frozenset())
             print(playbook_line())
             print(fit_start(((rules + "\n\n") if rules else "") + "\n".join([*run_habits(), SUPPORT_HABIT]) + "\n\n"
                             + SUPPORT_STARTS[skill](path, today), skill))
@@ -10326,6 +15198,10 @@ def main(argv: list[str]) -> int:
         if a.cmd == "set" and a.phase.lstrip("/") == "adopt":  # /adopt's one record call: STATUS.md may not exist
             print(adopt_record(path, a, today))
             return 0
+        picked_line = ""
+        if a.cmd == "next" and (a.phase or "").lstrip("/") == "build" and not a.ticket and path.exists():
+            # no ticket id - the start picks the seat's next startable ticket and runs its start
+            a.ticket, picked_line = pick_build_ticket(Status.load(path), a.seat)
         if a.cmd == "next":  # first, even when STATUS.md does not exist yet: the first run is where it matters
             # LEAN: a /build start carries the close checklist only at the close (`ticket` prints it)
             lean = bool(a.phase) and (a.mode or playbook_mode(a.phase)) == "lean" \
@@ -10333,6 +15209,8 @@ def main(argv: list[str]) -> int:
             head = (LEAN_CLOSE[:1] * lean + DEV_CHECK_HEAD if (a.phase or "").lstrip("/") == "dev-check" else
                     TEST_HEAD if (a.phase or "").lstrip("/") == "test" else
                     LEAN_CLOSE if lean else () if a.ticket else
+                    ARCH_HEAD if (a.phase or "").lstrip("/") == "architect" else
+                    FIELDS_CLOSE if (a.phase or "").lstrip("/") in FIELD_PHASES else
                     QUESTION_CLOSE if (a.phase or "").lstrip("/") in QUESTION_PHASES else
                     STRUCTURE_HEAD if (a.phase or "").lstrip("/") == "structure" else
                     FOUNDATION_HEAD if (a.phase or "").lstrip("/") == "foundation" else
@@ -10340,13 +15218,15 @@ def main(argv: list[str]) -> int:
                     TICKETS_HEAD if (a.phase or "").lstrip("/") == "tickets" else
                     RELEASEOPS_HEAD.get((a.phase or "").lstrip("/"), CLOSE_CHECKLIST))
             print(playbook_line(), *head, sep="\n", flush=True)
+            if picked_line:
+                print(picked_line)
             if (a.phase or "").lstrip("/") == "vision" and not path.exists():  # a new project: the normal first run
                 base = path.resolve().parent
                 fresh = not (base / "PRODUCT.md").exists() and not code_files(base, 1)
                 # ONE start command: the rules come with it (a logged Antigravity run chained `next; rules` with `;`,
                 # the command went to the background, and it spent a call reading the task's log)
                 print(fit_start("\n".join(["Next: /vision - a new project (no STATUS.md yet)", *run_habits(),
-                                           "\n" + vision_start_text(new=fresh),
+                                           "\n" + vision_start_text(new=fresh, base=base),
                                            "\n" + phase_rules_text("vision", new=fresh)])))
                 mark_rules_read(base, "vision", today)
                 return 0
@@ -10363,7 +15243,7 @@ def main(argv: list[str]) -> int:
             if a.phase.lstrip("/") != "build":
                 raise Refused(f"--close is for /{', /'.join(['build', *PHASE_CLOSE_RULES])}: the other phases' rules "
                               f"print whole with `rules <phase>`")
-            print(build_close_text())
+            print(build_close_text(playbook_mode("build", path.resolve().parent) == "lean"))
             return 0
         if a.cmd == "rules" and a.phase.lstrip("/") == "tickets":  # the start's rules + references, word for word
             base_ = path.resolve().parent
@@ -10378,6 +15258,13 @@ def main(argv: list[str]) -> int:
             print(text)
             mark_rules_read(path.parent if path.parent != Path("") else Path("."), a.phase.lstrip("/"), today)
             return 0
+        if a.cmd == "area-rules":
+            if (a.write or a.check) and not a.tool:
+                raise Refused("area-rules --write and --check need the tool(s): --tool claude, --tool codex or "
+                              "--tool cursor (Antigravity: none yet - keep its rules in the root agent file)")
+            code, text = area_rules_cmd(path.resolve().parent, a.tool or list(AREA_TOOLS), a.write, a.check)
+            print(text)
+            return code
         if a.cmd == "engine":
             text = engine_hash_text()
             if a.write:  # the playbook's maintainers, after changing a checker; check.py fails while it is stale
@@ -10405,6 +15292,9 @@ def main(argv: list[str]) -> int:
             code_, text_ = prove(path.resolve().parent, a.cmds, today)
             print(text_)
             return code_
+        if a.cmd == "secreview":  # 2.3: /foundation's and /contracts' own code, before the save
+            print(own_review_text(path.resolve().parent, a.phase, today))
+            return 0
         if a.cmd == "quote":  # every receipt in one call: a logged /test spent 9 calls on 9 quotes
             if len(a.pairs) % 2:
                 raise Refused("quote takes pairs: <file> <words> [<file> <words> ...]")
@@ -10456,9 +15346,12 @@ def main(argv: list[str]) -> int:
                           + (". /vision: `set vision filled --section-from <file> --product \"<name>\" --ai yes|no "
                              "--agent yes|no` creates it" if a.cmd == "set" and a.phase == "vision" else ""))
         if a.cmd == "save":  # a yes given after the record: the same one call as `set --commit`
-            done = save_commit(path.resolve().parent, a.message)
-            print(done + ("\nNow the close's steps 5-6: the transition guard, then the four blocks - the first line says "
-                          "\"Saved\" with the commit, the last is the `Open a NEW conversation` line `set` printed"
+            done = save_commit(path.resolve().parent, a.message, only=("STATUS.md", FRAG_DIR) if a.status_only else ())
+            if a.status_only:
+                print(done)
+                return 0
+            print(done + ("\nNow the close's steps 5-6: the transition guard line, then `Saved (commit ...).`, then the "
+                          "blocks as `set` printed them - the last is its `Open a NEW conversation` line"
                           if done.startswith("saved") else ""))
             return 0
         if a.cmd in MUTATING:
@@ -10475,6 +15368,8 @@ def main(argv: list[str]) -> int:
             apply_flags(st, a.ai, a.agent)
         if a.cmd == "show":
             print(st.render_all(), end="")
+            if getattr(a, "cost", False):
+                print("\n".join(milestone_costs(Path(path).resolve().parent)))
             return 0
         if a.cmd == "next":
             run = a.phase.lstrip("/") if a.phase else None
@@ -10482,6 +15377,10 @@ def main(argv: list[str]) -> int:
                 raise Refused(f"unknown phase {run!r}; the phases are: {', '.join(CHAIN)}")
             n = next_phase(st, run)
             notes = n["notes"]
+            if run in ("build", "ship") and st.base is not None:  # a PR left for review merged since
+                pm = postmerge_line(st)
+                if pm:
+                    notes.insert(0, pm)
             if run == "foundation":  # its start prints AGENT.md §Foundation inline: no "open now" read
                 notes = [x for x in notes if not x.startswith("Agent: yes - open now")]
             if a.ticket:  # LEAN: a build start keeps what can block THIS build; earlier phases' items are a count
@@ -10502,12 +15401,11 @@ def main(argv: list[str]) -> int:
                 # P9: a project-level fix is not this phase's (the checkpoint and the suite never edit project code)
                 notes = [f"NOT THIS PHASE'S - tell the user in the close, never change it here: {x}"
                          if re.search(r"check fails now|differs from the playbook's check", x) else x for x in notes]
-            if run == "architect":  # its start prints AGENT.md §Architect itself: no file to open
-                notes = [x.replace("Agent: yes - open now: ", "Agent: yes - printed at the end of this start, from ")
-                         for x in notes]
-            if run == "contracts":  # its start prints AGENT.md §Contracts itself: no file to open
-                notes = [x.replace("Agent: yes - open now: ", "Agent: yes - printed in this start, from ")
-                         for x in notes]
+            if run in ("architect", "contracts"):  # its start prints AGENT.md's section itself: no file to open,
+                # so no path to it (each printed install path is ~100-160 characters of the start)
+                where = "at the end of this start" if run == "architect" else "in this start"
+                notes = [re.sub(r"^Agent: yes - open now: .+ (§[\w-]+), and apply",
+                                rf"Agent: yes - printed {where}: AGENT.md \g<1> - apply", x) for x in notes]
             if run == "structure":  # AGENT.md §Structure is printed by the start: nothing to open
                 notes = [x for x in notes if not x.startswith("Agent: yes - open now")]
             print(f"Next: {n['line'] if not a.ticket else n['line'][:160]}")
@@ -10524,28 +15422,32 @@ def main(argv: list[str]) -> int:
                 if not lean:
                     print("\n" + print_sections(rule_file("MECHANISMS-ON-DEMAND.md"), ["Context hygiene"]))
                 # Antigravity shows ~4 KB of a ~29 KB full start: there it goes to a file read once (fit_start)
-                print(fit_start("\n" + build_start_text(st, a.ticket, today, lean=lean), "build"))
+                print(fit_start("\n" + build_start_text(st, a.ticket, today, lean=lean, seat=a.seat), "build"))
                 return 0
             if run == "dev-check":  # one start call: its tickets, the gate for THIS checkout, the scope, the rules (P1)
-                rules_ = "" if lean else "\n\n" + phase_rules_text("dev-check")
+                rules_ = "" if lean else "\n\n" + phase_rules_text("dev-check", skip=verify_skip("dev-check", st))
                 print(fit_start("\n" + dev_check_start_text(st) + rules_, "dev-check"))
                 if not lean:
                     mark_rules_read(st.base or Path("."), "dev-check", today)
                 return 0
             if run == "test":  # one start call, every tool: built tickets, criteria vs tests, surfaces, commands, rules
-                print(fit_start("\n" + test_start_text(st) + "\n\n" + phase_rules_text("test"), "test"))
+                print(fit_start("\n" + test_start_text(st) + "\n\n"
+                                + phase_rules_text("test", skip=verify_skip("test", st)), "test"))
                 mark_rules_read(st.base or Path("."), "test", today)
                 return 0
             if run == "vision":  # its rules come with it: one start command
-                print(fit_start("\n" + vision_start_text() + "\n\n" + phase_rules_text("vision")))
+                print(fit_start("\n" + vision_start_text(base=st.base or Path(".")) + "\n\n"
+                                + phase_rules_text("vision", skip=situational_skip("vision", st))))
                 mark_rules_read(st.base, "vision", today)
                 return 0
             if run == "validate":  # one start command: the bet's lines, the rounds, the record, its rules (2.0)
-                print(fit_start("\n" + validate_start_text(st) + "\n\n" + phase_rules_text("validate"), "validate"))
+                print(fit_start("\n" + validate_start_text(st) + "\n\n"
+                                + phase_rules_text("validate", skip=situational_skip("validate", st)), "validate"))
                 mark_rules_read(st.base or Path("."), "validate", today)
                 return 0
             if run == "scope":  # its rules come with it: one start command (/vision's lesson, next.55)
-                print(fit_start("\n" + scope_start_text(st) + "\n\n" + phase_rules_text("scope"), "scope"))
+                print(fit_start("\n" + scope_start_text(st) + "\n\n"
+                                + phase_rules_text("scope", skip=situational_skip("scope", st)), "scope"))
                 mark_rules_read(st.base, "scope", today)
                 return 0
             if run == "structure":  # its rules come with it: one start command (/scope's lesson)
@@ -10565,8 +15467,6 @@ def main(argv: list[str]) -> int:
                 print(fit_start("\n" + tickets_start_text(st, lead + 12 * len(notes)), "tickets"))
                 mark_rules_read(st.base or Path("."), "tickets", today)
                 return 0
-            if run == "vision":
-                print("\n" + vision_start_text())
             if run == "architect":  # P1: one start call - the spine facts, AGENT.md §Architect and the rules inline
                 print(fit_start("\n" + architect_start_text(st) + "\n\n" + architect_rules_text(st), "architect"))
                 mark_rules_read(st.base or Path("."), "architect", today)
@@ -10592,6 +15492,11 @@ def main(argv: list[str]) -> int:
             if run in HYGIENE_PHASES:  # printed, not pointed at: a file opened "on its trigger" is a file some models never open
                 print("\n" + print_sections(rule_file("MECHANISMS-ON-DEMAND.md"), ["Context hygiene"]))
             return 0
+        if a.cmd == "fields":
+            if a.phase.lstrip("/") != "architect":
+                raise Refused(f"no fields file for /{a.phase.lstrip('/')} here - `status.py fields architect`")
+            print(arch_fields_guide(st))
+            return 0
         if a.cmd == "check":
             errs, warns = problems(st, today, Path(a.product) if a.product else None)
             if a.product and st.state("vision") == "filled" and Path(a.product).is_file():
@@ -10603,7 +15508,11 @@ def main(argv: list[str]) -> int:
                 print(f"  x {e}")
             print("OK - STATUS.md is valid" if not errs else f"FAIL - {len(errs)} problem(s)")
             return 1 if errs else 0
-        if a.cmd == "set" and a.section_from:
+        if a.cmd == "set" and a.phase == "architect" and getattr(a, "from_fields", None):
+            msg = arch_set_from_fields(st, a, today, path.resolve().parent / "PRODUCT.md")  # rendered, typed once
+        elif a.cmd == "set" and getattr(a, "from_fields", None) and a.phase in FIELD_PHASES:
+            msg = set_with_fields(st, a, today, path.resolve().parent / "PRODUCT.md")
+        elif a.cmd == "set" and a.section_from:
             msg = set_with_section(st, a, today, path.resolve().parent / "PRODUCT.md")
         elif a.cmd == "set":
             msg = cmd_set(st, a, today)
@@ -10619,12 +15528,13 @@ def main(argv: list[str]) -> int:
         elif a.cmd == "release":
             msg = cmd_release(st, a, today)
         elif a.cmd == "drift":
-            st.rows["Drift"].append([today, capped("found", a.found), capped("rec", a.rec)])
-            msg = "drift recorded"
+            msg = drift_rows(st, a.found, a.rec, today)
         elif a.cmd == "open":
             msg = cmd_open(st, a, today)
         elif a.cmd == "bypass":
             msg = cmd_bypass(st, a, today)
+        elif a.cmd == "waive":
+            msg = cmd_waive(st, a, today)
         elif a.cmd == "close":
             msg = cmd_close(st, a, today)
         else:
@@ -10634,31 +15544,53 @@ def main(argv: list[str]) -> int:
             raise Refused("the result would be invalid: " + "; ".join(errs))
         written = st.save(path)
         print(msg + "".join(f"\n  wrote {w}" for w in written))
-        if a.cmd == "drift":  # /drift-check's record: its close ends on the printed handoff
+        if a.cmd == "drift":  # /drift-check's record: saved unasked, its close ends on the printed handoff
+            if not a.no_commit and st.base is not None:
+                print(drift_save(st.base, written, len(a.found)))
             print(handoff_card(st))
         if a.cmd == "ticket":  # the close's rules came with the close gate (gate.py --close); only the rest remains
-            print("Next, the close's step (6): `status.py set build filled`, the save question (it commits the "
-                  "record), the transition guard, the four-block close - by the rules the close gate printed "
+            print(board_line(st.base, a.id, "In Review"))  # the record written, the card in review
+            print(BUILD_LEAN_NEXT if playbook_mode("build", st.base) == "lean" else
+                  "Next, the close's step (6): `status.py set build filled` (it saves the record - never a save "
+                  "question), the transition guard, the four-block close - by the rules the close gate printed "
                   "(`status.py rules build --close` prints them again)")
         if a.cmd == "release":  # /ship's close: the save, the rest of the close, the handoff (STATUS.md re-read)
-            print(ship_close_text(path, today, a.commit))
+            if not a.commit and not a.no_commit:  # the release row saves unasked, like every phase
+                a.commit = auto_save_message("ship") + f": {a.what[:80]}"
+            print(ship_close_text(path, today, a.commit, a.pr))
+        if a.cmd in ("open", "close") and st.base is not None:
+            # an open item recorded (or closed) after its phase's save sat uncommitted: two logged phases' closes
+            # said "isn't committed yet" - once the phase is saved, the item saves itself, alone
+            frm = a.frm.lstrip("/") if a.cmd == "open" else next(
+                (r[2] for r in st.rows["Open items"] if r[0] == str(a.n)), "")
+            if any(r[0] == frm and r[1] == "filled" for r in st.rows["Phases"]):
+                print(save_paths(st.base, ["STATUS.md", *written],
+                                 f"{frm}: open item {'recorded' if a.cmd == 'open' else str(a.n) + ' closed'}",
+                                 f"never run `{a.cmd}` again (it would record it twice)"))
         saved = None
-        if (a.cmd == "set" and a.state == "filled" and a.phase in AUTO_SAVE and not a.commit
-                and not getattr(a, "no_commit", False)):  # owner 2026-10-06: the verification phases save unasked
-            a.commit = f"{a.phase}: {a.verdict.upper() if a.verdict else 'recorded'} - #{PHASE_SECTION[a.phase]} written"
+        if (a.cmd == "set" and a.phase in AUTO_SAVE and not a.commit and not getattr(a, "no_commit", False)
+                and (a.state in ("filled", "declined") or (a.phase == "validate" and a.state in ("running", "overridden")
+                                                           and a.section_from))):  # every phase saves unasked
+            # a recorded decline saves too - a logged /eval left its decline (and its notes) uncommitted
+            a.commit = (f"{a.phase}: declined - {a.reason[:80]}" if a.state == "declined"
+                        else auto_save_message(a.phase, a.verdict))
         if a.cmd == "set" and a.commit and st.base is not None:
-            saved = save_commit(st.base, a.commit)
-            print(saved)
+            if a.state == "filled":  # 2.3: the phase's own security review, for /dev-check
+                a.commit += own_review_trailer(st.base, a.phase)
+            done = save_commit(st.base, a.commit)
+            print(done)
+            saved = done if done.startswith(("saved", "nothing to save")) else None  # a failed save is not a save
         if a.cmd == "set" and (a.state == "filled" or (a.phase == "validate" and a.state in ("running", "overridden")
                                                          and a.section_from)):  # /validate's close, any outcome
             if a.phase in PHASE_CLOSE_RULES and not (a.note or "").lower().startswith("adopted"):
                 print(close_steps_text(a.phase, saved))  # the full rules on request: a re-run of set reprinted ~3.5K tokens
-            if a.phase in PHASE_CLOSE_RULES and a.section_from and not (a.note or "").lower().startswith("adopted"):
+            if a.phase in PHASE_CLOSE_RULES and (a.section_from or getattr(a, "fields_path", False)) \
+                    and not (a.note or "").lower().startswith("adopted"):
                 facts = repo_facts(st.base, getattr(a, "purpose", None), readme=a.phase == "vision", saved=bool(saved))
                 if facts:
                     print(facts)
             if a.phase in PHASE_CLOSE_RULES and not saved:
-                print("For the close's last line, AFTER the answer to the save question (never in its message):")
+                print("For the close's last line:")
             print(handoff_card(st, a.phase))
         return 0
     except DryRun as e:

@@ -47,6 +47,10 @@ def check(spec_path: Path) -> tuple[list[str], bool]:
     if old is None:
         return [f"{spec_path.name}: base {spec['base']} not in this clone"], False
     new = (ROOT / skill_path).read_text(encoding="utf-8")
+    for name in ("full.md", "edge-cases.md"):  # a full path or the unusual cases beside SKILL.md
+        full = ROOT / f"commands/{spec['skill']}/references/{name}"
+        if full.is_file():
+            new += "\n" + full.read_text(encoding="utf-8")
     old_n, new_n = norm(old), norm(new)
     fails: list[str] = []
     anchors: list[str] = []

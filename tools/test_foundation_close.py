@@ -34,6 +34,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 import status  # noqa: E402
 
 TODAY = "2026-10-03"
+os.environ["PLAYBOOK_ACTION_CHECK"] = "off"  # a close never asks github.com in tests; test_findings_2026_10_09 fakes it
 # A machine with no git identity (a fresh CI runner) cannot commit; the saves under test commit through status.py.
 for _k, _v in (("GIT_AUTHOR_NAME", "t"), ("GIT_AUTHOR_EMAIL", "t@t"), ("GIT_COMMITTER_NAME", "t"), ("GIT_COMMITTER_EMAIL", "t@t")):
     os.environ.setdefault(_k, _v)
@@ -166,7 +167,7 @@ FILES = {
                                 "      - run: docker build -t app .\n",
     ".github/dependabot.yml": "version: 2\nupdates:\n  - package-ecosystem: uv\n    directory: /\n"
                               "    schedule:\n      interval: weekly\n",
-    "docs/runbook.md": "# Runbook\n\n## First boot\n\n1. `uv sync --locked`\n2. Copy `.env.example` to `.env` and "
+    "docs/runbook.md": "# Runbook\n\n## 1. First boot\n\n1.`uv sync --locked`\n2. Copy `.env.example` to `.env` and "
                        "set each value (how: the table below).\n3. `just bootstrap` - the dev database, its "
                        "migrations and the seed.\n4. `just dev`, then http://127.0.0.1:8000/healthz.\n",
     "DESIGN.md": "# DESIGN\n",
@@ -459,12 +460,17 @@ def test_start(d: Path, fails: list[str]) -> None:
                      f"put the rest in .git/foundation-start.md")
     (d / "PRODUCT.md").write_text(PRODUCT, encoding="utf-8")
     code, out = start(d)
+    # SETUP-5 (2.3 review): `pre-commit install-hooks` named for every hook runner, and no route for a tool that
+    # cannot run a command in the background
+    flat = " ".join(out.split())
+    if "when the hook runner is pre-commit, run `pre-commit install-hooks` in the background" not in flat or             "cannot run a command in the background: run it then, once" not in flat:
+        fails.append("start: the hook install is pre-commit's only, with a route for a tool with no background run")
     want = ("This phase closes with ONE call", "Facts from this project", "pay-change-explainer-pg",
             "remote: none", "installed: yes", "uv.lock", "TEST_DATABASE_URL", "postgres", "devserver.py refuses",
             "ci_local.py", "## §Foundation — the agent walking skeleton", "## 1. Dependency manifest",
             "## 7. The design tokens", "## Guards", "## §The recipes", "## Production safeguards",
             "## §Status", "## §Context hygiene", "`set foundation filled` refuses, every problem in one list",
-            "Anything to change? If not: Save this version of your project? (yes / no)",
+            "it saves, no save question",
             # next.68: the proof log, the project's own commands, the type checker, the refusal is the spec
             "-- <command> (it logs what the run printed", "TEST_DATABASE_URL=@DATABASE_URL", "proof.py plant --file",
             "name the project's own commands", "type checker (Python): pyright (#Architecture)", "--dry-run",
@@ -483,8 +489,10 @@ def test_start(d: Path, fails: list[str]) -> None:
         fails.append(f"start: exit {code}")
     (d / "PRODUCT.md").write_text(PRODUCT.replace(" · type checker pyright", ""), encoding="utf-8")
     code, out = start(d)
-    if "#Architecture names none - ask in the step-0 card: pyright (Recommended)" not in out:
-        fails.append("start: #Architecture with no type checker should put the question in the step-0 card")
+    # #32: the default is a decision, never an owner turn
+    if "#Architecture names none - no question: pyright (the language's default)" not in out or \
+            "ask in the step-0 card: pyright" in out:
+        fails.append("start: #Architecture with no type checker should take the language's default, no question")
     (d / "PRODUCT.md").write_text(PRODUCT, encoding="utf-8")
     (d / "DESIGN.md").unlink()  # not a UI product: step 7 and step 6's audit block are not printed
     code, out = start(d)
@@ -572,6 +580,7 @@ def test_close(base: Path, fails: list[str]) -> None:
     edit(d, ".pre-commit-config.yaml", "      - id: pyright\n        entry: uv run pyright\n        language: system\n",
          "")
     append(rec, "- **No type checker:** the user's reason - the two of us review types by hand until M2.\n")
+    append(rec, f"- security review: helper agent · 3 files · CLEAN · {TODAY}\n")  # 2.3: the phase's own code
     code, out = close(d, rec)
     if code != 0:
         fails.append(f"a float named with why in #Foundation, attack text in an eval case and no type checker with "
@@ -595,6 +604,119 @@ def test_close(base: Path, fails: list[str]) -> None:
     code, out = close(d, rec, "--note", "kept: the owner keeps the record written under the older rules")
     if code != 0:
         fails.append(f"a `kept:` note skips the new record checks (the user's choice): {out.strip()[:300]}")
+
+
+SQLITE_ARCH = """\
+- **Stack + tools (and why, 2026 OSS-first):**
+  - Datastore: SQLite (one file) through SQLAlchemy - nothing to run; SQLAlchemy keeps a Postgres move open
+  - Migrations: Alembic, batch mode for SQLite
+- **Data custody (local/self-hosted · managed-serverless · embedded) + why:**
+  - Embedded: one SQLite file on the laptop; fake data only
+- **Externals behind provider/adapter interfaces (+ resilience strategy each):**
+  - Storage (SQLite via SQLAlchemy now; Postgres later): 5 s busy timeout
+"""
+
+
+def test_findings_2026_10_09(base: Path, fails: list[str]) -> None:
+    """2.3 (#32, the live run 2026-10-07): the datastore check read "Postgres" in a future-move line beside "Datastore:
+    SQLite"; the 4 MEDIUMs /dev-check found were all in phase code no review read; a CI action version that did not
+    exist broke CI from day one; a CI download with no checksum."""
+    # 1. E4 reads the recorded datastore: SQLite chosen, Postgres only as a later move -> no mismatch
+    if (status.chosen_datastore(SQLITE_ARCH) or "").lower() != "sqlite":
+        fails.append(f"the chosen datastore of a SQLite record is {status.chosen_datastore(SQLITE_ARCH)!r}")
+    if (status.chosen_datastore(ARCHITECTURE) or "").lower() != "postgresql":
+        fails.append(f"the chosen datastore of a Postgres record is {status.chosen_datastore(ARCHITECTURE)!r}")
+    d = base / "sqlite-engine"
+    d.mkdir()
+    build(d)
+    (d / "PRODUCT.md").write_text(PRODUCT.replace(ARCHITECTURE, SQLITE_ARCH), encoding="utf-8")
+    (d / "tests/conftest.py").write_text("TEST_DATABASE_URL = 'sqlite:///test.db'\n", encoding="utf-8")
+    if status.test_engine_mismatch(d) is not None:
+        fails.append(f"SQLite chosen and Postgres a later move: no engine mismatch, got {status.test_engine_mismatch(d)}")
+    (d / "PRODUCT.md").write_text(PRODUCT, encoding="utf-8")
+    if status.test_engine_mismatch(d) is None:
+        fails.append("Postgres chosen and the tests on SQLite: the mismatch is still found")
+    # 2. the phase's own code: no review line -> refused, naming the command; the review line -> records; the save
+    #    carries the trailer and /dev-check counts those files as reviewed
+    d = base / "own-review"
+    d.mkdir()
+    rec = build(d)
+    (d / "app/platform/tenancy.py").write_text("def owner_of(row):\n    return row.tenant_id\n", encoding="utf-8")
+    code, out = close(d, rec)
+    if code == 0 or "no `security review:` line" not in out or "status.py secreview foundation" not in out:
+        fails.append(f"phase code with no review line should be refused naming secreview: {out.strip()[:500]}")
+    code, out = run(d, "secreview", "foundation")
+    if code != 0 or "app/platform/tenancy.py" not in out.replace("app/platform/ (1): tenancy.py", "app/platform/tenancy.py") \
+            or "tenant or owner" not in out or "1 files" not in out:
+        fails.append(f"secreview should list the phase's one file and print the helper prompt: {out.strip()[:600]}")
+    if "app/main.py" in out:
+        fails.append("secreview listed a file the earlier phase saved")
+    # SETUP-4 (2.3 review): the prompt pointed at CAPABILITIES.md §Security review, which says `/security-review`
+    # reads COMMITTED changes only - these files are not committed yet, so it reviewed nothing
+    if "§Security review" in out or "never `/security-review` here" not in out:
+        fails.append("secreview should point at §Subagents and parallel work and rule out /security-review (the "
+                     "phase's files are not committed)")
+    append(rec, f"- security review: helper agent · 1 files · CLEAN · {TODAY}\n")
+    code, out = close(d, rec, "--commit", "foundation: the walking skeleton")
+    msg = subprocess.run(["git", "log", "-1", "--format=%B"], cwd=d, capture_output=True, text=True).stdout
+    if code != 0 or "Security-reviewed: /foundation since" not in msg:
+        fails.append(f"the review line should record and the save carry the trailer: {out.strip()[-400:]} / {msg!r}")
+    st = status.Status.load(d / "STATUS.md")
+    st.base = d
+    left, covered = status.security_scope(st, [])
+    if "app/platform/tenancy.py" in left or not any(k.startswith("/foundation review at") for k in covered):
+        fails.append(f"/dev-check should count the reviewed phase file as reviewed: left={left[:6]} covered={covered}")
+    # 2b. R3-3: a self-review is recorded, but it signs nothing off - no trailer, /dev-check reviews the file again
+    d = base / "own-self-review"
+    d.mkdir()
+    rec = build(d)
+    (d / "app/platform/tenancy.py").write_text("def owner_of(row):\n    return row.tenant_id\n", encoding="utf-8")
+    code, out = run(d, "secreview", "foundation")
+    if "A self-review is recorded, but /dev-check reviews these files again." not in out:
+        fails.append(f"secreview should say a self-review is reviewed again by /dev-check: {out.strip()[-300:]}")
+    append(rec, f"- security review: self-review · 1 files · CLEAN · {TODAY}\n")
+    code, out = close(d, rec, "--commit", "foundation: the walking skeleton")
+    msg = subprocess.run(["git", "log", "-1", "--format=%B"], cwd=d, capture_output=True, text=True).stdout
+    if code != 0 or "Security-reviewed:" in msg:
+        fails.append(f"a self-review should record and the save carry NO trailer: {out.strip()[-400:]} / {msg!r}")
+    st = status.Status.load(d / "STATUS.md")
+    st.base = d
+    left, covered = status.security_scope(st, [])
+    if "app/platform/tenancy.py" not in left:
+        fails.append(f"/dev-check should review a self-reviewed phase file again: left={left[:6]} covered={covered}")
+    # 3. CI health: an action version that does not exist is refused; no CI run at all is refused
+    d = base / "ci-health"
+    d.mkdir()
+    rec = build(d)
+    (d / ".github/workflows/ci.yml").write_text(FILES[".github/workflows/ci.yml"].replace("setup-uv@v6", "setup-uv@v10"),
+                                                encoding="utf-8")
+    keep = os.environ.pop("PLAYBOOK_ACTION_CHECK")
+    status.ACTION_LISTER = lambda repo: {"actions/checkout": {"v4", "v5"}, "astral-sh/setup-uv": {"v6", "v10.2.0"}}.get(repo)
+    try:
+        code, out = close(d, rec)
+    finally:
+        os.environ["PLAYBOOK_ACTION_CHECK"] = keep
+        status.ACTION_LISTER = None
+    if code == 0 or "astral-sh/setup-uv@v10" not in out or "do not exist" not in out:
+        fails.append(f"a CI action version that does not exist should be refused: {out.strip()[:500]}")
+    d = base / "ci-never"
+    d.mkdir()
+    rec = build(d)
+    drop_lines(rec, "ci_local.py")
+    code, out = close(d, rec)
+    if code == 0 or "CI never ran" not in out:
+        fails.append(f"a record with no CI run should be refused: {out.strip()[:400]}")
+    # 4. a CI download with no checksum: a warning, the record saves
+    d = base / "ci-checksum"
+    d.mkdir()
+    rec = build(d)
+    (d / ".github/workflows/ci.yml").write_text(FILES[".github/workflows/ci.yml"] + "      - run: curl -sSL "
+                                                "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/"
+                                                "gitleaks_8.30.1_linux_x64.tar.gz | tar xz\n", encoding="utf-8")
+    append(rec, f"- security review: self-review · 1 files · CLEAN · {TODAY}\n")
+    code, out = close(d, rec)
+    if code != 0 or "no checksum check" not in out or "a warning, not a refusal" not in out:
+        fails.append(f"a CI download with no checksum should save with a warning: {out.strip()[:500]}")
 
 
 def test_save(base: Path, fails: list[str]) -> None:
@@ -643,6 +765,7 @@ def main() -> int:
         test_start(d, fails)
         test_close(base, fails)
         test_save(base, fails)
+        test_findings_2026_10_09(base, fails)
         for sub in base.iterdir():
             if sub.is_dir() and (sub / ".git").exists():
                 rmtree(sub / ".git")

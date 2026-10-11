@@ -1,12 +1,6 @@
 ---
 name: validate
-description: >
-  OPTIONAL phase of product-playbook (the chain goes /vision → /scope). Test the RISKIEST ASSUMPTION from /vision with the
-  cheapest real-world experiment BEFORE any code is written — landing page, interviews, a manual
-  concierge run, a pre-sale — with a pass/fail threshold set in advance, a measured result, and a
-  proceed / pivot / kill verdict. Use after /vision, or run /validate "is anyone going to want
-  this", "test the idea", "validate before building", "riskiest assumption". Writes the Validation
-  section of PRODUCT.md. Run /scope next.
+description: Optional - test the riskiest assumption cheaply before building.
 ---
 
 # `/validate` — Phase 1 · Product · run as a **sceptical founder**
@@ -41,22 +35,20 @@ description: >
 
 ## Step 0 — Context + prior-gate check
 - **First turn, ONE command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase validate`** — it prints the start and this phase's rules; never the rule files or `PRODUCT.md` whole. Show its first line; close by its checklist.
-- `#Vision` as the start prints it: if the **riskiest assumption** is missing or vague ("people will like it"),
-  warn: "`/vision` looks incomplete — there is nothing testable to validate." Offer to run `/vision`
-  first, but allow override (standalone use): ask the user to state the assumption now.
-- **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from validate --gate <gate> --reason "<the user's own words>"` (`MECHANISMS.md` §Status) — before continuing.
+- `#Vision` as the start prints it: no **riskiest assumption** → the start's ONE options question (`/vision` first,
+  Recommended — a stop, recorded by the `declined` line it prints · state it now · Other); "now" is an override, recorded by the `status.py bypass` line it prints, with its fixed
+  reason — **never a typed reason** (the gate cascade rule, `MECHANISMS.md` §Declined runs).
 - If `#Validation` already has a result, you are **re-validating** (a pivot, or a stale result) — do not
   overwrite the earlier record; append a new dated entry.
 
-- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** a filled section → follow the `RE-RUN` line `next` prints: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line.
-- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** record it — `status.py set validate declined --reason "<what was missing>" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`.
+- **A re-run or a stop:** the start prints its line only when the case is real (a `RE-RUN` line; a stop: `status.py set validate declined --reason "<what was missing>" --gate <the phase(s) that fill it>`, nothing in `PRODUCT.md` changed).
 
 ## Step 1 — Apply principles (this phase)
 - **Verify, don't assume:** the user's confidence is not evidence. Neither is yours. Only people
   outside the building count.
 
 ## Step 2 — Design the experiment (ask, then sharpen)
-**Two rounds, each ONE message or form** (`CAPABILITIES.md` §Ask the user a question with options): **round 1, questions 1–4; round 2, the recommendation below, any `#Vision` clash (Step 3c) and two options *"Looks good - save (Recommended)"* / *"Change something"*** (no drawn options: *"Save this version of your project? (yes / no)"*) — either answer records it.
+**ONE question round, ONE message or form** (`CAPABILITIES.md` §Ask the user a question with options): questions 1–4, each as options with one *(Recommended)* and *Other*; then the recommendation below is written and saved - no confirm or save question; the close shows it with any `#Vision` clash (Step 3c) and asks *"Change anything?"*.
 1. **Restate the assumption as a bet.** "If we're wrong about *this*, nothing else matters — agree?"
    Make it falsifiable: *who* does *what* observable thing. Push back on "people want X" until it
    names a behaviour ("ops leads at 20-200-person firms will hand us a spreadsheet they maintain by
@@ -77,18 +69,18 @@ description: >
    one team). For **AI products**: rung 4 with a human behind the curtain — it tests the *outcome*
    before any model, prompt or eval exists.
 3. **Set the bar before you look.** Ask: "What result would make you *not* build this?" Turn the
-   answer into a number + a time box. Write both down now. If the user cannot name a failing result,
-   the experiment is theatre — say so and keep asking.
+   answer into a number + a time box: offer bars as options. If the user picks no failing result,
+   the experiment is theatre — say so in the recommendation and write the strictest bar offered into `Pass/fail threshold`; no extra question (the close's *"Change anything?"* is where they change it).
    **Then, for every count in the bar, say how each count is recorded and what ties it to the person or unit it counts**
    — a sheet edited without signing in logs edits as anonymous. If the method cannot attribute a count, fix it
    (a name/date column, a per-person link) before the start date.
 4. **Who exactly, and how do you reach them this week?** Names, channels, a date. An experiment
    with no reachable participants is a plan, not a test.
 
-Round 2 gives **one recommendation**: experiment + threshold (dated, with how each count is recorded) + time box + due date.
+Then **one recommendation**: experiment + threshold (dated, with how each count is recorded) + time box + due date.
 
 ## Step 3 — Run it, then record the measured result
-- **ONE message, then ONE record call**, both as the start prints them.
+- **ONE message, then ONE record call**, both as the start prints them: `docs/validation.md` opening with `## 1. In short` — the bet, the test and its bar, the result or when it is due, in 3-5 plain sentences.
 - **Run or schedule it.** Small desk checks run now. Interviews / landing pages / concierge runs take
   days: put the phase into the **`running` state** (`STATE-MODEL.md` §2a) —
   `status.py set validate running --due <date> --reason "<what is measured> · pass: <the bar, plain words>"`
@@ -117,11 +109,12 @@ Walk the exit criteria. **STOP and do not hand off if:**
 - the bet is about a behaviour and the experiment only asks about it (Step 2 item 2);
 - the verdict contradicts the threshold without a recorded reason;
 - a count in the threshold cannot be tied to the person or unit it counts (Step 2 item 3).
-If the user wants to skip the experiment entirely: allowed, but **only with an explicit override** —
-`status.py set validate overridden --reason "<the user's own words>" --gate validate --section-from <file>` — and the
+If the user wants to skip the experiment entirely: allowed, but **only with an explicit override** — the start's ONE
+options question: the reason is the chosen option's words (an *Other* answer as given, pressure-tested below),
+run as `status.py set validate overridden --reason "<the chosen option's words>" --gate validate --section-from <file>`, and the
 `#Validation` field *If the user overrode this gate* says what stays untested.
 
-**First, pressure-test the reason against `#Vision`** — one comparison, not an interrogation: does it fit the
+**First, pressure-test the reason (an *Other* one above all) against `#Vision`** — one comparison: does it fit the
 recorded **customer**, **business model** and **north star**? A reason that merely *defers* ("no budget this
 month", "pre-sold to a design partner") records cleanly in one step. A reason that describes a **different
 product** does not — quote the `#Vision` line it contradicts and offer `/vision` first. If the user proceeds anyway, record it.
@@ -133,7 +126,7 @@ The record call refuses every countable gap in one list.
 
 **Receipts and size** (`MECHANISMS-ON-DEMAND.md §Section is a record`, `MECHANISMS-ON-DEMAND.md §Read receipt`): `set` writes the `Read:` line and the size line; only an input file you opened yourself gets a quote. Reasoning moves into the companion, never trim to a number.
 
-**Close the loop (`MECHANISMS.md` §Step 3b):** record the phase's state — `status.py set validate filled` only once a measured result and verdict are recorded (`--note "<result vs bar>"`); while the experiment runs, the state stays `running` (`MECHANISMS.md` §Status) — reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it); the save was round 2's answer (`MECHANISMS.md` §Commit the work: `--commit` on a yes). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next**, ending with the `Open a NEW conversation` line the record call printed, word for word.
+**Close the loop (`MECHANISMS.md` §Step 3b):** record the phase's state — `status.py set validate filled` only once a measured result and verdict are recorded (`--note "<result vs bar>"`); while the experiment runs, the state stays `running` (`MECHANISMS.md` §Status) — reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it); the record call saves — no save question (`MECHANISMS.md` §Commit the work). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next**, ending with the `Open a NEW conversation` line the record call printed, word for word.
 
 ## Step 3c — Contradiction check (before the gate closes)
 Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Vision` — the assumption you tested must be the **riskiest** one recorded there, and a skip override whose reason implies a different user or business model contradicts `#Vision` itself. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.

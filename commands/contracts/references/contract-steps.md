@@ -24,7 +24,7 @@ matches the models and the queries (`verify.md` §Schema matches code).
   `spend_micro_eur: 100000`), unless a line of `#Contracts` names it with why it stays one (a vendor reports a rate
   as a float, converted at the adapter). A rate is not money: `rate_bp` (integer basis points, 1250 = 12.50%); a
   float `*_rate` or percentage is a warning at the close, not a refusal.
-- **Seed data that mirrors a code registry must be PINNED to it by a test** (parse the seed migration, assert its rows are in lockstep with the registry constant). A seed is a copy of a code contract frozen in SQL — without the pin, the registry evolves and the DB silently offers keys the code no longer recognises, or misses ones it requires. *(Real instance: per-intent option seeds pinned to the active intent registry by a migration-parsing test — a registry rename now fails the build instead of orphaning seeded rows.)*
+- **Seed data that mirrors a code registry must be PINNED to it by a test** (parse the seed migration, assert its rows are in lockstep with the registry constant). A seed is a copy of a code contract frozen in SQL — without the pin, the registry evolves and the DB silently offers keys the code no longer recognises, or misses ones it requires.
 
 ## 3. API and agent contracts
 
@@ -45,6 +45,8 @@ field, narrowing a type or **changing a unit** is a `/v2`).
 write/ingest paths define the **idempotency/natural key**.
 - Write the unit into the name when it could be read two ways (`score_0_10`, `amount_cents`, `timeout_ms`); time is
   timezone-aware UTC at every layer; an unknown value is `null`, never `0`.
+- **A score or threshold compared against a bar:** integer basis points (0.78 = 7800) or a Decimal - in floats
+  `0.7 + 0.1 < 0.8` is true. A float one is a warning.
 - A unit captured at the source (the shop's currency) is carried, never re-derived downstream.
 - **A document another tool PARSES is a boundary too — verify it by running the consumer's real parser on a filled example, not by reading the spec.** Template comments, placeholders and example paths are input to the parser as much as the fields are. (case file: The template the parser read differently)
 

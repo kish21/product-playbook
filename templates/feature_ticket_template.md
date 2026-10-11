@@ -20,6 +20,10 @@ labels: ["enhancement", "product-playbook"]
 ### 🎯 Goal
 <!-- The milestone this serves, and the one concern THIS ticket owns. For an ad-hoc issue: what happened, expected vs actual. -->
 
+### 🏁 Exit Criterion
+<!-- The #Plan exit criterion this ticket serves, by its number as the /tickets start prints it (`M1.2`) and its words.
+     Every criterion of a ticketed milestone is served by a ticket, or TICKETS.md says why not. Empty for an ad-hoc issue. -->
+
 ### 🧭 Slice Strategy
 <!-- Exactly one. Recorded so a later reader knows why the backlog is shaped this way. -->
 - [ ] ↕️ Vertical — thin end-to-end increment, demoable on merge
@@ -83,6 +87,7 @@ labels: ["enhancement", "product-playbook"]
 - [ ] No secrets in source — config and credentials in `.env` only.
 - [ ] No swallowed errors; fallbacks fail **closed** on anything auth- or security-related.
 - [ ] Structured logging, no stray prints on production paths.
+- [ ] **If this ticket generates or seeds data:** every generated identifier is invalid by construction (an IBAN that fails its checksum, reserved phone and test-card ranges, `example.com` emails, "(fictional)" on person and company names), a test proves it, and a small seeded output is pinned by its hash.
 - [ ] Tests written and passing for everything this ticket touches (for a bug fix: a **regression test that fails without the fix**).
 - [ ] Feature doc written/updated at `docs/features/<feature>.md` (listed in Target Files above).
 - [ ] **Mergeable alone** — a PR containing only these files is reviewable on its own, and the PR carries its `lane: <name>` label.

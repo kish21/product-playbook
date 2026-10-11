@@ -1,11 +1,12 @@
 # Architecture — <product name>
 
-> <!-- Keep this status block in the filled document; fill the placeholders. -->
-> **Status:** `draft | approved by <owner> on <YYYY-MM-DD> | superseded by <link>` · written `<YYYY-MM-DD>` from the
-> vision, scope and plan. **Owner:** read Overview, What drives the design, Decisions (its first line lists the defaults
-> waiting for your confirmation), Monthly cost and Risks and open questions. **Developers and coding agents:** all of it;
-> start with Rules the code must keep. Long forms of decisions live in `docs/adr/`. An accepted ADR replaces a decision
-> here only when it names that decision; this document is then updated the same day. The workings are the appendix.
+> <!-- status.py renders this layout from /architect's fields file (templates/product-architecture.md lists the
+> fields; `set architect filled --from-fields`); a run never opens this file. It documents the shape and its rules. -->
+> **Status:** `approved by the owner on <YYYY-MM-DD>` · written `<YYYY-MM-DD>` from the vision, scope and plan. **Owner:**
+> read 1 Overview, 2 What drives the design, 8 Decisions (its first line lists the defaults waiting for your
+> confirmation), 11 Running it (the monthly cost) and 13 Risks and open questions. **Developers and coding agents:** all
+> of it; start with 3 Rules the code must keep. A decision that changes later gets an ADR in `docs/adr/` and a
+> Superseded line in 8. The workings are the appendix.
 
 <!-- HOW TO FILL THIS TEMPLATE (delete every comment when you write the file)
 1. Every `##` section below is ALWAYS present, in this order, with this heading, so any reader (person or agent) finds
@@ -16,7 +17,7 @@
    and diagrams) aims at 20,000-32,000 bytes; a small product may be shorter - never pad. Guide per section: Decisions
    up to 7,000 · How it works and AI part up to 4,000 each · Building blocks, Running it and Risks up to 3,000 each ·
    every other section up to 2,000. If it runs long, merge failure rows with the same handling and cut repetition;
-   NEVER drop a rule, a decision's Rejected line or a failure row with its own handling, and NEVER compress into
+   NEVER drop a rule, a decision's options and why, or a failure row with its own handling, and NEVER compress into
    shorthand. Appendix A is word for word and does not count; Appendices B-D together stay under 6,000 bytes (shorten C
    first).
 3. Plain words in full sentences a newcomer can read aloud: no slash-joined word lists ("edit/reject/approve"), no
@@ -96,7 +97,7 @@
    - Name the noun instead of "it" or "this" when two things could be meant.
 -->
 
-## Overview
+## 1. Overview
 
 <!-- 3-5 plain sentences a newcomer understands: what the product is, who or what uses it (people, a schedule, another
 system, a calling program), its shape (how many parts run, where; whether work runs in the request, in a background task
@@ -127,7 +128,7 @@ flowchart LR
 <!-- The first four rows always; then one row per area this product really has (2-6 rows). Never a row just to write
 "Not applicable". The Choice cell is 2-6 words; the decision itself lives in its D#. -->
 
-## What drives the design
+## 2. What drives the design
 
 <!-- 4-10 constraints (derived ones included), the most decisive first, each with its source (the vision, scope or plan, or A#). One C per hard
 promise of the product. The team (people, hours a week, languages), money a month, how much infrastructure they will
@@ -143,7 +144,7 @@ loss allowed) states its conditions and threshold; one nobody stated is `(derive
 **Out of scope for this architecture:** <the non-goals and deferred items from the scope that the design must NOT build
 for, one line each>.
 
-## Rules the code must keep
+## 3. Rules the code must keep
 
 <!-- The invariants every change must respect, 4-10, each a MUST or NEVER sentence. An agent changing the code reads
 this section first. Each rule names where it comes from, the block that enforces it, and the test that fails if it
@@ -153,7 +154,7 @@ breaks; a rule nothing enforces yet says so and has a risk RK#. -->
 |---|---|---|---|---|
 | R1 | <e.g. The model NEVER computes an amount; every amount in a draft comes from `figures/`, tied to its source line.> | <D1, C1> | <the check before any draft is shown [`drafts/`]> | <the test that fails if it is broken> |
 
-## How it works, step by step
+## 4. How it works, step by step
 
 <!-- The flow that produces the product's main output, from what starts it to its final observable outcome: 5-10 steps.
 If a person approves before the product acts, the approval is a step and the action and its confirmed outcome follow;
@@ -187,7 +188,7 @@ is stored, and whether repeating the step is safe. -->
 
 **Other flows:** <cancel · delete · rerun · ...: one line each, with the block that handles it>.
 
-## Building blocks
+## 5. Building blocks
 
 <!-- The product's own modules (3-8 rows): domain modules such as `billing/`, `reports/`, `audit/`, never generic
 scaffolding such as `src/`, `tests/`, `infra/`. They become the project's folders. A block that keeps no data writes `-`
@@ -216,7 +217,7 @@ model service. The product's own data store, managed or not, is part of the prod
 |---|---|---|---|---|---|
 | | | `<InterfaceName>` | | <a fake, a container, a recorded reply> | |
 
-## Data
+## 6. Data
 
 <!-- The main entities (3-10): where each lives, how sensitive it is now and when real data arrives, how long it is kept
 and how it is deleted. Then the states of each record that changes state (1-3 records), the rules that keep data
@@ -234,7 +235,7 @@ have acted>.
 **What leaves the boundary:** <external · which fields · why · never sent: which fields>.
 **Schema changes:** <migration tool; how a migration is reviewed and rolled back>.
 
-## Conventions and terms
+## 7. Conventions and terms
 
 <!-- How every module writes the same thing the same way (4-10 rows), then the domain words a newcomer must know
 (3-8 terms). -->
@@ -245,7 +246,7 @@ have acted>.
 
 **Terms:** **<term>** - <plain meaning>. · ...
 
-## Decisions
+## 8. Decisions
 
 <!-- First line: the defaults the owner has not confirmed. Then one block per load-bearing decision, 4-10, the most
 consequential first: technology choices AND the system's own principles. `user-chosen` only when an owner answer names
@@ -254,15 +255,17 @@ A decision that creates a rule writes `Rule: R#` and does not restate it. -->
 
 **Defaults waiting for the owner's confirmation:** <D2 · D4 · ...> (or `none`).
 
-### D1. <the decision, in one sentence>
-- **Why:** <C# / A#, in one or two sentences>.
-- **Trade-off we accept:** <what this makes harder or more expensive>.
-- **Rejected:** <option> - <why it lost> · <option> - <why it lost>.
+### 8.1 D1. <the decision, in one sentence>
+- **Problem it solves:** <what goes wrong without it>.
+- **Options considered:** <option> · <option> (why each lost is in Why this one).
+- **Why this one:** <C# / A#, in one or two sentences; why the others lost>.
+- **What it costs or rules out:** <what this makes harder or more expensive>.
 - **Revisit when:** <a trigger: "more than 50 users", "real data arrives", "milestone M3", "the price passes EUR X">.
-- **Rule:** <R# | none> · **ADR:** <[ADR-NNNN](adr/NNNN-<slug>.md) | inline> · **Provenance:** <user-chosen | default
-  taken, not user-chosen>
+- **Rule:** <R# | none> · **Provenance:** <user-chosen | default taken, not user-chosen>
+- **Superseded:** <only when it changed: ADR-NNNN (YYYY-MM-DD) - was: ...; the ADR holds what it was, what it is now,
+  why it changed and what it affects>
 
-## Security and privacy
+## 9. Security and privacy
 
 <!-- Who or what can do what, and how each promise is enforced IN CODE OR CONFIG, not only in a prompt or a policy. Keep
 a promise at the lowest layer that can hold it (a read-only database role beats a read-only tool, which beats a sentence
@@ -281,14 +284,14 @@ in a prompt). Name a law or standard only with its source and the specific oblig
 |---|---|---|
 | | | |
 
-## AI part
+## 10. AI part
 
 <!-- Only for a product with a model in it; otherwise the one line `Not applicable: no model in the product`. A line
 that does not apply to this model is `Not applicable: <reason>`. -->
 
 - **What the model does, and what it never does:** <e.g. explains figures; never computes, sends or changes data>.
 - **Actions and their tiers:** read · write within a limit · needs approval · forbidden (no tool exists). The table is
-  here, or the link to the ADR holding it; `Not applicable: the model calls no tools` when it has none.
+  here, or the D# holding it; `Not applicable: the model calls no tools` when it has none.
 - **Model and runtime:** <model id, released YYYY-MM-DD, region or endpoint> · max_tokens · timeout · thinking effort ·
   retry and fallback · caching · streaming.
 - **Cost per use:** for one <use> = every model call it makes, retries included:
@@ -308,7 +311,7 @@ that does not apply to this model is `Not applicable: <reason>`. -->
 - **Prompt versions and tracing:** <where prompts live; the version written to every trace; the tracing tool>.
 - **If the model is down or wrong:** <fallback model (and the checks it passed), hold for a person, or a plain error>.
 
-## Running it
+## 11. Running it
 
 <!-- Where each part runs, how a change ships, what is watched, recovery and the monthly cost. Choose environments and
 recovery from what a failure would cost, how sensitive the data is and how risky a release is - and say what is
@@ -340,7 +343,7 @@ deliberately left out. A library or a mobile app ships through a release channel
 
 **Deliberately left out for now:** <e.g. a staging environment, autoscaling, a second region> - <the trigger that brings it in>.
 
-## Mapping to the plan
+## 12. Mapping to the plan
 
 <!-- Each milestone of the plan, the architecture pieces it needs by then, and the decisions it may reopen. Without a
 plan: `Not applicable: no milestones recorded`. -->
@@ -349,7 +352,7 @@ plan: `Not applicable: no milestones recorded`. -->
 |---|---|---|
 | M1 | | |
 
-## Risks and open questions
+## 13. Risks and open questions
 
 | # | Risk | Likelihood · impact | What reduces it | Watched by |
 |---|---|---|---|---|
@@ -373,7 +376,7 @@ plan: `Not applicable: no milestones recorded`. -->
 
 <!-- The options shown to the owner before the question, one line each: option · what it is · cost to run · lock-in ·
 version, date and link (why each lost is in `## Decisions`, not here). For an agent product, the framework table goes under `### Framework options` (3-4 options, at least one
-beyond the usual examples). Do not repeat the Rejected lines of `## Decisions`. -->
+beyond the usual examples). Do not repeat the Why this one lines of `## Decisions`. -->
 
 ## Appendix D — Sources and what is not verified
 

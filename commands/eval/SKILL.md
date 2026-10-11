@@ -1,11 +1,6 @@
 ---
 name: eval
-description: >
-  Phase 4 (Evaluation) of product-playbook. Judge whether the product is actually GOOD and hits its
-  goal — measured against criteria, not assumed. Separates operational failures from genuine quality,
-  and ends with an honest confidence score. Use after /test, or run /eval "is it good", "measure
-  quality", "evaluate the output", "benchmark". Writes the Evaluation section of PRODUCT.md. For AI
-  products, optionally composes /enterprise-ai-audit if installed. Run /ship next.
+description: Measure whether the product (or its AI) meets its bar, against a baseline.
 ---
 
 # `/eval` — Phase 4 · Evaluation · run as an **evaluator**
@@ -19,7 +14,7 @@ description: >
 - **Purpose:** measure whether the product meets its goal, honestly — quality, not just "it runs".
 - **Reads:** `PRODUCT.md#Vision`, `#Scope`, `#Plan` (the goal), `#Tests`, `#Architecture`'s budget — as `next` prints them.
 - **Writes:** `PRODUCT.md#Evaluation` — measured result · metrics + confidence · separated failures.
-- **Gate type:** `verification` — measured against a recorded baseline. Batchable, and **stops on red** - a failing check ends the batch there. (`STATE-MODEL.md` §2d)
+- **Gate type:** `verification` — measured against a recorded baseline. Batchable when the user asks (never offered), and **stops on red** - a failing check ends the batch there. (`STATE-MODEL.md` §2d)
 - **State model** (`STATE-MODEL.md` §2c): writes `#Evaluation` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Companion:** `docs/evaluation.md` — the reasoning, workings and raw notes; `#Evaluation` stays a RECORD.
 - **Exit criteria:**
@@ -39,14 +34,13 @@ description: >
 - **One first command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase eval`** — it prints the spine lines, the gates, the dataset, the `#Evaluation` fields and the rules; never open `PRODUCT.md` whole. Show its first line.
 - **Gate on the phases that come before this one** (the start prints both). `#Tests` or `#Dev-complete` not
   passed → **say which one is missing and offer the phase that fills it first** — `/dev-check`
-  then `/test` — but allow override (standalone use). A product mid-Build has nothing to evaluate, and
-  a score measured over an untested build reads as a quality verdict on work that was never claimed
-  finished.
-- **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from eval --gate <gate> --reason "<the user's own words>"` (`MECHANISMS.md` §Status) — before continuing.
+  then `/test` — but allow override (standalone use): a score over an untested build judges
+  unfinished work.
+- **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): follow the start's gate line - an unfinished milestone: the question below; any other gate is ONE options question, and Proceed runs `status.py bypass --from eval --gate <gate> --reason "/<gate> not passed - the user chose to go on"` - never a typed reason.
 - The **target + date**, the **input metrics** and the **guardrail** from `#Vision`'s north star are the measurement baseline, and the **instrumentation line** says how to read it (the start prints them). A direction rather than a target: the goal is fuzzy — sharpen it with the user (or send them back to `/vision`) before measuring anything.
 - **What this phase must NOT do:** change product code, config or tests — a gap found is a finding for a ticket.
-- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** follow the `RE-RUN` line `next` prints — **one question listing what would change**, never a silent overwrite.
-- **The gate is unmet and the run stops here (`MECHANISMS.md` §Declined runs):** `status.py set eval declined --reason "<what was missing>" --gate <the phase(s) that fill it>` — and change nothing in `PRODUCT.md`.
+- **A re-run:** the start prints a `RE-RUN` line only when `#Evaluation` is already filled — follow it (`MECHANISMS.md` §Re-run semantics).
+- **Features not built yet:** the start's ONE question — **check the measures and the test data now** *(Recommended)* or stop; both end in `status.py set eval declined --reason "<what was missing>" --gate <phase>` (`MECHANISMS.md` §Declined runs; it saves) — and change nothing in `PRODUCT.md`.
 
 ## Step 1 — Apply principles (this phase)
 - **Measure first:** judge against real/representative inputs; a scary or great number alike must be reproduced, not assumed (beware display/measurement artifacts).
@@ -59,11 +53,11 @@ description: >
 3. **Separate failures:** tag operational failures distinctly; report a clean quality number + a separate failure count.
 4. **Interpret honestly:** what's solid, what's weak, what's an artifact vs a real gap.
 
-**Two rounds, each ONE message.** **Round 1, before measuring:** the start's numbered questions (inputs · baseline · a north star readable only after launch · a gate not passed). **Round 2, after measuring:** the result, the confidence, any Step 3c clash, and *"Anything to change? If not: Save this version of your project? (yes / no)"* as "Looks good - save (Recommended)" · "Change something".
+**ONE question round, before measuring:** the start's questions (inputs · baseline · a north star readable only after launch), each as options with one *(Recommended)* and *Other* (`CAPABILITIES.md` §Ask the user a question with options); a gate not passed follows the start's gate line (one printed line, or one options question - never a typed reason). **After measuring**, the record saves - no save question; the close gives the result, the confidence and any Step 3c clash, and asks *"Change anything?"*.
 
 ## Step 3 — Write back to `PRODUCT.md`
-After round 2, **ONE message, both writes**: `docs/evaluation.md` (the reasoning, the raw numbers, how to reproduce them) and every `#Evaluation` field `next` printed — the measured result + metrics, operational-failure count (separated), and a
-**confidence score** (solid / risky-untested / to-raise-it) — in a scratch file; then `status.py set eval filled --verdict pass|fail --section-from <file> --commit "<one line>"` (no `--commit` on a no).
+After measuring, **ONE message, both writes**: `docs/evaluation.md` (opening with `## 1. In short` — the result, what it means, what happens next, in 3-5 plain sentences; then the reasoning, the raw numbers, how to reproduce them) and every `#Evaluation` field `next` printed — the measured result + metrics, operational-failure count (separated), and a
+**confidence score** (solid / risky-untested / to-raise-it) — in a scratch file; then `status.py set eval filled --verdict pass|fail --section-from <file> --commit "<one line>"` (`--no-commit` instead of `--commit` only when the user said not to save). The script numbers the document's headings.
 
 ## Step 3b — Principle-gate: measured, not asserted (evidence)
 **If the result is asserted rather than measured (reproducible — show how), not compared to a recorded baseline, or failures are blended
@@ -73,10 +67,10 @@ into the quality number, STOP and fix it** — an un-measured or contaminated nu
 
 **Receipts and size** (`MECHANISMS-ON-DEMAND.md §Section is a record`, `MECHANISMS-ON-DEMAND.md §Read receipt`): `set` writes the size line and the `Read:` line; an input file you opened yourself gets a quote (`status.py quote <file> "<words>"`). Apply the record test to every field — reasoning moves into the companion, never trim to a number.
 
-**Close the loop (`MECHANISMS.md` §Step 3b):** the checklist `set eval filled` prints, in order: reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it); the save was round 2's yes (`MECHANISMS.md` §Commit the work); **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not; **close in plain language** (`MECHANISMS.md` §Plain-language close): **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next**, ending with its `Open a NEW conversation` line word for word. **The close is the run's last message** — a composed skill's report is input to it, never the close itself.
+**Close the loop (`MECHANISMS.md` §Step 3b):** the checklist `set eval filled` prints, in order: reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it); the record call saved (`MECHANISMS.md` §Commit the work); **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not; **close in plain language** (`MECHANISMS.md` §Plain-language close): **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next**, ending with its `Open a NEW conversation` line word for word. **The close is the run's last message** — a composed skill's report is input to it, never the close itself.
 
-## Step 3c — Contradiction check (in round 2, before the yes; the close's step 3 confirms it)
-Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Vision`'s north star and `#Architecture`'s perf/cost budget — measuring a different metric than the one recorded, or a measured number that silently supersedes an ADR's budget. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
+## Step 3c — Contradiction check (before the record call; the close's step 3 confirms it)
+Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Vision`'s north star and `#Architecture`'s perf/cost budget — measuring a different metric than the one recorded, or a measured number that silently supersedes an ADR's budget. On a conflict (this replaces `MECHANISMS.md` §Step 3c items 2-3), **name both sides on a line of their own** in the close, ask nothing, and **never edit an earlier phase's record or document**: record it as an open item, `status.py open --from eval --what "Clash: <both sides>" --clears "/<that phase> decides"`. Adding detail to an earlier decision is not a contradiction.
 
 ## Step 4 — Handoff
 "Quality measured honestly, with a confidence score. Next run **`/ship`** — deep review, security

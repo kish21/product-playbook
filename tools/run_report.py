@@ -34,16 +34,26 @@ COMMON = [
     ("opened MECHANISMS.md (or ran `status.py rules <phase>`)", "read",
      r"(?i)mechanisms\.md|\brules\s+{phase}\b|\bnext\s+--phase\s+{phase}\s+--ticket\b"),
     ("recorded the phase: `status.py set <phase> filled`", "cmd", r"(?s)(status\.py|\$\w+).*\bset\s+{phase}\s+(filled|running)"),
-    ("asked the save question", "text", r"Save this version of your project\?"),
-    ("committed on the answer", "cmd", r"git\s+(-C\s+\S+\s+)?commit\b"),
 ] + [(f"close block: {b}", "text", re.escape(b)) for b in CLOSE_BLOCKS]
+# no phase asks a save question - the last round's answers are the go-ahead and `set` saves; asking one is a miss
+SAVE_QUESTION = re.compile(r"(?i)save this version of your project\?")
+# the early phases' close is 6 lines: no Test this yourself block (2.4, owner 2026-10-09)
+NO_TEST_BLOCK = ("vision", "scope", "plan")
 PHASE = {
-    "architect": [("ran at least one web search", "search", r".")],
     "structure": [("ran the structure check", "cmd", r"check_structure\.py")],
     "design-system": [("ran the audit engine", "cmd", r"audit\.py"),
                       ("asked for the user's own look before proposing", "text", r"(?i)look in mind|your own|reference")],
     "vision": [("ran at least one web search", "search", r".")],
 }
+
+
+OPTION_LINE = re.compile(r"(?m)^\W{0,3}(?:\d+\.|[a-dA-D]\))\s")
+
+
+def typed_question(text: str) -> bool:
+    """A question typed out as options: a "(Recommended" mark AND a numbered (`1.`) or lettered (`a)`) option line.
+    Prose that only names "(Recommended" is not a question - counting it hid a real unasked override."""
+    return "(Recommended" in text and bool(OPTION_LINE.search(text.replace("\\n", "\n")))
 
 
 def claude_events(path: Path) -> dict:
@@ -71,6 +81,8 @@ def claude_events(path: Path) -> dict:
         for b in d.get("message", {}).get("content", []):
             if b.get("type") == "text":
                 ev["text"].append(b["text"])
+                if typed_question(b["text"]):  # an options list typed out (the fallback form)
+                    ev["seq"].append(("ask", b["text"]))
             elif b.get("type") == "tool_use":
                 name, inp = b.get("name", ""), b.get("input", {})
                 if name in ("Bash", "PowerShell"):
@@ -79,6 +91,7 @@ def claude_events(path: Path) -> dict:
                     cmd_ids[b.get("id", "")] = inp.get("command", "")
                 elif name in ("WebSearch", "WebFetch"):
                     ev["search"].append(inp.get("query") or inp.get("url", ""))
+                    ev["seq"].append(("search", inp.get("query") or inp.get("url", "")))
                 elif name == "Read":
                     ev["read"].append(inp.get("file_path", ""))
                 elif name in ("Write", "Edit"):
@@ -87,6 +100,7 @@ def claude_events(path: Path) -> dict:
                         ev["edits"].append((inp.get("file_path", ""), d.get("message", {}).get("id", "")))
                 elif name in ("Agent", "Task"):
                     ev["agent"].append(inp.get("prompt", ""))
+                    ev["seq"].append(("agent", f"{inp.get('subagent_type', '')} {inp.get('prompt', '')}"))
                 elif name == "AskUserQuestion":
                     qs = [q.get("question", "") for q in inp.get("questions", [])]
                     ev["ask"] += qs
@@ -124,6 +138,10 @@ def antigravity_events(path: Path) -> dict:
         if re.search(r"\b(search_web|read_url_content)\s+\{", t):
             q = re.search(r'"(?:query|Url)":"([^"]*)"', t)
             ev["search"].append(q.group(1) if q else "search")
+            ev["seq"].append(("search", q.group(1) if q else "search"))
+        if re.search(r"\binvoke_subagent\s+\{", t):
+            ev["agent"].append(t[:300])
+            ev["seq"].append(("agent", t[:300]))
         if m := re.search(r'(?:(call_\d+)\s+)?\b(write_to_file|replace_file_content|multi_replace_file_content)'
                           r'\s+\{.*?"TargetFile":"([^"]+)"', t):
             ev["write"].append(m.group(3))
@@ -140,6 +158,8 @@ def antigravity_events(path: Path) -> dict:
         # result (a skill file it opened quotes "Save this version..." without the run ever asking it).
         if not re.search(r"\bcall_\d+\b", t):
             ev["text"].append(t)
+            if typed_question(t):  # Antigravity types its questions as an options list
+                ev["seq"].append(("ask", t))
     return ev
 
 
@@ -167,6 +187,8 @@ def report(ev: dict, phase: str | None) -> tuple[list[tuple[str, bool]], str | N
                 break
     rows = []
     for label, kind, pat in COMMON + PHASE.get(phase or "", []):
+        if label == "close block: Test this yourself" and phase in NO_TEST_BLOCK:
+            continue
         rx = re.compile(pat.replace("{phase}", re.escape(phase or "")))
         rows.append((label, any(rx.search(x or "") for x in ev[kind])))
     # A phase runs in a new conversation (MECHANISMS.md §Plain-language close): an earlier phase's Step 0 in the
@@ -175,8 +197,12 @@ def report(ev: dict, phase: str | None) -> tuple[list[tuple[str, bool]], str | N
     started = [m.group(1) for c in ev["cmd"] for m in re.finditer(r"next\s+--phase\s+([\w-]+)", c)]
     rows.append(("ran in its own conversation (no earlier phase in this log)", not started or started[0] == phase))
     rows.append(("asked the user before recording an override (the reason is theirs)", not unasked_override(ev)))
+    rows.append(("asked no save question (the last round's answers are the go-ahead)",
+                 not any(SAVE_QUESTION.search(str(x)) for x in ev["text"] + ev["ask"])))
     if phase == "build":
         rows += build_rows(ev)
+    if phase == "architect":
+        rows += architect_rows(ev)
     loop = looped(ev)
     rows.append((f"stopped a failing command by its 3rd try{f' (not: {loop[:80]!r})' if loop else ''}", not loop))
     return rows, phase
@@ -223,6 +249,31 @@ def build_rows(ev: dict) -> list[tuple[str, bool]]:
             (f"edited each file in at most {EDIT_CALLS} calls - whole-file writes, edits batched{worst}", not many),
             ("ran /code-review directly, never inside a helper agent (it starts its own reviewer)", not wrapped),
             (f"never merged (merging is /ship's){f' (not: {merged[0][:60]!r})' if merged else ''}", not merged)]
+
+
+# a technical option - a product, model, version or price - offered before any search ran is one the run
+# took from memory: plain's default click gave a TypeScript stack to a Python team and 2024 models. Login providers
+# (round 1's question 6) are the user's facts, not stack options.
+TECH_OPTION = re.compile(r"(?i)\b(?:v?\d+\.\d+(?:\.\d+)?|gpt-?\d\w*|claude|gemini|mistral|llama|ollama|deepseek|qwen|"
+                         r"next\.js|nextjs|django|fastapi|flask|rails|laravel|spring|express|nestjs|react|vue|svelte|"
+                         r"angular|postgres(?:ql)?|mysql|mongodb|supabase|firebase|sqlite|redis|vercel|netlify|"
+                         r"heroku|fly\.io|railway|render\.com|aws|gcp|hetzner|scaleway|digitalocean)\b|[€$£]\s?\d|"
+                         r"\bper\s+1m\b")
+RESEARCH_HELPER = re.compile(r"architect-research")
+
+
+def architect_rows(ev: dict) -> list[tuple[str, bool]]:
+    """/architect: the research ran (in the main conversation or its helper), and no question offered a technical
+    option before it."""
+    seq = ev.get("seq", [])
+    helper = [x for k, x in seq if k == "agent" and RESEARCH_HELPER.search(x)] or \
+        [p for p in ev.get("agent", []) if RESEARCH_HELPER.search(p)]
+    first = next((i for i, (k, x) in enumerate(seq) if k == "search" or (k == "agent" and RESEARCH_HELPER.search(x))),
+                 len(seq))
+    early = [x for k, x in seq[:first] if k == "ask" and TECH_OPTION.search(x)]
+    return [("researched the stack (web searches or its research helper)", bool(ev.get("search") or helper)),
+            (f"offered no product, model, version or price before the research"
+             f"{f' (not: {early[0][:70]!r})' if early else ''}", not early)]
 
 
 def looped(ev: dict) -> str | None:

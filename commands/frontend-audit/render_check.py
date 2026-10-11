@@ -13,7 +13,10 @@ renders the page with Playwright at 375, 768 and 1280 px and fails on:
 The Theme Studio block (dev-only) is ignored. Limits set from three logged samples: the approved ones had the
 main action at 700 px, a 56 px nav and 2% small text.
 
-Usage: python render_check.py <page.html> --main "<main action's visible text>" [--shots <folder>]
+Usage: python render_check.py <page.html | http://localhost:<port>/<path>> --main "<main action's visible text>"
+       [--shots <folder>]
+(a URL checks the running app as served - a React or server-rendered page has no .html file to open; nothing
+answering there is NOT RUN: start the app first)
 (--shots saves <page>-375.png, -768.png and -1280.png there: the screenshots a person and `set` can check)
 Exit: 0 pass · 1 a failure · 3 NOT RUN (no Playwright or no browser, or a page of a host's web components that draw
 nothing outside the host - record the check as not run, never passed)
@@ -114,16 +117,27 @@ def launch(p):
     return None
 
 
-def check(page_path: Path, main: str, shots: Path | None = None) -> tuple[list[str], list[str]]:
+def is_url(page: str) -> bool:
+    return page.startswith(("http://", "https://"))
+
+
+def check(page_path: Path | str, main: str, shots: Path | None = None) -> tuple[list[str], list[str]]:
     from playwright.sync_api import sync_playwright
     fails, notes = [], []
+    url = page_path if isinstance(page_path, str) else page_path.resolve().as_uri()
+    stem = "page" if isinstance(page_path, str) else page_path.stem
     with sync_playwright() as p:
         browser = launch(p)
         if browser is None:
             raise RuntimeError("no browser: `python -m playwright install chromium`")
         for width in WIDTHS:
             page = browser.new_page(viewport={"width": width, "height": PHONE_H if width == 375 else 900})
-            page.goto(page_path.resolve().as_uri())
+            try:
+                page.goto(url)
+            except Exception as e:  # noqa: BLE001 - a URL nothing answers: the app is not running, not a FAIL
+                browser.close()
+                raise NotRun(f"nothing answers at {url} ({str(e).splitlines()[0][:120]}) - start the app, then run "
+                             f"this again") from None
             try:
                 page.wait_for_load_state("networkidle", timeout=15000)
             except Exception:  # noqa: BLE001 - a page that keeps a connection open is measured as it stands
@@ -143,7 +157,7 @@ def check(page_path: Path, main: str, shots: Path | None = None) -> tuple[list[s
                              f"its script from the network). Check the page in the host")
             if shots is not None:  # the evidence a person can look at, one per width
                 shots.mkdir(parents=True, exist_ok=True)
-                page.screenshot(path=str(shots / f"{page_path.stem}-{width}.png"), full_page=True)
+                page.screenshot(path=str(shots / f"{stem}-{width}.png"), full_page=True)
             if lay["overflow"] > 0:
                 fails.append(f"{width}px: the page scrolls sideways by {lay['overflow']}px")
             for text, size, weight, ratio in texts:
@@ -195,8 +209,8 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--main", required=True, help="the visible text of the page's main action")
     ap.add_argument("--shots", help="a folder: save one full-page screenshot per width there (<page>-<width>.png)")
     a = ap.parse_args(argv)
-    path = Path(a.page)
-    if not path.is_file():
+    path = a.page if is_url(a.page) else Path(a.page)
+    if not is_url(a.page) and not path.is_file():
         print(f"REFUSED - {path.as_posix()} not found", file=sys.stderr)
         return 1
     try:
@@ -212,7 +226,7 @@ def main(argv: list[str]) -> int:
         print(f"  {n}")
     for f in fails:
         print(f"  [FAIL] {f}")
-    print(f"render_check: {'PASS' if not fails else f'{len(fails)} failure(s)'} - {path.as_posix()}")
+    print(f"render_check: {'PASS' if not fails else f'{len(fails)} failure(s)'} - {path if is_url(a.page) else path.as_posix()}")
     return 1 if fails else 0
 
 

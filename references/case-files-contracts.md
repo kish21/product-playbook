@@ -4,7 +4,7 @@ War stories behind the rules in `commands/contracts.md`. Each heading is pointed
 
 ## The template the parser read differently
 
-**product-playbook #64, 2026-09-06.** The `/tickets` issue template gained a `Lane` field and
+**product-playbook, 2026-09-06.** The `/tickets` issue template gained a `Lane` field and
 guidance for the `Target Files` list so that an external multi-agent tool (which parses the issue body as the
 lane boundary) would read it. The headings were checked against that tool's config defaults — they
 matched — and the change was ready to publish.

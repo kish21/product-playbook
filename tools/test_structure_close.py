@@ -18,6 +18,7 @@ import io
 import os
 import re
 import shutil
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
@@ -164,7 +165,8 @@ over four folders. **One app, no `frontend/`** - a recorded exception: Jinja2 + 
 ├── tests/            # tests that cross modules: tenant isolation, the test-DB guard
 ├── scripts/          # check_structure.py
 └── docs/
-    └── adr/          # architecture decisions, never deleted
+    ├── adr/          # architecture decisions, never deleted
+    └── features/     # one feature doc per built ticket, written by /build
 ```
 
 ## Modules
@@ -213,6 +215,7 @@ between modules: a module imports another only through its service.py
 | `app/<module>/` | a new thing the product does: a module with its own tests/, one line in `app/main.py` |
 | `app/<module>/adapters/` | a new outside service: a port in the module + its adapter |
 | `app/prompts/` | a new prompt, versioned |
+| `docs/features/` | If you are adding a built ticket's feature doc, it goes here as `<feature>.md`: /build writes one per ticket |
 
 ## Tests and fixtures
 
@@ -423,6 +426,7 @@ def hr_project(d: Path) -> None:
         "app/config/product.yaml": "max_tool_calls: 8\n", "app/prompts/explain.yaml": "id: explain\nversion: 1\n",
         "app/platform/__init__.py": "", "app/ui/templates/.gitkeep": "", "migrations/.gitkeep": "",
         "evals/agent/labels/README.md": "human labels\n", "tests/.gitkeep": "", "docs/adr/0001-monolith.md": "# 0001\n",
+        "docs/features/README.md": "# Features\n\nOne feature doc per built ticket, written by /build.\n",
     }
     for mod, subs in (("payslips", ("adapters", "tests")), ("explain", ("adapters", "guards", "tools", "tests")),
                       ("review", ("templates", "tests")), ("audit", ("tests",)), ("accounts", ("adapters", "tests"))):
@@ -460,24 +464,11 @@ BREAKS = [
      "placeholder test"),
     ("a task that only prints", edit("Makefile", '\t@echo "seed arrives with /foundation" && exit 1',
                                      '\t@echo "seeding [wired in /foundation]"'), "task only prints"),
-    ("Alembic with no migrations/", lambda d: (rm("migrations")(d), edit("STRUCTURE.md", "├── migrations/       # Alembic: the only way the schema changes\n", "")(d),
-                                              edit("STRUCTURE.md", "| Migrations: Alembic (ADR-0001) | `migrations/` | one history; `alembic.ini` arrives with /foundation |\n", "")(d)),
-     "records Alembic, and there is no migrations/"),
-    ("a container with no Dockerfile", lambda d: (rm("Dockerfile")(d), edit("STRUCTURE.md", "| Container on Scaleway (ADR-0002) | `Dockerfile` | one image for web and worker |\n", "")(d)),
-     "records a container, and there is no Dockerfile"),
-    ("a worker with no home", lambda d: (edit("STRUCTURE.md", "| Agent runs on arq, a Redis queue (ADR-0001) | `app/worker.py` | the job registry, one line per module |\n", "")(d),
-                                         edit("STRUCTURE.md", "one image for web and worker", "one image")(d)),
-     "no worker or queue row"),
-    ("an adapter with no home", lambda d: (edit("STRUCTURE.md", "| `IdentityProvider`: Entra ID (ADR-0005) | `app/accounts/adapters/` | token validation |\n", "")(d),
-                                           edit("STRUCTURE.md", "behind IdentityProvider", "behind the login port")(d)),
-     "adapter `IdentityProvider` has no home"),
     ("a hook runner nobody chose", lambda d: write(d, "lefthook.yml", "pre-commit:\n  commands: {}\n"),
      "lefthook.yml is a hook runner the Dev tooling line does not name"),
     ("the named hook runner missing", rm(".pre-commit-config.yaml"), "names pre-commit (hook runner) - no .pre-commit-config.yaml"),
     ("lint that skips the linter", edit("Makefile", "\tuv run ruff check . && uv run ruff format --check .",
                                         "\tpython scripts/check_structure.py"), "`lint` does not run Ruff"),
-    ("a compose file the target does not use", lambda d: write(d, "docker-compose.yml", "services: {}\n"),
-     "docker-compose file at the root"),
     (".env variant not ignored", edit(".gitignore", "*.env.local\n", ""), ".gitignore does not ignore prod.env.local"),
     (".env.example ignored", edit(".gitignore", "!.env.example\n", ""), ".gitignore ignores .env.example"),
     ("a realistic secret", edit(".env.example", "SESSION_SECRET=CHANGE_ME__SESSION_SECRET__CHANGE_ME",
@@ -510,9 +501,6 @@ BREAKS = [
     ("a superseded row in the map", edit("STRUCTURE.md", "| `app/audit` | Append-only action log | `tests/` |\n",
                                          "| `app/audit` | Append-only action log | `tests/` |\n| | | _superseded 2026-10-03: audit lived in platform/_ |\n"),
      "superseded line outside ## Changes"),
-    ("no shape named", lambda d: (edit("STRUCTURE.md", "**Domain modules, not layers.**", "**The tree.**")(d),
-                                  edit("STRUCTURE.md", "layers would spread", "anything else would spread")(d)),
-     "STRUCTURE.md names no shape"),
     # owner 2026-10-05: STRUCTURE.md is templates/structure.md filled
     ("no Entry points section", edit("STRUCTURE.md", "## Entry points", "## Processes"),
      "missing section(s) of the template: Entry points"),
@@ -542,6 +530,27 @@ BREAKS = [
     ("a Dockerfile copying a missing file", lambda d: write(d, "Dockerfile", "FROM python:3.13-slim\nCOPY pyproject.toml "
                                                             "uv.lock ./\nCOPY app/ app/\nCOPY poetry.lock ./\n"),
      "Dockerfile copies poetry.lock, which is not in the repo"),
+]
+# 2.3 (owner: prose rules warn, never refuse): what is read out of #Architecture's prose, or counted in STRUCTURE.md's
+# words, WARNS - the record saves, the warning names the gap. A live run was refused for a Dockerfile its runtime (the
+# demo laptop) did not use, because "container-anywhere" stood in an "Alternatives" line.
+WARN_BREAKS = [
+    ("Alembic with no migrations/", lambda d: (rm("migrations")(d), edit("STRUCTURE.md", "├── migrations/       # Alembic: the only way the schema changes\n", "")(d),
+                                              edit("STRUCTURE.md", "| Migrations: Alembic (ADR-0001) | `migrations/` | one history; `alembic.ini` arrives with /foundation |\n", "")(d)),
+     "names Alembic, and there is no migrations/"),
+    ("a container with no Dockerfile", lambda d: (rm("Dockerfile")(d), edit("STRUCTURE.md", "| Container on Scaleway (ADR-0002) | `Dockerfile` | one image for web and worker |\n", "")(d)),
+     "runtime target names a container, and there is no Dockerfile"),
+    ("a worker with no home", lambda d: (edit("STRUCTURE.md", "| Agent runs on arq, a Redis queue (ADR-0001) | `app/worker.py` | the job registry, one line per module |\n", "")(d),
+                                         edit("STRUCTURE.md", "one image for web and worker", "one image")(d)),
+     "no worker or queue row"),
+    ("an adapter with no home", lambda d: (edit("STRUCTURE.md", "| `IdentityProvider`: Entra ID (ADR-0005) | `app/accounts/adapters/` | token validation |\n", "")(d),
+                                           edit("STRUCTURE.md", "behind IdentityProvider", "behind the login port")(d)),
+     "adapter `IdentityProvider` has no home"),
+    ("a compose file the target does not use", lambda d: write(d, "docker-compose.yml", "services: {}\n"),
+     "docker-compose file at the root"),
+    ("no shape named", lambda d: (edit("STRUCTURE.md", "**Domain modules, not layers.**", "**The tree.**")(d),
+                                  edit("STRUCTURE.md", "layers would spread", "anything else would spread")(d)),
+     "STRUCTURE.md names no shape"),
 ]
 SECTION_BREAKS = [
     ("no evidence line", SECTION_OK.replace("- evidence: python scripts/check_structure.py → map and tree agree both ways"
@@ -606,7 +615,7 @@ def test_close(d: Path, fails: list[str]) -> None:
     if code != 0:
         fails.append(f"the realistic HR record should close the first time: {out.strip()[:1500]!r}")
         return
-    for want in ("#structure: empty -> filled", "The rest of the close, in order", "Save this version",
+    for want in ("#structure: empty -> filled", "The rest of the close, in order", "Change anything? If not:",
                  "the map against the tree both ways"):
         if want not in out:
             fails.append(f"set structure filled should print {want!r} after a pass")
@@ -624,6 +633,12 @@ def test_each_check_red(d: Path, fails: list[str]) -> None:
         code, out = close(d, section)
         if code == 0 or want not in out:
             fails.append(f"{what}: set structure filled should refuse with {want!r}: {out.strip()[:600]!r}")
+    for what, brk, want in WARN_BREAKS:
+        hr_project(d)
+        brk(d)
+        code, out = close(d)
+        if code != 0 or want not in out or "a warning, not a refusal" not in out:
+            fails.append(f"{what}: set structure filled should SAVE and warn {want!r}: {out.strip()[:600]!r}")
 
 
 def test_one_refusal(d: Path, fails: list[str]) -> None:
@@ -631,7 +646,7 @@ def test_one_refusal(d: Path, fails: list[str]) -> None:
     put back."""
     hr_project(d)
     picked = ("a module without tests/", "a placeholder test", "a task that only prints", "lint that skips the linter",
-              "Alembic with no migrations/", "a container with no Dockerfile", "no .gitattributes")
+              "no .gitattributes")
     for what, brk, _ in BREAKS:
         if what in picked:
             brk(d)
@@ -700,9 +715,13 @@ def test_findings_2026_10_04(d: Path, fails: list[str]) -> None:
     code, out = close(d)
     if code != 0:
         fails.append(f"a merged .gitignore should close: {out.strip()[:800]!r}")
-    elif "AFTER the answer" not in out or "git add" in out:
-        fails.append(f"the close should give ONE save path and put the handoff after the answer: {out[-1500:]!r}")
+    elif "saved: commit" not in out or "git add" in out or "save question" in out.replace("never ask a save question", ""):
+        fails.append(f"the close should save in the record call (#62), with ONE save path: {out[-1500:]!r}")
+    committed = git_out(d, "show", "--name-only", "--format=", "HEAD")
+    if ".agents/" in committed or "STRUCTURE.md" not in committed:
+        fails.append(f"the record call's save should commit the project and leave the install out: {committed[:300]!r}")
     write(d, ".gitignore", GITIGNORE)  # the save never takes the install, even unignored
+    write(d, "STRUCTURE.md", (d / "STRUCTURE.md").read_text(encoding="utf-8") + "\n")
     code, out = run(d, "save", "-m", "structure")
     committed = git_out(d, "show", "--name-only", "--format=", "HEAD")
     if code != 0 or ".agents/" in committed or "STRUCTURE.md" not in committed or "left out the playbook's install" \
@@ -873,13 +892,16 @@ def test_p46_starters_and_order(d: Path, fails: list[str]) -> None:
     tables; the realistic record must still close the first time with only STRUCTURE.md in the bundle. P47: the start
     stays under 25,000 characters on a re-run too, and tells the order and what never to run."""
     hr_project(d)
-    generated = ["CONTRIBUTING.md", "SECURITY.md", "CHANGELOG.md", "app/__init__.py", "migrations/.gitkeep"]
+    # docs/features/ is drawn from day one (#57 item 2): every /build writes a feature doc there, and a first build
+    # failed its structure check on the undrawn folder
+    generated = ["CONTRIBUTING.md", "SECURITY.md", "CHANGELOG.md", "app/__init__.py", "migrations/.gitkeep",
+                 "docs/features/README.md"]
     for mod, subs in (("payslips", ("adapters", "tests")), ("explain", ("adapters", "guards", "tools", "tests")),
                       ("review", ("tests",)), ("audit", ("tests",)), ("accounts", ("adapters", "tests"))):
         generated += [f"app/{mod}/__init__.py"] + [f"app/{mod}/{s}/__init__.py" for s in subs]
     for rel in generated:
         (d / rel).unlink()
-    for rel in ("migrations", "app/review/tests", "app/audit/tests"):
+    for rel in ("migrations", "app/review/tests", "app/audit/tests", "docs/features"):
         (d / rel).rmdir()
     bundle = d.parent / "p46-bundle.txt"
     bundle.write_text(">>> file: STRUCTURE.md\n" + (d / "STRUCTURE.md").read_text(encoding="utf-8"), encoding="utf-8")
@@ -927,6 +949,164 @@ def test_p46_starters_and_order(d: Path, fails: list[str]) -> None:
         fails.append(f"the re-run start is {len(out)} characters (keep it under 25,000) or lacks §Re-run semantics")
 
 
+def test_area_rules(d: Path, fails: list[str]) -> None:
+    """#58 (engineering half): `status.py area-rules` writes one rule file per ## Modules row, per tool, copied from
+    STRUCTURE.md and the docs/architecture.md rules that name the folder; --check is red on drift; a file it did not
+    write is never overwritten."""
+    hr_project(d)
+    write(d, "docs/architecture.md", "# Architecture\n\n## Rules\n\n| Rule | What | From | Enforced at | Test |\n"
+                                     "|---|---|---|---|---|\n"
+                                     "| R1 | The model NEVER computes an amount. | D1 | the output guard [`app/explain/`] | "
+                                     "test_guard |\n| R2 | Every action is logged. | D2 | `audit/` | test_log |\n")
+    code, out = run(d, "area-rules")
+    if code != 0 or "5 module(s) - nothing written" not in out or (d / "app" / "explain" / "CLAUDE.md").exists():
+        fails.append(f"area-rules: the default should say what it would write and write nothing: {out}")
+    code, out = run(d, "area-rules", "--write")  # P35: the tool with no route is named in the same line
+    if code == 0 or "--tool cursor (Antigravity: none yet" not in out:
+        fails.append(f"area-rules: --write with no tool should be refused, naming Antigravity's route: {out}")
+    code, out = run(d, "area-rules", "--write", "--tool", "claude", "--tool", "cursor")
+    explain = (d / "app" / "explain" / "CLAUDE.md").read_text(encoding="utf-8") if \
+        (d / "app" / "explain" / "CLAUDE.md").is_file() else ""
+    for want in ("# Rules for `app/explain/`", "- **What it does:** The agent that drafts the explanation",
+                 "- **R1:** The model NEVER computes an amount."):
+        if want not in explain:
+            fails.append(f"area-rules: app/explain/CLAUDE.md lacks {want!r}: {explain}")
+    if "R1" in (d / "app" / "payslips" / "CLAUDE.md").read_text(encoding="utf-8"):
+        fails.append("area-rules: a rule that names app/explain/ was copied into app/payslips/")
+    if "- **R2:** Every action is logged." not in (d / "app" / "audit" / "CLAUDE.md").read_text(encoding="utf-8"):
+        fails.append("area-rules: a rule naming `audit/` should reach app/audit/")
+    mdc = d / ".cursor" / "rules" / "app-explain.mdc"
+    if not mdc.is_file() or "globs: app/explain/**" not in mdc.read_text(encoding="utf-8"):
+        fails.append("area-rules: Cursor's file should carry the folder's globs")
+    code, out = run(d, "area-rules", "--check", "--tool", "claude")
+    if code != 0 or "drift" in out or "missing" in out:
+        fails.append(f"area-rules --check should be green right after --write: {out}")
+    edit("STRUCTURE.md", "The agent that drafts the explanation", "The agent that drafts the reply")(d)
+    code, out = run(d, "area-rules", "--check", "--tool", "claude")
+    if code != 1 or "drift app/explain/CLAUDE.md" not in out:
+        fails.append(f"area-rules --check should be red when STRUCTURE.md changed: {out}")
+    write(d, "app/review/CLAUDE.md", "# my own notes\n")
+    code, out = run(d, "area-rules", "--write", "--tool", "claude")
+    if (d / "app" / "review" / "CLAUDE.md").read_text(encoding="utf-8") != "# my own notes\n" or \
+            "skip app/review/CLAUDE.md" not in out:
+        fails.append(f"area-rules: a file it did not write must be left alone and named: {out}")
+
+
+STRUCT_HEADS = ("In short", "Modules", "Entry points", "Dependency rules", "Inside a module",
+                "Where does a new file go?", "Tests and fixtures", "Root files", "Where decisions live", "Hub files",
+                "Naming and placement rules", "Checks you run", "Not here yet", "Changes")
+
+
+def numbered(text: str) -> str:
+    for i, h in enumerate(STRUCT_HEADS, 1):
+        text = text.replace(f"\n## {h}\n", f"\n## {i}. {h}\n")
+    return text
+
+
+def test_findings_2026_10_09(d: Path, fails: list[str]) -> None:
+    """2.3 (#41 live run 2026-10-07): a false Dockerfile refusal from an "Alternatives" line; duplicate .gitignore
+    lines; results retyped into Checks you run; an earlier phase's document edited as a side effect; numbered
+    headings."""
+    # 1. the runtime is the user's machine; a container is only an alternative -> no refusal, no Dockerfile warning
+    hr_project(d)
+    rm("Dockerfile")(d)
+    edit("STRUCTURE.md", "| Container on Scaleway (ADR-0002) | `Dockerfile` | one image for web and worker |\n", "")(d)
+    edit("PRODUCT.md", "  - `web` (FastAPI) → container on a PaaS: Scaleway Serverless Containers, Paris.\n"
+                       "  - `worker` (agent runs) → the same image as a second container.",
+         "  - `web` (FastAPI): the user's machine - no hosting\n  - `worker` (agent runs): the user's machine\n"
+         "  - Alternatives if a URL is ever needed: container-anywhere on a small EU VPS")(d)
+    code, out = close(d)
+    if code != 0 or "Dockerfile" in out.split("#structure: empty -> filled")[-1].split("The rest of the close")[0]:
+        fails.append(f"a container named only as an alternative should neither refuse nor warn: {out.strip()[:700]!r}")
+    # 2. numbered headings close, and the unnumbered (older) file closes with a warning only
+    hr_project(d)
+    write(d, "STRUCTURE.md", numbered(STRUCTURE))
+    code, out = close(d)
+    if code != 0 or "without their number" in out:
+        fails.append(f"a numbered STRUCTURE.md should close with no heading warning: {out.strip()[:700]!r}")
+    hr_project(d)
+    code, out = close(d)
+    if code != 0 or "heading(s) without their number" not in out:
+        fails.append(f"an unnumbered STRUCTURE.md should close and warn about the numbers: {out.strip()[:700]!r}")
+    hr_project(d)
+    write(d, "STRUCTURE.md", numbered(STRUCTURE).replace("## 2. Modules", "## 2. Mods"))
+    code, out = close(d)
+    if code == 0 or "no `## Modules` section" not in out:
+        fails.append(f"a numbered STRUCTURE.md without Modules is still refused: {out.strip()[:500]!r}")
+    # 3. the dry run shows the warnings too
+    hr_project(d)
+    rm("Dockerfile")(d)
+    edit("STRUCTURE.md", "| Container on Scaleway (ADR-0002) | `Dockerfile` | one image for web and worker |\n", "")(d)
+    code, out = close_dry(d)
+    if code != 0 or "no gap" not in out or "runtime target names a container" not in out:
+        fails.append(f"--dry-run should say no gap and print the warnings: {out.strip()[:600]!r}")
+    # 4. scaffold never writes a .gitignore line twice (exact or the same pattern)
+    hr_project(d)
+    write(d, ".gitignore", "/.venv\n.env\n.claude/settings.local.json\n")
+    bundle = d.parent / "dup-bundle.txt"
+    bundle.write_text(">>> file: .gitignore\n.venv/\n.env\n.claude/settings.local.json\n.claude/settings.local.json\n"
+                      "node_modules/\nnode_modules\n", encoding="utf-8")
+    run(d, "scaffold", "--from", str(bundle))
+    keys = [status.ignore_key(l) for l in (d / ".gitignore").read_text(encoding="utf-8").splitlines()
+            if l.strip() and not l.startswith("#")]
+    dup = sorted({k for k in keys if keys.count(k) > 1})
+    if dup or "node_modules" not in keys:
+        fails.append(f"scaffold wrote .gitignore lines twice: {dup} / {keys}")
+    # 5. prove writes the Checks you run results itself; the record then closes on them
+    hr_project(d)
+    py = subprocess.list2cmdline([sys.executable])
+    lint, smoke = f"{py} -c \"print('All checks passed!')\"", f"{py} -c \"print('6 passed in 0.4s')\""
+    edit("STRUCTURE.md", "| Structure check | `python scripts/check_structure.py` | 2026-10-03: OK |",
+         "| Structure check | `python scripts/check_structure.py` | 2026-10-03: OK |\n"
+         f"| Lint | `{lint}` | not run yet |\n| Smoke test | `{smoke}` | not run yet |")(d)
+    code, out = run(d, "prove", lint, smoke)
+    table = (d / "STRUCTURE.md").read_text(encoding="utf-8")
+    if code != 0 or "2 result(s) written by prove" not in out or f"{TODAY}: 6 passed in 0.4s" not in table \
+            or f"{TODAY}: All checks passed!" not in table:
+        fails.append(f"prove should write the Checks you run results: {out.strip()[:400]!r}")
+    section = SECTION_OK + "".join(l + "\n" for l in out.splitlines() if l.startswith("evidence:"))
+    code, out = close(d, section)
+    if code != 0:
+        fails.append(f"rows prove wrote should close: {out.strip()[:600]!r}")
+    # 6. an earlier phase's document edited in this run is named, never folded into the save silently
+    hr_project(d)
+    git_init(d)
+    write(d, "docs/architecture.md", "# Architecture\n\n| I6 | llm/ |\n")
+    write(d, ".gitignore", GITIGNORE)
+    git_out(d, "add", "-A")
+    git_out(d, "commit", "-qm", "before /structure")
+    write(d, "docs/architecture.md", "# Architecture\n\n| I6 | app/prompts/ |\n")
+    code, out = close(d)
+    if code != 0 or "docs/architecture.md belongs to an earlier phase" not in out or "status.py open --from " \
+            "structure" not in out:
+        fails.append(f"an edited earlier document should be named with the record to make: {out.strip()[-900:]!r}")
+
+
+def test_findings_2026_10_11(d: Path, fails: list[str]) -> None:
+    """Two logged runs on two tools: (1) every `prove` call took one newline off the end of `## Checks you run`, so the
+    next heading ended up glued to the table ("... |## 13. Not here yet") and the save refused a missing section; (2)
+    the evidence was the command's last printed line, and stderr comes last - a task runner's echo and npm's "npm
+    notice" lines - so a passing smoke test read as "shows no pass" and the run rewrote its justfile to quiet them."""
+    base = d.parent / "prove-rows"
+    base.mkdir(parents=True, exist_ok=True)
+    py = f'"{sys.executable}"'
+    smd = base / "STRUCTURE.md"
+    smd.write_text("## 12. Checks you run\n\n| Check | Command | Last result |\n|---|---|---|\n"
+                   f"| Smoke test | `{py} -c \"print(1)\"` | Not run yet |\n\n## 13. Not here yet\n\n- CI\n",
+                   encoding="utf-8")
+    for _ in range(3):
+        status.prove(base, [f'{py} -c "print(1)"'], "2026-10-11")
+    text = smd.read_text(encoding="utf-8")
+    if "|\n\n## 13. Not here yet" not in text or "2026-10-11: 1" not in text:
+        fails.append(f"prove should keep the blank line before the next heading on every run: {text[-160:]!r}")
+    noisy = [f'{py} -c "import sys; print(\'All checks passed!\'); print(\'> eslint .\', file=sys.stderr)"',
+             f'{py} -c "import sys; print(\'Tests  13 passed (13)\'); '
+             f'print(\'npm notice New minor version of npm available\', file=sys.stderr)"']
+    code, out = status.prove(base, noisy, "2026-10-11")
+    if code != 0 or "→ All checks passed!" not in out or "→ Tests  13 passed (13)" not in out:
+        fails.append(f"prove's evidence should be the result line, not stderr noise printed after it: {out!r}")
+
+
 def main() -> int:
     fails: list[str] = []
     tmp = Path(tempfile.mkdtemp(prefix="structure-close-"))
@@ -934,7 +1114,7 @@ def main() -> int:
         d = tmp / "hr"
         for t in (test_start, test_close, test_each_check_red, test_one_refusal, test_honest_formats,
                   test_findings_2026_10_04, test_runnable_and_one_call_scaffold, test_findings_2026_10_06,
-                  test_p46_starters_and_order):
+                  test_p46_starters_and_order, test_area_rules, test_findings_2026_10_09, test_findings_2026_10_11):
             t(d, fails)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

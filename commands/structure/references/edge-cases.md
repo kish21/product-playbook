@@ -1,0 +1,12 @@
+# /structure — the unusual cases
+
+> Opened from Step 0 of `SKILL.md` only when the case is real; a normal first run never opens this file.
+
+## Step 0 — the cases a first run does not meet
+
+- **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate, ask for the **reason in the user's own words**, and record it — `status.py bypass --from structure --gate <gate> --reason "<the user's own words>"` (`MECHANISMS.md` §Status) — before continuing. Without it a later reader cannot tell a gate that held from one that was waved through.
+- **Re-running — `MECHANISMS.md` §Re-run semantics, in full.** Filled → follow `next`'s `RE-RUN` line: one question listing the changes. A replaced map row is deleted; its dated `superseded` line goes under `## Changes`.
+- **A shape-changing re-run after `/tickets` rewrites every path — named AND planned files — in `docs/issues/*.md` and `TICKETS.md`, closes the finding, then commits it as a `path rewrite` and syncs the open issues (`/tickets`' `publishing.md` §A path rewrite reaches GitHub); lanes, order and owners stay.** Stale paths send the next builder to recreate the emptied folder; the close counts the issues synced. (case file: The move that came a phase late)
+- **A file moved from a shared folder into a lane carries its imports with it — check the import graph, not just the tree.** Hand cross-lane needs across in the composition root and enforce the arrows with a check beside `check_structure.py`; a failure names the allowed imports. (case file: The move that came a phase late)
+- **Stopping at an unmet gate — `MECHANISMS.md` §Declined runs, in full.** `status.py set structure declined --reason "<what was missing>" --gate <phase>` (`MECHANISMS.md` §Status), nothing in `PRODUCT.md` touched; the section stays unfilled so `/playbook` still routes here.
+- **A refusal the user says does not apply** (a check that read the wrong line): the user's message already says why → record it, no question: `status.py waive --from structure --check "<words of that refusal>" --reason "<those words>"`. Else ONE question (your question tool, else numbered options): *"Fix it" (Recommended: the check guards the layout)* · *"Other - type why this check does not apply"* — that text is the reason; record it the same way. The next `set` drops that refusal only. A secret, `.env`, install or security refusal is never waived.

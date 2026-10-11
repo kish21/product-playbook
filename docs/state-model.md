@@ -121,13 +121,13 @@ Not by the user's experience level. By whether the answer is **derivable**:
 |---|---|---|---|
 | **input** | the human, and nowhere else | `/vision` `/validate` `/scope` `/plan` `/architect` `/design-system` `/learn` `/adopt` | **Never** |
 | **derivation** | prior `PRODUCT.md` sections + the repo | `/structure` `/foundation` `/contracts` `/tickets` `/build` `/new-component` | Yes — one review at the end of the batch |
-| **verification** | repo evidence; no preference involved | `/dev-check` `/test` `/eval` `/ship` (`/frontend-audit`\*) | Yes, and **stops on red** |
+| **verification** | repo evidence; no preference involved | `/dev-check` `/test` `/eval` `/ship` (`/frontend-audit`\*) | Yes, when the user asks for it - never offered (§Batch mode offers derivation phases only: a verdict is read before the next phase runs) - and **stops on red** |
 
 **Where the batch offer lives (record test):** `MECHANISMS-ON-DEMAND.md` §Batch mode is the mechanism;
 `/playbook` Step 2 and the `/structure` + `/design-system` handoffs make the offer; check 27 holds all four
 to it. Until 2026-09-13 this table was the only place batching existed (#204). **Chain** is defined in the
 same section: an `input` phase followed by its derivation phase (`/architect` → `/structure`) in one
-session with every input question kept — offered at `/architect` Step 0, never the default (#205).
+session with every input question kept — run at `/architect` when the user asks for it, never asked and never the default (#205, ).
 
 Two assignments deserve their reasoning, because they are not the audit's:
 
@@ -238,6 +238,33 @@ thing it guards"* (v1.31.0). Reversed for status only, on measurement from a log
 `#Build log` grew to 35% of the file although its rule said one row per feature; and nothing but the model's
 memory refused an illegal move. A script refuses; prose cannot. Still no service: a Python file and a Markdown
 file in the repo, readable without the script.
+
+### 2i. Phase fields — the model types each fact once; the script renders both files
+
+**`PRODUCT.md` is the AI's complete summary; `docs/<phase>.md` is the human story.** A phase on this path writes ONE
+fields file: `### <field>` on its own line and the field's text under it (or the same as a JSON object). `status.py
+set <phase> filled --from-fields <file>` renders `docs/<phase>.md` from `templates/<phase>.md` and the phase's
+`PRODUCT.md` section from `templates/product-<phase>.md`, from the same fields, then runs the phase's own checks on
+the rendered files. A refusal names every gap in one list and puts both files back. `--dry-run` writes nothing.
+
+- **The required-field check is exact.** A field missing or empty, an unknown field name, a table row without its
+  columns or with a blank cell: refused. What a script can only estimate from prose (an unmarked number, a trigger
+  word, a reason word) **warns** on this path, never refuses.
+- **Only finished phases are in `PRODUCT.md`.** A new `PRODUCT.md` holds the title and the project policy; each
+  phase's section is added when that phase finishes, in the phases' order. A skipped or overridden phase writes no
+  section: `STATUS.md` records it. A missing section reads as empty everywhere.
+- **Old projects are not rewritten.** A `PRODUCT.md` written the old way (the full template, `--section-from`) still
+  passes; the fields path replaces only the running phase's own section, and `--section-from` keeps working.
+
+**The API, for a phase that switches to it** (`/vision`, `/scope` and `/plan` use it; `/tickets` renders its own
+files from a JSON fields file and can move onto it; `/architect` has its own renderer):
+
+| Piece | What it holds |
+|---|---|
+| `templates/product-<phase>.md` | `## Fields`: one `- <name> [optional] [table: A \| B] - <what to write>` per field (what `next` prints) · `## Section`: the `PRODUCT.md` section with slots |
+| `templates/<phase>.md` | the human document with slots; the script numbers every `##`/`###` heading |
+| slots | `{{name}}` · `{{name:first}}` (its first line) · `{{name:rest}}` · `{{name:line}}` (on one line) · `{{name:each:<pattern>}}` (a table, row by row: `{1}` = column 1, `{4:list}` = its `;` parts as sub-bullets) · a heading ending `{{?name}}` is dropped when the field is empty or n/a · a line whose optional field is empty is dropped |
+| `status.py` | `FIELD_PHASES[phase]` = (the document's path, the check run on the rendered files) · `phase_fields_text(phase)` for the start · `set_with_fields()` for the close · `PROSE_GAPS[phase]` = the gaps that only warn |
 
 ## 3. Rejected: `/playbook --auto`
 

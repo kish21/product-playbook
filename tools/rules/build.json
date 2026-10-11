@@ -57,11 +57,11 @@
     "- Read `#Scope/#Plan/#Contracts`. **Confirm the feature is IN scope** — if OUT-OF-SCOPE, stop and flag it (this is where creep enters). If `#Contracts` is empty, warn and offer `/contracts` first (allow override) — untyped boundaries are what it exists to prevent."
    ],
    "new": [
-    "- **First turn, ONE command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase build` with `--ticket <the ticket id>`** — it prints the gate, the ticket, its files, `#Project policy`, the commands and the coding rules; **read nothing else up front** (each line read is re-sent on every call). Show its first line.",
+    "- **First turn, ONE command: the start (SKILL.md §Full-path commands) with `--ticket <the ticket id>`** - already run when you read this (no id named: leave it out and the start picks the seat's next startable ticket; a seat named: `--seat <seat>`) — it prints the gate, the ticket, its files, `#Project policy`, the commands and the coding rules; **read nothing else up front** (each line read is re-sent on every call). Show its first line.",
     "- **The first message says what to expect:** ~15–25 min; one mid-run question (round 2), none with `one round`; a note per step.",
     "- **Nobody to answer** (headless, a batch): take the recommended option only where this skill offers one (round 2); **STOP and report** on a scope doubt, an override, a contradiction or a finding that fails the DoD.",
     "- **A tool a step names is missing:** `CAPABILITIES.md` names its equivalent; none → that check is recorded UNVERIFIED with why, never as passed.",
-    "- **The ticket is the accepted brief:** build it; revisit a plan decision only when the code shows it changed, is missing or conflicts. **Confirm the feature is IN scope** — the start flags a ticket missing from `TICKETS.md`; then ask, and if OUT-OF-SCOPE, stop and flag it (this is where creep enters). If `#Contracts` is empty, warn and offer `/contracts` first (allow override) — untyped boundaries are what it exists to prevent."
+    "- **The ticket is the accepted brief:** build it; revisit a plan decision only when the code shows it changed, is missing or conflicts. **Confirm the feature is IN scope** — the start flags a ticket missing from `TICKETS.md`; then ask, and if OUT-OF-SCOPE, stop and flag it (this is where creep enters). If `#Contracts` is empty, warn and offer `/contracts` first (allow override)."
    ]
   },
   {
@@ -117,10 +117,10 @@
     "- **Tests while coding: the test files that import a module you changed** — a search for `<module name>` in test folders — then only the failing tests until they pass (`pytest --lf`, `vitest --changed`, or the test ids; keep the runner's cache on, it is what remembers the failures). **The full suite runs at the gate and at the close, nowhere else** — never after a single fix, never after round 1's fixes (the close gate covers them); a gate that fails is fixed with its failing tests, then run once more. **Count the full-suite runs and pass the count as `--runs` on the ticket row** (`--runs 2`). (case file: The suite that ran for every edit)"
    ],
    "new": [
-    "3. **Code** against the typed contracts; keep it modular and generic (no domain special-casing in shared infra). **Write a new file whole, in one write; put every edit to one file in ONE message** (a file too big for one write: the fewest writes, the reason in the feature doc) — each call re-sends the whole conversation (`run_report` flags a file edited in more than 3 calls); not with a patch script — a script puts the code in the conversation twice and breaks on quoting.",
-    "- **Checks: `gate.py`, all in ONE call** — `python \"${CLAUDE_PLUGIN_ROOT}/commands/build/gate.py\" --ticket <id>` (it runs the project's check recipe and the ticket's Verification Command; commands named after it are added, `--only` replaces); **wire cuts: `wirecut.py <cuts.json>`** (or `--cut \"<file>::<text>::<replacement>::<test>\"`), all in one call, each file restored.",
+    "3. **Code** against the typed contracts; keep it modular and generic (no domain special-casing in shared infra). **Write a new file whole, in one write; put every edit to one file in ONE message** (a file too big for one write: the fewest writes, the reason in the feature doc; `run_report` flags a file edited in more than 3 calls); not with a patch script.",
+    "- **Checks: `gate.py`, all in ONE call** — the start's `gate:` command (`gate.py --ticket <id>`) (it runs the project's check recipe and the ticket's Verification Command; commands named after it are added, `--only` replaces); **wire cuts: `wirecut.py <cuts.json>`** (or `--cut \"<file>::<text>::<replacement>::<test>\"`), all in one call, each file restored.",
     "- **A missing table or column before any test runs:** first check the test database's migrations (one command); not migrated → migrate it; migrated → likely another checkout: ask the user once to point `.env` at `<project>_test`; never wrap every command.",
-    "- **Tests while coding: the test files that import a module you changed** — a search for `<module name>` in test folders — then only the failing tests until they pass (`pytest --lf`, `vitest --changed`, or the test ids; keep the runner's cache on, it is what remembers the failures). **The full suite runs at the gate and at the close, nowhere else** (the close reuses it if code is unchanged) — never after a single fix, never after round 1's fixes (the close gate covers them); a gate that fails is fixed with its failing tests, then run once more. **Count the full-suite runs and pass the count as `--runs` on the ticket row** (`--runs 2`). (case file: The suite that ran for every edit)"
+    "- **Tests while coding: the test files that import a module you changed** (the start's `Per edit` line names the commands) — a search for `<module name>` in test folders — then only the failing tests until they pass (`pytest --lf`, `vitest --changed`, or the test ids; keep the runner's cache on, it is what remembers the failures). **The full suite runs at the gate and at the close, nowhere else** (the close reuses it if code is unchanged) — never after a single fix, never after round 1's fixes (the close gate covers them); a gate that fails is fixed with its failing tests, then run once more. **Count the full-suite runs and pass the count as `--runs` on the ticket row** (`--runs 2`). (case file: The suite that ran for every edit)"
    ]
   },
   {
@@ -176,9 +176,9 @@
     "6. **Document** — once, after Step 5's last round — write/update `docs/features/<feature>.md`; reconcile it with the code. **`#Project policy` names a per-ticket record** → write that content THERE, once, and nothing into `docs/features/`; the `status.py ticket` row stays, the one-line index `/ship` and `/dev-check` read. **Copy every `evidence:` number from the command's captured output, never ahead of it** — a figure pencilled in while CI runs reads exactly like a measured one. (case file: The pencilled bundle size)"
    ],
    "new": [
-    "6. **Document** — once, at the close's step 3 (Step 3) — write/update `docs/features/<feature>.md` in ONE write; reconcile it with the code; name each changed file the ticket did not list, with why. **`#Project policy` names a per-ticket record** → write that content THERE, once, and nothing into `docs/features/`; the `status.py ticket` row stays, the one-line index `/ship` and `/dev-check` read. **Copy every `evidence:` number from the command's captured output, never ahead of it** — a figure pencilled in while CI runs reads exactly like a measured one. (case file: The pencilled bundle size)",
+    "6. **Document** — once, at the close's step 3 (Step 3) — write/update `docs/features/<feature>.md` in ONE write; reconcile it with the code; name each changed file the ticket did not list, with why. **`#Project policy` names a per-ticket record** → write that content THERE, once, and nothing into `docs/features/`; the `status.py ticket` row stays, the one-line index `/ship` and `/dev-check` read. **Copy every `evidence:` number from the command's captured output, never ahead of it**. (case file: The pencilled bundle size)",
     "## Step 3 — Record the ticket",
-    "**The close, in this order, each once:** (1) the close gate — it prints the close's rules; (2) Step 3c; (3) the feature doc, ONE write (item 6: the review table, the gate's numbers, Step 3c's result); (4) commit it; (5) the ticket row, below; (6) Step 3b's close the loop — the save question there commits only the record (the code was committed before round 1)."
+    "(6) Step 3b's close the loop — `set build filled` saves only the record unasked"
    ]
   },
   {
@@ -261,7 +261,7 @@
     "). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff). **The close is the run's last message** — a composed skill's report is input to it, never the close itself. (case file: The report that became the close) After the PR merges, set the card to **Done** and read it back; merged later → the close gives the user that command."
    ],
    "new": [
-    "**Close the loop (`MECHANISMS.md` §Step 3b):** record the phase's state — `status.py set build filled` (`MECHANISMS.md` §Status) — reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), and **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work). Then **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): cite the close gate's record (`status.py ticket` checked it) and report a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff). **The close is the run's last message** — a composed skill's report is input to it, never the close itself. (case file: The report that became the close) After the PR merges, set the card to **Done** and read it back; merged later → the close gives the user that command."
+    "no save question: the record call saves (`--no-commit` only when the user said not to save) (`MECHANISMS.md` §Commit the work). Then **run the transition guard**"
    ]
   },
   {
@@ -284,6 +284,29 @@
    "old": [],
    "new": [
     "today in this checkout - run it and apply its rules"
+   ]
+  },
+  {"id": "v21-feature-doc-and-fake-data", "what": "2.1: the security DoD adds generated or seeded data - identifiers invalid by construction, a test proving it, a seeded output pinned by its hash; the feature doc is two halves, the owner's top half and the developer half after --- (templates/feature-doc.md; gate.py --close checks the top half)", "old": ["  - [ ] A written **definition-of-done that includes security** (input validation, authz/tenant-isolation; for AI: prompt-injection defence).", "  - [ ] **`docs/features/<feature>.md` (or the per-ticket record `#Project policy` names) written and matches the code** (what · contract · exit criteria · how verified · code links)."], "new": ["- [ ] A written **definition-of-done that includes security** (input validation, authz/tenant-isolation; for AI: prompt-injection defence; generated data: **identifiers invalid by construction**, tested, its fixed-seed output hash-pinned).", "- [ ] **`docs/features/<feature>.md` (or the per-ticket record `#Project policy` names) written and matches the code** — two halves, lean step 5."]},
+  {
+   "id": "board-low-record",
+   "what": " (2026-10-08): the start moves the board card to In Progress and the ticket row moves it to In Review, both read back by board.py (was: the run moved it with gh project item-edit); LOW findings left unfixed are filed as one grouped issue named in --low",
+   "old": [
+    "- **Move the ticket's board card, if it has one, to In Progress before the first write** (`gh project item-edit`, Status), and read it back.",
+    "Record ONE ticket row — `status.py ticket <id> --dod yes|no|partial --verified \"<command> → <result>\" --doc docs/features/<feature>.md --runs <full-suite runs> --review \"<Step 5's round scopes>\"` (`MECHANISMS.md` §Status). **The row is a record, and `status.py` refuses a field past its limit** — findings, defects, round detail and **Step 3c's result go in the feature doc**, never in the row (`MECHANISMS-ON-DEMAND.md` §Section is a record). A stop or an override is recorded by `status.py` too, never as a paragraph. (case file: The log every build read)"
+   ],
+   "new": [
+    "- **The start moves the ticket's board card to In Progress and reads it back** — its `Board:` line; say it. No board: that line says so, never a claim. A `!` in it (another seat's card) is a STOP.",
+    "Record ONE ticket row — `status.py ticket <id> --dod yes|no|partial --verified \"<command> → <result>\" --doc docs/features/<feature>.md --runs <full-suite runs> --review \"<Step 5's round scopes>\"` (`MECHANISMS.md` §Status); LOW findings left unfixed → ONE grouped issue (`gh issue create`), its number in `--low \"#<n>\"` (or `--low \"not filed: <why>\"`). The row moves the board card to In Review and reads it back. **The row is a record, and `status.py` refuses a field past its limit** — findings, defects, round detail and **Step 3c's result go in the feature doc**, never in the row (`MECHANISMS-ON-DEMAND.md` §Section is a record). A stop or an override is recorded by `status.py` too, never as a paragraph. (case file: The log every build read)"
+   ]
+  },
+  {
+   "id": "audit-engine-from-skill",
+   "what": " (2026-10-08): the full path is a file the agent opens with Read, where ${CLAUDE_PLUGIN_ROOT} is never filled in - the installed audit engine's path is named in SKILL.md §Full-path commands",
+   "old": [
+    "   - **If the feature has a user-facing screen (UI products):** build to **`DESIGN.md`** — §5 layout, token look, `/new-component` parts (Law 15) — then run **`/frontend-audit`** — `python \"${CLAUDE_PLUGIN_ROOT}/commands/frontend-audit/audit.py\" DESIGN.md <ui-dir>`, the installed engine; **never search the plugin cache** (a `$` left in the path: `/frontend-audit` §Which engine runs) — fix every ERROR, and repeat its `engine copy:` line. *(No `DESIGN.md`? `/design-system` first.)*"
+   ],
+   "new": [
+    "- **If the feature has a user-facing screen (UI products):** build to **`DESIGN.md`** — §5 layout, token look, `/new-component` parts (Law 15) — then run **`/frontend-audit`** — `audit.py DESIGN.md <ui-dir>` with the installed engine SKILL.md §Full-path commands names; **never search the plugin cache** (a `$` left in the path: `/frontend-audit` §Which engine runs) — fix every ERROR, and repeat its `engine copy:` line. *(No `DESIGN.md`? `/design-system` first.)*"
    ]
   }
  ],

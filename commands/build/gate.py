@@ -97,6 +97,8 @@ def main(argv: list[str]) -> int:
                   f"runs it again)")
             record(folder, cmds, True, ticket, ticket_cmds, reused=prior["head"], tree=tree)
             if close:
+                if not feature_docs_plain():
+                    return 1
                 print_close_rules()
             return 0
     stamp = time.strftime("%H%M%S")
@@ -122,8 +124,37 @@ def main(argv: list[str]) -> int:
     print(f"{'GATE PASS' if not failed else f'GATE FAIL - {failed} of {len(cmds)} failed'} · full output: {folder}/{stamp}-*.log")
     record(folder, cmds, not failed, ticket, ticket_cmds, tree=tree)
     if close and not failed:  # the close starts here: its order and rules arrive now, not at the start of the run
+        if not feature_docs_plain():
+            return 1
         print_close_rules()
     return 1 if failed else 0
+
+
+def feature_docs_plain() -> bool:
+    """The close gate: every docs/features/*.md this branch changed has a top half a person can read (featuredoc.py).
+    The doc is only a record, so a failure here never makes the commands' passing run stale."""
+    from featuredoc import top_half_gaps, warnings
+    base = next((b for b in (git_out("merge-base", "HEAD", ref) for ref in ("origin/HEAD", "main", "master")) if b), "")
+    changed = ((git_out("diff", "--name-only", base, "HEAD").splitlines() if base else [])
+               + git_out("diff", "--name-only", "HEAD").splitlines()
+               + git_out("ls-files", "--others", "--exclude-standard").splitlines())
+    top = Path(git_out("rev-parse", "--show-toplevel") or ".")
+    docs = sorted({c for c in changed if re.match(r"(?i)^docs/features/[^/]+\.md$", c)
+                   and Path(c).name.lower() != "readme.md" and (top / c).is_file()})
+    if not docs:
+        print("feature doc: none on this branch yet - once written, check its top half: python "
+              f"\"{Path(__file__).with_name('featuredoc.py')}\" docs/features/<feature>.md")
+        return True
+    bad = [(d, g) for d in docs for g in top_half_gaps((top / d).read_text(encoding="utf-8", errors="replace"))]
+    for d, g in bad:
+        print(f"FEATURE DOC {d}: {g}")
+    for d in docs:  # numbering and sentence length are said, never a gate failure
+        for w in warnings((top / d).read_text(encoding="utf-8", errors="replace")):
+            print(f"warn {d}: {w}")
+    if bad:
+        print("GATE FAIL - the feature doc's top half is for people (templates/feature-doc.md): fix it and run the "
+              "close gate again - the checks' passing run is reused")
+    return not bad
 
 
 def print_close_rules() -> None:

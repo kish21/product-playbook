@@ -60,8 +60,9 @@ Read a value back at runtime; evidence.
 - **UI product: the audit gate is real** → plant a raw hex colour in a component with `proof.py plant --file <a UI
   file> --text "<raw hex>" --also "<the CI audit command>"`: in a throwaway copy of the folder, the hook must refuse the commit and the CI step exit non-zero;
   your folder is never touched. A WARN alone passes.
-- **CI:** commit first, then `ci_local.py` (beside SKILL.md) runs the workflow's own `run:` steps on this machine,
-  one line each, **in a clean checkout of HEAD** (as a CI runner does; nothing lands in your folder) and refuses a
+- **CI:** `ci_local.py --with-changes` (beside SKILL.md; no commit first - the one save comes at the close) checks
+  every `uses:` version exists, then runs the workflow's own `run:` steps on this machine, one line each, **in a clean
+  checkout of HEAD plus your changes** (as a CI runner does; nothing lands in your folder) and refuses a
   step that would get the database in your `.env`; with no git remote this is the proof. Passing counts as **verified locally — never "green on CI"** — and record
   `status.py open --from foundation --what "CI has not run on a remote" --clears "CI is green on the first push"`
   (`set foundation filled` refuses a workflow that never ran without it). A step that needs a service this machine

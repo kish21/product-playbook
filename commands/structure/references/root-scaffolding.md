@@ -1,6 +1,6 @@
 # Root scaffolding — the files every shape needs
 
-> Printed by `next --phase structure`. Each is a **capability**, filled by the tool `#Architecture` recorded:
+> Each is a **capability**, filled by the tool `#Architecture` recorded:
 > a file scaffolded by habit silently overrides a tool decision one phase later.
 
 **The bundle holds ONLY what the product's decisions shape:** `STRUCTURE.md` · the agent instructions (`CLAUDE.md`
@@ -20,6 +20,9 @@ name, with its package file (`__init__.py`) or `README.md` from the table's line
 
 **When relevant:** `Dockerfile`+`docker-compose.yml`+`.dockerignore` · CI workflow · `.github/dependabot.yml` ·
 migrations config · observability config · `evals/` (AI) · `docs/` · `scripts/`.
+
+**Always:** `docs/features/` - drawn in the tree under `docs/` and kept as its row under `## Where does a new file go?`
+(the template has it): `scaffold` makes it with its README; `/build` writes one feature doc there per ticket.
 
 **Never:** a placeholder test · a README or `.gitkeep` in a folder that holds a file · empty route/service/schema
 stubs (`/build` writes them) · product logic.

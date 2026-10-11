@@ -95,9 +95,10 @@ proof — and prints one `OK`/`FAIL` line per check with its count: those lines 
   and is read back by *Epics are parents* — compared as `publishing.md` §A path rewrite reaches GitHub compares;
   the close states the count (`13 bodies · 13 equal`). Before trusting it, compare one body with a different
   ticket's file and watch it fail: a read-back never seen failing proves nothing.
-- **The board reads back set.** Every published ticket issue is a card on the Delivery Board and
-  `gh project item-list --format json` shows Status, Owner, Lane and Seat set on each (lowercase keys); the
-  close states the count. No board (scope missing) → the close says so and names the command that grants it.
+- **The board reads back as planned.** Every published ticket issue is a card on the Delivery Board and
+  `gh project item-list --format json` shows Status set and Owner, Lane and Seat **equal to the plan's** on
+  each (lowercase keys) — a Seat that is set but not the lane's seat is red; the close states the count.
+  Before trusting it, move one card to another seat, watch it go red, and put it back. No board (scope missing) → the close says so and names the command that grants it.
 - **Dependencies are links, read back.** For every published issue, `GET …/dependencies/blocked_by`
   returns exactly the issue numbers its `Depends On` names — closed ones included, none extra — and the
   close states the count (`13 issues · 15 links`). Before trusting the read-back, remove one link, watch

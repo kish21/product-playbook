@@ -83,7 +83,7 @@ infra behind the adapters from `/architect` (DB/LLM/queue), even if stubbed.
 ## 6. The auto-layer
 
 Dev tooling lint + format + **a type checker** (Python: pyright or mypy; TypeScript: `tsc --noEmit`; the one
-`#Architecture` recorded, else the user's choice from the step-0 card; none only with the user's reason recorded as
+`#Architecture` recorded, else the language's default - pyright, `tsc --noEmit` - with no question; none only with the user's reason recorded as
 `no type checker: <reason>`) + **the commit-hook runner `#Architecture` recorded** running **secret-scan +
 dependency-vuln scan**; this is what enforces the deterministic checks on every commit so the later skills don't rely
 on memory. **Install the hooks** (`pre-commit install`, `lefthook install`, husky's `prepare`) and make one real commit
@@ -135,4 +135,6 @@ and no route ever served it.
 CI that installs **from the lockfile**, bootstraps from the real schema/migrations **on the engine `#Architecture`
 chose**, runs lint/secret-scan/dep-scan/tests (+ the frontend audit copy for a UI product), **builds + runs in the
 container prod uses**, and **blocks merge on red** — green. CI creates throwaway creds at runtime (no secret in repo).
+A tool CI downloads by URL (a scanner binary) is pinned to a version and checked by its SHA-256 before it runs
+(`sha256sum -c`); an action is pinned to a version that exists.
 Prove it with `ci_local.py` (beside SKILL.md) — see `references/verify.md` §CI.

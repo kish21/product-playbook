@@ -12,7 +12,7 @@ Rules:
 - A section that is empty/missing = that phase's exit criteria are not yet met.
 - Keep entries short and honest. Record HOW something was verified, not just "done".
 - **A section is a RECORD, not a container** (PRINCIPLES.md): summary, the decision, the evidence line,
-  and a pointer to where the detail lives — STRUCTURE.md, DESIGN.md, docs/adr/*, docs/runbook.md,
+  and a pointer to where the detail lives — STRUCTURE.md, DESIGN.md, docs/architecture.md, docs/runbook.md,
   docs/features/*, docs/deployment.md, src/schemas/*. **There is no byte cap** — the test is per field:
   *is this the decision, or the reasoning behind it?* Reasoning moves to the companion; a required field
   answered tightly stays, however many bytes it is. **Never trim to a number.** A spine that holds only
@@ -69,7 +69,8 @@ _Where this product stands: `STATUS.md` (written by `status.py`)._
 
 ## Scope             <!-- /scope --> (the record; see docs/scope.md for the reasoning)
 - **THE core feature (the one thing):**
-- **In scope (now):**
+- **Capacity (who builds it · hours a week · how many weeks):**
+- **In scope (now) (each: `<item> - done when <a check anyone can run>`):**
 - **Deferred (out for now + the trigger that would bring it in):**
 - **Non-goals (deliberately never building):**
 - **Table stakes (the list `next` prints, one line each: `<item>: in now` · `<item>: deferred - when <trigger>` · `<item>: N/A - <reason>`):**
@@ -83,17 +84,19 @@ _Where this product stands: `STATUS.md` (written by `status.py`)._
 - **Four-risks row per milestone (value · usability · feasibility · viability — which this milestone retires and how you'll know; cite evidence for one already retired):**
 - **Usability checkpoint before going public (which milestone, and its exit criterion):**
 - **Concern-area coverage (security · ai · observability · DX · testing · infra · docs · product → now/next/later/N-A + trigger):**
-- **Detail:** `docs/plan.md` (reasoning + workings; this section stays a RECORD)
+- **Schedule risks + buffer (what could slip · the slack kept):**
+- **Open items (every number or point nobody decided · recommended value):**
+- **Detail:** `docs/plan.md` (the whole plan for a person; this section stays a RECORD)
 - **Read (file · date · verbatim quote):**
 
-## Architecture      <!-- /architect --> (one line per decision; see docs/adr/* for the ADRs themselves)
+## Architecture      <!-- /architect --> (rendered from its fields file: one line per decision; the full decisions are docs/architecture.md §Decisions; docs/adr/* only for a decision that changed)
 - **Stack + tools (and why, 2026 OSS-first):**
 - **Data custody (local/self-hosted · managed-serverless · embedded) + why (privacy/cost/portability/lock-in):**
 - **Runtime target per deployable unit (container-anywhere · PaaS · VPS · user's machine · static site / CDN) + cost and free-tier limits — decides what `/structure` scaffolds:**
 - **Identity custody (self-hosted auth · vendor auth + RLS) — or N/A:**
   _Mark any of the three "default taken, not user-chosen" if it was decided without the user._
 - **Dev tooling (hook runner · secret scanner · task runner · formatter/linter · dependency manifest — `/structure` scaffolds exactly these):**
-- **Key decisions / ADRs (patterns applied · anti-patterns avoided):**
+- **Key decisions (patterns applied · anti-patterns avoided) — the full blocks: docs/architecture.md §Decisions:**
 - **Externals behind provider/adapter interfaces (+ resilience strategy each):**
 - **Resilience · perf/cost budget · migrations approach:**
 - **(AI) prompt-versioning · eval harness · tracing:**

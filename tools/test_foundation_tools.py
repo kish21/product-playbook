@@ -8,6 +8,7 @@ the hooks in a throwaway copy (refused or let through) with the folder untouched
 """
 from __future__ import annotations
 
+import os
 import socket
 import subprocess
 import sys
@@ -20,6 +21,7 @@ CI = ROOT / "commands" / "foundation" / "ci_local.py"
 PROOF = ROOT / "commands" / "foundation" / "proof.py"
 sys.path.insert(0, str(CI.parent))
 import ci_local  # noqa: E402
+os.environ["PLAYBOOK_ACTION_CHECK"] = "off"  # the replays below never ask github.com; the check is tested with a fake
 
 WORKFLOW = """name: ci
 on: [push]
@@ -205,6 +207,26 @@ def main() -> int:
             if "✓ Say hello" not in out or "✓ One line" in out or "Breaks: exit" in out:
                 fails.append(f"ci_local --only should run that step alone: {out.strip()[:300]}")
             test_proof(d, g, fails)
+            # 2.3: --with-changes replays what the save will commit - a changed file and a new one, no commit first
+            (d / ".github/workflows/ci.yml").write_text(WORKFLOW.replace(
+                "      - name: Breaks\n        run: echo \"the step's own error\"; exit 3\n", ""), encoding="utf-8")
+            (d / "new.txt").write_text("fresh\n", encoding="utf-8")
+            wf = (d / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+            (d / ".github/workflows/ci.yml").write_text(wf.replace("run: test -f out.txt", "run: test -f new.txt"),
+                                                        encoding="utf-8")
+            code, out = run([str(CI), "--with-changes"], d)
+            if code != 0 or "uncommitted changes" not in out or "✓ One line" not in out:
+                fails.append(f"ci_local --with-changes should replay the uncommitted work: {out.strip()[:400]}")
+            code, out = run([str(CI)], d)
+            if code == 0:
+                fails.append(f"ci_local without --with-changes runs HEAD only: {out.strip()[:300]}")
+        # 2.3: an action version the action's repository does not have (a workflow pinned setup-uv@v10)
+        refs = {"actions/checkout": {"v4", "v5", "main"}, "astral-sh/setup-uv": {"v6", "v10.2.0"}, "gone/x": None}
+        text = ("steps:\n  - uses: actions/checkout@v5\n  - uses: 'astral-sh/setup-uv@v10'\n  - uses: gone/x@v1\n"
+                "  - uses: astral-sh/setup-uv@0123456789012345678901234567890123456789\n  - uses: ./local-action\n")
+        bad, unknown = ci_local.missing_actions(text, lambda repo: refs.get(repo))
+        if bad != ["astral-sh/setup-uv@v10 (its newest tag: v10.2.0)"] or unknown != ["gone/x@v1"]:
+            fails.append(f"the action version check: bad={bad} unknown={unknown}")
         small = ci_local.small_yaml_steps(WORKFLOW)
         steps = small["jobs"]["check"]["steps"]
         if [s.get("name") for s in steps[1:]] != ["Say hello", "One line", "Breaks", "Never reached"] \

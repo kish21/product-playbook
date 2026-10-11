@@ -1,11 +1,6 @@
 ---
 name: deploy
-description: >
-  Phase 2/3 bridge of product-playbook — connect the repository to the host #Architecture already chose,
-  so the product is reachable by someone who is not you. EXECUTES a recorded decision; it never reopens
-  it. Use after /dev-check when the product needs to be reachable (a milestone criterion needing a real
-  URL, a second device, a real user), or run /deploy "get it live", "deploy it", "put it on a URL",
-  "how do I host this". Writes docs/deployment.md + the Deployment section of PRODUCT.md. Run /test next.
+description: Put the app on its host and document how.
 ---
 
 # `/deploy` — Development ⑦ · run as an **engineer who has been paged at 3am**
@@ -77,7 +72,7 @@ description: >
   turns your code into the files a server runs, like printing a book from the manuscript; deploying puts
   them where anyone can reach them, like putting the book in a shop* — then ask. (case file: What is
   building?)
-- **Two rounds, each ONE message:** the start's numbered questions before the first deploy; after the proof, *"Anything to change? If not: Save this version of your project? (yes / no)"* as "Looks good - save (Recommended)" · "Change something".
+- **ONE question round, before the first deploy:** the start's questions, each as options with one *(Recommended)* and *Other* (`CAPABILITIES.md` §Ask the user a question with options); after the proof the record saves - no save question; the close asks *"Change anything?"*.
 - **What this phase must NOT do:** re-decide the host, write or ask for a secret, or merge without the user's explicit word.
 - **If `#Dev-complete` is empty**, say so: deploying an unfinished product is legitimate (a milestone may
   need a URL before the product is done — that is usually *why* this phase runs early) but it should be a
@@ -85,17 +80,16 @@ description: >
   anyone sign up, and what does each action cost (a paid model call, a GPU job, an email sent)? Security
   work deferred "until outside users" is due the day the URL is public. Record the answer and what was
   closed. (case file: Public sign-up where every click spends money)
-- **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate, ask
-  for the **reason in the user's own words**, and record it — `status.py bypass --from deploy --gate
-  <gate> --reason "<the user's own words>"` (`MECHANISMS.md` §Status) — before continuing.
-- **Re-running — `MECHANISMS.md` §Re-run semantics, in full.** A host change keeps the superseded one
-  with its dated line: *why the other host lost* is the expensive thing to reconstruct.
-- **Stopping at an unmet gate — `MECHANISMS.md` §Declined runs, in full.** `status.py set deploy declined
-  --reason "<what was missing>" --gate <phase>` (`MECHANISMS.md` §Status), nothing in `PRODUCT.md` touched.
+- **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): follow the start's gate line - an unfinished milestone is one line, no question; any other gate is ONE options question, and Proceed runs `status.py bypass --from deploy --gate <gate> --reason "/<gate> not passed - the user chose to go on"` - never a typed reason.
+- **A re-run or a stop:** the start prints the rule only when the case is real (a `RE-RUN` line; a stop: `status.py set
+  deploy declined --reason "<what was missing>" --gate <phase>`, nothing in `PRODUCT.md` touched). A host change keeps
+  the superseded one with its dated line: *why the other host lost* is the expensive thing to reconstruct.
 
 ## Step 1 — Apply principles (this phase)
 - **Secrets are the user's to paste.** Hand over the exact variable names and how to generate each value.
   **Never write a secret into a file, a command you run, or the chat.**
+  On the owner's machine or a server the secrets file is readable by its owner only, and no secret value
+  reaches a log - `set` checks both.
 - **A public build-time value is not a secret — commit it; only secrets are pasted.** A value baked into
   the built site ships to every visitor, so typing it into a dashboard only makes it drift. Commit it in
   the file the build reads (`.env.production` or its equivalent, not swallowed by `.gitignore`). **A secret
@@ -111,7 +105,7 @@ description: >
 
 ## Step 2 — Write `docs/deployment.md` from the runtime-target CATEGORY
 
-**Scaffold from `templates/deployment.md`.** The steps differ by **category, not by brand** — Vercel,
+**Scaffold from `templates/deployment.md`** - its `**In short:**` line first: where it runs and who can reach it, how to deploy it again, how to roll it back. The steps differ by **category, not by brand** — Vercel,
 Railway, Render and Fly are one recipe with different button names; a bare VPS is a genuinely different
 one. Use the user's named host in the examples if they have one, and **never turn this into a
 supported-vendor list** (same rule as `/foundation`'s test-datastore recipes).
@@ -191,6 +185,9 @@ Do the first deploy *with* the user — they hold the credentials. Then:
 - **Run the migrations the way the document says**, and record what happened.
 - **Record the rollback path you have** — not the one you would like; `/ship` takes its rollout-safety
   lines (revert · migration-down · flag-off · the post-deploy signal) from it on every release.
+  **Rehearse it before you record it:** a deliberately bad release (one extra migration) on a fake host folder
+  or a local copy, then the rollback - the start lists the steps and the two traps it finds (no down-migrations:
+  the rollback is the database backup; a copied release folder runs the old code).
 - **Anything that blocked and was not fixable today** (a quota, a DNS propagation, a paid tier) puts the
   section in the **`running`** state with a due date, rather than a green tick. **The user sets the date**
   — ask; never invent one.
@@ -203,7 +200,7 @@ to the public URL, recorded in the one settled evidence form** (`STATE-MODEL.md`
 that answered means this gate did not pass**, regardless of how well the build went. An owner-verified
 path passes the user-path half; the transition guard reports it `UNVERIFIED — owner-verified`, never `PASS`.
 
-**Close the loop (`MECHANISMS.md` §Step 3b):** `status.py set deploy filled --section-from <file> --commit "<one line>"` (`--dry-run` lists every gap) checks the record and the files, saves on round 2's yes (`MECHANISMS.md` §Commit the work) and prints the rest of the close: reconcile any number against `#Vision` (surface a contradiction, never write over it); **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines, a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not; **close in plain language** (`MECHANISMS.md` §Plain-language close): **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next**, ending with its `Open a NEW conversation` line word for word.
+**Close the loop (`MECHANISMS.md` §Step 3b):** `status.py set deploy filled --section-from <file> --commit "<one line>"` (`--dry-run` lists every gap) checks the record and the files, saves (`MECHANISMS.md` §Commit the work; `--no-commit` instead of `--commit` only when the user said not to save) and prints the rest of the close: reconcile any number against `#Vision` (surface a contradiction, never write over it); **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines, a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not; **close in plain language** (`MECHANISMS.md` §Plain-language close): **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next**, ending with its `Open a NEW conversation` line word for word.
 
 ## Step 3c — Contradiction check (before the gate closes)
 Per `MECHANISMS.md` §Step 3c, check what this phase produced against decisions **already recorded** —

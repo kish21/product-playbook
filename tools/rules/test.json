@@ -64,7 +64,8 @@
    "old": [],
    "home": "tools/status.py",
    "new": [
-    "print(fit_start(\"\\n\" + test_start_text(st) + \"\\n\\n\" + phase_rules_text(\"test\"), \"test\"))",
+    "print(fit_start(\"\\n\" + test_start_text(st) + \"\\n\\n\"",
+    "+ phase_rules_text(\"test\", skip=verify_skip(\"test\", st)), \"test\"))",
     "PHASE_CLOSE_RULES[\"test\"] = PHASE_CLOSE_RULES[\"dev-check\"]",
     "This phase must NOT: change product code (a test that exposes a bug stays, marked an expected failure naming the "
    ]
@@ -95,12 +96,23 @@
   },
   {
    "id": "dev-check-warn",
-   "what": "dev checkpoint not passed: warn, allow override",
+   "what": "dev checkpoint not passed: the start's gate line - an unfinished milestone is one line and the run goes on, any other gate one options question with Proceed recorded (2.1 gate cascade, owner options, never a typed reason)",
    "old": [
-    "- Read `#Dev-complete`. If the dev checkpoint hasn't passed, warn (\"development isn't verified complete\")"
+    "- Read `#Dev-complete`. If the dev checkpoint hasn't passed, warn (\"development isn't verified complete\")",
+    "but allow override (you can still add tests for an existing product)."
    ],
    "new": [
-    "If the dev checkpoint hasn't passed (`#Dev-complete`), warn (\"development isn't verified complete\")"
+    "- **The dev checkpoint not passed** (`#Dev-complete`): follow the start's gate line - an unfinished milestone is one line and the run tests what is built; any other gate is ONE options question"
+   ]
+  },
+  {
+   "id": "rerun",
+   "what": "re-run: follow the RE-RUN line, one options question listing what would change, superseded line for a reversed decision",
+   "old": [
+    "- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** a filled section → follow the `RE-RUN` line `next` prints: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line."
+   ],
+   "new": [
+    "A re-run (a filled section) follows the `RE-RUN` line `next` prints: ONE options question listing what would change, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line."
    ]
   },
   {
@@ -111,7 +123,7 @@
    ],
    "new": [
     "**An override is RECORDED, never a verbal \"yes\"**",
-    "`status.py bypass --from test --gate <gate> --reason \"<the user's own words>\"`"
+    "status.py bypass --from test --gate <gate> --reason"
    ]
   },
   {
@@ -153,7 +165,7 @@
     "- **Isolation before coverage:** confirm what the suite is pointed at *before* writing a destructive hook, and confirm the runner loads config through the app's own loader."
    ],
    "new": [
-    "**Isolation before coverage:** confirm what the suite points at *before* a destructive hook, through the app's own config loader; **prove the guard each run, safely**"
+    "**Isolation before coverage:** confirm what the suite points at *before* a destructive hook, through the app's own config loader; **prove the guard each run**"
    ]
   },
   {
@@ -265,7 +277,7 @@
     "6. **Regression:** lock in any fixed bug with a test."
    ],
    "new": [
-    "6. **Regression:** lock in each fixed bug. **A test that exposes a real bug stays:**"
+    "**Regression:** lock in each fixed bug. **A test that exposes a real bug stays:**"
    ]
   },
   {
@@ -306,7 +318,7 @@
     "**the suite is provably pointed at the isolated datastore** (print the resolved target; point it at the dev one and show it refusing to run);"
    ],
    "new": [
-    "aim it at a fake dev-looking target and show it refuses, never at real data"
+    "on a fake dev-looking target, never real data"
    ]
   },
   {
@@ -363,7 +375,7 @@
    "new": [
     "**Close the loop (`MECHANISMS.md` §Step 3b):** record it in ONE call — `status.py set test filled --verdict pass|fail`",
     "reconcile any number this phase introduced against `#Vision`",
-    "(surface a contradiction, never write over it), Step 3c, **no save question** — the record call saved (`MECHANISMS.md` §Commit the work; never ask *\"Save this version of your project? (yes / no)\"*; `--no-commit` only if the user said not to save; push only if the user says so),",
+    "**no save question** — the record call saved (`MECHANISMS.md` §Commit the work; never a separate save question;",
     "then **the transition guard** (`MECHANISMS.md` §Step 3b, item 4): cite this run's `evidence:` records — never re-run one for its number — and report a verdict for every exit criterion;",
     "`UNVERIFIED` is a normal outcome, silence is not. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (its last line the `Open a NEW conversation` line `set` printed). **The close is the run's last message** — a composed skill's report is input to it, never the close itself."
    ]

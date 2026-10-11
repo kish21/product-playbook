@@ -1,10 +1,6 @@
 ---
 name: contracts
-description: >
-  Phase 2 (Development), step 4 of product-playbook. Define typed data models, schemas, DB migrations,
-  and API/agent contracts BEFORE business logic — so boundaries are typed and units/scale agree. Use
-  after /foundation, or run /contracts "define the models", "schema", "data types", "api contract".
-  Writes the Contracts section of PRODUCT.md. Run /tickets next, then /build.
+description: Define the typed data models and APIs before the logic.
 ---
 
 # `/contracts` — Phase 2 · Development ④ · run as an **engineer**
@@ -42,11 +38,9 @@ description: >
 ## Step 0 — Context + prior-gate check
 - **One first command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase contracts`** — the spine lines the contracts are built from, round 1, the five steps and their proofs, the record's shape, what `set` refuses, the rules. Show its first line; open no rule, reference or spine file whole after it.
 - If `#Foundation` isn't done, warn (you need a place to run migrations) but allow override.
-- **An override is RECORDED, never a verbal "yes"** (`MECHANISMS.md` §Declined runs): name the gate being bypassed, ask for the **reason in the user's own words**, say it will be written down — then record it — `status.py bypass --from contracts --gate <gate> --reason "<the user's own words>"` (`MECHANISMS.md` §Status) — before continuing.
 - Brownfield: read existing models/migrations; extend, don't duplicate.
-- **Ask the open decisions NOW, in one card, before any file is written** — round 1 as `next` prints it, ONE message (outside callers · the tenant key · how long personal data is kept · the currency · what earlier sections left open); the answers word for word into `docs/contracts.md`; then run unattended and say so.
-- **Re-running this phase (`MECHANISMS.md` §Re-run semantics):** a filled section → follow the `RE-RUN` line `next` prints: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line.
-- **If the gate is unmet and the run stops here, record that it stopped (`MECHANISMS.md` §Declined runs):** record it — `status.py set contracts declined --reason "<what was missing>" --gate <the phase(s) that fill it>` (`MECHANISMS.md` §Status) — and change nothing in `PRODUCT.md`.
+- **Ask the open decisions NOW, in one card, before any file is written** — round 1 as `next` prints it (options, one `(Recommended)`, `Other`), ONE message (outside callers · the tenant key · how long personal data is kept · the currency · what earlier sections left open); the answers word for word into `docs/contracts.md`; then run unattended and say so.
+- **Anything unusual - the start names it when it is real:** a re-run follows its `RE-RUN` line: **one question listing what would change**, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line. **An override is RECORDED, never a verbal "yes"**: the **reason in the user's own words**, then `status.py bypass --from contracts --gate <gate> --reason "<the user's own words>"` before continuing. A stop at an unmet gate: `status.py set contracts declined --reason "<what was missing>" --gate <the phase(s) that fill it>`, and nothing changes in `PRODUCT.md` (`MECHANISMS.md` §Re-run semantics, §Declined runs).
 
 ## Step 1 — Apply principles (this phase)
 - **Typed contracts everywhere:** model the domain with the stack's type system; no raw dict/text across a boundary.
@@ -61,7 +55,7 @@ Print one line as each numbered step lands (`MECHANISMS-ON-DEMAND.md` §Context 
 3. **API/agent contracts:** request/response (and, for AI, the typed output schema each step returns) — with a **versioning / back-compat** approach (`/v1`, additive-only), exported to a committed file. `Agent: yes`: AGENT.md §Contracts.
 4. **Boundary audit:** for each boundary, state the units/scale/shape both sides expect; reconcile mismatches now. For write/ingest paths define the **idempotency/natural key**. **A document another tool PARSES is a boundary too.**
 5. **Safety on the data:** classify **PII/sensitive** fields (retention/N-A) and give every persisted entity its **tenant/owner key** (the isolation seam).
-A folder this phase adds goes into STRUCTURE.md's map in the same message.
+A folder this phase adds is drawn in STRUCTURE.md's map by `set` - never edit the map by hand.
 
 ## Step 3 — Write back to `PRODUCT.md`
 Fill `#Contracts`: typed models/schemas/migrations · boundary units/scale · versioning · PII · tenant/idempotency keys · (Agent) rows — a scratch file outside the repo; `docs/contracts.md` comes last (Step 3b).
@@ -75,10 +69,10 @@ unstated, STOP and fix it** — a scale mismatch across a boundary is a silent w
 
 **Keep the context lean (`MECHANISMS-ON-DEMAND.md` §Context hygiene):** a command's output over 30 lines goes to a scratch file; read the tail or grep the verdict, and cite the file in the evidence line.
 
-**Close the loop (`MECHANISMS.md` §Step 3b):** `set contracts filled --section-from <file> --dry-run`; fix every gap. **Round 2, ONE message:** a table of what was frozen (table · tenant key · units · how long personal data is kept · contract file), any Step 3c clash, one question - *"Anything to change? If not: Save this version of your project? (yes / no)"* as "Looks good - save (Recommended)" · "Looks good - don't save yet" · "Change something". Then ONE message: `docs/contracts.md` (its shape: the dry-run) and, after it, `set contracts filled --section-from <file> --commit "<one line>"` (no `--commit` on "don't save yet"; `MECHANISMS.md` §Commit the work) records, saves and prints the rest of the close, in order. Its transition guard (`MECHANISMS.md` §Step 3b, item 4) cites the evidence lines this run ran (a line whose files changed since: run it again); `UNVERIFIED` is a normal outcome, silence is not; the close in plain language (`MECHANISMS.md` §Plain-language close) ends with its `Open a NEW conversation` line word for word.
+**Close the loop (`MECHANISMS.md` §Step 3b):** `set contracts filled --section-from <file> --dry-run`; fix every gap. `status.py secreview contracts`: ONE helper reviews this phase's code; fix HIGH/MEDIUM; its `security review:` line in the section file. Then ONE message, no save question: the record call saves (`--no-commit` only when the user said not to save): `docs/contracts.md` (its shape: the dry-run) and, after it, `set contracts filled --section-from <file> --commit "<one line>"` (`MECHANISMS.md` §Commit the work) records, saves and prints the rest of the close, in order. The close shows a table of what was frozen (table · tenant key · units · how long personal data is kept · contract file) and any Step 3c clash, and asks *"Change anything?"*. Its transition guard (`MECHANISMS.md` §Step 3b, item 4) cites the evidence lines this run ran (a line whose files changed since: run it again); `UNVERIFIED` is a normal outcome, silence is not; the close in plain language (`MECHANISMS.md` §Plain-language close) ends with its `Open a NEW conversation` line word for word.
 
 ## Step 3c — Contradiction check (before the gate closes)
-Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Architecture` (datastore · migrations approach) and `#Scope` — types for an entity no scoped feature needs, or a schema that bypasses the recorded migration path. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line to the earlier section) — never leave it standing in two places. Adding detail to an earlier decision is not a contradiction.
+Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Architecture` (datastore · migrations approach) and `#Scope` — types for an entity no scoped feature needs, or a schema that bypasses the recorded migration path. On a conflict (this replaces `MECHANISMS.md` §Step 3c items 2-3), **name both sides on a line of its own** and ask nothing; fix this phase's artefact, **never an earlier phase's record or document** — record the clash as an open item: `status.py open --from contracts --what "Clash: <both sides>" --clears "/<that phase> decides"`. Adding detail to an earlier decision is not a contradiction.
 
 ## Step 4 — Handoff
 "Typed contracts and migrations are in place. Next run **`/tickets`** — it cuts each milestone into small,

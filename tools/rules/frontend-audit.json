@@ -9,27 +9,30 @@
     "Phase 2/3 of product-playbook — the UI enforcement gate. Mechanically checks built UI (and its"
    ],
    "new": [
-    "Phase 2/3 of product-playbook — the UI enforcement gate. Mechanically checks built UI (and its"
+    "the UI quality gate (mechanical floor)"
    ]
   },
   {
    "id": "FA02",
-   "what": ": DESIGN.md) against the /design system universal laws, with a",
+   "what": ": DESIGN.md) against the /design system universal laws, with a (moved: the description is one line, ; the header and law 7 carry it)",
    "old": [
     "DESIGN.md) against the /design-system universal laws, with a REAL WCAG contrast engine"
    ],
    "new": [
-    "DESIGN.md) against the /design-system universal laws, with a REAL WCAG contrast engine"
+    "`DESIGN.md` + the 26 universal laws; **this skill *enforces* the",
+    "**Computes** WCAG ratio for every foreground/surface token pair"
    ]
   },
   {
    "id": "FA03",
-   "what": ": (OKLCH/hex → ratio) so contrast is computed, never asserted.",
+   "what": ": (OKLCH/hex → ratio) so contrast is computed, never asserted. (moved: law 7 and the one-line description, )",
    "old": [
     "(OKLCH/hex → ratio) so contrast is computed, never asserted. Use after building or changing UI,"
    ],
    "new": [
-    "(OKLCH/hex → ratio) so contrast is computed, never asserted. Use after building or changing UI,"
+    "(OKLCH or hex → relative luminance → ratio)",
+    "*This is the law `/design-system` could only assert.*",
+    "check built screens against DESIGN.md"
    ]
   },
   {
@@ -39,7 +42,7 @@
     "before shipping, or in CI — run /frontend-audit \"check my UI\", \"is this accessible\", \"audit the"
    ],
    "new": [
-    "before shipping, or in CI — run /frontend-audit \"check my UI\", \"is this accessible\", \"audit the"
+    "UI products - check built screens against DESIGN.md."
    ]
   },
   {
@@ -49,17 +52,18 @@
     "frontend\", \"did I break the design system\". Reports a pass/warn/error scorecard and exits non-zero"
    ],
    "new": [
-    "frontend\", \"did I break the design system\". Reports a pass/warn/error scorecard and exits non-zero"
+    "**Exits non-zero if any ERROR-level law fails** (CI-friendly)."
    ]
   },
   {
    "id": "FA06",
-   "what": ": on errors. Pairs with /design system (which sets the",
+   "what": ": on errors. Pairs with /design system (which sets the (moved: the header, )",
    "old": [
     "on errors. Pairs with /design-system (which sets the laws + DESIGN.md) and /new-component."
    ],
    "new": [
-    "on errors. Pairs with /design-system (which sets the laws + DESIGN.md) and /new-component."
+    "*decides* the look and writes `DESIGN.md` + the 26 universal laws",
+    "`/new-component` builds a new part to `DESIGN.md` and the laws"
    ]
   },
   {
@@ -129,7 +133,7 @@
     "Runs `audit.py` (stdlib-only, portable, ASCII output — no `PYTHONUTF8` needed) over UI files and"
    ],
    "new": [
-    "Runs `audit.py` (stdlib-only, portable, ASCII output — no `PYTHONUTF8` needed) over UI files and"
+    "Runs `audit.py` (stdlib-only, ASCII output) over UI files and `DESIGN.md`, and prints a scorecard."
    ]
   },
   {
@@ -169,7 +173,7 @@
     "Claude Code writes the loaded plugin's folder into that path, so it is **the installed version**."
    ],
    "new": [
-    "Claude Code writes the loaded plugin's folder into that path, so it is **the installed version**."
+    "That path is **the installed version**."
    ]
   },
   {
@@ -179,7 +183,7 @@
     "**Never search the plugin cache for `audit.py`:** the cache keeps every old version, and a text sort"
    ],
    "new": [
-    "**Never search the plugin cache for `audit.py`:** the cache keeps every old version, and a text sort"
+    "**Never search the plugin cache for `audit.py`:** it keeps every old"
    ]
   },
   {
@@ -189,7 +193,7 @@
     "picks `1.9.0` over `1.48.0` — a real build ran an engine missing five of today's checks that way. If"
    ],
    "new": [
-    "picks `1.9.0` over `1.48.0` — a real build ran an engine missing five of today's checks that way. If"
+    "version, and a logged build ran a `1.9.0` engine missing five checks that way."
    ]
   },
   {
@@ -289,7 +293,7 @@
     "## What it checks (the mechanical subset of the 20 laws)"
    ],
    "new": [
-    "## What it checks (the mechanical subset of the 20 laws)"
+    "## What it checks"
    ]
   },
   {
@@ -300,7 +304,8 @@
    ],
    "new": [
     "| **7 — contrast (the headline)** | **Computes** WCAG ratio for every foreground/surface token pair — shadcn names **plus common aliases** (`--text`/`--surface`/`--bg`/`--text-muted`…) — (OKLCH or hex → relative luminance → ratio). `<4.5` body = ERROR, `3–4.5` = large-only WARN. **Anti-false-pass:** if colour tokens exist but no pair was checkable, it **WARNs \"unverified\"** rather than silently reporting ok. *This is the law `/design-system` could only assert.* |"
-   ]
+   ],
+   "home": "commands/frontend-audit/references/checks.md"
   },
   {
    "id": "FA31",
@@ -310,7 +315,8 @@
    ],
    "new": [
     "| **7b — status colours, two bars** | Every status token (`--success`/`--warning`/`--destructive`/`--info` and friends) against `--card`/`--background`/`--popover`/`--muted`, in **both modes**. Held to **4.5:1** as text, or **3:1** when the token's *name* marks it a graphic (`-dot`, `-indicator`, `-fill`, `-bar`, `-chart`) - so one value can pass as a dot and fail as a label. Below its bar = ERROR, with the fix named. Opt out only by declaring the token `/* decorative */`. *This is where palettes actually drift: the shade is chosen for brightness so the dot reads as \"amber\", then reused as a label.* |"
-   ]
+   ],
+   "home": "commands/frontend-audit/references/checks.md"
   },
   {
    "id": "FA32",
@@ -320,7 +326,8 @@
    ],
    "new": [
     "| 14 — tokens only | raw `#hex` in component code (outside `:root`) = ERROR |"
-   ]
+   ],
+   "home": "commands/frontend-audit/references/checks.md"
   },
   {
    "id": "FA33",
@@ -330,7 +337,8 @@
    ],
    "new": [
     "| **14b — tokens exist** | a `var(--token)` **nothing defines** = ERROR (cross-file: `audit.py DESIGN.md frontend/` resolves components against the design system in the same run). CSS drops such a declaration *silently* - the colour never arrives and nothing else reports it, so this is the one class the rest of the audit was blind to. `var(--x, fallback)` is exempt (a declared fallback is a choice). **Anti-false-pass:** references but no definitions anywhere in the set = WARN \"unverified\", never a pass. |"
-   ]
+   ],
+   "home": "commands/frontend-audit/references/checks.md"
   },
   {
    "id": "FA34",
@@ -340,7 +348,8 @@
    ],
    "new": [
     "| 12 — motion | `transition: all` / `transition-all` = ERROR; transition on a layout/paint prop = WARN; heavy-motion lib without a `prefers-reduced-motion` guard = WARN |"
-   ]
+   ],
+   "home": "commands/frontend-audit/references/checks.md"
   },
   {
    "id": "FA35",
@@ -350,7 +359,8 @@
    ],
    "new": [
     "| 1 — distinctive font | Inter/Roboto/Arial/system-ui as the **display** `--font-display` = ERROR; as the body face = WARN; **a display that is a width/weight variant of the body face (e.g. `Inter Tight` over `Inter`) = WARN** (near-twin, not a distinct identity) |"
-   ]
+   ],
+   "home": "commands/frontend-audit/references/checks.md"
   },
   {
    "id": "FA36",
@@ -360,7 +370,8 @@
    ],
    "new": [
     "| 3 — type floor | any `font-size` below 12px (px **and** rem/em) = ERROR |"
-   ]
+   ],
+   "home": "commands/frontend-audit/references/checks.md"
   },
   {
    "id": "FA37",
@@ -370,7 +381,8 @@
    ],
    "new": [
     "| 13 — states | interactive elements but no `:focus-visible` = WARN |"
-   ]
+   ],
+   "home": "commands/frontend-audit/references/checks.md"
   },
   {
    "id": "FA38",
@@ -380,7 +392,8 @@
    ],
    "new": [
     "| **21 — responsive** | missing `<meta viewport>` (html) = ERROR; multi-column/grid layout with **no** `@media`/`@container`/`auto-fit`/`minmax` = ERROR (desktop-only) |"
-   ]
+   ],
+   "home": "commands/frontend-audit/references/checks.md"
   },
   {
    "id": "FA39",
@@ -390,7 +403,8 @@
    ],
    "new": [
     "| **22 — theming** | computes contrast in **both** `:root` (light) and `.dark`; `:root` colour tokens but no `.dark` block = WARN (single-mode); **a `.dark` block but no `prefers-color-scheme` rule that swaps tokens = WARN** (system preference ignored — manual-toggle-only) |"
-   ]
+   ],
+   "home": "commands/frontend-audit/references/checks.md"
   },
   {
    "id": "FA40",
@@ -400,7 +414,8 @@
    ],
    "new": [
     "| **23 — live regions** | a value that looks computed/updated (`total`, `count`, `balance`, `status`…) with no `aria-live` and no `role=\"status\"` = WARN. Heuristic by nature — a regex cannot know what re-renders — so it warns rather than errors, and it is the check that would have caught a live \"You owe ₹253\" that was **silent to every screen reader** on a page scoring 86 pass / 0 errors |"
-   ]
+   ],
+   "home": "commands/frontend-audit/references/checks.md"
   },
   {
    "id": "FA41",
@@ -410,7 +425,8 @@
    ],
    "new": [
     "| **24 — semantics** | `<div onClick>` with no `role` = ERROR (not focusable, not announced, not keyboard-operable) |"
-   ]
+   ],
+   "home": "commands/frontend-audit/references/checks.md"
   },
   {
    "id": "FA42",
@@ -420,7 +436,8 @@
    ],
    "new": [
     "| **25 — accessible names** | icon-only `<button>`/`<a>` with no `aria-label` or visually-hidden text = ERROR; link text that names nothing (\"click here\", \"read more\") = WARN |"
-   ]
+   ],
+   "home": "commands/frontend-audit/references/checks.md"
   },
   {
    "id": "FA43",
@@ -430,7 +447,8 @@
    ],
    "new": [
     "| **26 — heading order** | first heading below `<h1>` (html) = WARN; a skipped level (`h2 → h4`) = WARN |"
-   ]
+   ],
+   "home": "commands/frontend-audit/references/checks.md"
   },
   {
    "id": "FA44",
@@ -440,7 +458,8 @@
    ],
    "new": [
     "Markdown is treated as spec: only its colour **tokens** are contrast-checked; code-pattern rules are"
-   ]
+   ],
+   "home": "commands/frontend-audit/references/checks.md"
   },
   {
    "id": "FA45",
@@ -450,7 +469,8 @@
    ],
    "new": [
     "skipped (so a `DESIGN.md` \"Don't: no `transition: all`\" line doesn't false-positive)."
-   ]
+   ],
+   "home": "commands/frontend-audit/references/checks.md"
   },
   {
    "id": "FA46",
@@ -479,18 +499,20 @@
     "sample was confirmed (Law 16). Those stay with `/design-system`'s stop-and-confirm. Some laws are"
    ],
    "new": [
-    "sample was confirmed (Law 16). Those stay with `/design-system`'s stop-and-confirm. Some laws are"
+    "sample was confirmed (Law 16): `/design-system`'s."
    ]
   },
   {
    "id": "FA49",
-   "what": "What it does NOT check (still human/judg: partial here (table header/cell alignment Law 20, caption tier",
+   "what": "What it does NOT check (still human/judg: partial here (table header/cell alignment Law 20, caption tier (2.4: both are checked now - rows in references/checks.md, )",
    "old": [
     "partial here (table header/cell alignment Law 20, caption tier Law 3) — flagged as v1 follow-ups."
    ],
    "new": [
-    "partial here (table header/cell alignment Law 20, caption tier Law 3) — flagged as v1 follow-ups."
-   ]
+    "| **20 — table alignment** |",
+    "| **3 — caption tier** |"
+   ],
+   "home": "commands/frontend-audit/references/checks.md"
   },
   {
    "id": "FA50",
@@ -661,7 +683,7 @@
     "3. It is a gate only where it runs without being remembered: `/foundation` wires the project copy into"
    ],
    "new": [
-    "3. It is a gate only where it runs without being remembered: `/foundation` wires the project copy into"
+    "4. It is a gate only where it runs without being remembered:"
    ]
   },
   {
@@ -718,5 +740,6 @@
    "old": "`frontend_checkpoint_runner.py` patterns (RESPONSIVE/FORMS/SECURITY categories) into this one tool.",
    "reason": "the roadmap is a plan, not a rule; its follow-ups stay named in 'What it does NOT check' (Law 20, Law 3) and on the /frontend-audit ticket"
   }
- ]
+ ],
+ "note": " 2.4: the per-check table moved to commands/frontend-audit/references/checks.md (home), with the new Law 20, Law 3 caption-tier, anti-pattern, form and security rows."
 }

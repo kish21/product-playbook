@@ -69,8 +69,11 @@ diff in its own conversation, recorded "/code-review → R1 clean", and missed t
 
 All four run a helper in the background while the main conversation keeps going: `/vision` starts its research
 helper this way (brief: the playbook's `agents/vision-research.md`, which the installer also puts where each tool
-looks for its agents). On the same task, plain Claude's helper ran 18 searches and 7 page reads in its own context
-while every playbook run searched 3-6 times in the main conversation (2026-09-30).
+looks for its agents). `/build` starts its reviewer the same way, and waits for it (brief: `agents/build-reviewer.md`): a
+fresh context that did not write the code. On the same task, plain Claude's helper ran 18 searches and 7 page reads in its own context
+while every playbook run searched 3-6 times in the main conversation (2026-09-30). `/architect` starts its helper
+(`agents/architect-research.md`) after round 1 and waits for it in the same turn - the next step needs its report -
+so the search pages stay in the helper's context, not in every later call.
 
 **Fallback:** do the work in the main conversation, one item after another - independent searches or
 reads in ONE message - and say so in the close.
@@ -81,8 +84,21 @@ reads in ONE message - and say so in the close.
 |---|---|---|---|
 | the AskUserQuestion tool | the ask-question tool (UNCONFIRMED outside Plan mode) | `none` (UNCONFIRMED) | `none` (UNCONFIRMED) |
 
-**Fallback:** write the question and its options as a numbered list, mark the recommended one, and stop
-until the user answers. Never pick an option for them.
+**Fallback:** a lettered list, then stop until the user answers. Never pick an option for them:
+`1. <question>` / `a) <option> (Recommended - <why, one line>)` / `b) <option>` / `c) Other - type your own`.
+The user replies `1a 2c 3c "own text"`. **Every question has 2-4 options built from what the user already gave,
+the Recommended one first, plus Other** (owner, 2026-10-06); a question asking for a number also offers
+`I don't know yet - work it out in <phase>`, and an example value is never the pre-selected option.
+
+## Commands that ask for approval
+
+| Claude Code | Cursor | Antigravity | Codex |
+|---|---|---|---|
+| what the user's permission settings do not allow | what the auto-run setting does not allow | what the terminal auto-run policy does not allow | a command that writes `.git` (a save), uses the network or leaves the project folder asks to escalate; in the VS Code extension each one opens a review thread (logged) |
+
+**Fallback:** keep approvals to one per phase - the record call that saves (`status.py set <phase> filled
+--commit "<one line>"`); never a git call of your own, never the same command retried with other quoting. A
+command refused for approval: tell the user, as-is, "This step needs your approval to save (a git commit)."
 
 ## Recurring checks
 

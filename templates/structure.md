@@ -6,7 +6,7 @@
 > layout updates this file in the same commit and adds a line under Changes.
 
 <!-- HOW TO FILL THIS TEMPLATE (delete every comment when you write the file)
-1. Every `##` section below is ALWAYS present, in this order, with this heading. A section that does not apply holds
+1. Every `##` section below is ALWAYS present, in this order, with this heading and its number. A section that does not apply holds
    `Not applicable: <reason>`; a single row that does not apply says the same in its first cell. The checker reads
    `## Modules`, `## Inside a module`, `## Where does a new file go?`, `## Where decisions live`, `## Hub files` and
    `## Changes` by name. Keep every table's header row and its `|---|` separator row exactly as given: never rename,
@@ -29,12 +29,14 @@
 7. Results are never claimed: a check's result is the last line its command printed in this session, with the date.
 -->
 
-## In short
+## 1. In short
 
 <!-- 3-5 plain sentences: the shape (domain modules, layers, or steps), one deployable or several, why this shape fits the
 team and the product, and the one rule a newcomer must not break. Then the tree: folders only, no files; every folder on
 disk down to each module's direct sub-folders, deeper only where a later file has its home there; leave out installed
-dependencies, caches and build output. One short note per folder after `#`. -->
+dependencies, caches and build output. One short note per folder after `#`. Always draw `docs/` with `features/` under
+it (`features/  # one feature doc per built ticket, written by /build`): every build writes one there, and the
+structure check fails on a folder the tree does not draw. -->
 
 <3-5 sentences.>
 
@@ -42,7 +44,7 @@ dependencies, caches and build output. One short note per folder after `#`. -->
 <the tree>
 ```
 
-## Modules
+## 2. Modules
 
 <!-- One row per code unit of the architecture: a domain module, a layer, a package or a UI feature folder. -->
 
@@ -50,7 +52,7 @@ dependencies, caches and build output. One short note per folder after `#`. -->
 |---|---|---|---|---|---|
 | `<path>/` | <one plain sentence> | `<path>/service.py: <function or class>` | <tables, files, or `-`> | `<path>/`, or `-`, or `injected: <path>` | `<path>/tests/` |
 
-## Entry points
+## 3. Entry points
 
 <!-- Every way the product starts: the web process, a worker, a scheduled job, a CLI command, the migration runner. -->
 
@@ -58,7 +60,7 @@ dependencies, caches and build output. One short note per folder after `#`. -->
 |---|---|---|---|---|
 | <web app> | `<path>` | `<command>` | <host> | <requests> |
 
-## Dependency rules
+## 4. Dependency rules
 
 <!-- `A → B` means "code in A may import B". Line 1: the order inside a module. Line 2: the rule between modules - exactly
 one of "a module imports another only through its `Others may call only` entry" or "modules never import each other;
@@ -73,7 +75,7 @@ between modules: <the one rule>
 |---|---|---|
 | <e.g. Only `<path>/adapters/` imports the model vendor's SDK.> | <R4> | <`tests/test_imports.py`, or `Not enforced yet: added by <phase>`> |
 
-## Inside a module
+## 5. Inside a module
 
 <!-- Row 1: one ordinary module, its real files as `file - purpose; file - purpose`. Then one row per module that adds or
 omits files, naming only the difference. Never list a file a module does not have. -->
@@ -82,21 +84,24 @@ omits files, naming only the difference. Never list a file a module does not hav
 |---|---|
 | `<path>/` | <`service.py` - the entry other modules call; `store.py` - its tables; `tests/` - its tests> |
 
-## Where does a new file go?
+## 6. Where does a new file go?
 
 <!-- One row per kind of thing a developer or agent adds - never one row per module. Include each kind this product has:
 a screen, a domain rule, an outside-service adapter, a test, a cross-module test, a fixture, an eval or golden case, a
-migration, a prompt, a product setting, an engine setting, a secret, a script, a generated file. As many rows as kinds.
+migration, a prompt, a product setting, an engine setting, a secret, a script, a generated file, a feature doc (keep the
+`docs/features/` row below as it is). As many rows as kinds.
 Each When cell starts "If you are adding ..." and names the hub line it also needs. -->
 
 | Path | When |
 |---|---|
 | `<path>/` | <If you are adding a ..., it goes here because ...; also add one line to `<hub file>`> |
+| `docs/features/` | If you are adding a built ticket's feature doc, it goes here as `<feature>.md`: /build writes one per ticket, the owner's half on top and the developer half below. |
 
 **Adding a feature, in order:** <1. module files · 2. its tests · 3. a migration if a table changes · 4. the hub lines ·
-5. a golden or eval case if the AI is involved · 6. update this file if a folder is new>.
+5. a golden or eval case if the AI is involved · 6. update this file if a folder is new · 7. its feature doc in
+`docs/features/`>.
 
-## Tests and fixtures
+## 7. Tests and fixtures
 
 | Level | Lives in | Naming and markers | May call an outside service? | Command |
 |---|---|---|---|---|
@@ -107,7 +112,7 @@ Each When cell starts "If you are adding ..." and names the hub line it also nee
 **Fixtures:** <where inputs live, where expected answers live - kept apart so a test cannot read the answer as input -
 and what is never committed: real or personal data, model transcripts, secrets>.
 
-## Root files
+## 8. Root files
 
 <!-- Each file in the repository root, what it is for and which decision chose it. Tooling lives here, not under
 `## Where decisions live`. -->
@@ -118,7 +123,7 @@ and what is never committed: real or personal data, model transcripts, secrets>.
 | `<lockfile>` | <exact versions; changed only by the package manager> | <D#> |
 | `.env.example` | <the secrets and environment values the app reads, with placeholders> | <D#> |
 
-## Where decisions live
+## 9. Where decisions live
 
 <!-- One row per architecture decision whose result is a code home: an adapter, prompts, migrations, the settings files,
 the stop switch. Start each Decision cell with its D# or R#. The path exists today. -->
@@ -127,7 +132,7 @@ the stop switch. Start each Decision cell with its D# or R#. The path exists tod
 |---|---|
 | `<path>` | <D#: the decision in 3-10 words> |
 
-## Hub files
+## 10. Hub files
 
 <!-- Files that two or more modules each change when they add a feature (a registry, the settings loader, the manifest).
 Name the smallest complete change, so two people rarely edit the same lines. -->
@@ -136,7 +141,7 @@ Name the smallest complete change, so two people rarely edit the same lines. -->
 |---|---|
 | `<path>` | <one `register_<module>(app)` line> |
 
-## Naming and placement rules
+## 11. Naming and placement rules
 
 <!-- 3-8 rules, each with what enforces it. Include where generated and vendored files live (their source, the command
 that makes them, whether they are committed, "never edit by hand"), and the naming of versioned files (prompts,
@@ -146,7 +151,7 @@ migrations, settings keys). -->
 |---|---|
 | <e.g. No `utils/`, `common/` or `shared/` folder; a helper lives with the module that owns it.> | <review checklist> |
 
-## Checks you run
+## 12. Checks you run
 
 <!-- The commands that prove the layout is right and the project runs. Result = the last line the command printed in this
 session and the date; never "passes" for a command not run here. For a job, the check is one run on the sample input. -->
@@ -158,7 +163,7 @@ session and the date; never "passes" for a command not run here. For a job, the 
 | Lint | `<command>` | <YYYY-MM-DD: printed line> |
 | Smoke test, or one sample run for a job | `<command>` | <YYYY-MM-DD: printed line> |
 
-## Not here yet
+## 13. Not here yet
 
 <!-- What the architecture needs but does not exist on disk yet, and which phase or milestone adds it. -->
 
@@ -166,7 +171,7 @@ session and the date; never "passes" for a command not run here. For a job, the 
 |---|---|
 | <e.g. `Dockerfile`, the CI workflow, the first migration> | <the foundation phase · milestone M1> |
 
-## Changes
+## 14. Changes
 
 <!-- Every later addition, removal, rename or move of a module or home: one dated line with the old and new path, the
 reason and the decision. The tables above always show only the current layout. -->

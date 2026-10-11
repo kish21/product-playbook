@@ -20,9 +20,15 @@ sys.path.insert(0, str(ROOT / "tools"))
 import status  # noqa: E402
 
 TODAY = "2026-09-24"
+# a feature doc's top half for people (#57 item 8: `status.py ticket` checks it); the fixtures' developer halves follow
+TOP_HALF = ("## In short\nGuests can leave the door.\n\n## What you can do now\nOpen the list.\n\n"
+            "## What it protects you from\nTexting the wrong person.\n\n## Not done yet\nNothing.\n\n---\n\n"
+            "## For developers and coding agents\n\n")
 # the suite runs on the plugin route, where /build and /dev-check default to the lean path: the full procedure's checks
 # are what most tests exercise, so full is the default here; test_lean_mode switches to lean on purpose
 os.environ["PLAYBOOK_MODE"] = "full"
+os.environ["PLAYBOOK_ACTION_CHECK"] = "off"  # 2.3: /foundation's close never asks github.com in tests
+os.environ["PLAYBOOK_BOARD"] = "off"  # #57 item 1: a build start or record never asks a real GitHub in tests
 
 
 def run(d: Path, *args: str) -> tuple[int, str]:
@@ -110,16 +116,23 @@ VISION_OK = ("- **Vision:** nobody waits at the door guessing\n"
              "- **Constraints:** a guest's phone number is personal data (GDPR) · English · the restaurant's own list\n")
 # the companion as next.55's start describes it: the owner's answers, a search list with a link per line and its
 # why-now, same-job and rules lines, the terms table with where each number came from
-VISION_SEARCHES = ("### Search list\n\n"
+VISION_SEARCHES = ("### A.2 Search list\n\n"
                    "- why now · `restaurant waitlist 2026` · settled: walk-ins grew · https://example.org/a1\n"
                    "- local · `wachtlijst restaurant app Gent` · two local apps · https://example.org/local\n"
                    "- same job · `restaurant waitlist app` · Waitwhile, Yelp Guest Manager · https://example.org/same\n"
                    "- rules · `restaurant guest phone number GDPR` · personal data · https://example.org/rules\n\n")
 # next.57: a founder's document first, the workings in an appendix (the checks find their headings anywhere)
-VISION_DOC = ("# Vision\n\nNobody waits at the door.\n\n## Who it is for\n\nSmall restaurants.\n\n## Competitors\n\n"
-              "| Product | Market | Same job / nearby |\n|---|---|---|\n| Waitwhile | worldwide | same job |\n\n"
-              "## Appendix\n\n### Owner's answers\n\n1. A waitlist for small restaurants.\n\n" + VISION_SEARCHES +
-              "### North-star terms\n| Term | Number | From |\n|---|---|---|\n"
+# 2.2 (#60, #61): numbered headings, a diagram, In / Out of scope and open questions - the layout `set` refuses without
+VISION_LAYOUT = ("# Vision\n\n## 1. Vision in one line\n\n**Nobody waits at the door.**\n\n"
+                 "## 2. How it works\n\n```mermaid\nflowchart LR\n  A[guest joins] --> B[text sent]\n```\n\n"
+                 "## 3. Scope at a glance\n\n- **In scope:** the list and the text\n- **Out of scope:** bookings\n\n"
+                 "## 4. Open questions\n\n1. Do guests answer a text?\n\n")
+VISION_DOC = (VISION_LAYOUT.replace("## 2. How it works", "## 5. Who it is for\n\nSmall restaurants.\n\n"
+                                    "## 6. Competitors\n\n| Product | Market | Same job / nearby |\n|---|---|---|\n"
+                                    "| Waitwhile | worldwide | same job |\n\n## 2. How it works") +
+              "## Appendix A — Workings\n\n### A.1 Owner's answers\n\n1. A waitlist for small restaurants.\n\n"
+              + VISION_SEARCHES +
+              "### A.3 North-star terms\n| Term | Number | From |\n|---|---|---|\n"
               "| restaurant | 1+ location, 20+ walk-ins a week | owner |\n")
 
 
@@ -237,7 +250,7 @@ def test_next(d: Path, fails: list[str]) -> None:
     run(d, "set", "vision", "filled")
     run(d, "set", "validate", "running", "--due", "2026-10-01", "--reason", "pre-sale")
     code, out = run(d, "next")
-    for token in ("Save this version of your project? (yes / no)", "What I skipped or couldn't do",
+    for token in ("never a save question", "What I skipped or couldn't do",
                   "Test this yourself", "set <phase> filled"):
         if token not in out:
             fails.append(f"next should print the close checklist ({token!r} missing): {out.strip()}")
@@ -278,9 +291,18 @@ def test_verdicts_and_tickets(d: Path, fails: list[str]) -> None:
                                   "## Lanes\n\n| `M9-Z-01` not a ticket of a milestone |\n", encoding="utf-8")
     run(d, "ticket", "M1-A-01", "--dod", "yes", "--verified", "pytest -> 1 passed", "--doc", "docs/features/a.md")
     code, out = run(d, "next")
-    if "Next: /build - M1: 1 of 2 tickets recorded; not yet: M1-A-02" not in out:
+    if "Next: /ship M1-A-01 - built, not shipped yet" not in out:  # 2.1 (#62): a built ticket's next step is its PR
+        fails.append(f"a built, unshipped ticket should make /ship the next step: {out.strip()}")
+    st = status.Status.load(d / "STATUS.md")
+    st.rows["Releases"].append([TODAY, "M1-A-01: one", "R1 clean", "none", "README", "CHANGELOG.md", "revert", "#1"])
+    st.save(d / "STATUS.md")
+    code, out = run(d, "next")
+    if "Next: /build M1-A-02 - merge the shipped PR first (#1)" not in out or "not yet: M1-A-02" not in out:
         fails.append(f"build with an unrecorded ticket should stay the next phase: {out.strip()}")
     run(d, "ticket", "M1-A-02", "--dod", "yes", "--verified", "pytest -> 2 passed", "--doc", "docs/features/b.md")
+    st = status.Status.load(d / "STATUS.md")
+    st.rows["Releases"].append([TODAY, "M1-A-02: two", "R1 clean", "none", "README", "CHANGELOG.md", "revert", "#2"])
+    st.save(d / "STATUS.md")
     code, out = run(d, "next")
     if "Next: /dev-check" not in out:
         fails.append(f"every ticket recorded should move on to /dev-check: {out.strip()}")
@@ -852,10 +874,10 @@ def test_contracts_close(d: Path, fails: list[str]) -> None:
         "app/payroll/schemas.py": "class Payslip(BaseModel):\n    net_pay_cents: int\n    rate_bp: int\n",
         "config/product.yaml": "run_caps:\n  spend_micro_eur: 100000   # EUR 0.10 per answer\n  wall_time_s: 120\n",
         "docs/contracts/agent.schema.json": "{}\n",
-        "docs/contracts.md": "# Contracts\n\n## Overview\n\nPayslips per employer.\n\n```mermaid\nerDiagram\n"
-                             "    employers ||--o{ payslips : employer_id\n```\n\n## PII\n\n| Field | Why | How long "
+        "docs/contracts.md": "# Contracts\n\n## 1. Overview\n\nPayslips per employer.\n\n```mermaid\nerDiagram\n"
+                             "    employers ||--o{ payslips : employer_id\n```\n\n## 2. PII\n\n| Field | Why | How long "
                              "| Deletion |\n|---|---|---|---|\n| payslips | answers | 24 months | purge job |\n\n"
-                             "## Owner's answers\n\n1. Nothing outside the app calls it.\n",
+                             "## 3. Owner's answers\n\n1. Nothing outside the app calls it.\n",
     }
     for rel, text in files.items():
         (d / rel).parent.mkdir(parents=True, exist_ok=True)
@@ -889,10 +911,12 @@ def test_contracts_close(d: Path, fails: list[str]) -> None:
         ("tenant sentence", lambda: sub("migrations/versions/0001_core.py",
                                         'op.create_table("agent_events", sa.Column("employer_id", sa.Text()),',
                                         'op.create_table("agent_events",'), "table agent_events", False),
-        ("no overview", lambda: sub("docs/contracts.md", "## Overview", "## Notes"), "start with `## Overview`", False),
+        ("no overview", lambda: sub("docs/contracts.md", "## 1. Overview", "## 1. Notes"), "start with `## Overview`",
+         False),
         ("no diagram", lambda: sub("docs/contracts.md", "```mermaid", "```text"), "start with `## Overview`", False),
-        ("no PII table", lambda: sub("docs/contracts.md", "## PII", "## Data"), "no `## PII` table", False),
-        ("no owner's answers", lambda: sub("docs/contracts.md", "## Owner's answers", "## Answers"),
+        ("no PII table", lambda: sub("docs/contracts.md", "| Field | Why | How long | Deletion |",
+                                     "| Table | Notes | Owner | Size |"), "no personal-data table", False),
+        ("no owner's answers", lambda: sub("docs/contracts.md", "## 3. Owner's answers", "## 3. Answers"),
          "no `## Owner's answers`", False),
         ("Any money", lambda: put("app/agent/caps.py", "class Caps:\n    refund_cap: Any = None\n"), "(refund_cap)",
          True),
@@ -909,6 +933,13 @@ def test_contracts_close(d: Path, fails: list[str]) -> None:
             (d / rel).write_text(text, encoding="utf-8")
         for rel in ("app/agent/runner.py", "app/agent/caps.py"):
             (d / rel).unlink(missing_ok=True)
+    # #43 items 2 + 4: the personal-data table is read by its columns, any heading; every heading numbered (#60)
+    snap = (d / "docs/contracts.md").read_text(encoding="utf-8")
+    sub("docs/contracts.md", "## 2. PII", "## 2. Personal data")
+    if status.contracts_gaps(d, close=True):
+        fails.append(f"a numbered docs/contracts.md with a `## 2. Personal data` table should pass: "
+                     f"{status.contracts_gaps(d, close=True)}")
+    (d / "docs/contracts.md").write_text(snap, encoding="utf-8")
     # not money, not the project's code: never a refusal
     put("app/payroll/rates.py", "class Line:\n    withholding_tax_rate: float\n    feedback_score: float\n")
     put(".venv/Scripts/charge.py", "class Charge:\n    amount: float\n")  # the folder's name
@@ -920,6 +951,14 @@ def test_contracts_close(d: Path, fails: list[str]) -> None:
     warns = "; ".join(status.contracts_warnings(d))
     if "withholding_tax_rate" not in warns or "basis points" not in warns or "feedback_score" in warns             or ".venv" in warns:
         fails.append(f"a float rate should be warned (basis points), a score and a library not: {warns!r}")
+    # #43 item 1: a score compared with a threshold is warned (basis points), never refused; a lone score is not
+    put("app/payroll/review.py", "class Gate:\n    approve_threshold: float = 0.8\n")
+    warns = "; ".join(status.contracts_warnings(d))
+    if "approve_threshold" not in warns or "feedback_score" not in warns or "0.78 = 7800" not in warns:
+        fails.append(f"a float threshold and the scores compared with it should be warned: {warns!r}")
+    if status.contracts_gaps(d, close=True):
+        fails.append(f"a float threshold is a warning, never a refusal: {status.contracts_gaps(d, close=True)}")
+    (d / "app/payroll/review.py").unlink()
     for p in (".venv", "env313"):
         shutil.rmtree(d / p)
     (d / "app/payroll/rates.py").unlink()
@@ -967,13 +1006,17 @@ def test_contracts_close(d: Path, fails: list[str]) -> None:
                      f"{CONTRACTS_START_MAX}: a realistic project's start would pass 25,000 (P47)")
     # P46: reads and questions first, docs/contracts.md last - after round 2, saved in the same message
     for want in ("reads first, the long document last", "in ONE call now",
-                 "on a looks-good, ONE message: docs/contracts.md", "after it in that same message, `set contracts"):
+                 "no confirm or save question: docs/contracts.md", "after it in that same message, `set contracts"):
         if want not in out:
             fails.append(f"next --phase contracts should give the P46 order: {want!r}")
-    if "`## PII` (a table" in out:
+    if "Personal data` (a table" in out:
         fails.append("next --phase contracts should leave docs/contracts.md's shape to the dry-run (P46)")
-    if "## §Declined runs" not in out:  # /foundation is not filled here: the run may stop
-        fails.append("next --phase contracts should print §Declined runs while an earlier gate is unmet")
+    # /foundation is not filled here: the run may stop or go on - both commands printed, the section by name (its
+    # ~900 characters put the start over the size cap on a real install's long path)
+    if ("status.py set contracts declined --reason" not in out or "status.py bypass --from contracts --gate"
+            not in out or "## §Declined runs" in out):
+        fails.append("next --phase contracts should print §Declined runs' two commands while an earlier gate is "
+                     "unmet, and the section by name")
     st = status.Status.load(d / "STATUS.md")
     st.phase("foundation")[1:3] = ["filled", TODAY]
     (d / "STATUS.md").write_text(st.render(), encoding="utf-8")
@@ -986,7 +1029,7 @@ def test_contracts_close(d: Path, fails: list[str]) -> None:
     doc = (d / "docs/contracts.md").read_text(encoding="utf-8")
     (d / "docs/contracts.md").unlink()
     code, out = run(d, "set", "contracts", "filled", "--section-from", str(section), "--dry-run")
-    for want in ("(net_pay)", "is not written yet", "`## PII` (a table", "after it - `set contracts filled"):
+    for want in ("(net_pay)", "is not written yet", "Personal data` (a table", "after it - `set contracts filled"):
         if want not in out:
             fails.append(f"a dry-run before docs/contracts.md should print {want!r}: {out[-300:]!r}")
     if "docs/contracts.md, which does not exist" in out or "no docs/contracts.md" in out:
@@ -1001,7 +1044,7 @@ def test_contracts_close(d: Path, fails: list[str]) -> None:
         "--clears", "#structure's check passes")
     code, out = run(d, "set", "contracts", "filled", "--section-from", str(section))
     if code != 0 or "The rest of the close" not in out or "the tenant key per table" not in out or \
-            "Save this version of your project?" not in out:
+            "Change anything? If not:" not in out:
         fails.append(f"set contracts filled should record and print /contracts' close: {out[-500:]!r}")
     section.unlink()
     (d / "PRODUCT.md").unlink()
@@ -1322,7 +1365,7 @@ def test_lean_mode(fails: list[str]) -> None:
             (d / "app" / "seed.py").write_text("import httpx\n\n\ndef seed():\n    return httpx.post('x')\n", encoding="utf-8")
             (d / "app" / "test_seed.py").write_text("def test_refuses_live_shop():\n    pass\n", encoding="utf-8")
             (d / "docs" / "features").mkdir(parents=True)
-            (d / "docs" / "features" / "seed.md").write_text("# Seed\n\n## Review\nCLEAN.\n", encoding="utf-8")
+            (d / "docs" / "features" / "seed.md").write_text("# Seed\n\n" + TOP_HALF + "## Review\nCLEAN.\n", encoding="utf-8")
             subprocess.run(["git", "add", "-A"], cwd=d)
             subprocess.run([*g, "commit", "-qm", "work"], cwd=d)
             ticket = ["ticket", "M1-B-01", "--dod", "yes", "--verified", "pytest -> 1 passed", "--doc",
@@ -1645,6 +1688,7 @@ def test_test_close_first_try(fails: list[str]) -> None:
             "  - " + ev.format("reach 1 passed"),
             "- **Regression:** #2 locked as a strict xfail. " + " ".join(
                 f"Case {i} holds the refund cap at the boundary, `a.b; c` untouched." for i in range(8)),
+            "- **Defect hunt:** input domains, cleanup on failure - none found.",
             "- **Detail:** `docs/tests.md`", ""])
         body = d.parent / f"{d.name}-close.md"
         try:
@@ -1726,12 +1770,28 @@ def test_dev_check_gate(fails: list[str]) -> None:
         if code == 0 or "skipped because an earlier one failed" not in out or "no line for the live path" not in out:
             fails.append(f"a FAIL whose checks stopped on red was recorded (F1): {out.strip()[:400]}")
         (d / "PRODUCT.md").write_text(head + "- Gate: just check → 12 failed\n- Live path: /healthz 200, /api/log 501\n"
-                                      "- Security: each built ticket's DoD holds\n- Scope: no creep found\n",
+                                      "- Security: each built ticket's DoD holds\n- Scope: no creep found\n"
+                                      "- Secret scan: gitleaks detect → no leaks\n- Dependency scan: pip-audit → 0\n",
                                       encoding="utf-8")
-        code, out = run(d, "set", "dev-check", "filled", "--verdict", "fail")
+        code, out = run(d, "set", "dev-check", "filled", "--verdict", "fail", "--security-from", sec_table(d, "CLEAN"))
         if code != 0:
             fails.append(f"a checkpoint FAIL with every check shown must record (F1; a commented example is not "
                          f"evidence, F4): {out.strip()[:400]}")
+
+
+# 2.4 (#45): the security helper's table, saved to a file outside the repo and passed with --security-from
+REAL_TABLE = """| Severity | File:line | What goes wrong |
+|---|---|---|
+| MEDIUM | app/dev.py:12 | the dev server uses the real store adapter by default |
+| LOW | app/session.py:40 | the session cookie has no SameSite |
+| LOW | app/log.py:8 | a request id is logged in full |
+"""
+
+
+def sec_table(d: Path, text: str) -> str:
+    f = d.parent / f"{d.name}-security.md"
+    f.write_text(text, encoding="utf-8")
+    return str(f)
 
 
 # a realistic checkpoint record, shaped like a logged lean run's #Dev-complete (names made generic)
@@ -1745,6 +1805,8 @@ DEV_COMPLETE_REAL = """**Verdict: FAIL (2026-09-28, lean run).** Only 1 of 2 M1 
   - Checked OK: account id only from the verified token; token encrypted at rest; fail-closed 401/503.
 - [x] Scope re-check: nothing crept in. `evidence: grep -rniE 'billing|subscription|dashboard' app/ → 1 hit, a help string in app/config/loader.py:47 (not creep) · 2026-09-28`
 - [ ] No hardcoding · prompts externalized · contracts typed. **UNVERIFIED:** `just check` (lint, contracts, imports) did not reach a green result.
+- [x] Secret scan: `just secrets` → no leaks found (2026-09-28).
+- [ ] Dependency scan: `just vuln` → 1 known CVE, LOW (issue #3).
 
 | Ticket | Built | Runs | DoD incl. security |
 |---|---|---|---|
@@ -1820,7 +1882,8 @@ def test_dev_check_close(fails: list[str]) -> None:
         subprocess.run(["git", "config", "user.email", "t@t"], cwd=d)
         subprocess.run(["git", "config", "user.name", "t"], cwd=d)
         head0 = subprocess.run(["git", "rev-parse", "HEAD"], cwd=d, capture_output=True, text=True).stdout
-        code, out = run(d, "set", "dev-check", "filled", "--verdict", "fail", "--section-from", str(src), "--no-commit")
+        code, out = run(d, "set", "dev-check", "filled", "--verdict", "fail", "--section-from", str(src), "--no-commit",
+                        "--security-from", sec_table(d, REAL_TABLE))
         if code != 0 or "saved: commit" in out \
                 or subprocess.run(["git", "rev-parse", "HEAD"], cwd=d, capture_output=True, text=True).stdout != head0:
             fails.append(f"`--no-commit` should record without saving: {out.strip()[:300]}")
@@ -1829,7 +1892,8 @@ def test_dev_check_close(fails: list[str]) -> None:
             if status.CHAIN.index(r[0]) < status.CHAIN.index("build"):
                 r[1:6] = ["overridden", TODAY, "", "", "Override: the checkpoint's fixture"]
         st.save(d / "STATUS.md")
-        code, out = run(d, "set", "dev-check", "filled", "--verdict", "fail", "--section-from", str(src))
+        code, out = run(d, "set", "dev-check", "filled", "--verdict", "fail", "--section-from", str(src),
+                        "--security-from", sec_table(d, REAL_TABLE))
         if code != 0 or "The rest of the close" not in out or "Open a NEW conversation and type:" not in out \
                 or "M1-A-01 install + session" not in (d / "PRODUCT.md").read_text(encoding="utf-8"):
             fails.append(f"a realistic checkpoint FAIL should record the first time and print the close and the "
@@ -1842,6 +1906,298 @@ def test_dev_check_close(fails: list[str]) -> None:
         if not re.search(r"Open a NEW conversation and type: /\S*build M1-A-01 - the checkpoint failed with 2 ticket", out):
             fails.append(f"a checkpoint FAIL with tickets missing should hand off to /build <first missing ticket>: "
                          f"{out.strip()[-500:]}")
+
+
+DC_TICKETS = """# Tickets - the plan
+
+## M1 Core slice
+| Epic | Lane | Owner | Tickets in build order |
+|---|---|---|---|
+| [M1-A] Part a | a | Senior | M1-A-01 Build part a · M1-A-02 Build part a2 |
+| [M1-B] Part b | b | Senior | M1-B-01 Build part b |
+
+## M2 Later
+| Epic | Lane | Owner | Tickets in build order |
+|---|---|---|---|
+| [M2-A] More | a | Senior | M2-A-01 More of a |
+
+## Day 1 — who starts what
+| Seat | Lane | Day-1 ticket | Why |
+|---|---|---|---|
+| SR1 | a | M1-A-01 | no dependencies |
+| SR2 | b | M1-B-01 | no dependencies |
+"""
+DC_PLAN = """- **Phases / milestones (core first):**
+  - M1 Core slice: one customer sees one step (2026-09-21 → 09-30)
+  - M2 Later: more customers (10-01 → 10-20)
+- **Timeline:** 2 people × 20 h/week, start 2026-09-21
+- **Exit criteria per milestone:**
+  - M1: a seeded customer is shown one step, approve and ignore each write a log row, and a customer with no moment gets no step. Needs: seeded customers (M1)
+    - superseded 2026-09-22: the log row is written by the audit module (owner)
+  - M2: the scoring script reports the catch rate
+"""
+DC_RECORD = """**Verdict: FAIL (2026-09-24).** 1 of 3 M1 tickets built.
+- Gate: `just check` → 40 passed.
+- Secret scan: `just secrets` → no leaks.
+- Dependency scan: `just vuln` → 0 known vulnerabilities.
+- Live path: GET /api/items → 200.
+- Security: the 3 listed files reviewed, 0 findings.
+- Scope: no creep found.
+- Exit criterion 1 (a seeded customer is shown one step ...): partly - the step shows, no log row yet.
+- Exit criterion 2 (a customer with no moment gets no step): not met - M1-B-01 is not built.
+- Schedule: M1 ends 2026-09-30 and 2 of 3 tickets are left; at the pace so far it ends about 2 days late.
+- Later milestones: M2 0 of 1 built.
+"""
+
+
+def test_dev_check_milestone(fails: list[str]) -> None:
+    """#45 (2.2): a logged checkpoint judged "M6" and "1 of 48" while M1 was being built - TICKETS.md listed its ids
+    bare, and the start read only backticked ones. The start now judges the CURRENT milestone (later ones one line),
+    prints #Plan's exit criteria split, the schedule computed from #Plan's dates and pace, the scan commands, the
+    routes, and the files no /build or /ship review saw; the close refuses a record that maps no criterion, has no
+    schedule line or no scan line, and warns on a bare UNVERIFIED."""
+    row = "| [M1-A] Part a | a | Senior | M1-A-01 Build part a · M1-A-02 Build part a2 |"
+    if status.TICKET_ID.findall(row) or status.TICKET_ID_BARE.findall(row) != ["M1-A-01", "M1-A-02"]:
+        fails.append("bare ticket ids in an epic table should be read (the backticked form alone reads none: red)")
+    with tempfile.TemporaryDirectory() as t:
+        d = Path(t)
+        g = ["git", "-c", "user.email=t@t", "-c", "user.name=t"]
+        subprocess.run(["git", "init", "-q", "-b", "main"], cwd=d)
+        fresh(d)
+        (d / "TICKETS.md").write_text(DC_TICKETS, encoding="utf-8")
+        (d / "PRODUCT.md").write_text(f"# P\n\n## Scope\n- **Non-goals:** billing\n\n## Plan\n{DC_PLAN}\n"
+                                      f"## Dev-complete\n\n## Tests\n", encoding="utf-8")
+        (d / "justfile").write_text("check:\n    pytest\n\nsecrets:\n    gitleaks detect\n\nvuln:\n    pip-audit\n\n"
+                                    "audit:\n    python audit.py\n", encoding="utf-8")
+        (d / "app").mkdir()
+        (d / "app" / "__init__.py").write_text("", encoding="utf-8")
+        (d / "app" / "foundation.py").write_text("SECRET = 'x'\n", encoding="utf-8")
+        (d / "app" / "routes.py").write_text("from fastapi import APIRouter\nrouter = APIRouter(prefix=\"/api\")\n\n"
+                                             "@router.get(\"/items\")\ndef items():\n    return []\n", encoding="utf-8")
+        subprocess.run(["git", "add", "-A"], cwd=d)
+        subprocess.run([*g, "commit", "-qm", "foundation: skeleton"], cwd=d)
+        (d / "app" / "a.py").write_text("A = 1\n", encoding="utf-8")
+        subprocess.run(["git", "add", "-A"], cwd=d)
+        subprocess.run([*g, "commit", "-qm", "M1-A-01: build part a"], cwd=d)
+        rec = d / "status" / "tickets"
+        rec.mkdir(parents=True, exist_ok=True)
+        (rec / "2026-09-24-m1-a-01.md").write_text(
+            "<!-- One ticket, written by status.py. Never edit by hand. -->\nTicket: M1-A-01\nDate: 2026-09-24\nDoD met: "
+            "yes\nHow verified: gate.py -> 3 passed\nFull-suite runs: 1\nReview: code + security R1 clean\n"
+            "Doc: docs/features/a.md\n", encoding="utf-8")
+        subprocess.run(["git", "add", "-A"], cwd=d)
+        subprocess.run([*g, "commit", "-qm", "M1-A-01: ticket record"], cwd=d)
+        code, out = run(d, "next", "--phase", "dev-check")
+        for want in ("===== checkpoint: M1 ", "Tickets of M1", "M1-A-01: done · 2026-09-24", "M1-A-02: not recorded",
+                     "Later milestones - not judged now", "M2 0 of 1 built",
+                     "1. a seeded customer is shown one step, approve and ignore each write a log row",
+                     "2. a customer with no moment gets no step", "(note: superseded 2026-09-22",
+                     "Schedule: M1 runs 2026-09-21 → 2026-09-30; today is 2026-09-24 (6 days left); 2 of 3 tickets left",
+                     "1 ticket(s) in 4 day(s)", "done about 2026-10-02 - 2 days LATE", "about 34 h",
+                     "secret scan: `just secrets`", "dependency scan: `just vuln`", "GET /api/items · app/routes.py",
+                     "app/ (2): foundation.py, routes.py", "M1-A-01 at "):
+            if want not in out:
+                fails.append(f"the checkpoint start lacks {want!r}: {out[out.find('====='):][:2500]}")
+        if "a.py" in out.split("Security review")[1].split("Skip")[0] or "__init__" in out.split("Security review")[1]:
+            fails.append("the security review list should skip a file /build reviewed (unchanged since) and empty files")
+        src = Path(t) / "dc.md"
+        breaks = {"maps none of M1's 2 #Plan exit criteria": DC_RECORD.replace("partly", "open").replace("not met", "open"),
+                  "no `Schedule:` line": DC_RECORD.replace("- Schedule:", "- Pace:"),
+                  "no line for the secret scan": DC_RECORD.replace("- Secret scan: `just secrets` → no leaks.\n", ""),
+                  "no line for the dependency scan": DC_RECORD.replace("- Dependency scan: `just vuln` → 0 known "
+                                                                       "vulnerabilities.\n", "")}
+        for name, body in breaks.items():
+            src.write_text(body, encoding="utf-8")
+            code, out = run(d, "set", "dev-check", "filled", "--verdict", "fail", "--section-from", str(src), "--dry-run")
+            if name not in out:
+                fails.append(f"/dev-check close check {name!r} did not go red on its own break: {out.strip()[-500:]}")
+        src.write_text(DC_RECORD + "- No hardcoding: UNVERIFIED.\n", encoding="utf-8")
+        code, out = run(d, "set", "dev-check", "filled", "--verdict", "fail", "--section-from", str(src), "--no-commit",
+                        "--security-from", sec_table(d, "CLEAN - the 3 files read whole, nothing found"))
+        if code != 0 or "UNVERIFIED without why" not in out or "a warning, not a refusal" not in out:
+            fails.append(f"a full checkpoint record should save, warning on a bare UNVERIFIED: {out.strip()[-700:]}")
+
+
+def test_dev_check_security_receipt(fails: list[str]) -> None:
+    """#45 (parked in 2.0, built in 2.4): a `Security:` line that claims a result needs the helper's table -
+    `--security-from <file>` - counted per severity against the line, kept as a receipt in .git/playbook-review/;
+    a later record reuses it while no code file changed; UNVERIFIED needs none. Each check red on its own break."""
+    with tempfile.TemporaryDirectory() as t:
+        d = Path(t) / "p"
+        d.mkdir()
+        g = ["git", "-c", "user.email=t@t", "-c", "user.name=t"]
+        subprocess.run(["git", "init", "-q", "-b", "main"], cwd=d)
+        fresh(d)
+        (d / "TICKETS.md").write_text(DC_TICKETS, encoding="utf-8")
+        (d / "PRODUCT.md").write_text(f"# P\n\n## Scope\n- **Non-goals:** billing\n\n## Plan\n{DC_PLAN}\n"
+                                      f"## Dev-complete\n\n## Tests\n", encoding="utf-8")
+        (d / "app").mkdir()
+        (d / "app" / "dev.py").write_text("STORE = 'real'\n", encoding="utf-8")
+        subprocess.run(["git", "add", "-A"], cwd=d)
+        subprocess.run([*g, "commit", "-qm", "base"], cwd=d)
+        src = Path(t) / "dc.md"
+        one_medium = DC_RECORD.replace("- Security: the 3 listed files reviewed, 0 findings.",
+                                       "- Security: helper review of the 3 listed files - 1 MEDIUM, 2 LOW (issues #2, #3).")
+        base_args = ["set", "dev-check", "filled", "--verdict", "fail", "--section-from", str(src)]
+        receipt = d / ".git" / "playbook-review" / "dev-check-security.json"
+        reds = {"no review table backs it": (one_medium, []),
+                "the review table has 2 - say": (one_medium.replace("1 MEDIUM, 2 LOW", "1 MEDIUM, 1 LOW"),
+                                                ["--security-from", sec_table(d, REAL_TABLE)]),
+                "says 0 finding(s), the review table has 3": (DC_RECORD, ["--security-from", sec_table(d, REAL_TABLE)]),
+                "holds no findings row": (one_medium, ["--security-from", sec_table(d, "looked at it, fine")]),
+                "no such file, or it is empty": (one_medium, ["--security-from", str(Path(t) / "missing.md")]),
+                # 2.4 review: a table saved in the repo gets committed (findings public); a self-review never signs
+                # off security, by the table or by the line
+                "is inside the project": (one_medium, ["--security-from", str(d / "notes" / "security.md")]),
+                "says it is a self-review": (one_medium, ["--security-from", sec_table(d, REAL_TABLE)]),
+                "claims a result from a self-review": (
+                    one_medium.replace("helper review of the 3 listed files", "self-review of the 3 listed files"),
+                    ["--security-from", sec_table(d, REAL_TABLE)])}
+        inside = d / "notes" / "security.md"
+        inside.parent.mkdir()
+        inside.write_text(REAL_TABLE, encoding="utf-8")
+        for name, (body, extra) in reds.items():
+            src.write_text(body, encoding="utf-8")
+            if extra and extra[1].endswith("-security.md"):  # each red case writes its own table last
+                sec_table(d, REAL_TABLE if name != "holds no findings row" else "looked at it, fine")
+                if name == "says it is a self-review":
+                    sec_table(d, REAL_TABLE + "\nNo helper on this tool - a self-review of the 3 files.\n")
+            code, out = run(d, *base_args, *extra, "--dry-run")
+            if name not in out:
+                fails.append(f"security receipt check {name!r} did not go red on its own break: {out.strip()[-600:]}")
+        inside.unlink()
+        inside.parent.rmdir()
+        # 2.4 review: the start names each tool's way to start the ONE security helper, and the fallback
+        tool = status.playbook_tool
+        try:
+            for name, want in (("claude", "ONE helper (the Agent tool (run_in_background: true))"),
+                               ("codex", "this skill explicitly asks you to spawn ONE agent; then ONE `wait_agent`")):
+                status.playbook_tool = lambda name=name: name
+                code, out = run(d, "next", "--phase", "dev-check")
+                if want not in out or "self-review only, <n> findings`, with no --security-from" not in out \
+                        or "scratch file OUTSIDE the repo" not in out:
+                    fails.append(f"/dev-check's start on {name} should name its security helper route and the "
+                                 f"self-review fallback: {out[out.find('Security review'):][:500]}")
+        finally:
+            status.playbook_tool = tool
+        if receipt.exists():
+            fails.append("a refused or dry-run record must write no security receipt")
+        src.write_text(one_medium, encoding="utf-8")
+        code, out = run(d, *base_args, "--security-from", sec_table(d, REAL_TABLE))
+        if code != 0 or "security receipt: 1 MEDIUM, 2 LOW" not in out or not receipt.is_file():
+            fails.append(f"a security line matching the helper's table should record and keep a receipt: "
+                         f"{out.strip()[-600:]}")
+        # a re-run with no code change reuses the receipt; a changed code file needs a new review
+        code, out = run(d, *base_args)
+        if code != 0:
+            fails.append(f"an unchanged checkout should reuse the security receipt: {out.strip()[-500:]}")
+        (d / "app" / "dev.py").write_text("STORE = 'fake'\n", encoding="utf-8")
+        subprocess.run(["git", "add", "-A"], cwd=d)
+        subprocess.run([*g, "commit", "-qm", "fix the store default"], cwd=d)
+        code, out = run(d, *base_args, "--dry-run")
+        if "the security receipt is for" not in out or "app/dev.py" not in out:
+            fails.append(f"a receipt for older code should be refused, naming the changed file: {out.strip()[-500:]}")
+        src.write_text(one_medium.replace("- Security: helper review of the 3 listed files - 1 MEDIUM, 2 LOW (issues #2, #3).",
+                                          "- Security: UNVERIFIED - the helper returned nothing twice"), encoding="utf-8")
+        code, out = run(d, *base_args, "--dry-run")
+        if "security receipt" in out or "no review table" in out:
+            fails.append(f"an UNVERIFIED security line needs no table: {out.strip()[-500:]}")
+        # Claude Code only, warn-only: a helper named in the line and no helper call in the newest log
+        logs = Path(t) / "logs"
+        logs.mkdir()
+        (logs / "s.jsonl").write_text('{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Bash",'
+                                      '"input":{"command":"just check"}}]}}\n', encoding="utf-8")
+        real = status.session_costs
+        status.session_costs = lambda: type("SC", (), {"project_log_dir": staticmethod(lambda b: logs)})
+        try:
+            body = "- Security: helper review - 1 MEDIUM\n"
+            if not status.security_helper_warning(d, body):
+                fails.append("a helper named with no helper call in the log should warn")
+            (logs / "s.jsonl").write_text('{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Agent",'
+                                          '"input":{"prompt":"Security review of these files"}}]}}\n', encoding="utf-8")
+            if status.security_helper_warning(d, body):
+                fails.append("a logged helper call about security should not warn")
+        finally:
+            status.session_costs = real
+
+
+def test_verify_phases_24(fails: list[str]) -> None:
+    """2.4 (#62, #60): /dev-check's and /test's starts print Spine resolution, Re-run semantics and Declined runs only
+    when the case is real (decided from the project's facts); docs/tests.md numbers every heading (refused) and is
+    plain English (warned); the checking phases' close is short and points at the record."""
+    with tempfile.TemporaryDirectory() as t:
+        d = Path(t)
+        subprocess.run(["git", "init", "-q", "-b", "main"], cwd=d)
+        fresh(d)
+        (d / "TICKETS.md").write_text("# Tickets\n\n## M1 core\n| `M1-A-01` | a |\n", encoding="utf-8")
+        (d / "PRODUCT.md").write_text("# P\n\n## Scope\n- **Non-goals:** billing\n\n## Dev-complete\n\n## Tests\n",
+                                      encoding="utf-8")
+        for ph in ("dev-check", "test"):
+            code, out = run(d, "next", "--phase", ph)
+            for sec in ("§Spine resolution", "§Re-run semantics", "§Declined runs"):
+                if sec in out:
+                    fails.append(f"a first /{ph} run on a project with PRODUCT.md should not print {sec}")
+        st = status.Status.load(d / "STATUS.md")
+        for ph in ("dev-check", "test"):
+            st.phase(ph)[1:6] = ["filled", TODAY, "", "fail", ""]
+        st.save(d / "STATUS.md")
+        for ph in ("dev-check", "test"):
+            code, out = run(d, "next", "--phase", ph)
+            if "§Re-run semantics" not in out:
+                fails.append(f"a /{ph} re-run (its section filled) should print §Re-run semantics")
+        # /test asked the dev-check question (failed, milestone finished): the Stop answer is a declined run
+        st = status.Status.load(d / "STATUS.md")
+        st.phase("test")[1:6] = ["empty", "", "", "", ""]
+        st.save(d / "STATUS.md")
+        real = status.milestone_unfinished
+        status.milestone_unfinished = lambda st_: None
+        try:
+            if "Declined runs" in status.verify_skip("test", _with_base(d)):
+                fails.append("/test should keep §Declined runs while its gate line asks the dev-check question")
+        finally:
+            status.milestone_unfinished = real
+        # docs/tests.md: an unnumbered heading is refused, a numbered one is not; long sentences warn
+        (d / "docs").mkdir(exist_ok=True)
+        (d / "docs" / "tests.md").write_text("# Tests\n\n## What the tests prove\n\nThe login works.\n",
+                                             encoding="utf-8")
+        src = d.parent / f"{d.name}-tests.md"
+        src.write_text("- Live path: UNVERIFIED - no server yet\n- Security: forged token 401\n- Regression: none\n",
+                       encoding="utf-8")
+        # 2.4 review: `set` numbers a heading without one (as /validate's, /eval's, /learn's and /deploy's do) -
+        # never a refusal and a rewrite; a dry run leaves the file as the run wrote it
+        code, out = run(d, "set", "test", "filled", "--verdict", "fail", "--section-from", str(src), "--dry-run")
+        doc = (d / "docs" / "tests.md").read_text(encoding="utf-8")
+        if "without a number" in out or "## What the tests prove" not in doc:
+            fails.append(f"docs/tests.md with an unnumbered heading should not be refused, and a dry run should "
+                         f"leave it as written: {out.strip()[-500:]}")
+        code, out = run(d, "set", "test", "filled", "--verdict", "fail", "--section-from", str(src), "--no-commit")
+        doc = (d / "docs" / "tests.md").read_text(encoding="utf-8")
+        if code != 0 or "## 1. What the tests prove" not in doc:
+            fails.append(f"`set test filled` should number docs/tests.md's unnumbered heading: {out.strip()[-500:]}")
+        long = " ".join(["word"] * 35) + "."
+        (d / "docs" / "tests.md").write_text(f"# Tests\n\n## 1. What the tests prove\n\n{long} The login works \u2014 "
+                                             f"mostly.\n", encoding="utf-8")
+        code, out = run(d, "set", "test", "filled", "--verdict", "fail", "--section-from", str(src), "--dry-run")
+        if "without a number" in out:
+            fails.append(f"a numbered docs/tests.md should pass the layout check: {out.strip()[-400:]}")
+        warns = status.test_warnings(d)
+        if not any("docs/tests.md: sentences average" in w for w in warns) or not any("em-dash" in w for w in warns):
+            fails.append(f"docs/tests.md's long sentences and dash joins should warn: {warns}")
+        tpl = (ROOT / "templates" / "tests.md").read_text(encoding="utf-8")
+        if status.unnumbered_headings(tpl):
+            fails.append(f"templates/tests.md has unnumbered headings: {status.unnumbered_headings(tpl)}")
+    # the checking phases' close: short, pointing at the record; a document phase keeps its own short close
+    for ph in ("dev-check", "test", "ship"):
+        if "at most 12 lines" not in status.close_steps_text(ph, "saved: commit abc1234"):
+            fails.append(f"/{ph}'s close should be the short checking-phase close")
+    if "at most 12 lines" in status.close_steps_text("vision", "saved: commit abc1234"):
+        fails.append("/vision's close keeps its own short close")
+
+
+def _with_base(d: Path):
+    st = status.Status.load(d / "STATUS.md")
+    st.base = d
+    return st
 
 
 def test_demo_proof_checks(fails: list[str]) -> None:
@@ -1871,7 +2227,7 @@ def test_demo_proof_checks(fails: list[str]) -> None:
         (d / "app" / "test_seed.py").write_text("def test_refuses_live_shop():\n    pass\n", encoding="utf-8")
         (d / "docs" / "features").mkdir(parents=True)
         doc = d / "docs" / "features" / "seed.md"
-        body = "# Seed\n\n## Review\nCLEAN.\n\n### Files reviewed\n- app/seed.py: request - nothing found\n\n## Next\nx\n"
+        body = "# Seed\n\n" + TOP_HALF + "## Review\nCLEAN.\n\n### Files reviewed\n- app/seed.py: request - nothing found\n\n## Next\nx\n"
         doc.write_text(body, encoding="utf-8")
         subprocess.run(["git", "add", "-A"], cwd=d)
         subprocess.run([*g, "commit", "-qm", "work"], cwd=d)
@@ -1951,16 +2307,16 @@ def test_build_ticket_checks(fails: list[str]) -> None:
         run(d, "rules", "build")
         (d / "docs" / "features").mkdir(parents=True)
         doc = d / "docs" / "features" / "a.md"
-        doc.write_text("# A\n\n## How verified\npytest\n", encoding="utf-8")
+        doc.write_text("# A\n\n" + TOP_HALF + "## How verified\npytest\n", encoding="utf-8")
         code, out = run(d, *ticket)
         if code == 0 or "no Review section" not in out:
             fails.append(f"a feature doc with no Review section was accepted: {out.strip()[:300]}")
-        doc.write_text("# A\n\n## Review\nR1 0 findings.\n\n## Files\napp/shops.py\n", encoding="utf-8")
+        doc.write_text("# A\n\n" + TOP_HALF + "## Review\nR1 0 findings.\n\n## Files\napp/shops.py\n", encoding="utf-8")
         code, out = run(d, *ticket)
         if code == 0 or "app/shops.py" not in out:
             fails.append(f"a Review section that names no changed file was accepted: {out.strip()[:300]}")
         # RV5: the file list sits under a sub-heading inside ## Review (a Gemini build had to flatten one to pass)
-        doc.write_text("# A\n\n## Review\nCLEAN.\n\n### Files reviewed\n- app/shops.py: input bounds, error paths - "
+        doc.write_text("# A\n\n" + TOP_HALF + "## Review\nCLEAN.\n\n### Files reviewed\n- app/shops.py: input bounds, error paths - "
                        "nothing found\n\n## Next\nx\n", encoding="utf-8")
         # LP1: no wire cut run, and nothing outside app/ uses what the branch adds (the Gemini audit service)
         code, out = run(d, *ticket)
@@ -1972,7 +2328,7 @@ def test_build_ticket_checks(fails: list[str]) -> None:
         wc.mkdir(exist_ok=True)
         (wc / "results.jsonl").write_text('{"branch": "m1-a-01", "red": 2, "total": 3}\n', encoding="utf-8")
         (d / "main.py").write_text("from app.shops import f\n\nf()\n", encoding="utf-8")
-        doc.write_text("# A\n\n## Review\nCLEAN.\n\n### Files reviewed\n- app/shops.py: input bounds - nothing found\n"
+        doc.write_text("# A\n\n" + TOP_HALF + "## Review\nCLEAN.\n\n### Files reviewed\n- app/shops.py: input bounds - nothing found\n"
                        "- main.py: the call site - nothing found\n\n## Next\nx\n", encoding="utf-8")
         subprocess.run(["git", "add", "main.py"], cwd=d)
         subprocess.run([*g, "commit", "-qm", "wire"], cwd=d)
@@ -2511,7 +2867,7 @@ def test_vision_close(d: Path, fails: list[str]) -> None:
     with tempfile.TemporaryDirectory() as empty:  # d holds earlier tests' code: a fresh start is an empty folder
         (Path(empty) / "README.md").write_text("# Demo\n", encoding="utf-8")
         code, out = run(Path(empty), "next", "--phase", "vision")
-    if code != 0 or "- **North star — target + date" not in out or "Fresh start" not in out \
+    if code != 0 or "### target - " not in out or "Fresh start" not in out \
             or "===== PRINCIPLES.md =====" not in out or "--product" not in out:
         fails.append(f"next --phase vision on a new project should start it with its rules, not refuse: {out[-300:]!r}")
     if "## §Re-run semantics" in out or "## §Declined runs" in out or "## §Spine resolution" in out:
@@ -2525,9 +2881,9 @@ def test_vision_close(d: Path, fails: list[str]) -> None:
         status.playbook_tool = lambda: "antigravity"
         short = status.fit_start(status.vision_start_text(new=True) + "\n" + status.phase_rules_text("vision"))
         written = start_file.read_text(encoding="utf-8") if start_file.is_file() else ""
-        if len(short.encode("utf-8")) > 3500 or "view_file" not in short or "- **North star" not in written:
+        if len(short.encode("utf-8")) > 3500 or "view_file" not in short or "### target - " not in written:
             fails.append(f"Antigravity's start should fit its ~4 KB window and point at a file holding the full start "
-                         f"(the field labels): {len(short)} chars, file has labels: {'- **North star' in written}")
+                         f"(the field labels): {len(short)} chars, file has labels: {'### target - ' in written}")
         # /scope's start is ~12 KB and /plan's ~14 KB: the same cut, the same file (next.64)
         for phase in ("scope", "plan"):
             big = f"/{phase} start\n- **{phase} label:**\n" + "y" * 12000
@@ -2549,7 +2905,7 @@ def test_vision_close(d: Path, fails: list[str]) -> None:
         status.playbook_tool = lambda: "cursor"
         cu = status.vision_helper_line()
         if "NOT in your first reply" not in cx or "wait_agent" not in cx or "NOT in your first reply" in cu \
-                or "in your first reply, beside round 1" not in cu:
+                or "your FIRST tool call, before you write round 1" not in cu:
             fails.append(f"Codex's helper starts after round 1 and waits in that turn; other tools start it at once: "
                          f"{cx[:160]!r} / {cu[:120]!r}")
         status.playbook_tool = lambda: "antigravity"
@@ -2596,7 +2952,7 @@ def test_vision_close(d: Path, fails: list[str]) -> None:
         fails.append(f"set vision --product --ai should make STATUS.md with the AI answer: {out.strip()[:300]!r}")
     if f'README.md · {TODAY} · "A waitlist for small restaurants."' not in prod:
         fails.append("set vision should fill the empty Read: line from README.md")
-    if "The rest of the close" not in out or "## §Plain-language close" in out or "for the save question" not in out \
+    if "The rest of the close" not in out or "## §Plain-language close" in out or "not saved:" not in out \
             or "README.md says 'A waitlist for small restaurants.'" not in out:
         fails.append(f"set vision should print the short close checklist and the save/3c facts: {out.strip()[-500:]!r}")
     code, out = run(d, "section", "PRODUCT.md", "# Vision")
@@ -2626,7 +2982,7 @@ def test_vision_close(d: Path, fails: list[str]) -> None:
             (VISION_OK.replace("40 restaurants by 2027-03-31", "40 restaurants soon"), VISION_DOC, "a number and a date"),
             (VISION_OK, None, "no docs/vision.md"),
             (VISION_OK, VISION_DOC.replace("why now · ", ""), "why now has no search line"),
-            (VISION_OK, VISION_DOC.replace(VISION_SEARCHES, "### Search list\n\n"), "lists no search"),
+            (VISION_OK, VISION_DOC.replace(VISION_SEARCHES, "### A.2 Search list\n\n"), "lists no search"),
             (VISION_OK, VISION_DOC.replace("- local ·", "- market ·"), "no `local ·` search line"),
             (VISION_OK, VISION_DOC.replace("https://example.org/local", "https://vertexaisearch.cloud.google.com/"
                                            "grounding-api-redirect/AUZIYQE2pl"), "links a search redirect"),
@@ -2638,11 +2994,24 @@ def test_vision_close(d: Path, fails: list[str]) -> None:
             (VISION_OK, VISION_DOC.replace("- rules ·", "- users ·").replace("GDPR", "").replace("personal data",
                                                                                                    "common"),
              "no `rules ·` search line"),
-            (VISION_OK, VISION_DOC.replace("### Owner's answers", "### Notes"), "no `## Owner's answers`"),
+            (VISION_OK, VISION_DOC.replace("### A.1 Owner's answers", "### A.1 Notes"), "no `## Owner's answers`"),
+            # 2.2 (#60, #61): the layout is countable - a heading without its number, no diagram, no In/Out of scope
+            (VISION_OK, VISION_DOC.replace("## 5. Who it is for", "## Who it is for"), "heading(s) without a number"),
+            (VISION_OK, VISION_DOC.replace("### A.1 Owner's", "### Owner's"), "heading(s) without a number"),
+            (VISION_OK, VISION_DOC.replace("```mermaid", "```text"), "lacks a ```mermaid diagram"),
+            (VISION_OK, VISION_DOC.replace("- **Out of scope:** bookings\n", ""), "an `Out of scope` list"),
+            (VISION_OK, VISION_DOC.replace("## 4. Open questions", "## 4. Next steps"), "an `Open questions` section"),
+            # #59 fix A: a brief the user gave is answered point by point
+            (VISION_OK, VISION_DOC.replace("1. A waitlist for small restaurants.", "1. Brief: the challenge text."),
+             "Brief point | Our answer"),
+            (VISION_OK, VISION_DOC.replace("1. A waitlist for small restaurants.", "1. Brief: the challenge text.")
+             .replace("## 4. Open questions", "## 7. Your brief, answered\n\n| Brief point | Our answer |\n|---|---|\n"
+                      "| Who is it for? | small restaurants |\n| Why now? | |\n\n## 4. Open questions"),
+             "an answer for the brief point 'Why now?'"),
             (VISION_OK, VISION_DOC.replace("| Term | Number | From |\n|---|---|---|", "| Term | Number |\n|---|---|")
              .replace(" | owner |", " |"), "no `From` column"),
             (VISION_OK, VISION_DOC.replace("| owner |", "| guess |"), "From is 'guess'"),
-            (VISION_OK, VISION_DOC.split("## North-star")[0], "no north-star terms table"),
+            (VISION_OK, VISION_DOC.split("### A.3 North-star")[0], "no north-star terms table"),
             (VISION_OK, VISION_DOC + "| active | TBD | owner |\n", "'active' has no definition"),
             (VISION_OK.replace("Mia's party of 4 joins the list at 19:05 and gets a text at 19:32",
                                "a guest joins the list and gets a text"), VISION_DOC, "worked example has no numbers"),
@@ -2672,9 +3041,9 @@ def test_vision_close(d: Path, fails: list[str]) -> None:
     # a heading that mentions searches is not the search list (a logged Antigravity run's "## Problem (Then How It
     # Happens, From the Searches)" had its numbered causes refused as search lines without links); and a long
     # `·`-separated line is wrapped, not warned about (its Constraints line made it re-run `set` three times)
-    doc.write_text(VISION_DOC.replace("## Who it is for", "## Problem (Then How It Happens, From the Searches)\n\n"
-                                      "1. **Social security:** a fixed share of gross.\n2. **Tax:** brackets change in "
-                                      "January.\n\n## Who it is for"), encoding="utf-8")
+    doc.write_text(VISION_DOC.replace("## 5. Who it is for", "## 7. Problem (Then How It Happens, From the Searches)"
+                                      "\n\n1. **Social security:** a fixed share of gross.\n2. **Tax:** brackets change "
+                                      "in January.\n\n## 5. Who it is for"), encoding="utf-8")
     long_c = ("- **Constraints:** " + " · ".join(f"rule number {i} that applies to guest phone numbers here"
                                                 for i in range(7)))
     code, out = close(VISION_OK.replace("- **Constraints:** a guest's phone number is personal data (GDPR) · English · "
@@ -2714,9 +3083,11 @@ def test_vision_close(d: Path, fails: list[str]) -> None:
                 "months"), ("Approved without edits", "Consultant approves the draft with zero changes to text or "
                 "figures"), ("Pilot team", "One Belgian SME payroll team of 5-10 consultants"),
                ("Drafts approved without edits", "bar: not set")]
-    doc.write_text("# Vision\n\n## Owner's answers\n\n1. A waitlist.\n\n" + VISION_SEARCHES.rstrip("\n") +
-                   "\n- `restaurant waitlist complaints` · nothing found\n- Waitwhile · search 2\n\n"
-                   "## North-star terms\n| Term | Number | From |\n|---|---|---|\n" +
+    doc.write_text(VISION_LAYOUT + "## Appendix A — Workings\n\n### A.1 Owner's answers\n\n1. A waitlist.\n\n"
+                   + VISION_SEARCHES.rstrip("\n") +
+                   "\n- `restaurant waitlist complaints` · nothing found\n- Waitwhile · search 2\n"
+                   "- Not searched · Yelp Guest Manager · the owner uses it today\n\n"
+                   "### A.3 North-star terms\n| Term | Number | From |\n|---|---|---|\n" +
                    "".join(f"| {t} | {n} | proposed |\n" for t, n in pairs + payroll), encoding="utf-8")
     code, out = close(VISION_OK.replace("40 restaurants by 2027-03-31", target.group(1) if target else ""))
     if code != 0:
@@ -2744,7 +3115,7 @@ def test_vision_close(d: Path, fails: list[str]) -> None:
     if code != 0 or "stopped after the first verdict" not in (d / "STATUS.md").read_text(encoding="utf-8"):
         fails.append(f"a stop after the first verdict should record as declined, as `next` says: {out.strip()!r}")
     fresh(d)
-    (d / "docs" / "vision.md").write_text(VISION_DOC.split("## North-star")[0], encoding="utf-8")
+    (d / "docs" / "vision.md").write_text(VISION_DOC.split("### A.3 North-star")[0], encoding="utf-8")
     code, out = close(VISION_OK.replace("- **Riskiest assumption:** guests answer a text", "- **Riskiest assumption:**"))
     if code == 0 or not all(w in out for w in ("the riskiest assumption", "no north-star terms table", "AI answer")):
         fails.append(f"one refusal should name every problem: {out.strip()[:400]!r}")
@@ -2974,12 +3345,13 @@ SCOPE_STAKES_OK = ("  - password reset (N-A: \"no accounts\")\n"
                    "numbers\n"
                    "  - the languages its users need: N/A - only English at launch\n")
 SCOPE_OK = ("- **THE core feature (the one thing):** a guest gets a text when their table is ready\n"
+            "- **Capacity:** solo, ~20 h a week, 3 weeks (owner)\n"
             "- **In scope (now):**\n"
-            "  - the host adds a party in one step (moves: texts sent per week)\n"
-            "  - the host marks a party seated\n"
+            "  - the host adds a party in one step (moves: texts sent per week) - done when a party shows on the list\n"
+            "  - the host marks a party seated - done when it leaves the list\n"
             "- **Deferred (out for now + the trigger that would bring it in):**\n"
             "  - online booking — when 5 restaurants (proposed) ask for it\n"
-            "  - a guest app: after the first 10 restaurants use texts\n"
+            "  - a guest app: after the first 10 restaurants (from vision: owner's answer) use texts\n"
             "- **Non-goals (deliberately never building):** a full reservation system · payments\n"
             "- **Table stakes (the list `next` prints):**\n" + SCOPE_STAKES_OK +
             "- **Detail:** `docs/scope.md` (reasoning)\n"
@@ -3004,6 +3376,12 @@ def ag_start_fits(d: Path, phase: str, fails: list[str]) -> None:
                      f"bytes) pointing at a file that holds /{phase}'s start: file has it: {f'/{phase} start' in written}")
 
 
+# 2.2 (#60, #64): numbered headings and the core-loop diagram, as templates/scope.md lays it out
+SCOPE_DOC = ("# Scope\n\n## 1. The core feature we will test\n\n**A guest gets a text when the table is ready.**\n\n"
+             "```mermaid\nflowchart LR\n  A[party joins] --> B[text sent]\n```\n\n"
+             "## Appendix A — Workings\n\n### A.1 Owner's answers\n\n1. The text when the table is ready.\n")
+
+
 def scope_ready(d: Path) -> None:
     """A project with #Vision filled and docs/scope.md written; the test writes #Scope itself."""
     fresh(d)
@@ -3012,8 +3390,7 @@ def scope_ready(d: Path) -> None:
                                   "\n## Scope\n\n## Plan\n", encoding="utf-8")
     code, out = run(d, "set", "vision", "filled")
     assert code == 0, out
-    (d / "docs" / "scope.md").write_text("# Scope\n\n## Owner's answers\n\n1. The text when the table is ready.\n",
-                                          encoding="utf-8")
+    (d / "docs" / "scope.md").write_text(SCOPE_DOC, encoding="utf-8")
 
 
 def test_next65_save(fails: list[str]) -> None:
@@ -3032,8 +3409,9 @@ def test_next65_save(fails: list[str]) -> None:
         (d / ".agents" / "x.md").write_text("install" + chr(10), encoding="utf-8")
         src = d.parent / f"{d.name}-scope-section.md"
         long_item = "  - " + " ".join(["the host sees the whole list on one screen"] * 9) + "\n"
-        src.write_text(SCOPE_OK.replace("  - the host marks a party seated\n",
-                                        "  - the host marks a party seated\n" + long_item), encoding="utf-8")
+        seated = "  - the host marks a party seated - done when it leaves the list\n"
+        src.write_text(SCOPE_OK.replace(seated, seated + long_item.replace("\n", " - done when it shows\n")),
+                       encoding="utf-8")
         code, out = run(d, "set", "scope", "filled", "--section-from", str(src), "--commit", "scope recorded")
         log = subprocess.run(["git", "log", "--oneline"], cwd=d, capture_output=True, text=True).stdout
         if code != 0 or "saved: commit" not in out or "scope recorded" not in log:
@@ -3043,7 +3421,7 @@ def test_next65_save(fails: list[str]) -> None:
             fails.append("save committed the playbook's install (.agents/)")
         if "Save this version of your project?" in out or "for the save question" in out:
             fails.append(f": after --commit the close must not ask the save question again: {out[-500:]!r}")
-        if "never ask it again" not in out:
+        if "this call was the save: never ask a save question" not in out:
             fails.append(f": step 4 should say the save is done: {out[-500:]!r}")
         if status.READ_NONE not in (d / "PRODUCT.md").read_text(encoding="utf-8"):
             fails.append(": /scope's Read line should be written by set when the run opened nothing beyond next")
@@ -3073,7 +3451,7 @@ def test_scope_close(d: Path, fails: list[str]) -> None:
     code, out = run(d, "next", "--phase", "scope")
     for want in ("/scope start", "who it's for: small restaurants", "north-star target: 40 restaurants by 2027-03-31",
                  "      the languages its users need", "===== PRINCIPLES.md =====", "`(proposed)`",
-                 "- **Table stakes (the list `next` prints"):
+                 "### table stakes [table: Item | Decision]"):
         if want not in out:
             fails.append(f"next --phase scope should print {want!r}: {out[-400:]!r}")
     if "prompt injection" in out or "a stop switch" in out:
@@ -3107,17 +3485,28 @@ def test_scope_close(d: Path, fails: list[str]) -> None:
             (SCOPE_OK.replace("when 5 restaurants (proposed) ask", "when 25 restaurants ask"), "number '25'"),
             # a whole number: #Vision's "19:05" does not make an invented 5 the owner's
             (SCOPE_OK.replace("when 5 restaurants (proposed) ask", "when 5 restaurants ask"), "number '5'"),
+            # 2.2 (#64): capacity asked, a Done when per item, a carried number says where it came from
+            (SCOPE_OK.replace("- **Capacity:** solo, ~20 h a week, 3 weeks (owner)\n", ""), "no `Capacity` line"),
+            (SCOPE_OK.replace(" - done when it leaves the list", ""), "no Done when: 'the host marks a party seated'"),
+            (SCOPE_OK.replace(" (from vision: owner's answer)", ""), "number '10' is carried from #Vision"),
             (SCOPE_OK.replace("- **In scope (now):**\n", "- **In scope (now):** -\n")
-             .replace("  - the host adds a party in one step (moves: texts sent per week)\n  - the host marks a party "
-                      "seated\n", ""), "#Scope field empty: In scope (now)")):
+             .replace("  - the host adds a party in one step (moves: texts sent per week) - done when a party shows "
+                      "on the list\n  - the host marks a party seated - done when it leaves the list\n", ""),
+             "#Scope field empty: In scope (now)")):
         code, out = close(body)
         if code == 0 or want not in out:
             fails.append(f"set scope filled should refuse with {want!r}: {out.strip()[:400]!r}")
+    for doc, want in ((SCOPE_DOC.replace("## 1. The core", "## The core"), "heading(s) without a number"),
+                      (SCOPE_DOC.replace("```mermaid", "```text"), "no ```mermaid diagram")):
+        (d / "docs" / "scope.md").write_text(doc, encoding="utf-8")
+        code, out = close(SCOPE_OK)
+        if code == 0 or want not in out:
+            fails.append(f"set scope filled should refuse docs/scope.md with {want!r}: {out.strip()[:300]!r}")
     (d / "docs" / "scope.md").unlink()
     code, out = close(SCOPE_OK)
     if code == 0 or "no docs/scope.md" not in out:
         fails.append(f"set scope filled should refuse with no docs/scope.md: {out.strip()[:300]!r}")
-    (d / "docs" / "scope.md").write_text("# Scope\n\n## Owner's answers\n\n1. texts\n", encoding="utf-8")
+    (d / "docs" / "scope.md").write_text(SCOPE_DOC, encoding="utf-8")
     # P8: the shapes other tools wrote - no "- " before a label, a table, dashes, bold verdicts, a verdict first
     honest = (SCOPE_OK.replace("- **THE core", "**THE core").replace("- **Non-goals", "**Non-goals")
               .replace("their table is ready", "their table is ready; the host sends it in one tap")
@@ -3186,24 +3575,26 @@ def test_scope_close(d: Path, fails: list[str]) -> None:
     scope_ready(d)
     # P18: the skill's own one-line formats, written exactly as Step 2 gives them, and its N-A example
     skill = (ROOT / "commands" / "scope" / "SKILL.md").read_text(encoding="utf-8")
-    fmt = re.search(r"one line each: `([^`]+)` · `([^`]+)` · `([^`]+)`", skill)
-    if not fmt or "N-A: \"no accounts\"" not in skill:
+    # #63: the skill gives them as `table stakes` rows; the script renders a row as `<item>: <decision>` in #Scope
+    rows = re.search(r"one `table stakes` row each: `([^`]+)` · `([^`]+)` · `([^`]+)`", skill)
+    forms = [": ".join(c.strip() for c in r.strip().strip("|").split("|")) for r in rows.groups()] if rows else []
+    if not rows or "N-A: \"no accounts\"" not in skill:
         fails.append("/scope Step 2 lost its one-line table-stakes formats or its N-A example - update this test")
     else:
-        lines = [fmt.group(1).replace("<item>", "account deletion + data export"),
-                 fmt.group(2).replace("<item>", "a way for a user to report a problem")
+        lines = [forms[0].replace("<item>", "account deletion + data export"),
+                 forms[1].replace("<item>", "a way for a user to report a problem")
                  .replace("<trigger>", "the first host asks"),
-                 fmt.group(3).replace("<item>", "the languages its users need").replace("<reason>", "English only"),
+                 forms[2].replace("<item>", "the languages its users need").replace("<reason>", "English only"),
                  "password reset (N-A: \"no accounts\")", "email verification (N-A: \"no accounts\")",
-                 fmt.group(1).replace("<item>", "empty / loading / error states"),
-                 fmt.group(1).replace("<item>", "privacy policy + terms"),
-                 fmt.group(1).replace("<item>", "accessibility baseline"),
-                 fmt.group(1).replace("<item>", "the rules that apply")]
+                 forms[0].replace("<item>", "empty / loading / error states"),
+                 forms[0].replace("<item>", "privacy policy + terms"),
+                 forms[0].replace("<item>", "accessibility baseline"),
+                 forms[0].replace("<item>", "the rules that apply")]
         code, out = close(SCOPE_OK.replace(SCOPE_STAKES_OK, "".join(f"  - {l}\n" for l in lines)))
         if code != 0:
             fails.append(f"the skill's own table-stakes formats should close: {out.strip()[:400]!r}")
         elif "The rest of the close" not in out or "compare with #Vision" not in out or "search links" in out \
-                or "for the save question" not in out:
+                or "not saved:" not in out:
             fails.append(f"set scope filled should print /scope's close checklist and the save facts: {out[-400:]!r}")
     # the owner's answers are kept word for word, as /vision and /plan keep them (next.56)
     scope_ready(d)
@@ -3241,8 +3632,11 @@ def test_scope_close(d: Path, fails: list[str]) -> None:
 # ---- /plan: the start (P1) and `set plan filled`'s own checks (P4, P8, P18, P20) ---------------------------------
 PLAN_SCOPE = ("- **THE core feature (the one thing):** a text when the table is ready\n"
               "- **Non-goals (deliberately never building):** a booking system\n")
-PLAN_ANSWERS_DOC = ("# Plan\n\n## Owner's answers\n1. solo, 20 h/week\n2. from 2026-10-12\n"
-                    "3. texts first, then the host screen\n4. keep it and flag it\n\n## Why this order\ncore first\n")
+PLAN_ANSWERS_DOC = ("# Plan\n\n## 1. In short\n\n**The text works by November.** The demo will not prove demand yet.\n\n"
+                    "## 2. Milestones\n\n### 2.1 M1 Core slice\n\nDone when a guest gets a text.\n\n"
+                    "### 2.2 M2 Pilot\n\nDone when 3 restaurants use it.\n\n"
+                    "## Appendix A — Workings\n\n### A.1 Owner's answers\n1. solo, 20 h/week\n2. from 2026-10-12\n"
+                    "3. texts first, then the host screen\n4. keep it and flag it\n")
 
 
 def plan_ok(skill: str) -> str:
@@ -3250,7 +3644,8 @@ def plan_ok(skill: str) -> str:
     of the skill text so the round trip follows any edit (P18) - with a four-risks TABLE (a logged run's shape, P8)."""
     needs = re.search(r"`(Needs: <prerequisite> \(<the milestone or person that delivers it>\))`", skill).group(1)
     derived = re.search(r"`(\(derived: <hours> ÷ <hours a week>\))`", skill).group(1)
-    read_none = re.search(r"`Read: (none - only PRODUCT\.md sections)`", skill).group(1)
+    # the skill says to leave the `read` field out when only PRODUCT.md was read: the script writes `none`
+    read_none = "none - only PRODUCT.md sections" if "no `read` field (`none` is written)" in skill else "MISSING"
     return ("- **Phases / milestones (core first):**\n"
             "  - M1 Core slice · a guest joins the list and gets a text\n"
             "  - M2 Pilot · restaurants use it for real\n"
@@ -3274,8 +3669,51 @@ def plan_ok(skill: str) -> str:
             "- **Concern-area coverage (security · ai · observability · DX · testing · infra · docs · product):** "
             "security: now · ai-specific: N-A (no AI) · observability: next · developer-experience: now · "
             "testing: now · infra: next · documentation: now · product: now · GDPR: now, in M1 · English: now\n"
+            "- **Schedule risks + buffer:** the text provider's sign-up may slip a week - 1 week of slack in M2\n"
+            "- **Open items:** none - every number is the user's\n"
             "- **Detail:** `docs/plan.md` (reasoning + workings; this section stays a RECORD)\n"
             "- **Read (file · date · verbatim quote):** " + read_none + "\n")
+
+
+def test_early_doc_warnings(fails: list[str]) -> None:
+    """2.2 (#60): the plain-English rules for a phase document only WARN - a logged playbook vision averaged 19.7 words
+    a sentence, with 41 dash joins and 16 provenance labels in the body (plain: 17.5, 0, 0). Each warning shown on
+    that shape, none on a plain one; the appendix may hold the labels; a dead in-document link is named."""
+    bad = ("# Vision\n\n## 1. Vision in one line\n\nAI can spot life moments for every customer in every channel at "
+           "the right time and in the right tone — the owner's claim; vendor writing says it works (not opened) and "
+           "the spine records it for /scope and PRODUCT.md and everyone downstream to read later on.\n\n"
+           "See [the terms](#north-star-terms).\n\n## Appendix A — Workings\n\n### A.1 North-star terms\n\n"
+           "- derived: 40 · the owner's claim\n")
+    warns = " | ".join(status.early_doc_warnings("docs/vision.md", bad))
+    for want in ("over 30", "em-dash", "owner's claim", "not opened", "PRODUCT.md", "/scope", "spine",
+                 "#north-star-terms"):
+        if want not in warns:
+            fails.append(f"early_doc_warnings should name {want!r}: {warns[:400]!r}")
+    if "derived" in warns:
+        fails.append("a label inside the appendix is where it belongs - no warning for it")
+    good = ("# Vision\n\n## 1. Vision in one line\n\n**Nobody waits at the door.** Guests wait outside today. The app "
+            "texts them when the table is ready [1].\n\nSee [the terms](#a1-north-star-terms).\n\n"
+            "## Appendix A — Workings\n\n### A.1 North-star terms\n\n- derived: 40\n")
+    warns = status.early_doc_warnings("docs/vision.md", good)
+    if warns:
+        fails.append(f"a plain document should get no warning: {warns}")
+    tpl = (ROOT / "templates" / "vision.md").read_text(encoding="utf-8")
+    for name in ("vision.md", "scope.md", "plan.md"):
+        text = (ROOT / "templates" / name).read_text(encoding="utf-8")
+        if status.unnumbered_headings(text):
+            fails.append(f"templates/{name} has unnumbered headings: {status.unnumbered_headings(text)}")
+    # #12: an owner's number shown as what a search settled
+    doc = (VISION_DOC.replace("1. A waitlist for small restaurants.", "1. A waitlist; 35% of walk-ins leave.")
+           .replace("settled: walk-ins grew", "settled: 35% of walk-ins leave"))
+    if not any("35%" in w for w in status.early_doc_owner_numbers(doc)):
+        fails.append("a search line stating the owner's own number should be warned")
+    if status.early_doc_owner_numbers(VISION_DOC):
+        fails.append("a search line with its own numbers should not be warned")
+    # #63: the diagram is a field (`how it works`), the rest is the layout the script renders
+    fields_tpl = (ROOT / "templates" / "product-vision.md").read_text(encoding="utf-8")
+    if "```mermaid" not in fields_tpl or "In scope" not in tpl or "Open questions" not in tpl \
+            or "Brief point" not in tpl:
+        fails.append("templates/vision.md lost a part the close checks (diagram, In scope, Open questions, brief table)")
 
 
 def test_plan_close(d: Path, fails: list[str]) -> None:
@@ -3301,7 +3739,7 @@ def test_plan_close(d: Path, fails: list[str]) -> None:
     setup()
     code, out = run(d, "next", "--phase", "plan")
     for want in ("/plan start", "#Scope, whole:", "a text when the table is ready", "40 restaurants by 2027-03-31",
-                 "empty (/validate is optional", "## Production-readiness concern areas", "- **Timeline:**",
+                 "empty (/validate is optional", "## Production-readiness concern areas", "### milestones [table:",
                  "status.py rules plan"):
         if want not in out:
             fails.append(f"next --phase plan should print {want!r} (one start call, P1)")
@@ -3347,11 +3785,48 @@ def test_plan_close(d: Path, fails: list[str]) -> None:
     for want in ("the Timeline has no capacity", "the Timeline has no start date", "M2's exit criterion names no "
                  "prerequisite", "M3 has no exit criterion", "M3's four-risks row names none", "cite #Vision",
                  "names none of the plan's milestones", "infra is not marked", "docs/plan.md, which this phase wrote",
-                 "no `## Owner's answers` block", "unmarked", "docs/plan.md has LaTeX"):
+                 "no `## Owner's answers` block", "unmarked", "docs/plan.md has LaTeX",
+                 # 2.2 (#65): the whole plan in docs/plan.md, numbered; Open items; schedule risks
+                 "docs/plan.md does not show M1, M2"):
         if want not in out:
             fails.append(f"set plan filled should refuse {want!r} in its one list: {out[-300:]!r}")
     if code == 0 or out.count("REFUSED") != 1:
         fails.append("set plan filled should name every problem in ONE refusal (P20)")
+    # 2.2 (#65): schedule risks + buffer and Open items are fields; a number nobody gave listed under Open items is
+    # named as undecided; a #Scope table stake "in now" sits in an exit criterion; docs/plan.md headings are numbered
+    setup()
+    code, out = close(good.replace("- **Open items:** none - every number is the user's\n", "")
+                      .replace("- **Schedule risks + buffer:** the text provider's sign-up may slip a week - 1 week of "
+                               "slack in M2\n", ""))
+    for want in ("no `Open items` line", "#Plan field empty: the schedule risks + buffer"):
+        if code == 0 or want not in out:
+            fails.append(f"set plan filled should refuse {want!r}: {out[-300:]!r}")
+    setup()
+    code, out = close(good.replace("within 1 minute of 'table ready' (proposed)", "within 7 minutes of 'table ready'"))
+    if code == 0 or "unmarked" not in out:
+        fails.append(f"an unmarked new number should be refused: {out[-300:]!r}")
+    code, out = close(good.replace("within 1 minute of 'table ready' (proposed)", "within 7 minutes of 'table ready'")
+                      .replace("none - every number is the user's", "the text delay: 7 minutes · recommended: 7"))
+    if code != 0:
+        fails.append(f"a number listed under Open items should record: {out[-300:]!r}")
+    setup()
+    prod = d / "PRODUCT.md"
+    prod.write_text(prod.read_text(encoding="utf-8").replace(
+        "- **Non-goals (deliberately never building):** a booking system\n",
+        "- **Non-goals (deliberately never building):** a booking system\n- **Table stakes:**\n"
+        "  - accessibility baseline: in now\n  - empty / loading / error states: in now\n"), encoding="utf-8")
+    code, out = close(good)
+    if code == 0 or "'accessibility baseline' is in now" not in out or "'empty / loading / error states'" not in out:
+        fails.append(f"a #Scope table stake in now with no milestone should be refused: {out[-400:]!r}")
+    code, out = close(good.replace("within 1 minute of 'table ready' (proposed)", "within 1 minute of 'table ready' "
+                                   "(proposed), with an error state and the accessibility baseline met"))
+    if code != 0:
+        fails.append(f"stakes covered by an exit criterion should record: {out[-400:]!r}")
+    setup()
+    (d / "docs" / "plan.md").write_text(PLAN_ANSWERS_DOC.replace("## 1. In short", "## In short"), encoding="utf-8")
+    code, out = close(good)
+    if code == 0 or "heading(s) without a number" not in out:
+        fails.append(f"an unnumbered heading in docs/plan.md should be refused: {out[-300:]!r}")
     setup()  # past the north-star date with no word about it; value untested while #Validation is empty; an empty field
     code, out = close(re.sub(r"(?m)^(- \*\*Concern-area coverage[^\n]*?\*\*).*$", r"\1 TBD", good)
                       .replace("  - North star: the plan ends 2027-04-30, after 2027-03-31 - kept and flagged "
@@ -3387,6 +3862,7 @@ ARCH_OK = """- **Stack + tools:** one TypeScript app; details below.
   - Constraint set: solo, 20 h/week, knows TypeScript; €40 a month for hosting and AI; managed only; any vendor, code portable
   - Language: TypeScript on Node 24 — user-chosen
   - Web: Next.js 16 (one app; the owner's inbox is a page) — default taken, not user-chosen
+  - UI components: shadcn/ui with Tailwind CSS — default taken, not user-chosen
   - Datastore: PostgreSQL 17 with Drizzle; payloads typed (zod) — default taken, not user-chosen
   - LLM: claude-sonnet-5-5, released 2026-08-19, behind `LLMProvider` — default taken, not user-chosen
 - **Data custody:** managed-serverless Postgres in the EU (GDPR; the free tier holds 0.5 GB) — default taken, not user-chosen
@@ -3586,22 +4062,236 @@ ARCH_ADRS = {"0001-one-app.md": "one app", "0002-no-agent-framework.md": "no age
              "0003-action-tiers.md": "action tiers enforced in code",
              "0004-staged-autonomy.md": "staged autonomy and a kill switch per shop"}
 
+# 2.3 (#63, #40): the ONE fields file a run writes; the script renders #Architecture and docs/architecture.md from it
+ARCH_FIELDS_OK = """### constraints
+- team: solo, 20 h/week, knows TypeScript
+- money: €40 a month for hosting and AI
+- infrastructure: managed only
+- lock-in: any vendor, code portable
+- data location: EU only
+- login: none: its own accounts
+
+### stack
+- Language: TypeScript on Node 24 — user-chosen
+- Web: Next.js 16, one app; the owner's inbox is a page — default taken, not user-chosen
+- UI components: shadcn/ui with Tailwind CSS — default taken, not user-chosen
+- Datastore: PostgreSQL 17 with Drizzle; payloads typed with zod — default taken, not user-chosen
+- LLM: claude-sonnet-5-5, released 2026-08-19, behind LLMProvider — default taken, not user-chosen
+
+### data custody
+managed-serverless Postgres in the EU (GDPR; the free tier holds 0.5 GB) — default taken, not user-chosen
+
+### runtime
+| Unit | Category | Host and region | Cost and free-tier limits | Provenance |
+|---|---|---|---|---|
+| web app + API | PaaS container | a PaaS, EU region | $7/month; the free tier sleeps after 15 min idle | user-chosen |
+| nightly eval | CI | the CI service | 2,000 free minutes a month, then billed | default taken, not user-chosen |
+
+### identity
+the PaaS's auth add-on, email + a magic link — default taken, not user-chosen
+
+### dev tooling
+- hook runner: husky
+- secret scanner: gitleaks
+- task runner: npm scripts
+- formatter/linter: biome (format + lint)
+- dependency manifest: package.json with package-lock.json
+- type checker: tsc --noEmit
+
+### externals
+| External | Used for | Adapter interface | Timeout · retry · if it is down | Stand-in | How to replace it |
+|---|---|---|---|---|---|
+| LLM | drafting replies | LLMProvider | 30 s; retry transient errors twice; hand the conversation to the owner | a recorded reply | another provider behind LLMProvider |
+| Shop orders | order lookup | OrderSource | 10 s; one retry, then a circuit breaker | a fake shop | another shop platform |
+
+### concerns
+- resilience: per external above
+- budget: under €0.05 per conversation (#Vision), derived from the model call; aspirational until /eval measures it
+- migrations: Drizzle migrations, never a schema push at boot
+- security: no secret in code (.env, gitleaks); every row carries the shop key
+- observability: structured JSON logs and the conversation log
+
+### ai
+- prompt versioning: versioned prompt files; the version stamped on every reply
+- eval harness: a golden set of 40 order questions in CI
+- tracing: OpenTelemetry spans per agent step
+- model: claude-sonnet-5-5, released 2026-08-19, EU endpoint
+- runtime config: thinking off · max_tokens 1,000 · timeout 30 s · retry 2, a refusal hands over · prompt caching on the system prompt · no streaming
+
+### cost per use
+- use: conversation
+- calls per use: 2
+- worst case calls: 6
+- input tokens: 6,000
+- output tokens: 800
+- input price per 1M: 3
+- output price per 1M: 15
+- currency: $
+- source: https://example-llm.com/pricing
+
+### agent
+1. Framework: no framework - the vendor SDK and a plain tool loop (D2) — user-chosen
+2. Action tiers: get_order = read; refund = needs approval; delete = forbidden — default taken, not user-chosen
+3. Caps: 6 steps, 8 tool calls, €0.05, 60 s; a cap hit hands over — default taken, not user-chosen
+4. Untrusted input: messages and order notes are data; 3 injection cases for /test — default taken, not user-chosen
+5. Hand-off to a person: a cap hit, a refund, the customer asks — default taken, not user-chosen
+6. Staged autonomy and kill switch: shadow, then approve; a switch per shop — user-chosen
+7. Audit log: every action, append-only, per shop — default taken, not user-chosen
+8. Memory: nothing persists between conversations — default taken, not user-chosen
+9. Agent evals: the golden set scores tool, arguments and outcome — default taken, not user-chosen
+10. AI disclosure: the reply footer says it is AI-written — default taken, not user-chosen
+
+### decisions
+#### D1. One TypeScript app
+- problem: one person builds and runs everything
+- options: one app · two services
+- why: the owner works alone and knows TypeScript (A1)
+- costs: one process carries the inbox and the agent
+- revisit: more than 50 shops
+- rule: none
+- provenance: user-chosen
+
+#### D2. No agent framework, a plain tool loop
+- problem: three tools and a fixed flow
+- options: no framework · Mastra · VoltAgent
+- why: three tools need no framework (C2)
+- costs: retries are written by hand
+- revisit: a fourth tool
+- rule: R1
+- provenance: default taken, not user-chosen
+
+#### D3. Managed Postgres in the EU
+- problem: orders and messages are personal data
+- options: managed Postgres · SQLite on a disk
+- why: managed only (A3), EU only (A5)
+- costs: a monthly bill after the free tier
+- revisit: over 0.5 GB
+- provenance: default taken, not user-chosen
+
+#### D4. Refunds wait for the owner
+- problem: a wrong refund costs money
+- options: approve each refund · a refund limit
+- why: 0 refunds without approval (C1)
+- costs: the owner must answer quickly
+- revisit: 10 shops ask for auto refunds
+- rule: R1
+- provenance: user-chosen
+
+### overview
+One TypeScript app on a PaaS answers order questions for small shops. The agent looks orders up through the shop's
+API and drafts a reply; the owner approves refunds. Orders are read, never changed, and everything runs in the EU.
+
+```mermaid
+flowchart LR
+  Owner -->|approves or ignores a draft| App[web app + API]
+  App -->|order questions| Shop[shop platform]
+```
+
+| Area | Choice | Why, in one line (C# / A#) | D# |
+|---|---|---|---|
+| Kind of product | web app, AI agent | the owner reads drafts on a page (C1) | D1 |
+
+### what drives the design
+| # | Constraint | Number | Source | Proven by |
+|---|---|---|---|---|
+| C1 | A refund is never made without the owner | 0 refunds without approval | scope | the approval test |
+
+**Out of scope for this architecture:** changing orders.
+
+### rules
+| # | Rule | From | Enforced by [block] | Proven by |
+|---|---|---|---|---|
+| R1 | The agent NEVER changes an order; it has read tools only. | D2, C1 | the tool registry [`agent/`] | the registry test |
+
+### how it works
+1. **A customer writes** [`inbox/`: the webhook]. The message is stored.
+2. **The agent drafts a reply** [`agent/`]. The order is read through OrderSource.
+
+```mermaid
+sequenceDiagram
+  actor C as Customer
+  participant I as inbox/
+  Note over C,I: Step 1
+  C->>I: question
+  alt a refund
+    I->>C: waits for the owner
+  end
+```
+
+### building blocks
+| Block | Responsible for | Owns | Calls |
+|---|---|---|---|
+| `inbox/` | messages and approvals | messages | I1, in-process |
+
+### data
+| Entity | Key fields and links | Sensitivity now → with real data | Stored in | Kept for · deleted how |
+|---|---|---|---|---|
+| Message | id, shop, text | personal → personal | PostgreSQL | 90 days, a nightly delete |
+
+### conventions and terms
+| Concern | Convention | Enforced where |
+|---|---|---|
+| Money | amounts are integer cents | a type |
+
+### security and privacy
+| Concern | How it is handled | Enforced by (layer) |
+|---|---|---|
+| Identity of people | the owner logs in with a magic link | the PaaS login |
+
+### ai part
+- **What the model does, and what it never does:** drafts replies; never changes an order.
+
+### running it
+- **Started by:** requests.
+
+### mapping to the plan
+| Milestone | Needs from the architecture | Decisions it may reopen |
+|---|---|---|
+| M1 | inbox and agent | D2 |
+
+**Scope items:** order lookup - `agent/` through OrderSource; prompt injection - R1.
+
+### risks and open questions
+| # | Risk | Likelihood · impact | What reduces it | Watched by |
+|---|---|---|---|---|
+| RK1 | the shop API changes | low · high | OrderSource adapter | the nightly eval |
+
+### answers
+A1. Who builds and runs it? "just me, about 20 hours a week, I know TypeScript"
+A2. Money a month? "40 euro a month to start"
+
+### searches
+- runtime · PaaS pricing free tier 2026 · the free tier sleeps after 15 min · https://example-paas.com/pricing
+- framework · TypeScript agent frameworks 2026 · a plain loop fits 3 tools · https://example-review.dev/ts-agents-2026
+
+### options
+#### Framework options
+| Option | Fits | Cost to run | Lock-in | Version · date · source |
+|---|---|---|---|---|
+| No framework (vendor SDK + a loop) | yes | none | low | 0.71.0 · 2026-09-20 · https://www.npmjs.com/package/@anthropic-ai/sdk |
+| Mastra | yes | none | low | 0.24.1 · 2026-09-12 · https://www.npmjs.com/package/@mastra/core |
+| VoltAgent | yes | none | low | 1.3.0 · 2026-09-02 · https://www.npmjs.com/package/@voltagent/core |
+"""
+
 
 ARCH_START_MAX = 17800  # characters on the test project; a realistic one adds ~6.4K - 16.8K -> 23.2K (P47)
 
 
 def test_architect_close(d: Path, fails: list[str]) -> None:
-    """One start call prints the spine facts, AGENT.md §Architect and the rules; `set architect filled` accepts a
-    realistic record (a table, `;` inside rows, reflowed lines) and refuses each countable gap of a logged Gemini
-    run, all in ONE refusal. Each case proven red by breaking architect_gaps / architect_start_text."""
+    """One start call prints the spine facts, AGENT.md §Architect and the rules; the run writes ONE fields file and
+    `set architect filled --from-fields` renders #Architecture and a numbered docs/architecture.md from it (#63, #40),
+    refusing only what it can count; checks that read prose warn (2.3). The legacy `--section-from` path still
+    records a hand-written record. Each case proven red by breaking architect_gaps / arch_render / the start."""
     import shutil
     src = d.parent / f"{d.name}-architect-section.md"  # outside the project, as the start says
+    fld = d.parent / f"{d.name}-architect-fields.md"
 
-    def setup(ai: str = "yes", agent: str = "yes", doc: str = ARCH_DOC_OK, adrs: dict | None = None) -> None:
+    def setup(ai: str = "yes", agent: str = "yes", doc: str = ARCH_DOC_OK, adrs: dict | None = None,
+              spine: str = ARCH_SPINE) -> None:
         fresh(d, ui="yes")
         shutil.rmtree(d / "docs", ignore_errors=True)
-        (d / "docs" / "adr").mkdir(parents=True)
-        (d / "PRODUCT.md").write_text(ARCH_SPINE, encoding="utf-8")
+        (d / "docs").mkdir(parents=True)
+        (d / "PRODUCT.md").write_text(spine, encoding="utf-8")
         for p in ("vision", "scope", "plan"):
             code, out = run(d, "set", p, "filled", "--note", "adopted: /architect's test setup")
             assert code == 0, out
@@ -3610,89 +4300,200 @@ def test_architect_close(d: Path, fails: list[str]) -> None:
             assert code == 0, out
         if doc:
             (d / "docs" / "architecture.md").write_text(doc, encoding="utf-8")
-        for name, what in (ARCH_ADRS if adrs is None else adrs).items():
-            (d / "docs" / "adr" / name).write_text(f"# ADR — {what}\n\n- **Status:** `accepted`\n\n## Decision\n\n"
-                                                   f"{what}.\n", encoding="utf-8")
+        for name, what in (adrs or {}).items():
+            (d / "docs" / "adr").mkdir(exist_ok=True)
+            (d / "docs" / "adr" / name).write_text(f"# ADR — {what}\n\n- **Status:** `accepted`\n", encoding="utf-8")
 
     def close(body: str, *extra: str) -> tuple[int, str]:
         src.write_text(body, encoding="utf-8")
         return run(d, "set", "architect", "filled", "--section-from", str(src), *extra)
 
-    setup()
+    def save(fields: str, *extra: str) -> tuple[int, str]:
+        fld.write_text(fields, encoding="utf-8")
+        return run(d, "set", "architect", "filled", "--from-fields", str(fld), *extra)
+
+    # ---- the start ---------------------------------------------------------------------------------------------
+    setup(doc="")
     code, out = run(d, "next", "--phase", "architect")
     for want in ("/architect start", "#Scope (a part built for a Deferred item", "refunds over €50",
-                 "answer 1 (team): 'Capacity: solo, 20 h/week", "'€0.05 per conversation'", "## §Architect — the ten agent decisions",
-                 "printed at the end of this start", "## Architecture & quality bar", "**Resilience by design**",
-                 "`Constraint set: <answers 1-4 in short>`", "- **Dev tooling", "status.py rules architect"):
+                 "answer 1 (team): 'Capacity: solo, 20 h/week", "'€0.05 per conversation'",
+                 "## §Architect — the ten agent decisions", "printed at the end of this start",
+                 "## Architecture & quality bar", "**Resilience by design**", "status.py rules architect",
+                 "`set architect filled --from-fields <file>`", "`status.py fields architect` in the same message",
+                 "No ADR on a first run", "never `declined`", "never its `/json` data", "is a warning"):
         if want not in out:
-            fails.append(f"next --phase architect should print {want!r} (one start call, P1)")
+            fails.append(f"next --phase architect should print {want!r} (one start call, P1; #63 fields)")
+    # SETUP-10 (2.3 review): "in the call that writes the fields file" read as one chained call (`&&`), which the
+    # one-command-per-call rule forbids
+    sf = d / "STATUS.md"
+    sf.write_text(sf.read_text(encoding="utf-8").replace("UI: yes", "UI: unknown", 1), encoding="utf-8")
+    code, ui_out = run(d, "next", "--phase", "architect")
+    if "UI unknown" not in ui_out or "in the message that writes the fields file, as its own command before `set`" \
+            not in ui_out:
+        fails.append("next --phase architect: UI unknown - the flag goes in the fields file's message as its own "
+                     "command (SETUP-10)")
+    setup(doc="")
     for unwanted in ("(run it now", "## §Step 3b", "## §Re-run semantics", "## §Spine resolution", "open now:",
-                     "**Placeholders must FAIL the boot", "This phase closes with, in order"):
+                     "**Placeholders must FAIL the boot", "This phase closes with, in order", "templates/adr.md",
+                     "`## Superseding`", "the one read of", "--section-from"):
         if unwanted in out:
-            fails.append(f"next --phase architect should not print {unwanted!r} (P2: the close's rules come at the "
-                         f"close; a trigger that cannot fire is not printed)")
-    # P47: a size rule needs a check. This fixture's start is ~4K under a realistic project's (21 table stakes, 15
-    # concern areas): the realistic one must stay under 25,000 characters (Claude Code cuts a tool output at 30,000)
+            fails.append(f"next --phase architect should not print {unwanted!r} (P2; #40: no template read, no ADR)")
     if len(out) > ARCH_START_MAX:
         fails.append(f"next --phase architect prints {len(out)} characters on the test project - over "
                      f"{ARCH_START_MAX}: a realistic project's start would pass 25,000 (P47)")
-    # P46: the template is read once, at the dry-run, never early; the documents are the last write, saved in it
-    for want in ("on the yes, ONE message: the section file", "--dry-run` and the one read of",
-                 "never earlier", "after them in that same message, `set architect filled"):
-        if want not in out:
-            fails.append(f"next --phase architect should give the P46 order: {want!r}")
     ag_start_fits(d, "architect", fails)
+    code, out = run(d, "fields", "architect")
+    for want in ("### <field>", "- decisions", "- cost per use", "- agent", "- plan notes", "- open items",
+                 "#### D1.", "Writing rules"):
+        if want not in out:
+            fails.append(f"`status.py fields architect` should print {want!r} (the fields file's shape, #40 item 9)")
+    if "change D<n>" in out or "<!--" in out or len(out) > 11000:
+        fails.append(f"`status.py fields architect` on a first run prints no change field, no comment, under 11K "
+                     f"({len(out)} chars)")
+    # ---- the fields file: rendered, written once, numbered, saved -------------------------------------------------
+    before = (d / "PRODUCT.md").read_text(encoding="utf-8")
+    code, out = save(ARCH_FIELDS_OK, "--dry-run")
+    if code != 0 or "no gap" not in out or (d / "PRODUCT.md").read_text(encoding="utf-8") != before \
+            or (d / "docs" / "architecture.md").exists():
+        fails.append(f"--from-fields --dry-run should check everything and write nothing: {out[-400:]!r}")
+    code, out = save(ARCH_FIELDS_OK)
+    doc = (d / "docs" / "architecture.md").read_text(encoding="utf-8") if (d / "docs" / "architecture.md").exists() else ""
+    rec = status.product_sections((d / "PRODUCT.md").read_text(encoding="utf-8")).get("Architecture", "")
+    if code != 0 or "The rest of the close" not in out or "wrote #Architecture, docs/architecture.md" not in out:
+        fails.append(f"a complete fields file should record first time and print the close: {out[-700:]!r}")
+    for want in ("## 1. Overview", "## 8. Decisions", "### 8.1 D1. One TypeScript app", "## Appendix A — Owner's "
+                 "answers", "### C.1 Framework options", "**Defaults waiting for the owner's confirmation:** D2 · D3",
+                 "- **Problem it solves:** one person builds and runs everything", "**External systems, each behind "
+                 "an adapter:**", "| Shop orders | order lookup | OrderSource |", "- **Tooling:** hook runner: husky", "type checker: tsc --noEmit",
+                 "= $0.06 per conversation"):
+        if want not in doc:
+            fails.append(f"the rendered docs/architecture.md should hold {want!r}")
+    if status.unnumbered_headings(doc):
+        fails.append(f"every heading of the rendered document is numbered (#60): {status.unnumbered_headings(doc)}")
+    for want in ("D1 One TypeScript app (user-chosen)", "  - Constraint set: team solo, 20 h/week",
+                 "dev tooling", "hook runner: husky · secret scanner: gitleaks", "  - Shop orders: OrderSource - 10 s",
+                 "(6,000 input tokens × $3 per 1M + 800 output tokens × $15 per 1M) / 1,000,000 = $0.03 per call",
+                 "worst case 6 calls = $0.18 per conversation"):
+        if want.lower() not in rec.lower():
+            fails.append(f"the rendered #Architecture should hold {want!r}: {rec[:300]!r}")
+    if doc.count("three tools need no framework") != 1 or "three tools need no framework" in rec:
+        fails.append("a decision's reasoning is written once: in docs/architecture.md §Decisions, not in #Architecture "
+                     "(#63)")
+    if (d / "docs" / "adr").exists() and list((d / "docs" / "adr").glob("*.md")):
+        fails.append("a first /architect run writes no ADR file (owner 2026-10-07, #40)")
+    if "! the worst case (6 calls, $0.18)" not in out and "not compared" not in out:
+        fails.append(f"the cost per use is checked against #Vision's cap by the script (#40 item 14): {out[-500:]!r}")
+    # ---- refusals: only what can be counted, every one at once, every file put back ------------------------------
+    setup(doc="")
+    before = (d / "PRODUCT.md").read_text(encoding="utf-8")
+    bad = (ARCH_FIELDS_OK.replace("- login: none: its own accounts\n", "- login: Entra ID\n")
+           .replace("the PaaS's auth add-on, email + a magic link — default taken, not user-chosen", "N/A")
+           .replace("| nightly eval | CI |", "| nightly eval |  |")
+           .replace("| Shop orders | order lookup | OrderSource |", "| Shop orders | order lookup |  |")
+           .replace("- revisit: a fourth tool\n", "")
+           .replace("- provenance: user-chosen\n\n#### D2", "- provenance: confirmed by the owner\n\n#### D2")
+           .replace("| M1 | inbox and agent | D2 |", "| later | inbox and agent | D2 |")
+           .replace("- input tokens: 6,000", "- input tokens: lots")
+           .replace("### rules\n", "### rulez\n"))
+    code, out = save(bad)
+    for want in ("no `### rules`", "identity is N/A, but answer 6 (login) is 'Entra ID'",
+                 "runtime row 'nightly eval' has no Category", "external 'Shop orders' has no Adapter interface",
+                 "D2 has no `- revisit: ...`", "D1 provenance 'confirmed by the owner'",
+                 "has no row for M1", "`input tokens: lots` is not a number"):
+        if want not in out:
+            fails.append(f"set architect filled --from-fields should refuse {want!r} in its one list: {out[-400:]!r}")
+    if code == 0 or out.count("REFUSED") != 1 or (d / "PRODUCT.md").read_text(encoding="utf-8") != before \
+            or (d / "docs" / "architecture.md").exists():
+        fails.append("a refused fields file names every gap in ONE refusal and writes nothing (P20, P45)")
+    # #40 item 13: the owner's own words never refuse - "runs on the laptop only" recorded a refusal on a live run
+    setup(doc="")
+    code, out = save(ARCH_FIELDS_OK.replace("- infrastructure: managed only", "- infrastructure: runs on the laptop only"))
+    if code != 0:
+        fails.append(f"the owner's own words for answer 3 ('laptop only') must record (#40 item 13): {out[-400:]!r}")
+    # #40 items 10-11 + M3: the user's answer wins - the script writes the #Plan note and the open items, in the save
+    setup(doc="")
+    code, out = save(ARCH_FIELDS_OK + "\n### plan notes\n- M1: answered on the owner's laptop, no web address - because "
+                     "answer 3: laptop only\n\n### open items\n- the PaaS price after 2026 | /deploy re-reads the "
+                     "pricing page\n")
+    plan = status.product_sections((d / "PRODUCT.md").read_text(encoding="utf-8")).get("Plan", "")
+    st = status.Status.load(d / "STATUS.md")
+    if code != 0 or "— superseded 2026-09-24 by /architect: answered on the owner's laptop" not in plan:
+        fails.append(f"a plan note is written by the script on the #Plan line it names (#40 item 10): {out[-300:]!r}")
+    if not any("the PaaS price after 2026" in o[3] and not o[5] for o in st.rows["Open items"]):
+        fails.append("an open item in the fields file is in STATUS.md when the save commits (#40 item 11)")
+    setup(doc="")
+    code, out = save(ARCH_FIELDS_OK + "\n### plan notes\n- M9: something - because x\n")
+    if code == 0 or "no #Plan line holds 'M9'" not in out:
+        fails.append(f"a plan note naming no #Plan line is refused: {out[-300:]!r}")
+    # #40 (owner 2026-10-07): an ADR only when a recorded decision CHANGES - written by the script from `### change`
+    setup(doc="")
+    code, out = save(ARCH_FIELDS_OK)
+    changed = ARCH_FIELDS_OK.replace("#### D2. No agent framework, a plain tool loop", "#### D2. Mastra as the agent "
+                                     "framework")
+    code, out = save(changed)
+    if code == 0 or "D2 changed (was 'No agent framework, a plain tool loop'" not in out:
+        fails.append(f"a re-run that changes a decision with no `### change D2` is refused (#40): {out[-300:]!r}")
+    code, out = save(changed + "\n### change D2\n- was: no agent framework, a plain tool loop\n- now: Mastra as the "
+                     "agent framework\n- why: a fourth tool arrived\n- affects: agent/ and its tests\n")
+    adrs = sorted((d / "docs" / "adr").glob("*.md")) if (d / "docs" / "adr").exists() else []
+    doc = (d / "docs" / "architecture.md").read_text(encoding="utf-8")
+    if code != 0 or [p.name for p in adrs] != ["0001-mastra-as-the-agent-framework.md"] \
+            or "## What it was" not in adrs[0].read_text(encoding="utf-8") \
+            or "- **Superseded:** ADR-0001 (2026-09-24) - was: no agent framework" not in doc:
+        fails.append(f"`### change D2` writes ADR-0001 and marks D2 superseded: {[p.name for p in adrs]} "
+                     f"{out[-300:]!r}")
+    # ---- the legacy --section-from path: a hand-written record still records; prose only warns ------------------
+    setup()
     code, out = close(ARCH_OK)
-    if code != 0 or "The rest of the close" not in out or "compare with #Scope and #Plan" not in out:
-        fails.append(f"a realistic #Architecture should record first time, then print the close: {out[-700:]!r}")
+    if code != 0 or "The rest of the close" not in out:
+        fails.append(f"a realistic hand-written #Architecture with no ADR files should record: {out[-700:]!r}")
     setup()  # P8: `**Label:**` without the leading "- " reads the same
     code, out = close(re.sub(r"(?m)^- \*\*", "**", ARCH_OK))
     if code != 0:
         fails.append(f"#Architecture fields without the leading '- ' should read the same: {out[-500:]!r}")
-    setup()  # the honest escape hatches (P23): no hours given as a number, no money - free tiers only
-    code, out = close(ARCH_OK.replace("solo, 20 h/week, knows TypeScript; €40 a month for hosting and AI",
-                                      "solo and part-time, knows TypeScript; free tiers only"))
-    if code != 0:
-        fails.append(f"a constraint set of 'part-time' and 'free tiers only' should record: {out[-400:]!r}")
-    setup(ai="no", agent="no", adrs={k: v for k, v in list(ARCH_ADRS.items())[:2]})  # no AI: those fields may be N/A
+    setup()  # #40 item 13: the owner's words for answer 3 are a warning at most
+    code, out = close(ARCH_OK.replace("solo, 20 h/week, knows TypeScript; €40 a month for hosting and AI; managed only",
+                                      "solo, 20 h/week, knows TypeScript; €40 a month for hosting and AI; runs on the "
+                                      "laptop only"))
+    if code != 0 or "! the constraint set may have no the infrastructure" not in out:
+        fails.append(f"'laptop only' records with a warning, never a refusal (#40 item 13): {out[-400:]!r}")
+    setup(ai="no", agent="no")  # no AI: those fields may be N/A
     code, out = close(re.sub(r"(?s)- \*\*\(AI\).*", "- **(AI) prompt-versioning:** N/A - no AI\n- **(Agent):** N/A - "
                                                     "no agent\n", ARCH_OK))
     if code != 0:
         fails.append(f"a product with no AI should record without the AI and agent rows: {out[-400:]!r}")
-    setup(doc="", adrs={})  # "kept:" is the user's decision to keep an older record: not re-checked for the new rules
+    setup(doc="")  # "kept:" is the user's decision to keep an older record: not re-checked for the new rules
     code, out = close(re.sub(r"(?m)^  - Constraint set:.*\n", "", ARCH_OK), "--note", "kept: the owner keeps it")
     if code != 0:
         fails.append(f"`set architect filled --note \"kept: ...\"` should record without the new checks: {out[-300:]!r}")
-    # a logged Gemini run's shape: three codebases, a third provenance value, a 2024 model, VERIFIED by links, 100%,
-    # LaTeX, brand-only hosts, no adapters, the example frameworks only, homepage links, one ADR with no status
+    # a logged Gemini run's shape: counted gaps refuse in ONE list; what reads words rides along as warnings
     setup(doc="# Architecture\n\n## Searches\n- hosting · render · https://render.com\n\n## Framework options\n\n"
               "| Option | Fit |\n|---|---|\n| LangGraph | good |\n| CrewAI | ok |\n| Pydantic AI | ok |\n\n"
-              "Confidence: 100%\n", adrs={})
-    (d / "docs" / "adr" / "0001-monolith.md").write_text("# ADR-1\n\nWe chose a monolith.\n", encoding="utf-8")
+              "Confidence: 100%\n")
     bad = ("- **Stack + tools:**\n  - Backend: FastAPI — default taken, confirmed by user\n  - Cache: Redis\n"
            "  - LLM: claude-3-5-haiku-20241022 — VERIFIED (https://docs.anthropic.com)\n"
            "- **Data custody:** Postgres — default taken, not user-chosen\n"
            "- **Runtime target per deployable unit:**\n  - API: Render — user-chosen\n"
            "- **Identity custody:** vendor auth — user-chosen\n- **Dev tooling:** make · ruff · pyproject.toml · "
-           "hook runner TBD\n- **Key decisions / ADRs:** ADR-1 monolith\n"
+           "hook runner TBD\n- **Key decisions:** monolith\n"
            "- **Externals behind adapters:**\n  - LLM: the Anthropic SDK called from the service\n"
            "- **Resilience · perf/cost budget · migrations approach:** well under the cap $\\le$ €0.05\n"
            "- **(AI) prompt-versioning · eval harness · tracing:** prompts in code\n"
            "- **(Agent) the ten rows:**\n  1. Framework: LangGraph — user-chosen\n")
     code, out = close(bad)
     for want in ("'default taken, confirmed by user' is not one of the two values", "stamped 2024-10-22",
-                 "2 row(s) with no provenance", "no `Constraint set:` row", "names no secret scanner",
-                 "leaves a slot undecided (TBD)", "with no category",
-                 "names no cost", "no adapter interface", "no resilience strategy", "the perf/cost budget",
-                 "security / no secret in code", "observability", "prompt-versioning", "the migrations approach",
-                 "sets no max_tokens", "no cost per use", "4 untrusted input", "VERIFIED with no `evidence:`",
-                 "no `## Owner's answers`", "only a homepage", "one of AGENT.md's examples", "package registry page",
-                 "1 ADR file(s)", "no `Status:` line: 0001-monolith.md", "no ADR file for the framework",
-                 "docs/architecture.md states 100% confidence", "#Architecture has LaTeX"):
+                 "2 row(s) with no provenance", "no `Constraint set:` row", "VERIFIED with no `evidence:`",
+                 "no `## Owner's answers`", "only a homepage", "package registry page",
+                 "docs/architecture.md states 100% confidence", "#Architecture has LaTeX",
+                 "! the Dev tooling line may name no secret scanner", "(a warning)", "leaves a slot undecided (TBD)",
+                 "no category word", "no adapter interface name", "no resilience words", "the perf/cost budget",
+                 "prompt-versioning", "the migrations approach", "may set no max_tokens", "no cost per use found",
+                 "4 untrusted input", "one of AGENT.md's examples"):
         if want not in out:
-            fails.append(f"set architect filled should refuse {want!r} in its one list: {out[-300:]!r}")
-    if code == 0 or out.count("REFUSED") != 1 or out.count("confirmed by user") != 1:
-        fails.append("set architect filled should name every problem in ONE refusal, each once (P20)")
+            fails.append(f"set architect filled should name {want!r} in its one list: {out[-300:]!r}")
+    if code == 0 or out.count("REFUSED") != 1 or out.count("confirmed by user") != 1 or "ADR file" in out:
+        fails.append("set architect filled should name every problem in ONE refusal, each once, and ask for no ADR "
+                     "(P20, #40)")
     setup()  # the flags are part of the record (flag cannot set unknown back, so the file is edited)
     st = status.Status.load(d / "STATUS.md")
     st.header["UI"], st.header["Agent"] = "unknown", "unknown"
@@ -3704,28 +4505,33 @@ def test_architect_close(d: Path, fails: list[str]) -> None:
     code, out = close(ARCH_OK)
     if code == 0 or "the UI answer is not recorded" not in out or "the Agent answer is not recorded" not in out:
         fails.append(f"set architect filled should refuse unknown UI and Agent flags: {out[-300:]!r}")
-    # one gap at a time, each named: an empty field, half a constraint set, its own companion receipted
     setup(doc="# Architecture\n\n## Owner's answers\n\n1. \"just me\"\n\n## Search list\n\n- runtime · PaaS "
               "pricing · settled the plan\n\n## Framework options\n\n| Option | Fits |\n|---|---|\n| VoltAgent | yes |\n")
     code, out = close(ARCH_OK.replace("the PaaS's auth add-on, email + a magic link — default taken, not user-chosen", "")
-                      .replace("; €40 a month for hosting and AI", "")
                       + "- **Read (file · date · verbatim quote):** docs/architecture.md · 2026-09-24 · \"just me\"\n")
-    for want in ("#Architecture field empty: Identity custody", "the constraint set has no money a month",
-                 "quotes docs/architecture.md, which this phase wrote", "search line(s) with no link",
-                 "no framework table of 3-4 options"):
+    for want in ("#Architecture field empty: Identity custody", "quotes docs/architecture.md, which this phase wrote",
+                 "search line(s) with no link", "no framework table of 3-4 options"):
         if want not in out:
             fails.append(f"set architect filled should refuse {want!r}: {out[-300:]!r}")
-    setup(doc="# Architecture\n\n## Owner's answers\n\n1. \"just me\"\n")
-    code, out = close(ARCH_OK)
-    if code == 0 or "has no `## Search list`" not in out:
-        fails.append(f"set architect filled should refuse a companion with no search list: {out[-300:]!r}")
     setup(doc="")
     code, out = close(ARCH_OK)
-    if code == 0 or "no docs/architecture.md - fill templates/architecture.md" not in out:
+    if code == 0 or "no docs/architecture.md - write the fields file" not in out:
         fails.append(f"set architect filled should refuse a run with no docs/architecture.md: {out[-300:]!r}")
-    # next.67: each case is a logged refusal or a logged gap (replayed on 4 logged records, NOTES architect-67)
-    # owner 2026-10-05: docs/architecture.md is templates/architecture.md filled (4 logged fills, 9 earlier documents)
+    # owner 2026-10-05 + #60: the document's shape, numbered headings accepted by every parser
     reader, appendix = ARCH_DOC_OK.split("---\n\n## Appendix A")
+    numbered = ARCH_DOC_OK
+    for n, name in enumerate(("Overview", "What drives the design", "Rules the code must keep",
+                              "How it works, step by step", "Building blocks", "Data", "Conventions and terms",
+                              "Decisions", "Security and privacy", "AI part", "Running it", "Mapping to the plan",
+                              "Risks and open questions"), 1):
+        numbered = numbered.replace(f"\n## {name}\n", f"\n## {n}. {name}\n")
+    numbered = numbered.replace("### D1.", "### 8.1 D1.").replace("### D2.", "### 8.2 D2.")
+    setup(doc=numbered)
+    code, out = close(ARCH_OK)
+    if code != 0:
+        fails.append(f"a docs/architecture.md with numbered headings (#60) should record: {out[-400:]!r}")
+    if status.structure_blocks(d) != ["`inbox/` messages and approvals", "`agent/` drafting"]:
+        fails.append(f"/structure reads the numbered `## 5. Building blocks`: {status.structure_blocks(d)}")
     for what, doc, want in (
             ("no Overview", ARCH_DOC_OK.replace("## Overview", "## Summary"), "missing section(s) of the template: Overview"),
             ("no diagram", ARCH_DOC_OK.replace("```mermaid\nflowchart", "```text\nflowchart"),
@@ -3739,12 +4545,20 @@ def test_architect_close(d: Path, fails: list[str]) -> None:
              "has no R# rule written with MUST or NEVER"),
             ("a comment left", ARCH_DOC_OK.replace("## Data\n", "## Data\n\n<!-- The main entities -->\n"),
              "still holds template comments"),
-            ("shorthand", ARCH_DOC_OK.replace("**Out of scope for this architecture:**", "**Out of scope:** " + " ".join(
-                f"a{i}/b{i}/c{i}" for i in range(11))), "is written in shorthand: 11")):
+            ("a milestone with no home", ARCH_DOC_OK.replace("| M1 | inbox and agent | D2 |", "| later | x | D2 |"),
+             "`## Mapping to the plan` has no row for M1"),
+            ("a superseded decision with no ADR file", ARCH_DOC_OK.replace(
+                "- **Revisit when:** a fourth tool.", "- **Revisit when:** a fourth tool.\n- **Superseded:** ADR-0007 "
+                "(2026-09-20) - was: Mastra"), "superseded by ADR-0007, but docs/adr/0007-*.md is missing")):
         setup(doc=doc)
         code, out = close(ARCH_OK)
         if code == 0 or want not in out:
             fails.append(f"set architect filled should refuse a docs/architecture.md with {what} (A5): {out[-300:]!r}")
+    setup(doc=ARCH_DOC_OK.replace("**Out of scope for this architecture:**", "**Out of scope:** " + " ".join(
+        f"a{i}/b{i}/c{i}" for i in range(11))))
+    code, out = close(ARCH_OK)
+    if code != 0 or "is written in shorthand: 11" not in out:
+        fails.append(f"shorthand reads prose: a warning, never a refusal (2.3): {out[-300:]!r}")
     for what, body in (  # false refusals of logged runs (P42): each must record
             ("a plain acronym-led interface name", ARCH_OK.replace("`LLMProvider` - timeout", "LLMProvider - timeout")),
             ("a plain AIClient", ARCH_OK.replace("`LLMProvider` - timeout", "AIClient - timeout")),
@@ -3753,65 +4567,32 @@ def test_architect_close(d: Path, fails: list[str]) -> None:
                                                         "  - Shop orders:")),
             ("a later-host row of the same unit", ARCH_OK.replace(
                 "  | nightly eval |", "  | from M2, Render in Frankfurt | €9 a month, no free tier | default taken, "
-                                     "not user-chosen |\n  | nightly eval |"))):
+                                     "not user-chosen |\n  | nightly eval |")),
+            ("an external with no interface name (a warning now)",
+             ARCH_OK.replace("`LLMProvider` - timeout", "the llm client - timeout")),
+            ("a brand-only runtime row (a warning now)",
+             ARCH_OK.replace("  | web app + API | PaaS container, EU region |", "  | web app + API | Render |"))):
         setup()
         code, out = close(body)
         if code != 0:
             fails.append(f"set architect filled should record {what}: {out[-400:]!r}")
-    setup()
-    code, out = close(ARCH_OK.replace("`LLMProvider` - timeout", "the llm client - timeout"))
-    if code == 0 or "no adapter interface (an interface name such as LLMProvider" not in out:
-        fails.append(f"an external with no interface name is still refused, with plain names in the message: {out[-300:]!r}")
-    setup()
-    code, out = close(ARCH_OK.replace("  | web app + API | PaaS container, EU region |", "  | web app + API | Render |"))
-    if code == 0 or "with no category" not in out:
-        fails.append(f"a brand-only FIRST runtime row is still refused: {out[-300:]!r}")
-    renamed = {**ARCH_ADRS, "0002-no-agent-framework.md": "Mastra behind LLMProvider"}
-    setup(adrs=renamed)  # names the table's option in its title: the framework ADR (a logged run renamed one)
-    code, out = close(ARCH_OK)
-    if code != 0:
-        fails.append(f"an ADR whose title names a framework option should count as the framework ADR: {out[-400:]!r}")
-    setup(adrs={**ARCH_ADRS, "0002-no-agent-framework.md": "a review queue; Mastra was not needed here"})
-    (d / "docs" / "adr" / "0002-no-agent-framework.md").write_text(
-        "# ADR — a review queue\n\n- **Status:** `accepted`\n\nMastra was not needed here.\n", encoding="utf-8")
-    code, out = close(ARCH_OK)
-    if code == 0 or "no ADR file for the framework" not in out:
-        fails.append(f"an option named only in an ADR's body is not the framework ADR: {out[-300:]!r}")
-    setup()  # A1: identity N/A while #Scope says the company login
+    setup()  # A1 on the legacy path reads #Scope's words: a warning (on the fields path, answer 6 decides: a refusal)
     (d / "PRODUCT.md").write_text(ARCH_SPINE.replace("  - prompt injection: in now\n", "  - prompt injection: in "
                                   "now\n  - password reset: N/A - shop staff use the company login\n"), encoding="utf-8")
     code, out = close(ARCH_OK.replace("the PaaS's auth add-on, email + a magic link — default taken, not user-chosen",
                                       "N/A - no accounts of our own — default taken, not user-chosen"))
-    if code == 0 or "Identity custody is N/A, but #Scope says" not in out:
-        fails.append(f"identity N/A while #Scope names the company login should be refused (A1): {out[-300:]!r}")
-    code, out = run(d, "next", "--phase", "architect")
-    for want in ("answer 6 (login): #Scope says", "templates/architecture.md` (whole, in one read", "never `declined`",
-                 "never its `/json` data", "names its interface plain"):
-        if want not in out:
-            fails.append(f"next --phase architect should print {want!r} (A1/A4/A5)")
-    if "templates/adr.md" in out or "`## Superseding`" in out:
-        fails.append("next --phase architect should leave the ADR shape to the dry-run, and never name a template "
-                     "path to open for it (A4, P46)")
-    # P46: the dry-run before the documents checks the record only, and prints the documents' shape and checks
-    setup(doc="", adrs={})
+    if code != 0 or "! Identity custody is N/A, but #Scope says" not in out:
+        fails.append(f"identity N/A while #Scope names the company login warns on the legacy path (A1): {out[-300:]!r}")
+    # P46: the dry-run before the document points at the fields file and asks for no ADR
+    setup(doc="")
     before = (d / "PRODUCT.md").read_text(encoding="utf-8")
     code, out = close(ARCH_OK, "--dry-run")
-    for want in ("no gap", "are not written yet", "`## Superseding`", "`## Decisions`", "The save refuses:",
-                 "no ADR for the framework", "### Framework options"):
+    for want in ("no gap", "is not written yet", "--from-fields <file>", "no ADR files", "The save refuses:"):
         if want not in out:
-            fails.append(f"set architect filled --dry-run before the documents should print {want!r}: {out[-300:]!r}")
-    if code != 0 or "no docs/architecture.md" in out or "ADR file(s)" in out:
-        fails.append(f"a dry-run before the documents should not refuse their absence (P46): {out[-300:]!r}")
-    if (d / "PRODUCT.md").read_text(encoding="utf-8") != before:
-        fails.append("--dry-run must write nothing")
-    code, out = close(ARCH_OK.replace(" — default taken, not user-chosen", "", 1), "--dry-run")
-    if "1 gap(s)" not in out or "row(s) with no provenance" not in out or "are not written yet" not in out:
-        fails.append(f"a dry-run before the documents should name the record's gap and the documents' note: "
-                     f"{out[-400:]!r}")
-    code, out = close(ARCH_OK)
-    if code == 0 or "no docs/architecture.md" not in out or "0 ADR file(s)" not in out:
-        fails.append(f"the save (no --dry-run) must still refuse missing documents: {out[-300:]!r}")
-    setup()  # N5: a cost per use with no working is a WARNING (owner 2026-10-04: a product with no AI part has none)
+            fails.append(f"set architect filled --dry-run before the document should print {want!r}: {out[-300:]!r}")
+    if code != 0 or "no docs/architecture.md" in out or (d / "PRODUCT.md").read_text(encoding="utf-8") != before:
+        fails.append(f"a dry-run before the document neither refuses its absence nor writes (P46): {out[-300:]!r}")
+    setup()  # N5: a cost per use with no working is a WARNING (owner 2026-10-04)
     code, out = close(ARCH_OK.replace("~6k input tokens × $3/1M + 800 output tokens × $15/1M ≈", "about"))
     if code != 0 or "! the cost per use shows no working" not in out or "a warning, not a refusal" not in out:
         fails.append(f"a cost per use with no tokens × price should record with a warning (N5): {out[-400:]!r}")
@@ -3823,13 +4604,26 @@ def test_architect_close(d: Path, fails: list[str]) -> None:
     if not big or "over 8 KB" in big[0] or "not a cap" not in big[0]:
         fails.append(f"the size signal names no cap (the template says no byte cap): {big!r}")
     saved = status.close_steps_text("architect", 'saved: commit b1ad62b "x" (7 file(s))')
-    if "its first line: `Saved: commit b1ad62b`" not in saved or "Saved: commit" in status.close_steps_text("architect"):
-        fails.append("the close leads with `Saved: commit <hash>` only when set saved (A6)")
+    if "its first line: `Saved (commit b1ad62b).`" not in saved or "Saved (commit" in status.close_steps_text("architect"):
+        fails.append("the close leads with `Saved (commit <hash>).` only when set saved (A6)")
+    # SETUP-1 (2.3 review): the close's step 3 said "ask which wins" to phases whose skill says ask nothing and
+    # never edit an earlier phase's record - a model following the printed line edited #Architecture
+    for ph in ("structure", "foundation", "contracts", "design-system"):
+        step3 = " ".join(status.close_steps_text(ph).split())
+        if "ask which wins" in step3 or "ask nothing, never edit an earlier phase's record" not in step3 or                 f"status.py open --from {ph} --what" not in step3:
+            fails.append(f"/{ph}'s close step 3 should record a clash as an open item, ask nothing (SETUP-1)")
+    if "ask which wins" not in status.close_steps_text("architect"):
+        fails.append("/architect's close step 3 still asks which side wins")
     agent_md = (ROOT / "references" / "agent.md").read_text(encoding="utf-8").lower()
     gone = [x for x in status.AGENT_EXAMPLES if x not in agent_md]
     if gone:
         fails.append(f"status.AGENT_EXAMPLES names frameworks AGENT.md no longer lists: {gone} - keep the two in step")
+    tpl = status.product_sections((ROOT / "templates" / "PRODUCT.md").read_text(encoding="utf-8")).get("Architecture", "")
+    lost = [k for k, v in status.ARCH_LABELS.items() if f"- **{v}:**" not in tpl]
+    if lost:
+        fails.append(f"status.ARCH_LABELS and templates/PRODUCT.md#Architecture differ for {lost} - keep them in step")
     src.unlink(missing_ok=True)
+    fld.unlink(missing_ok=True)
 
 
 def test_shared_fixes_68(fails: list[str]) -> None:
@@ -3863,6 +4657,253 @@ def test_shared_fixes_68(fails: list[str]) -> None:
         fails.append("a long bullet should still be warned")
 
 
+SAVE_TURN = re.compile(r"(?i)save this version|looks good - (write and )?save|don't save yet|open the PR and save")
+
+
+def test_no_save_turn_left(fails: list[str]) -> None:
+    """2.1 (#62): a 17-phase run needed 58 owner turns vs plain's 27, the save question the biggest cause. No printed
+    text and no skill, reference or template may ask it again."""
+    files = [ROOT / "tools" / "status.py", *sorted((ROOT / "commands").rglob("*.md")),
+             *sorted((ROOT / "references").rglob("*.md"))]
+    for f in files:
+        for i, ln in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
+            if SAVE_TURN.search(ln):
+                fails.append(f"{f.relative_to(ROOT).as_posix()}:{i} still asks a separate save question: {ln.strip()[:140]}")
+    if tuple(status.AUTO_SAVE) != tuple(status.CHAIN):
+        fails.append(f"every phase saves unasked (#62), AUTO_SAVE is {status.AUTO_SAVE}")
+    text = status.close_steps_text("scope", None) + status.close_steps_text("scope", "saved: commit abc1234 \"x\"")
+    if "Change anything? If not:" not in text or SAVE_TURN.search(text) or "Saved (commit abc1234)." not in text:
+        fails.append(f"the close should end with \"Change anything?\" and never ask to save: {text[-600:]}")
+
+
+def git_repo(d: Path) -> None:
+    for c in (["init", "-q", "-b", "main"], ["config", "user.email", "t@t"], ["config", "user.name", "t"]):
+        subprocess.run(["git", *c], cwd=d, capture_output=True)
+
+
+def git_head(d: Path) -> str:
+    return subprocess.run(["git", "log", "-1", "--format=%s"], cwd=d, capture_output=True, text=True).stdout.strip()
+
+
+def test_every_phase_saves_unasked(fails: list[str]) -> None:
+    """2.1 (#62): `set <phase> filled` saves for every phase (it was /dev-check and /test only); `--no-commit` records
+    without saving; `release` saves without --commit."""
+    with tempfile.TemporaryDirectory() as t:
+        d = Path(t)
+        git_repo(d)
+        fresh(d, ui="no")
+        subprocess.run(["git", "add", "-A"], cwd=d)
+        subprocess.run(["git", "commit", "-qm", "base"], cwd=d, capture_output=True)
+        for ph in ("vision", "scope", "plan", "architect", "structure", "foundation", "contracts", "tickets", "deploy",
+                   "learn"):
+            code, out = run(d, "set", ph, "filled")
+            if code != 0 or "saved: commit" not in out or not git_head(d).startswith(f"{ph}: recorded"):
+                fails.append(f"`set {ph} filled` should save unasked: {git_head(d)!r} / {out.strip()[:300]}")
+            if SAVE_TURN.search(out) or "ask \"Save" in out:
+                fails.append(f"`set {ph} filled` printed a save question: {out.strip()[-400:]}")
+        code, out = run(d, "set", "eval", "filled", "--verdict", "fail")
+        if "saved: commit" not in out or not git_head(d).startswith("eval: FAIL"):
+            fails.append(f"`set eval filled --verdict fail` should save unasked: {git_head(d)!r}")
+        before = git_head(d)
+        code, out = run(d, "set", "scope", "filled", "--no-commit")
+        if code != 0 or "saved: commit" in out or git_head(d) != before or "Not saved." not in out:
+            fails.append(f"`--no-commit` should record without saving and the close say Not saved: {out.strip()[-400:]}")
+        real = status.ship_release_gaps
+        status.ship_release_gaps = lambda *a: []
+        try:
+            code, out = run(d, "release", "--what", "M1-A-01: orders", "--reviews", "R1 clean", "--skipped", "none",
+                            "--docs", "README", "--record", "CHANGELOG.md", "--rollback", "revert", "--pr", "#7")
+        finally:
+            status.ship_release_gaps = real
+        if code != 0 or "saved: commit" not in out or not git_head(d).startswith("ship: recorded - release record"):
+            fails.append(f"`release` should save without --commit: {git_head(d)!r} / {out.strip()[:400]}")
+
+
+def milestone_project(d: Path, built: tuple[str, ...], released: tuple[str, ...] = ()) -> None:
+    """A git project mid-milestone: TICKETS.md with M1 = 3 tickets, `built` recorded and committed, `released` named
+    in a release row; /dev-check filled FAIL."""
+    git_repo(d)
+    fresh(d, ui="no")
+    (d / "TICKETS.md").write_text("# Tickets\n\n## M1 core\n| `M1-A-01` | a |\n| `M1-A-02` | b |\n| `M1-A-03` | c |\n",
+                                  encoding="utf-8")
+    st = status.Status.load(d / "STATUS.md")
+    for r in st.rows["Phases"]:
+        if status.CHAIN.index(r[0]) < status.CHAIN.index("build"):
+            r[1:6] = ["filled", TODAY, "", "", ""]
+    for tid in built:
+        st.rows["Tickets"].append([tid, TODAY, "yes", "pytest -> 1 passed", "1", "R1 clean", f"docs/{tid}.md"])
+    for tid in released:
+        st.rows["Releases"].append([TODAY, f"{tid}: a part", "R1 clean", "none", "README", "CHANGELOG.md", "revert",
+                                    "#9"])
+    dc = next(r for r in st.rows["Phases"] if r[0] == "dev-check")
+    dc[1:6] = ["filled", TODAY, "", "fail", ""]
+    st.save(d / "STATUS.md")
+    subprocess.run(["git", "add", "-A"], cwd=d)
+    subprocess.run(["git", "commit", "-qm", "base"], cwd=d, capture_output=True)
+
+
+def test_gate_cascade(fails: list[str]) -> None:
+    """2.1 (#62): /dev-check FAIL that only means "the milestone isn't finished" is one printed line and an override
+    recorded with a fixed reason - no question; any other unpassed gate is ONE options question, never a typed reason;
+    a bypass of a gate that holds a FAIL is accepted (a logged run could not record one)."""
+    with tempfile.TemporaryDirectory() as t:
+        d = Path(t)
+        milestone_project(d, ("M1-A-01",), ("M1-A-01",))
+        for ph in ("test", "eval", "deploy"):
+            code, out = run(d, "next", "--phase", ph)
+            gate = "\n".join(ln for ln in out.splitlines() if "dev-check" in ln.lower())
+            if "/dev-check says M1 isn't finished (1 of 3 tickets)" not in gate \
+                    or re.search(r"own words|their words|bypass --from", gate):
+                fails.append(f"the /{ph} start should print the one milestone line, no reason question: {gate[:1500]}")
+        code, out = run(d, "set", "eval", "filled", "--verdict", "fail")
+        items = [o for o in status.Status.load(d / "STATUS.md").rows["Open items"] if not o[5]]
+        if code != 0 or "recorded as an override, no question" not in out or len(items) != 1 \
+                or status.MILESTONE_REASON not in items[0][3]:
+            fails.append(f"`set eval` mid-milestone should record the override with the fixed reason: {items} / "
+                         f"{out.strip()[:400]}")
+        run(d, "set", "learn", "filled")
+        if len([o for o in status.Status.load(d / "STATUS.md").rows["Open items"] if not o[5]]) != 1:
+            fails.append("the milestone override is recorded once, not once per phase")
+    with tempfile.TemporaryDirectory() as t:
+        d = Path(t)
+        milestone_project(d, ("M1-A-01", "M1-A-02", "M1-A-03"), ("M1-A-01", "M1-A-02", "M1-A-03"))
+        code, out = run(d, "next", "--phase", "eval")
+        gate = "\n".join(ln for ln in out.splitlines() if "dev-check" in ln.lower())
+        if "isn't finished" in gate or "Stop - run /dev-check first (Recommended)" not in gate \
+                or "Proceed anyway (reason: /dev-check not passed - the user chose to go on)" not in gate \
+                or re.search(r"own words|their words", gate):
+            fails.append(f"a /dev-check FAIL with every ticket built and merged should ask ONE options question: "
+                         f"{gate[:1500]}")
+        code, out = run(d, "bypass", "--from", "eval", "--gate", "dev-check", "--reason",
+                        status.gate_proceed_reason("dev-check"))
+        if code != 0 or "proceeds with /dev-check bypassed" not in out:
+            fails.append(f"a bypass of a gate that holds a FAIL should be accepted: {out.strip()[:300]}")
+
+
+HUNT_CODE = {  # one file per defect a plain /test found and the playbook's checklist did not (#48 2026-10-08)
+    "app/ids.py": "import re\n\nCUSTOMER = re.compile(r\"^C\\d{5}$\")\n",
+    "app/health.py": "def health():\n    return {'status': 'ok'}\n",
+    "app/migrate.py": "def migrate(conn):\n    version = conn.schema_version()\n",
+    "app/store.py": "def connect(url):\n    conn = open(url)\n    conn.setup()\n    return conn\n",
+    "app/logjson.py": "def record(event, **extra):\n    out = {'event': event}\n    out.update(extra)\n    return out\n",
+    "app/seed_population.py": "import random\n\ndef customers(n, seed=1):\n    return [random.Random(seed).random()]\n",
+    "app/lint_runner.py": "import subprocess\n\ndef lint():\n    return subprocess.run([\"ruff\", \"check\", \".\"])\n",
+}
+
+
+def test_defect_hunt_and_eval_design_check(fails: list[str]) -> None:
+    """#48 items 2-5 and #49 items 1 and 4. /test's start lists the defect probes with the files each applies to, the
+    generated-data hash pin, the command-line tools to fake and the one per-edit command; `set test filled` warns
+    (never refuses) when #Tests names no defect hunt. /eval mid-milestone offers the measures check (Recommended)
+    instead of a bare stop, and a recorded decline saves."""
+    with tempfile.TemporaryDirectory() as t:
+        d = Path(t)
+        milestone_project(d, ("M1-A-01",), ("M1-A-01",))
+        for rel, text in {**HUNT_CODE, "pyproject.toml": "[project]\nname = 'x'\n", "uv.lock": ""}.items():
+            (d / rel).parent.mkdir(parents=True, exist_ok=True)
+            (d / rel).write_text(text, encoding="utf-8")
+        code, out = run(d, "next", "--phase", "test")
+        hunt = out[out.find("Defect hunt -"):]
+        for want in ("Defect hunt -", "leap day", "non-ASCII digits", "here: app/ids.py", "here: app/health.py",
+                     "here: app/migrate.py", "here: app/store.py", "here: app/logjson.py", "`Defect hunt:`",
+                     "Generated data - app/seed_population.py", "pins it", "app/lint_runner.py (ruff)",
+                     "recording fake", "run only `uv run pytest <the test file> -q`"):
+            if want not in out:
+                fails.append(f"the /test start should carry {want!r}: {hunt[:1500]}")
+        # red: the ASCII flag clears the digit probe, a hashing test clears the pin, no shell-out clears the tools
+        code_ = [("app/ids.py", "import re\nX = re.compile(r\"\\d+\", re.ASCII)\n")]
+        text = "\n".join(status.test_hunt_text(code_, ""))
+        if "non-ASCII digits" in text or "Generated data" in text or "Command-line tools" in text:
+            fails.append(f"the hunt should list only the probes the code shows: {text[:600]}")
+        text = "\n".join(status.test_hunt_text([("app/seed_population.py", "x = 1\n")], "import hashlib\n"))
+        if "already hashes an output" not in text:
+            fails.append(f"a test that already hashes an output should be named, not asked for again: {text[:400]}")
+        body = ("- **Live-path verified:** /healthz 200 (tests/test_live.py)\n- **Adversarial/security:** forged token "
+                "401\n- **Regression:** #2 xfail\n")
+        prod = (ROOT / "templates" / "PRODUCT.md").read_text(encoding="utf-8")
+        (d / "PRODUCT.md").write_text(status.replace_section(prod, "Tests", body), encoding="utf-8")
+        for ph in ("structure", "design-system", "foundation", "contracts", "tickets"):  # tested in their own files
+            run(d, "open", "--from", "test", "--what", f"Override: #{ph}'s check fails - a fixture", "--clears",
+                f"#{ph}'s check passes")
+        code, out = run(d, "set", "test", "filled", "--verdict", "fail", "--no-commit")
+        if code != 0 or "no `Defect hunt:` line" not in out or "a warning, not a refusal" not in out:
+            fails.append(f"#Tests with no defect hunt should record with a warning: {code} {out.strip()[:500]}")
+        (d / "PRODUCT.md").write_text(status.replace_section(prod, "Tests", body + "- **Defect hunt:** 6 probes, "
+                                                             "1 bug (#7 xfail)\n"), encoding="utf-8")
+        code, out = run(d, "set", "test", "filled", "--verdict", "fail", "--no-commit")
+        if code != 0 or "Defect hunt:` line" in out:
+            fails.append(f"#Tests naming its defect hunt should record with no warning: {out.strip()[:400]}")
+        # /eval before the features exist: the measures check is the recommended option, not a bare stop
+        code, out = run(d, "next", "--phase", "eval")
+        for want in ("Check the measures and the test data now (Recommended)", "Stop and record why",
+                     "Can each target fail AND pass?", "Is every target set?", "Hard negatives", "Scale:",
+                     "## Design check", "set eval declined"):
+            if want not in out:
+                fails.append(f"the /eval start mid-milestone should carry {want!r}: {out[:1500]}")
+        if "Stop - run /test first (Recommended)" in out:
+            fails.append("the /eval start mid-milestone should ask the measures question only, not the gate question")
+        (d / "docs").mkdir(exist_ok=True)
+        (d / "docs" / "evaluation.md").write_text("# Evaluation\n\n## Design check\n\n1. none\n", encoding="utf-8")
+        code, out = run(d, "set", "eval", "declined", "--reason", "features not built - measures checked: 1 finding "
+                        "in docs/evaluation.md", "--gate", "dev-check")
+        if code != 0 or "saved: commit" not in out or not git_head(d).startswith("eval: declined - features not built"):
+            fails.append(f"a recorded decline should save like a filled record: {git_head(d)!r} / {out.strip()[:400]}")
+    with tempfile.TemporaryDirectory() as t:
+        d = Path(t)
+        milestone_project(d, ("M1-A-01", "M1-A-02", "M1-A-03"), ("M1-A-01", "M1-A-02", "M1-A-03"))
+        code, out = run(d, "next", "--phase", "eval")
+        if "Check the measures and the test data now" in out:
+            fails.append("every ticket built: /eval measures, the measures check is not offered")
+
+
+def test_next_after_build(fails: list[str]) -> None:
+    """2.1 (#62): after one built ticket the next step is /ship <ticket>, not /dev-check; after its PR, merge it and
+    /build the next ticket; every ticket built and shipped -> /dev-check."""
+    for built, released, want in ((("M1-A-01",), (), "Next: /ship M1-A-01 - built, not shipped yet"),
+                                  (("M1-A-01",), ("M1-A-01",), "Next: /build M1-A-02 - merge the shipped PR first"),
+                                  (("M1-A-01", "M1-A-02", "M1-A-03"), ("M1-A-01", "M1-A-02", "M1-A-03"),
+                                   "Next: /dev-check")):
+        with tempfile.TemporaryDirectory() as t:
+            d = Path(t)
+            milestone_project(d, built, released)
+            st = status.Status.load(d / "STATUS.md")
+            dc = next(r for r in st.rows["Phases"] if r[0] == "dev-check")
+            dc[1:6] = ["empty", "", "", "", ""]
+            st.save(d / "STATUS.md")
+            code, out = run(d, "show")
+            if want not in out:
+                fails.append(f"{len(built)} built / {len(released)} shipped: `show` should print {want!r}: "
+                             f"{[ln for ln in out.splitlines() if ln.startswith('Next:')]}")
+            if built == ("M1-A-01",) and not released:
+                card = status.handoff_card(status.Status.load(d / "STATUS.md"), "build")
+                if not re.search(r"type: /\S*ship M1-A-01", card):
+                    fails.append(f"the /build close should hand off to /ship M1-A-01: {card}")
+
+
+def test_derived_note(fails: list[str]) -> None:
+    """2.1 (owner): `set tickets filled` writes a static Note on the build and ship rows once - never a count; a ticket
+    recorded later leaves STATUS.md unchanged."""
+    with tempfile.TemporaryDirectory() as t:
+        d = Path(t)
+        fresh(d, ui="no")
+        run(d, "set", "tickets", "filled", "--no-commit")
+        text = (d / "STATUS.md").read_text(encoding="utf-8")
+        for ph, note in status.DERIVED_NOTE.items():
+            if not re.search(rf"^\| {ph} \| empty \|[^\n]*{re.escape(note)}", text, re.M):
+                fails.append(f"the {ph} row should read state empty with the Note {note!r}: "
+                             f"{[ln for ln in text.splitlines() if ln.startswith(f'| {ph} ')]}")
+        run(d, "set", "tickets", "filled", "--no-commit")
+        again = (d / "STATUS.md").read_text(encoding="utf-8")
+        if again.count(status.DERIVED_NOTE["build"]) != 1:
+            fails.append("the build Note should be written once, not appended again")
+        st = status.Status.load(d / "STATUS.md")
+        st.rows["Tickets"].append(["M1-A-01", TODAY, "yes", "pytest -> 1 passed", "1", "R1 clean", "docs/a.md"])
+        st.save(d / "STATUS.md")
+        if (d / "STATUS.md").read_text(encoding="utf-8") != again:
+            fails.append("a ticket recorded after /tickets edited STATUS.md - two branches would conflict on it")
+
+
+
 def main() -> int:
     for stream in (sys.stdout, sys.stderr):  # a failure message quoting status.py output may hold ≤ or →
         try:
@@ -3878,6 +4919,9 @@ def main() -> int:
     test_demo_proof_checks(fails)
     test_dev_check_gate(fails)
     test_dev_check_close(fails)
+    test_dev_check_milestone(fails)
+    test_dev_check_security_receipt(fails)
+    test_verify_phases_24(fails)
     test_lean_mode(fails)
     test_test_record_in_few_calls(fails)
     test_test_close_first_try(fails)
@@ -3886,6 +4930,13 @@ def main() -> int:
     test_build_ticket_checks(fails)
     test_route(fails)
     test_next65_save(fails)
+    test_no_save_turn_left(fails)
+    test_every_phase_saves_unasked(fails)
+    test_gate_cascade(fails)
+    test_defect_hunt_and_eval_design_check(fails)
+    test_next_after_build(fails)
+    test_derived_note(fails)
+    test_early_doc_warnings(fails)
     with tempfile.TemporaryDirectory() as t:
         d = Path(t)
         test_every_transition(d, fails)

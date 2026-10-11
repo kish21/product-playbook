@@ -89,7 +89,7 @@
     "- [ ] **A section with no evidence stays empty.** Never a guess dressed as a record — an empty section"
    ],
    "new": [
-    "- [ ] **A section with no evidence stays empty.** Never a guess dressed as a record — an empty section"
+    "- [ ] **A section with no evidence is left out.** Never a guess dressed as a record — a missing section"
    ]
   },
   {
@@ -320,7 +320,7 @@
     "## Step 2 — Draft, from the bundled `PRODUCT.md` template (`${CLAUDE_PLUGIN_ROOT}/templates/PRODUCT.md`)"
    ],
    "new": [
-    "## Step 2 — Draft, from the bundled `PRODUCT.md` template (`${CLAUDE_PLUGIN_ROOT}/templates/PRODUCT.md`)"
+    "## Step 2 — Draft only the sections and fields the repo supports"
    ]
   },
   {
@@ -340,7 +340,7 @@
     "| Section | Draw it from | Leave empty when |"
    ],
    "new": [
-    "| Section | Draw it from | Leave empty when |"
+    "| Section | Draw it from | Leave it out when |"
    ]
   },
   {
@@ -420,7 +420,7 @@
     "inferable.** Leave them empty and say plainly that these are the parts only the owner knows — that is the"
    ],
    "new": [
-    "inferable.** Leave them empty and say plainly that these are the parts only the owner knows — that is the"
+    "inferable.** Leave them out and say plainly that these are the parts only the owner knows — that is the"
    ]
   },
   {
@@ -445,12 +445,12 @@
   },
   {
    "id": "AD45",
-   "what": "keep / correct / drop every line - in two rounds (P37), was: one section at a time",
+   "what": "ONE question round as options: keep every inferred line (Recommended) / correct or drop / Other (2.3)",
    "old": [
     "Walk the owner through **each drafted section, one at a time**: **keep / correct / drop**. Show the"
    ],
    "new": [
-    "**Two rounds, each ONE message:** round 1 — the whole draft, **keep / correct / drop** per line, with the"
+    "**ONE question round** (`CAPABILITIES.md` §Ask the user a question with options): print the whole draft as text"
    ]
   },
   {
@@ -470,7 +470,7 @@
     "Keep it short and plain; a newcomer should not feel interrogated. **Nothing is written until this"
    ],
    "new": [
-    "Keep it short and plain; a newcomer should not feel interrogated. **Nothing is written until this"
+    "**Nothing is written until this"
    ]
   },
   {
@@ -480,7 +480,7 @@
     "finishes** — and a section the owner cannot speak to stays empty rather than being kept on a shrug."
    ],
    "new": [
-    "finishes** — and a section the owner cannot speak to stays empty rather than being kept on a shrug."
+    "finishes** — and a section the owner cannot speak to is left out rather than being kept on a shrug."
    ]
   },
   {
@@ -540,20 +540,20 @@
     "**Close the loop (`MECHANISMS.md` §Step 3b):** record the states — `status.py init --product \"<name>\"`, then `status.py set <phase> filled --note \"adopted <date>\"` for each confirmed section (a verification phase adds `--verdict pass|fail` from what the repo shows, else leave it empty) —"
    ],
    "new": [
-    "**Close the loop (`MECHANISMS.md` §Step 3b):** ONE call records it — `status.py set adopt filled --section-from <draft> --product \"<name>\" --commit \"<one line>\"`",
+    "**Close the loop (`MECHANISMS.md` §Step 3b):** ONE call records it — `status.py set adopt filled --section-from <draft> --product \"<name>\"`",
     "a verification phase stays empty"
    ]
   },
   {
    "id": "AD55",
-   "what": "reconcile numbers; the save question is round 2's two options (P37)",
+   "what": "the record call saves PRODUCT.md and STATUS.md only, no save question (2.3; --no-commit only on the user's word)",
    "old": [
     "reconcile any number carried in from the repo against what the owner just confirmed, and **ask the save question** *\"Save this version of your project? (yes / no)\"* (`MECHANISMS.md` §Commit the work — this project's repo, name the branch, commit on a yes, push only if a remote exists and the user says so). Then **run the transition guard** (`MECHANISMS.md`"
    ],
    "new": [
     "reconcile any number carried in from the repo against what the owner just confirmed.",
-    "(no drawn options: *\"Save this version of your project? (yes / no)\"*)",
-    "no `--commit` on a no: `MECHANISMS.md` §Commit the work"
+    "no confirm or\nsave question",
+    "`--no-commit` only if the user said not to save"
    ]
   },
   {
@@ -703,7 +703,7 @@
     "- `#Vision` has no vision sentence, audience or value proposition → **`/vision`** (code shows *what* was"
    ],
    "new": [
-    "- `#Vision` has no vision sentence, audience or value proposition → **`/vision`** (code shows *what* was"
+    "- `#Vision` has no vision sentence, audience or value proposition → **`/vision`** (code never shows *why* or"
    ]
   },
   {
@@ -713,7 +713,7 @@
     "built, never *why* or *for whom* — an empty Vision is the normal result of adopting);"
    ],
    "new": [
-    "built, never *why* or *for whom* — an empty Vision is the normal result of adopting);"
+    "code never shows *why* or"
    ]
   },
   {
@@ -800,6 +800,16 @@
     "def adopt_next(secs"
    ],
    "home": "tools/status.py"
+  },
+  {
+   "id": "AD32b",
+   "what": "the draft's shape (2.4, ): the field names per section are printed by the start; the template is never copied whole; a section or field with no evidence is left out",
+   "old": [
+    "## Step 2 — Draft, from the bundled `PRODUCT.md` template"
+   ],
+   "new": [
+    "The start prints each section's field names - never copy the template whole; a section or field with no evidence is left out."
+   ]
   }
  ],
  "dropped": [

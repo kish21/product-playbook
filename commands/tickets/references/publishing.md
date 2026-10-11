@@ -8,6 +8,10 @@
 > §The Delivery Board below are what it does, kept here as its specification. The regroup and path-rewrite
 > exceptions (§Provision item 4, §A path rewrite reaches GitHub) edit existing issues, which the engine never
 > does — those stay by hand.
+> **GitHub's issue list lags a new issue by seconds**, so the engine takes each created issue's number from
+> its create call and re-reads the list with backoff only for what is still missing. An issue it still cannot
+> find is named at the end (exit 1) — every issue that IS there still gets its links and its card; the same
+> command run again completes the rest. Every run compares every planned ticket's body with its file.
 
 ## §Provision and pre-flight
 
@@ -203,18 +207,29 @@ the base a project keeps for its whole life. (case file: The base a real product
    (`gh project list --owner <owner>`); create it only if absent (`gh project create --owner <owner>
    --title "..."`). Fields, each a single-select, added only when missing: **Status** (`Todo` · `In Queue`
    · `In Progress` · `Done`) · **Owner** (`Senior` · `Junior`) · **Lane** (one option per lane from
-   `slicing.md` §Lanes are modules) · **Seat** (`SR1` by default; the user adds `SR2`, `JR1` … when they
-   want a second chair). Link the project to the repository.
+   `slicing.md` §Lanes are modules) · **Seat** (one option per seat the user named in round 1 — *"2
+   developers"* → `SR1`, `SR2`; *"3 seniors and 2 juniors"* → `SR1`–`SR3`, `JR1`–`JR2`; alone → `SR1`;
+   `tickets-md.md` §Seats; each option's description says what the seat is, from the Lanes table's Seat type and
+   Operator - *"senior · person"*). Link the project to the repository.
+   **The plan carries the seats per lane:** the engine reads it from the committed files (`TICKETS.md`'s Lanes
+   table gives each lane its Seat; no plan file is typed): `"seats"` lists every seat (one board option each), and
+   every epic carries its lane's `"seat"` — every epic of a lane the same seat. The engine refuses a lane at two seats or a seat the list does not name. (An older plan with one
+   plan-wide `"seat"` still publishes: every card sits there.)
    **A new project already has `Status`, with no `In Queue`** — `field-create` cannot extend it; set all four
    options with GraphQL `updateProjectV2Field` (every existing option kept) *before* the first card. (case file: The Status field that was already there)
 2. **Add every published ticket issue as a card and set all four fields** (an epic is a parent, not a
    card — §Epics are parent issues) — `gh project item-add`, then
    `gh project item-edit --field-id ... --single-select-option-id ...` for Status (`Todo`), Owner (the
-   ticket's), Lane (the ticket's) and Seat (`SR1` unless the user named seats). **A card added without its
-   fields is invisible on every lane view.**
+   ticket's), Lane (the ticket's) and Seat (its lane's seat). **A card added without its fields is invisible
+   on every lane view.** A value someone already set is never overwritten.
 3. **Read it back, do not assume it.** `gh project item-list <n> --owner <owner> --format json` — its field
    keys come back **lowercase** (`status`, `owner`, `lane`, `seat`); confirm every card reads the way it was
-   set, and put the count in the close (`14 cards · 14 with all four fields`). A read-back that reports
+   **planned** — Status set, Owner, Lane and Seat equal to the plan's, not merely filled (a check that only
+   asked *"is Seat set?"* passed 48 cards all at `SR1` while the plan split them over two seats) — and put
+   the count in the close (`14 cards · 14 with all four fields as planned`). A wrong value is named, never
+   overwritten: fix it on the board, or `TICKETS.md` if the plan changed. **The team changed on purpose**
+   (2 seats become 5, a lane moves to a new seat): after the /tickets re-run, `publish.py --reseat` adds the
+   new options and sets every card's Owner, Lane and Seat from the plan again - Status is never touched. A read-back that reports
    `UNSET` for everything is a malformed query, not an empty board — check one card you know is set.
 4. **Idempotent.** A re-run finds the board, the fields, the options and the cards by name and adds none
    twice. Never rename or delete a board, a field or an option the project already has.
