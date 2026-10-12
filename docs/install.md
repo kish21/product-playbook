@@ -46,17 +46,18 @@ What it puts where: the 22 skills, each a `<name>/SKILL.md` folder → `~/.claud
 
 Skills stay runnable on their own, but a few **use your tool's own capabilities** — code review, security review, running the app, recurring checks. `CAPABILITIES.md` (installed beside the rules) names each tool's native way and the fallback; a run that uses a fallback says so in its close.
 
-### D. Cursor and Antigravity
+### D. Codex, Cursor and Antigravity
 
-Both read skills as `<name>/SKILL.md` folders. The installer puts them where each tool looks and rewrites every path in them — Cursor and Antigravity never fill in Claude's plugin variable.
+All three read skills as `<name>/SKILL.md` folders. The installer puts them where each tool looks and rewrites every path in them — these tools never fill in Claude's plugin variable.
 
 | Scope | Command | Lands in |
 |---|---|---|
-| **Project** (both tools at once) | `./install.sh --project /path/to/project --tool cursor` | `<project>/.agents/skills/` + `<project>/.agents/product-playbook/` — commit `.agents/` |
+| **Project** (recommended) | `./install.sh --project /path/to/project --tool codex` (or `cursor` · `antigravity`) | `<project>/.agents/skills/` + `<project>/.agents/product-playbook/` (Cursor: also `.cursor/agents/`) — never committed: each teammate runs the installer |
+| **Global, Codex** | `./install.sh --tool codex` | `~/.codex/skills/` |
 | **Global, Cursor** | `./install.sh --tool cursor` | `~/.cursor/skills/` |
 | **Global, Antigravity** | `./install.sh --tool antigravity` | `~/.gemini/config/skills/` |
 
-`--only` works the same way. On Windows run it from **Git Bash**. Call a skill as `/vision`, `/build`, …; each tool's way to review code, check security and run the app is in `CAPABILITIES.md` — and where a tool has no native way, the skill uses the fallback named there and tells you.
+`--only` works the same way. On Windows run it from **Git Bash**. Call a skill as `/vision`, `/build`, … (Codex: `$vision`, `$build`, …); each tool's way to review code, check security and run the app is in `CAPABILITIES.md` — and where a tool has no native way, the skill uses the fallback named there and tells you.
 
 ### Did it work?
 

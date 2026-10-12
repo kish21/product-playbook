@@ -5,6 +5,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-10-12
+
+### Changed — the README and descriptions name all four coding agents
+
+**In short.** No skill changed. The README, the install guide and the package descriptions now say what 2.1.0
+already does: product-playbook works with Claude Code, Codex, Cursor and Antigravity.
+
+- **README:** the opening, the "For:" line and the badges name all four tools; Get started has an install line for
+  Claude Code and one for Codex, Cursor and Antigravity, and the first command for each tool.
+- **Install guide:** the Codex install (`--tool codex`, `~/.codex/skills/`) sits beside Cursor and Antigravity, and
+  a project install is described as it works: never committed, each teammate runs the installer.
+- **Descriptions:** `manifest.json` and the marketplace entry give the real count, 22 skills.
+
 ## [2.1.0] - 2026-10-11
 
 ### Changed — fewer turns, helpers for research and review, team planning, and fixes from runs on four tools
