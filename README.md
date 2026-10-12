@@ -149,4 +149,4 @@ Try it with a real idea. Build something. Break it. Then open an issue and tell 
 
 ## 🛠️ Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) — how skills are added, registered, tested and kept small.
+Issues and ideas are welcome — open an issue. The tests and release checks live in the maintainer's development repository; every change reaches this repository as a checked release.

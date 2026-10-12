@@ -22,7 +22,7 @@ checked against evidence in the repo, and a bypass is *recorded* with a reason a
 rather than waved through.
 
 That claim is checkable, which is why it is the one being made. `tools/check.py` **check 9**
-fails CI if any phase skill carries a gate's title without a gate's behaviour — the enforcement
+fails the release check if any phase skill carries a gate's title without a gate's behaviour — the enforcement
 is in the build, not in this paragraph.
 
 ### Evidence gates — the idea, named once
@@ -124,8 +124,10 @@ Evidence gates, stated as a contract rather than a slogan:
 
 - Every skill's **contract block** exit criteria ⊆ a `PRODUCT.md` field or an `evals/evals.json` assertion.
 - A skill won't hand off until its exit criteria are met (runtime self-check); the next skill re-checks the prior phase.
+- The release check (`tools/check.py`) and the eval cases (`evals/evals.json`) live in the maintainer's development
+  repository; every published release passes them.
 - `evals/evals.json` states, per skill, the behaviour this VISION requires — at least two cases each.
-  **CI gates the file's structure, not its verdicts:** `tools/check.py` fails on a missing or drifted
+  **The release check gates the file's structure, not its verdicts:** `tools/check.py` fails on a missing or drifted
   field, a duplicate id or a skill below two cases. **Executing the cases is still manual** — re-run
   them on change; until that is automated, a green build means the assertions are well-formed, not met.
 - **A phase skill's `Step 0` gate is read from its body, not its heading** — `tools/check.py` check 9

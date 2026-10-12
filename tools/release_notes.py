@@ -51,8 +51,9 @@ def title(version: str, body: str) -> str:
     and `**tickets**` — a release titled "`commands/playbook/SKILL.md` says contracts →". Whitespace is collapsed
     so the wrapped phrase reads as one line.
     """
-    m = re.search(r"\*\*(.+?)\*\*", body, re.DOTALL)
-    headline = " ".join(m.group(1).split()).rstrip(".:") if m else ""
+    h = re.search(r"^###\s+\w+\s+[—-]\s+(.+)$", body, re.MULTILINE)  # "### Changed — <the release in a line>"
+    m = None if h else re.search(r"\*\*(.+?)\*\*", body, re.DOTALL)
+    headline = h.group(1).strip() if h else (" ".join(m.group(1).split()).rstrip(".:") if m else "")
     return f"v{version} — {headline}" if headline else f"v{version}"
 
 

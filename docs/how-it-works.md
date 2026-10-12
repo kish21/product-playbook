@@ -103,7 +103,7 @@ A spine document, six phases, milestones and exit criteria are the vocabulary of
 
 - [`commands/frontend-audit/audit.py`](../commands/frontend-audit/audit.py) — a real OKLCH→WCAG contrast engine. Contrast is **computed** from your `DESIGN.md` tokens in both light and dark mode, never asserted; an ERROR exits non-zero, so it fails a CI build. For a product with a UI, `/foundation` commits a copy into your project and runs it in the commit hooks and CI, and the installed engine tells you when that copy falls behind.
 - [`../tools/session_cost.py`](../tools/session_cost.py) — what a phase run cost, read from the session log (calls, wall and agent working minutes, tokens, ≈ $), so a close never estimates.
-- [`../tools/check.py`](../tools/check.py) — the gate that guards the gates. Check 9 fails this repo's own build if a phase skill carries a `prior-gate check` heading whose body gates on nothing. That check exists because a skill did exactly that for five releases.
+- `tools/check.py` (in the maintainer's development repository) — the gate that guards the gates. Check 9 fails this repo's own build if a phase skill carries a `prior-gate check` heading whose body gates on nothing. That check exists because a skill did exactly that for five releases.
 
 **2. The definition-of-done carries engineering, not just process.** Secret-scan clean and placeholders that *fail the boot* rather than pass a length check · fail-closed authorization and tenant isolation on every data path · the OWASP LLM Top 10 for AI products · migrations rather than hand-edited schema · externals behind provider adapters · verification of the path the product **actually runs**, not the function in isolation · a rollback path and a named post-deploy signal before a release is called done.
 
@@ -117,7 +117,7 @@ project caught a fault in *this repo*: `/eval` carried a gate's heading and no g
 `tools/check.py` check 9, and the rule *a heading is not a behaviour*.
 **[The full case study, with the findings unsoftened →](case-study.md)**
 
-**5. The claims are checked in CI.** `python tools/check.py` asserts that the skill set is identical across `commands/`, `manifest.json`, `evals/evals.json` and `VISION.md`; that one version is stated everywhere; that every `#Section` a skill reads is one the `PRODUCT.md` template actually defines; and that every phase skill really gates. Docs that drift from reality are the failure this project exists to catch — including its own.
+**5. The claims are checked before every release.** `tools/check.py`, which lives with the tests in the maintainer's development repository, asserts that the skill set is identical across `commands/`, `manifest.json`, `evals/evals.json` and `VISION.md`; that one version is stated everywhere; that every `#Section` a skill reads is one the `PRODUCT.md` template actually defines; and that every phase skill really gates. Docs that drift from reality are the failure this project exists to catch — including its own.
 
 ---
 
