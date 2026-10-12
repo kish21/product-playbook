@@ -1,0 +1,8 @@
+# Weekly checks for updates to the GitHub Actions this repo uses (pinned to exact commits, so updates come as PRs).
+# The playbook's scripts use only the Python standard library; there are no packages to watch.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

@@ -13,8 +13,6 @@ This system relies on three core files to create a structured, sequential, yet s
   <img alt="How product-playbook works: PRINCIPLES.md and PRODUCT.md feed the playbook skills, which generate your codebase" src="diagrams/architecture-light.svg">
 </picture>
 
-<sub>Diagram source: <a href="diagrams/architecture.mmd"><code>diagrams/architecture.mmd</code></a> (regenerate with <code>sh tools/render-diagrams.sh</code>).</sub>
-
 ### 1. The Living Spine (`PRODUCT.md`)
 Every project gets a single file at its root called `PRODUCT.md` (instantiated from `templates/PRODUCT.md`). This file is the **shared memory** of the product.
 *   Every phase reads the prior section for context and appends/updates its own section.
@@ -103,7 +101,7 @@ A spine document, six phases, milestones and exit criteria are the vocabulary of
 
 - [`commands/frontend-audit/audit.py`](../commands/frontend-audit/audit.py) — a real OKLCH→WCAG contrast engine. Contrast is **computed** from your `DESIGN.md` tokens in both light and dark mode, never asserted; an ERROR exits non-zero, so it fails a CI build. For a product with a UI, `/foundation` commits a copy into your project and runs it in the commit hooks and CI, and the installed engine tells you when that copy falls behind.
 - [`../tools/session_cost.py`](../tools/session_cost.py) — what a phase run cost, read from the session log (calls, wall and agent working minutes, tokens, ≈ $), so a close never estimates.
-- [`../tools/check.py`](../tools/check.py) — the gate that guards the gates. Check 9 fails this repo's own build if a phase skill carries a `prior-gate check` heading whose body gates on nothing. That check exists because a skill did exactly that for five releases.
+- `tools/check.py` (in the maintainer's development repository) — the gate that guards the gates. Check 9 fails this repo's own build if a phase skill carries a `prior-gate check` heading whose body gates on nothing. That check exists because a skill did exactly that for five releases.
 
 **2. The definition-of-done carries engineering, not just process.** Secret-scan clean and placeholders that *fail the boot* rather than pass a length check · fail-closed authorization and tenant isolation on every data path · the OWASP LLM Top 10 for AI products · migrations rather than hand-edited schema · externals behind provider adapters · verification of the path the product **actually runs**, not the function in isolation · a rollback path and a named post-deploy signal before a release is called done.
 
@@ -117,7 +115,7 @@ project caught a fault in *this repo*: `/eval` carried a gate's heading and no g
 `tools/check.py` check 9, and the rule *a heading is not a behaviour*.
 **[The full case study, with the findings unsoftened →](case-study.md)**
 
-**5. The claims are checked in CI.** `python tools/check.py` asserts that the skill set is identical across `commands/`, `manifest.json`, `evals/evals.json` and `VISION.md`; that one version is stated everywhere; that every `#Section` a skill reads is one the `PRODUCT.md` template actually defines; and that every phase skill really gates. Docs that drift from reality are the failure this project exists to catch — including its own.
+**5. The claims are checked before every release.** `tools/check.py`, which lives with the tests in the maintainer's development repository, asserts that the skill set is identical across `commands/`, `manifest.json`, `evals/evals.json` and `VISION.md`; that one version is stated everywhere; that every `#Section` a skill reads is one the `PRODUCT.md` template actually defines; and that every phase skill really gates. Docs that drift from reality are the failure this project exists to catch — including its own.
 
 ---
 
@@ -133,8 +131,6 @@ This is the journey at full resolution — every skill, what it writes, and when
   <source media="(prefers-color-scheme: dark)" srcset="diagrams/journey-dark.svg">
   <img alt="The playbook journey: three tiers over six phases. Tier 1 Product thinking — /vision, /validate (optional), /scope, /plan — then an evidence gate: a named user and job-to-be-done, a measured experiment when /validate runs, ONE core feature, non-goals. Tier 2 Engineering discipline — /architect, /structure, /design-system (UI only), /foundation, /contracts, /tickets, /build, /dev-check — then an evidence gate: it runs end to end, every feature's definition-of-done met with how it was verified. Tier 3 Shipping and learning — /test, /eval, /ship, /learn — then an evidence gate: measured against a baseline, security-reviewed with a rollback path, metric instrumented." src="diagrams/journey-light.svg">
 </picture>
-
-<sub>Diagram source: <a href="diagrams/journey.mmd"><code>docs/diagrams/journey.mmd</code></a> (regenerate with <code>sh tools/render-diagrams.sh</code>).</sub>
 
 | Tier | Phases | What you are doing |
 |---|---|---|
@@ -184,8 +180,6 @@ the other two UI skills then consume. So the look is *decided once, confirmed by
   <source media="(prefers-color-scheme: dark)" srcset="diagrams/design-system-dark.svg">
   <img alt="How DESIGN.md is derived: PRODUCT.md and universal-laws feed /design-system, which emits DESIGN.md, consumed by /new-component and enforced by /frontend-audit" src="diagrams/design-system-light.svg">
 </picture>
-
-<sub>Diagram source: <a href="diagrams/design-system.mmd"><code>diagrams/design-system.mmd</code></a> (regenerate with <code>sh tools/render-diagrams.sh</code>).</sub>
 
 `DESIGN.md` is **derived** (not hand-written) through the sample-and-confirm loop, then **consumed**: `/new-component`
 builds against its tokens and `/frontend-audit` mechanically enforces them. Skipped entirely for backend/API/CLI products.

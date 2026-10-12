@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [2.1.2] - 2026-10-12
+
+### Changed — this repository holds what you install, plus a security scan
+
+**In short.** No skill changed. This repository now carries only what you need to install and run the playbook;
+the tests, eval cases and release checks moved to the maintainer's development repository, and every release here
+has passed them. A plugin security scan runs on every push.
+
+- **What you get is unchanged:** the 22 skills, their scripts, the helper agents, references, templates, the tools the
+  skills call (`status.py`, `session_cost.py`, `run_report.py`, `board.py`) and `install.sh`.
+- **Moved out:** `evals/`, the test files and `tools/check.py` with its helpers, the rule inventories, the
+  diagram sources with their render script, the development notes and `CONTRIBUTING.md`. The docs that pointed at them now say where they live.
+- **Security:** `SECURITY.md` says how to report a problem privately. HOL's plugin scanner runs on every push and pull
+  request (score 80 or more, no high findings), the workflow's actions are pinned to exact commits, and Dependabot
+  proposes their updates.
+
 ## [2.1.1] - 2026-10-12
 
 ### Changed — the README and descriptions name all four coding agents
