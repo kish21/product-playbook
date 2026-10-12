@@ -1,13 +1,14 @@
 # Product Playbook
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-![Claude Code skills](https://img.shields.io/badge/Claude%20Code-22%20skills-8A2BE2.svg)
+![22 skills](https://img.shields.io/badge/skills-22-8A2BE2.svg)
+![Works with](https://img.shields.io/badge/works%20with-Claude%20Code%20%C2%B7%20Codex%20%C2%B7%20Cursor%20%C2%B7%20Antigravity-blue.svg)
 
 **Build a product with AI without losing the plot.**
 
 ## 🧩 The problem
 
-Claude Code can build software incredibly fast.
+AI coding agents — Claude Code, Codex, Cursor, Antigravity — can build software incredibly fast.
 
 It is just as fast at building the wrong thing. You start with one idea and end up with something else — extra features nobody asked for, tests that pass while the app is broken, a secret in a commit. Nothing stopped it, because nothing was checking.
 
@@ -23,11 +24,11 @@ idea → vision → scope → plan → build → test → ship → learn
 
 Each step checks the one before it. Each step writes its decision into one file, `PRODUCT.md`, next to your code. No step is skipped silently — a step that can't show its evidence stops and says so.
 
-**For:** developers and founders building a real product with Claude Code, without a product manager, designer, QA or security engineer on hand. The playbook asks the questions those roles would ask, at every step. Any language, any stack, AI product or not.
+**For:** developers and founders building a real product with Claude Code, Codex, Cursor or Antigravity, without a product manager, designer, QA or security engineer on hand. The playbook asks the questions those roles would ask, at every step. Any language, any stack, AI product or not.
 
 ## 🤔 Why it works
 
-Claude Code is a great builder. It is not a great *decider*. These five happened to me on a real project:
+A coding agent is a great builder. It is not a great *decider*. These five happened to me on a real project:
 
 - Features nobody asked for.
 - Config that looked right and did nothing.
@@ -41,7 +42,12 @@ Each one is a decision that was never made, or never checked. So every step of t
 
 ## 🚀 Get started
 
-**1. Install** — inside Claude Code:
+**Works with four coding agents:** Claude Code, Codex, Cursor and Antigravity. The same 22 skills, the same
+questions and the same records on each, tested on all four.
+
+**1. Install**
+
+*Claude Code* — inside Claude Code:
 
 ```
 /plugin marketplace add kish21/product-playbook
@@ -52,15 +58,28 @@ If it says `Run /reload-plugins to activate.`, run that.
 
 Windows with VS Code, installing for one project only (`--scope local` or `project`): install from the Claude Code panel inside VS Code. A terminal records the folder as `C:\...` while VS Code opens it as `c:\...`, Claude Code treats the two as different projects, and the playbook silently does not load. To check, the first line of any phase's start reads `Playbook <version>`.
 
-**2. Start with your idea** — open Claude Code in an empty folder and type:
+*Codex, Cursor or Antigravity* — clone this repo once, then install into your project (on Windows, from Git Bash):
 
 ```
-/product-playbook:vision I want to build a walk-in waitlist for small restaurants.
+git clone https://github.com/kish21/product-playbook.git
+cd product-playbook
+./install.sh --project /path/to/your/project --tool codex        # or: cursor · antigravity
 ```
+
+The skills land in your project's `.agents/` folder (Cursor's helper agents in `.cursor/agents/`); the playbook never
+commits its own install. Restart the tool so it reads the new skills. More options: [Installation and setup](docs/install.md).
+
+**2. Start with your idea** — open your agent in an empty folder and type:
+
+| Tool | Type |
+|---|---|
+| Claude Code | `/product-playbook:vision I want to build a walk-in waitlist for small restaurants.` |
+| Codex | `$vision I want to build a walk-in waitlist for small restaurants.` |
+| Cursor, Antigravity | `/vision I want to build a walk-in waitlist for small restaurants.` |
 
 That's it. One rough sentence. The playbook asks you a few questions, writes down the vision, and tells you what to do next.
 
-Not sure where you are? `/product-playbook:playbook` looks at your project and offers the next step.
+Not sure where you are? `/product-playbook:playbook` (Codex: `$playbook`, Cursor and Antigravity: `/playbook`) looks at your project and offers the next step.
 
 ---
 
