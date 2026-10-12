@@ -13,8 +13,6 @@ This system relies on three core files to create a structured, sequential, yet s
   <img alt="How product-playbook works: PRINCIPLES.md and PRODUCT.md feed the playbook skills, which generate your codebase" src="diagrams/architecture-light.svg">
 </picture>
 
-<sub>Diagram source: <a href="diagrams/architecture.mmd"><code>diagrams/architecture.mmd</code></a> (regenerate with <code>sh tools/render-diagrams.sh</code>).</sub>
-
 ### 1. The Living Spine (`PRODUCT.md`)
 Every project gets a single file at its root called `PRODUCT.md` (instantiated from `templates/PRODUCT.md`). This file is the **shared memory** of the product.
 *   Every phase reads the prior section for context and appends/updates its own section.
@@ -134,8 +132,6 @@ This is the journey at full resolution — every skill, what it writes, and when
   <img alt="The playbook journey: three tiers over six phases. Tier 1 Product thinking — /vision, /validate (optional), /scope, /plan — then an evidence gate: a named user and job-to-be-done, a measured experiment when /validate runs, ONE core feature, non-goals. Tier 2 Engineering discipline — /architect, /structure, /design-system (UI only), /foundation, /contracts, /tickets, /build, /dev-check — then an evidence gate: it runs end to end, every feature's definition-of-done met with how it was verified. Tier 3 Shipping and learning — /test, /eval, /ship, /learn — then an evidence gate: measured against a baseline, security-reviewed with a rollback path, metric instrumented." src="diagrams/journey-light.svg">
 </picture>
 
-<sub>Diagram source: <a href="diagrams/journey.mmd"><code>docs/diagrams/journey.mmd</code></a> (regenerate with <code>sh tools/render-diagrams.sh</code>).</sub>
-
 | Tier | Phases | What you are doing |
 |---|---|---|
 | ① Product thinking | 1 · Product | Deciding what is worth building, and cutting what is not |
@@ -184,8 +180,6 @@ the other two UI skills then consume. So the look is *decided once, confirmed by
   <source media="(prefers-color-scheme: dark)" srcset="diagrams/design-system-dark.svg">
   <img alt="How DESIGN.md is derived: PRODUCT.md and universal-laws feed /design-system, which emits DESIGN.md, consumed by /new-component and enforced by /frontend-audit" src="diagrams/design-system-light.svg">
 </picture>
-
-<sub>Diagram source: <a href="diagrams/design-system.mmd"><code>diagrams/design-system.mmd</code></a> (regenerate with <code>sh tools/render-diagrams.sh</code>).</sub>
 
 `DESIGN.md` is **derived** (not hand-written) through the sample-and-confirm loop, then **consumed**: `/new-component`
 builds against its tokens and `/frontend-audit` mechanically enforces them. Skipped entirely for backend/API/CLI products.
