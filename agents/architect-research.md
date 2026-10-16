@@ -23,6 +23,9 @@ The main conversation gives you, word for word:
 - the owner's round-1 answers 1-7 (team and languages, money a month, infrastructure they run, lock-in, where data
   and AI calls may be processed, the login, anything already chosen).
 
+## Re-research (a changed answer in round 2)
+Given only the changed rows and the owner's new answer: Turn A and Turn B for those rows alone - at most 1 search and 2 page opens per changed row - and the same four blocks back for them only.
+
 ## Turn A - all searches in ONE message
 One search per open decision row, naming the NEED and the owner's limits (for example "managed Postgres EU region
 free tier <year of today's date>"), never a vendor or framework name you picked. The model row gets two searches: a
@@ -43,7 +46,7 @@ A search that settled nothing: `- <decision row> · <query> · nothing found`.
 
 **Model routes** (AI product only) - two rows: `free local model` and `paid API`, each with: the model name ·
 `released YYYY-MM-DD` · input and output price per 1M tokens (`0` for the local model) · where the data is
-processed · the link.
+processed · the link. The main conversation turns these into a monthly cost for the owner's question.
 
 **Still open** - each row the pages did not settle, one line: the row and what would settle it.
 

@@ -28,7 +28,7 @@ return one message, below.
    input validation, no swallowed errors, no secrets in source or logs, nothing real touched by a test or a seed.
 3. **Code** (only when asked): the DoD lines one by one - met, or the file:line that misses it; a bug a user would
    see; the new code wired into the path the ticket's demo runs (file:line), or "not wired yet".
-4. Review the diff by hand against the rules file and `PRINCIPLES.md` §Production safeguards, and say so on the
+4. Review the diff by hand against the rules file and `PRINCIPLES.md` (`${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md`) §Production safeguards, and say so on the
    route line. Never call a review command (you have no tool that starts one).
 
 ## Return - exactly this, nothing else

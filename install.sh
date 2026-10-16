@@ -211,7 +211,9 @@ cp "${ROOT}/references/agent.md"  "${SUPPORT}/AGENT.md"
 cp "${ROOT}/VISION.md"           "${SUPPORT}/VISION.md"
 cp "${ROOT}/templates/PRODUCT.md" "${SUPPORT}/PRODUCT.md"
 mkdir -p "${SUPPORT}/templates"
-cp "${ROOT}/templates"/* "${SUPPORT}/templates/"
+# files only: a stray folder in the clone (a Python __pycache__) made `cp` fail and, under set -e, stopped the install
+# half-way - no helper agents, no VERSION - while every earlier line had printed success (INS1)
+find "${ROOT}/templates" -maxdepth 1 -type f -exec cp {} "${SUPPORT}/templates/" \;
 cp "${ROOT}/tools/session_cost.py" "${SUPPORT}/session_cost.py"
 cp "${ROOT}/tools/status.py" "${SUPPORT}/status.py"
 cp "${ROOT}/tools/run_report.py" "${SUPPORT}/run_report.py"
@@ -244,7 +246,11 @@ RULES_ESC="$(printf '%s' "${RULES_AT}" | sed 's/[&|\\]/\\&/g')"
 SKILLS_ESC="$(printf '%s' "${SKILLS_AT}" | sed 's/[&|\\]/\\&/g')"
 PLUGIN_ROOT='\${CLAUDE_PLUGIN_ROOT}/'
 point_rule_paths() {
+  # A skill's reference file gives each rule file from its own folder (`../../../PRINCIPLES.md`, from
+  # commands/<skill>/references/ in the plugin); here the rules sit in ${SUPPORT}, so it becomes the plugin path
+  # first, then the installed path below.
   sed -i.bak \
+    -e "s|\`\.\./\.\./\.\./|\`${PLUGIN_ROOT}|g" \
     -e "s|${PLUGIN_ROOT}PRINCIPLES\.md|${RULES_ESC}/PRINCIPLES.md|g" \
     -e "s|${PLUGIN_ROOT}references/mechanisms-on-demand\.md|${RULES_ESC}/MECHANISMS-ON-DEMAND.md|g" \
     -e "s|${PLUGIN_ROOT}references/mechanisms\.md|${RULES_ESC}/MECHANISMS.md|g" \
@@ -267,7 +273,9 @@ point_rule_paths() {
 for name in "${SELECTED[@]}"; do
   while IFS= read -r f; do point_rule_paths "$f"; done < <(find "${TARGET}/${name}" -name "*.md")
 done
-for f in "${SUPPORT}"/*.md "${SUPPORT}/templates"/*.md; do point_rule_paths "$f"; done
+# the helper agents too: a helper starts with a fresh context, so a bare rule-file name sent it searching - a
+# logged Cursor run opened Claude Code's plugin copy of PRINCIPLES.md
+for f in "${SUPPORT}"/*.md "${SUPPORT}/templates"/*.md "${SUPPORT}/agents"/*.md; do point_rule_paths "$f"; done
 echo "  ✓ plugin paths → ${RULES_AT} (rules) · ${SKILLS_AT} (engines)"
 
 # 3b) The Python that works here, by its full path, in every command the skills print: a logged Codex run's

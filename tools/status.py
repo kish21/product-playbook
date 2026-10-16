@@ -1,3 +1,6 @@
+# AI AGENT: STOP - do not read this file. The phase's start (`status.py next --phase <phase>`) printed every command
+# and flag you need. A refusal names its fix: make it and run the SAME command again; `status.py set <phase> filled
+# ... --dry-run` lists every gap at once. This source is not the instructions; reading it only fills your context.
 """status.py - the ONE writer of a project's STATUS.md: where the product stands, in one short page.
 
 A skill never edits STATUS.md by hand. It runs a command here, and this script refuses what the state model
@@ -400,7 +403,40 @@ def playbook_line() -> str:
     the other copy's rules; this line names the copy this script belongs to (MECHANISMS.md §Status)."""
     here = Path(__file__).resolve().parent
     rules = here if (here / "PRINCIPLES.md").is_file() else here.parent  # a copy install : the plugin or a clone
-    return f"Playbook {playbook_version()} · rule files in {rules.as_posix()}"
+    # Claude Code fills its plugin's path into the skills itself; Antigravity's start goes to a file (fit_start),
+    # which carries this line - its short output has no room
+    run = "" if playbook_tool() in ("claude", "antigravity") else "\n" + run_this_line()
+    return f"Playbook {playbook_version()} · rule files in {rules.as_posix()}{run}"
+
+
+def python_command() -> str:
+    """The interpreter running this script, spelled to run in bash AND PowerShell: unquoted (to PowerShell a quoted
+    path is a string, not a program), a Windows path with spaces in its short form, else quoted."""
+    exe = Path(sys.executable)
+    if " " in str(exe) and os.name == "nt":
+        try:
+            import ctypes
+            buf = ctypes.create_unicode_buffer(1024)
+            if ctypes.windll.kernel32.GetShortPathNameW(str(exe), buf, 1024):
+                exe = Path(buf.value)
+        except Exception:  # the long form, quoted, still runs in bash
+            pass
+    s = exe.as_posix()
+    return f'"{s}"' if " " in s else s
+
+
+def run_this_line() -> str:
+    """Printed under the version line off Claude Code: the exact command for THIS copy. Bare `status.py` and a bare
+    rule-file name left the tool to find them - a logged Cursor run opened PRINCIPLES.md and ran status.py from
+    Claude Code's plugin folder, not its own copy; a logged Codex run's first bare `python` could not start in its
+    sandbox."""
+    me = Path(__file__).resolve()
+    line = (f"Run this copy as `{python_command()} {me.as_posix()}` - `status.py` below = this command; files "
+            f"named below = this copy's, never another install's.")
+    if playbook_tool() == "codex" and "/appdata/" in Path(sys.executable).as_posix().lower():
+        line += (" Codex: that Python is outside your sandbox - run each such command with sandbox_permissions "
+                 "\"require_escalated\" and prefix_rule = its first two words, so the user approves once.")
+    return line
 
 
 def skill_command(phase: str) -> str:
@@ -500,11 +536,14 @@ def agent_rules() -> str:
 # marginal gain (a logged /dev-check: 6.4M tokens vs plain's 2.5M; /build 1.1x). Lean keeps the steps and the cheap
 # code checks that caught what plain missed; every other tool keeps the full procedure. PLAYBOOK_MODE overrides.
 LEAN_PHASES = {"build", "dev-check"}
+# CX-P2 (2.1.3, a logged run): the /plan close had no "What YOU do next" while /scope's had it, and the lean close
+# named three other blocks. Every close names these four, in this order (MECHANISMS.md §Plain-language close); a phase
+# with nothing to try by hand writes `Nothing to test by hand in this phase.` under Test this yourself.
+CLOSE_BLOCKS = "What just happened · What I skipped or couldn't do · Test this yourself · What YOU do next"
 LEAN_CLOSE = (
     "Mode: lean (Claude Code) - follow SKILL.md §Lean path only; PLAYBOOK_MODE=full runs the full procedure.",
     "The close: the one record command §Lean path names - it saves the project itself (never a save question) · then "
-    "three short blocks: What just happened · What I did not check · What YOU do next, ending \"Saved (commit <hash>). "
-    "Change anything?\".")
+    "four short blocks: " + CLOSE_BLOCKS + ", ending \"Saved (commit <hash>). Change anything?\".")
 
 
 # The question-led phases close with one `set --section-from`, which prints the rest of the close itself: their start
@@ -657,7 +696,7 @@ MEASURE_RERUN = {
     "validate": ("a new test of the bet", "the new dated entry goes under it in #Validation"),
 }
 UPDATE_ONE = ("update one decision: edit that entry (and its ADR or companion) with a dated `superseded <date>: <why>` "
-              "line, then status.py set {p} filled --note \"updated: <which decision>\" (runs only this phase's check)")
+              "line, then status.py set {p} filled --note \"updated: <which decision>\" (checks only this phase)")
 
 
 # Rule Q: provenance has exactly two values. "default taken, <anything else>" claims a choice (a logged run wrote
@@ -1581,6 +1620,21 @@ def rule_changes(st: Status, phase: str) -> list[str]:
     return [w for v, p, when, w in RULE_CHANGES if p == phase and when in on and (got is None or got < vkey(v))]
 
 
+def joined_changes(changed: list[str]) -> str:
+    """The changed rules in one line, a shared `<file> §<section> row N:` head said once (each head cost a start
+    ~25 characters per repeat)."""
+    out: list[str] = []
+    last = None
+    for w in changed:
+        head, sep, rest = w.partition(": ")
+        if sep and head == last:
+            out[-1] += "; " + rest
+        else:
+            out.append(w)
+            last = head if sep else None
+    return "; ".join(out)
+
+
 def undo_msys_path(value: str) -> str:
     return MSYS_REWRITE.sub("/", value)
 
@@ -2490,7 +2544,7 @@ def vision_gaps(base: Path, header: dict[str, str]) -> list[str]:
 NOT_SEARCHED = re.compile(r"(?i)^\W*(?:not searched\b|gap\s*·)")
 DOC_H2_OK = re.compile(r"^(?:\d+\.\s+\S|Appendix\b)")
 DOC_H3_OK = re.compile(r"^(?:\d+\.\d+\.?\s+\S|[A-Z]\.\d+\.?\s+\S)")
-DOC_PROVENANCE = re.compile(r"(?i)owner'?s claim|not opened|\(illustrative\)|\binference\b|\bderived\b|"
+DOC_PROVENANCE = re.compile(r"(?i)owner'?s claim|not opened|\binference\b|\bderived\b|"
                             r"page summary only|\(proposed\)|not verified")
 DOC_PLAYBOOK_WORDS = re.compile(r"(?i)\bspine\b|\bcompanion\b|\btriggers?\b|PRODUCT\.md|STATUS\.md|status\.py|#(?:Vision|Scope|Plan|"
                                 r"Validation|Architecture)\b|(?<![\w/])/(?:vision|validate|scope|plan|architect|"
@@ -2920,7 +2974,9 @@ def phase_fields_text(phase: str) -> str:
              f"PRODUCT.md#{sec} from it, each fact typed once - never write either file yourself, never open a "
              f"template. Plain words for a newcomer: a field's first line is its takeaway; one idea per sentence, none "
              f"over 30 words; no em-dash or ` · ` chains in prose; explain a rule or term the first time; where a "
-             f"fact came from is a footnote [n]; no playbook words (PRODUCT.md, #{sec}, a command name):"]
+             f"fact came from a search or a page is a footnote [n] listed under sources - the owner's answers, our "
+             f"proposals and invented examples carry none (an invented example says `(illustrative)`); each section's "
+             f"first line says plainly why it matters; no playbook words (PRODUCT.md, #{sec}, a command name):"]
     lines += [f"      ### {f['name']}{' [optional]' if f['optional'] else ''}"
               f"{' [table: ' + ' | '.join(f['cols']) + ']' if f['cols'] else ''} - {f['hint']}" for f in spec["fields"]]
     return "\n".join(lines)
@@ -2956,6 +3012,155 @@ def add_read_receipts(body: str, read: str) -> str:
     return body[:m.start()] + head + subs + body[m.end():]
 
 
+# ---- what every fields phase checks in the owner's answers, the source marks and the examples (2.1.3) -------------
+# AS4: a logged run recorded "(Recommended)" inside the owner's answers - the label belongs to the question.
+RECOMMENDED_LABEL = re.compile(r"(?i)\s*[(\[]\s*recommended\b[^)\]]*[)\]]|\s+[-–—]\s*recommended\s*$|"
+                               r"^(\s*(?:\d+[.)]\s*)?(?:picked:\s*)?)recommended\s*[:-]\s*")
+# CX-S1: a logged run's Recommended option was "one owner - specify your hours per week and weeks"; picking it cost
+# two extra owner turns. An option that asks for the answer is not one: a picked line like that, with no number
+# after it, means the record holds no answer.
+NOT_AN_ANSWER = re.compile(r"(?i)\b(?:specify|tell (?:me|us)|let (?:me|us) know|(?:give|enter|type|provide|state|"
+                           r"share|name) (?:me |us )?(?:your|the) (?:own |actual |exact )?(?:hours|numbers?|dates?|"
+                           r"budget|amount|size|team|weeks|value|details)|fill (?:it |this )?in|to be confirmed|tbc)\b")
+# AS3: a logged /scope put "[1]" on nearly every sentence - the invented example, the owner's capacity, the vision
+# check - and its document has no source list. A mark is for a claim that came from a source listed under `sources`.
+SOURCE_MARK = re.compile(r"\[(\d{1,2})\](?!\()")
+MARK_FREE = ("answers", "worked example", "example", "experience", "capacity", "vision check", "decisions",
+             "failure")  # the owner's words, an invented case, our own decisions: never a source
+EXAMPLE_FIELDS = ("worked example", "example")
+EXAMPLE_LABEL = re.compile(r"(?i)illustrative|fictional|invented|made[- ]up|\(owner|owner's")
+
+
+def strip_recommended(text: str) -> str:
+    """AS4: the owner's answers without the option label `(Recommended ...)` - the label is the question's."""
+    return "\n".join(RECOMMENDED_LABEL.sub(lambda m: m.group(1) or "", l).rstrip() for l in text.split("\n"))
+
+
+def answer_gaps(fields: dict[str, str]) -> list[str]:
+    """CX-S1: a picked option that asks for the answer (`specify your hours`) and no answer after it."""
+    gaps = []
+    for line in fields.get("answers", "").splitlines():
+        m = re.search(r"(?i)\bpicked:\s*(.+)$", line)
+        if not m or re.match(r"(?i)other\b", m.group(1).strip()):
+            continue
+        ask = NOT_AN_ANSWER.search(m.group(1))
+        if ask and not re.search(r"\d", m.group(1)[ask.end():]):
+            gaps.append(f"`### answers`: the picked option is not an answer: {m.group(1).strip()[:70]!r} - every "
+                        f"option, the Recommended one above all, is a complete answer; a number the user gives is "
+                        f"offered as concrete values (\"8 h/week x 5 weeks (Recommended)\" · another value · Other). "
+                        f"Ask it once that way and record the value picked")
+    return gaps
+
+
+def source_mark_gaps(spec: dict, fields: dict[str, str]) -> list[str]:
+    """AS3: `[n]` only on a claim from a source the `sources` field lists - never on the owner's answers, an
+    invented example or our own decisions, never in a document without a source list."""
+    listed = None
+    if "sources" in spec["by"]:
+        listed = {m.group(1) for m in re.finditer(r"(?m)^\s*(?:[-*]\s*)?\[?(\d{1,2})[.)\]]", fields.get("sources", ""))}
+    gaps = []
+    for name, raw in fields.items():
+        marks = [m.group(1) for m in SOURCE_MARK.finditer(raw)] if name != "sources" else []
+        if not marks:
+            continue
+        if name in MARK_FREE:
+            gaps.append(f"`### {name}`: source mark [{marks[0]}] on the owner's words, an invented example or a "
+                        f"decision of ours - a mark goes only on a claim that came from a source; an invented example "
+                        f"says `(illustrative)` instead")
+        elif listed is None:
+            gaps.append(f"`### {name}`: source mark [{marks[0]}], and this document has no source list - drop it (a "
+                        f"fact carried from the vision says `from the vision`)")
+        elif any(x not in listed for x in marks):
+            x = next(x for x in marks if x not in listed)
+            gaps.append(f"`### {name}`: source mark [{x}] has no line `{x}. <name> · <what it is> · <link>` under "
+                        f"`### sources`")
+    return gaps
+
+
+def example_label_gaps(fields: dict[str, str]) -> list[str]:
+    """VW1/AS3: an invented example's numbers are labelled - `(illustrative)`, or `(owner)` when the owner gave them."""
+    return [f"`### {n}`: its numbers are not marked - an invented case says `(illustrative)` once, a case the owner "
+            f"gave says `(owner)`" for n in EXAMPLE_FIELDS
+            if re.search(r"\d", fields.get(n, "")) and not EXAMPLE_LABEL.search(fields.get(n, ""))]
+
+
+CORE_STOP = set("that this these those their there then than when what which while where will would could should "
+                "have been being each every only just more most less also very some such them they your once after "
+                "before about first version product feature core user users person people able gets make makes made "
+                "does done thing things case cases other using used uses into onto with without within from under "
+                "over every".split())
+
+
+def core_stems(text: str) -> dict[str, str]:
+    """A sentence's content words by their first 4 letters ("automatically" and "autonomous" are one), stem -> word."""
+    out: dict[str, str] = {}
+    for w in re.findall(r"[a-z]+", text.lower()):
+        if len(w) >= 4 and w not in CORE_STOP:
+            out.setdefault(w[:4], w)
+    return out
+
+
+def scope_core_gaps(spec: dict, fields: dict[str, str]) -> list[str]:
+    """AS2: THE core feature's capability is built and checked in the in-scope rows, and no deferred or never row
+    takes it back (a logged core said "automatically authorizes payouts" while its Done when said "approve in one
+    click" and "fully autonomous payout dispatch" was deferred). A later extension says `beyond the core:`."""
+    core = core_stems(fields.get("core feature", ""))
+    if len(core) < 2:
+        return []
+    rows = lambda n: field_rows(fields.get(n, ""), spec["by"][n]["cols"])[0] if n in spec["by"] else []  # noqa: E731
+    gaps = []
+    ins = rows("in scope")
+    have = core_stems(" ".join(" ".join(r[:3]) for r in ins))
+    if ins and len(core.keys() & have.keys()) * 2 < len(core):
+        miss = [w for s, w in core.items() if s not in have]
+        gaps.append(f"THE core feature's words ({', '.join(miss[:5])}) are not in the in-scope rows - the first row "
+                    f"builds the core, its Done when checks it; or the core sentence says what the first version "
+                    f"really does")
+    for name in ("deferred", "never"):
+        for r in rows(name):
+            if re.search(r"(?i)beyond the core", " ".join(r)):
+                continue
+            own = core_stems(r[0])
+            hit = core.keys() & own.keys()
+            if len(hit) >= 2 and len(hit) * 2 >= len(own):
+                gaps.append(f"`### {name}` row {r[0][:50]!r} takes back THE core feature ({', '.join(core[s] for s in hit)})"
+                            f" - narrow the core sentence to what is in now, or mark the row `beyond the core: ...`")
+    return gaps
+
+
+VC_VERDICT = re.compile(r"(?i)^\W*(kept|deferred|changed)\b\W*(.*)$")
+VC_PROMISES = (("the vision line", r"\bvision\b|\bworld\b|one[- ]line"),
+               ("who it's for", r"\bwho\b|\busers?\b|for whom|customer"), ("the job", r"\bjob\b"),
+               ("the worked example's steps", r"\bsteps?\b|example|\bflow\b|how it works"),
+               ("the north star", r"north[- ]star|\btarget\b"))
+VC_AI = ("the AI line (what the AI does, what a person decides)", r"\bai\b|automat|agent|person decides|human")
+
+
+def scope_vision_check_gaps(spec: dict, fields: dict[str, str], header: dict[str, str]) -> list[str]:
+    """AS1: the vision check names each vision promise and says kept / deferred (why) / changed (how, who picked) -
+    a logged check said "agrees" while the scope deferred a step the owner had added to the vision."""
+    f = spec["by"].get("vision check")
+    if not f or not f["cols"]:
+        return []
+    rows = field_rows(fields.get("vision check", ""), f["cols"])[0]
+    if not rows:
+        return []
+    gaps = []
+    for r in rows:
+        m = VC_VERDICT.match(r[1])
+        if not m:
+            gaps.append(f"`### vision check` row {r[0][:40]!r}: {r[1][:30]!r} - say `kept`, `deferred - <reason>` or "
+                        f"`changed - <how, and who picked it>`; never a bare `agrees`")
+        elif m.group(1).lower() != "kept" and len(re.findall(r"\w+", m.group(2))) < 2:
+            gaps.append(f"`### vision check` row {r[0][:40]!r}: {m.group(1)} with no reason")
+    named = " | ".join(r[0] for r in rows)
+    want = VC_PROMISES + ((VC_AI,) if header.get("AI product") == "yes" else ())
+    miss = [w for w, rx in want if not re.search(rx, named, re.I)]
+    if miss:
+        gaps.append(f"`### vision check` has no row for {', '.join(miss)} - one row per vision promise")
+    return gaps
+
+
 def set_with_fields(st: "Status", a, today: str, prod: Path) -> str:
     """`set <phase> filled --from-fields <file>`: render docs/<phase>.md and the PRODUCT.md section from ONE fields
     file, check both, record the phase - a refusal puts both files back. Every gap in one list (P20)."""
@@ -2972,6 +3177,13 @@ def set_with_fields(st: "Status", a, today: str, prod: Path) -> str:
     spec = phase_spec(phase)
     fields, probs = read_fields(src, spec)
     probs += field_gaps(spec, fields)
+    if "answers" in fields:
+        fields["answers"] = strip_recommended(fields["answers"])
+    probs += answer_gaps(fields) + source_mark_gaps(spec, fields) + example_label_gaps(fields)
+    if phase == "scope":
+        probs += scope_core_gaps(spec, fields) + scope_vision_check_gaps(spec, fields, st.header)
+    if phase == "plan":  # 2.1.3: what the fields show - labels as tests, a passed deadline, ...
+        probs += plan_field_gaps(st, base, fields, spec)
     ctx = {"product": st.product or base.name, "date": today,
            "ai note": "chosen when the architecture is decided (a free local model or a paid API); every milestone "
                       "works with either." if st.header.get("AI product") == "yes" else ""}
@@ -2984,6 +3196,7 @@ def set_with_fields(st: "Status", a, today: str, prod: Path) -> str:
         body = read_line_default(body)
     body = add_read_receipts(body, fields.get("read", ""))
     body, split = reflow(body)
+    probs += readable_line_gaps(body, PHASE_SECTION[phase], doc, rel)  # N2: one limit on every fields phase
     doc_path = base / rel
     old_prod = None if created else prod.read_text(encoding="utf-8")
     old_doc = doc_path.read_text(encoding="utf-8") if doc_path.is_file() else None
@@ -3458,7 +3671,7 @@ def next_phase(st: Status, run: str | None = None) -> dict:
         if changed:
             when = states[p][6] if len(states[p]) > 6 and states[p][6] else ""
             notes.append(f"rules changed since #{p} was filled{f' under {when}' if when else ' (version not recorded)'}"
-                         f": {'; '.join(changed)}. Three choices: {UPDATE_ONE.format(p=p)}; re-run /{p} whole; or "
+                         f": {joined_changes(changed)}. Three choices: {UPDATE_ONE.format(p=p)}; re-run /{p} whole; or "
                          f"keep it as it is: status.py set {p} filled --note \"kept: <the user's reason>\"")
     base = getattr(st, "base", None)
     for name in (AGENT_FILES if base is not None else ()):
@@ -3474,6 +3687,8 @@ def next_phase(st: Status, run: str | None = None) -> dict:
         notes.append("STATUS.md or status/ has changes that are not committed - save them in one call (no git call "
                      "of your own; the project's other changes stay out): `status.py save --status-only -m "
                      "\"status: record what the last phase closed\"`")
+    if env_missing_note(base):
+        notes.append(env_missing_note(base))
     if base is not None and (Path(base) / "PRODUCT.md").exists():
         for p in ("structure", "design-system", "foundation", "contracts"):
             if states.get(p, [p, "empty"])[1] == "filled" and not earlier_override(st, p):
@@ -4185,6 +4400,14 @@ def cmd_set(st: Status, a, today: str) -> str:
     return msg
 
 
+def whole_line_note(line: str) -> str:
+    """G1 (2.1.3): logged closes cut the handoff after "Open a NEW conversation and type: /architect" - first on
+    Antigravity, where only that tool was then told to copy it whole. Every tool is told now, with the line's last
+    words named, so a cut line is visible against the words it should end on."""
+    return ("Your close ends with `Change anything? If not:` and then the next line, copied whole to its last word "
+            f"(`{' '.join(line.split()[-4:])}`):")
+
+
 def handoff_card(st: Status, after: str | None = None) -> str:
     """A1: the last lines of every phase close, word for word in the tool's own command spelling (a logged run told
     an Antigravity user to type /product-playbook:contracts, which that tool does not have)."""
@@ -4201,15 +4424,12 @@ def handoff_card(st: Status, after: str | None = None) -> str:
         lines += [f"  {o[0]}: {o[3][:110]} - clears when {o[4][:80]}" for o in still]
     fail_next = dev_check_fail_handoff(st) if n["phase"] in ("dev-check", "build") and not n.get("arg") else None
     if fail_next:
-        lines.append(fail_next)
+        lines += [whole_line_note(fail_next), fail_next]
     elif n["phase"]:
-        if playbook_tool() == "antigravity":  # two logged closes cut this line, one to "Open a NEW conversation"
-            lines.append("Your close ends with `Change anything? If not:` and then the next line, copied whole to its "
-                         "last word:")
-        lines.append(f"Open a NEW conversation and type: {skill_command(n['phase'])}"
-                     f"{' ' + n['arg'] if n.get('arg') else ''} - nothing is lost: it is all in "
-                     f"PRODUCT.md, STATUS.md and git, and this conversation would be re-sent on every call of the "
-                     f"next phase.")
+        go = (f"Open a NEW conversation and type: {skill_command(n['phase'])}{' ' + n['arg'] if n.get('arg') else ''} "
+              f"- nothing is lost: it is all in PRODUCT.md, STATUS.md and git, and this conversation would be re-sent "
+              f"on every call of the next phase.")
+        lines += [whole_line_note(go), go]
     sc = session_costs()
     if sc is not None and st.base is not None and sc.project_log_dir(Path(st.base)).is_dir():
         lines.append("Cost: Claude Code writes this conversation's own total when it ends; `next` in the new "
@@ -4379,14 +4599,22 @@ def mark_rules_read(base: Path, phase: str, today: str) -> None:
 
 
 CLAUDE_ONLY_REVIEW = re.compile(r"/(?:code|security)-review\b")
-REVIEW_ROUTES = ("helper agent", "another tool", "self-review", "by hand")
+REVIEW_ROUTES = ("helper agent", "review command", "new chat", "another tool", "not independently reviewed")
+# AG-B1: a review counts as independent only when a context that did not write the code ran it - a helper agent, the
+# tool's own review command, a NEW chat, or another tool. A logged Antigravity build reviewed its own code in the same
+# chat ("self-review: R1 0 findings") on an upload + tenant-check ticket and it recorded as a passed review; the same
+# kind of ticket reviewed apart found 19. The same chat's review is recorded as `not independently reviewed`, a gap.
+INDEPENDENT_REVIEW = re.compile(r"(?i)helper agent|review command|new chat|another tool")
+NOT_INDEPENDENT = "not independently reviewed"
+SAME_CHAT_REVIEW = re.compile(r"(?i)\bself[- ]review|\bsame (?:chat|conversation)\b|\bby hand\b|\breviewed "
+                              r"(?:it |them |the code )?myself\b")
 # fix 1: the question a self-review needs is written HERE, never by the model. A logged Gemini build wrote its own
 # "(Recommended) Approve self-review" question, recorded its option text as the user's words, and shipped the
 # same 3 HIGH holes as the round before. The safe choice is the recommended one.
 SELF_REVIEW_QUESTION = (
     "Only I reviewed my own security work on {tid}; an independent review catches what a self-review misses. "
     "(1) Run an independent security review first (Recommended): open a different AI coding tool you have (a "
-    "different model catches more) on branch "
+    "different model catches more), or a NEW chat in this tool, on branch "
     "{branch} and run its security review over `git merge-base HEAD main`..HEAD. "
     "(2) Accept my self-review anyway: type why, in your own words.")
 OPTION_LABEL = re.compile(r"(?i)\(recommended\)|approve self-review|^\s*(?:approve|approved|yes|ok|option\s*\d|\(?\d\)?)\b")
@@ -4395,10 +4623,25 @@ NEW_PUBLIC = re.compile(r"^\+(?:async\s+def|def|class)\s+([A-Za-z]\w*)"
                         r"|^\+export\s+(?:default\s+)?(?:async\s+)?(?:function|class|const)\s+([A-Za-z]\w*)", re.M)
 
 
+# The folder a tool keeps its own installs in, by path part (lower case). A plugin install has no TOOL file: Codex
+# installs the same plugin package Claude Code does, into ~/.codex/plugins/cache/..., and a logged Codex run was
+# served Claude Code's mode and missed every Codex-only rule (its wait rule: 110 check-backs in one ticket).
+TOOL_HOMES = ((".codex", "codex"), (".cursor", "cursor"), (".gemini", "antigravity"), (".antigravity", "antigravity"))
+
+
+def tool_for_dir(here: Path) -> str:
+    """The tool an install folder serves: its TOOL file (install.sh writes one into every copy install), else the
+    tool whose home folder the path runs through, else Claude Code (the plugin route)."""
+    f = here / "TOOL"
+    if f.is_file():
+        return f.read_text(encoding="utf-8").strip().lower() or "claude"
+    parts = [x.lower() for x in here.parts]
+    return next((tool for home, tool in TOOL_HOMES if home in parts), "claude")
+
+
 def playbook_tool() -> str:
-    """The tool a copy install serves (install.sh writes TOOL beside this script); the plugin route is Claude Code."""
-    f = Path(__file__).resolve().parent / "TOOL"
-    return f.read_text(encoding="utf-8").strip().lower() if f.is_file() else "claude"
+    """The tool this copy of the playbook serves (tool_for_dir on this script's own folder)."""
+    return tool_for_dir(Path(__file__).resolve().parent)
 
 
 DATASTORE_FIELD = re.compile(r"(?i)^\s*(?:[-*]\s*)?(?:\*\*)?(?:primary\s+|main\s+)?(?:datastore|database|db)\b[^:\n]{0,40}:")
@@ -4661,6 +4904,17 @@ def build_ticket_gaps(base: Path, a, today: str, st: "Status | None" = None) -> 
                      f"ran on {tool} - e.g. 'this tool has no review command, so a second agent reviewed the code' or "
                      f"'no second agent was available, so I reviewed my own code; a separate review would be "
                      f"stronger'. Never name a Claude Code command.")
+    independent = bool(INDEPENDENT_REVIEW.search(review))
+    if not independent and NOT_INDEPENDENT not in review.lower() and SAME_CHAT_REVIEW.search(review):
+        gaps.append(f"--review says the chat that wrote the code reviewed it ({SAME_CHAT_REVIEW.search(review).group(0)!r})"
+                    f" - that is not an independent review. Run it independently (a helper agent, the tool's review "
+                    f"command, or a NEW chat on this branch given agents/build-reviewer.md) and name that route, or "
+                    f"record it as it is: --review \"{NOT_INDEPENDENT}: R1 <n> findings ...\"")
+    elif not independent and NOT_INDEPENDENT in review.lower():
+        notes.append(f"GAP - say it in the close, under What I skipped or couldn't do, never as a passed review: "
+                     f"{a.id} was NOT independently reviewed - only the chat that wrote the code read it. A review in "
+                     f"a NEW chat on branch {git(base, 'rev-parse', '--abbrev-ref', 'HEAD')} (given "
+                     f"agents/build-reviewer.md), or in another tool, catches what this one misses.")
     mark = d / RULES_MARK / "build"
     if not mark.is_file() or mark.read_text(encoding="utf-8").strip() != today:
         gaps.append("the start (`status.py next --phase build --ticket <id>`, or `status.py rules build`) has not run "
@@ -4734,6 +4988,12 @@ def build_ticket_gaps(base: Path, a, today: str, st: "Status | None" = None) -> 
                     "review names every file it read, with what it checked there")
     gate_gap, good = final_gate_gap(base, d, branch)
     gaps += [g for g in (review_count_gap(doc, review, a.review or ""), gate_gap) if g]
+    # AG-B2: the close gate found this ticket's test files outside every full-suite command (gate.py suite_misses)
+    closes = [r for r in good if r.get("ticket") == a.id and "suite_misses" in r]
+    if closes and not any(r["suite_misses"] == [] for r in closes):
+        gaps.append(f"the close gate found tests of {a.id} the full suite never runs ({', '.join(closes[-1]['suite_misses'][:4])}) "
+                    f"- add their folder to the full-suite command, CI's test step or pytest's testpaths, then run "
+                    f"`gate.py --ticket {a.id} --close` again")
     gaps += feature_doc_gaps(doc, text)
     low_gap, low_note = low_findings(review, getattr(a, "low", None), a.id)
     gaps += [low_gap] if low_gap else []
@@ -4825,14 +5085,14 @@ def build_ticket_gaps(base: Path, a, today: str, st: "Status | None" = None) -> 
         gaps.append(f"{where}, and --review names no security review - run it (round 1's helper) and name it in "
                     f"--review")
     # R3-3: a review of your own code cannot sign off security work - a logged self-review found 0 of 3 HIGH
-    independent = re.search(r"(?i)helper agent|another tool", a.review or "")
-    if tool != "claude" and "self-review" in (a.review or "").lower() and sensitive \
-            and not independent:
+    same_chat = NOT_INDEPENDENT in (a.review or "").lower() or SAME_CHAT_REVIEW.search(a.review or "")
+    if same_chat and sensitive and not independent:
         question = SELF_REVIEW_QUESTION.format(tid=a.id, branch=branch)
         if not a.self_review_ok:
             gaps.append("this ticket touches auth / tenant / money / secrets and only a self-review ran. Ask the user "
                         f"EXACTLY this, word for word - add nothing, recommend nothing else: \"{question}\" "
-                        "Option 1: record the other tool's review as --review \"another tool: <name> ...\". Option 2: "
+                        "Option 1: record that review as --review \"new chat: ...\" or \"another tool: <name> ...\". "
+                        "Option 2: "
                         "their typed reason goes in --self-review-ok")
         elif OPTION_LABEL.search(a.self_review_ok) or len(a.self_review_ok.split()) < 4:
             gaps.append(f"--self-review-ok {a.self_review_ok!r} is an option label or too short, not the user's reason - "
@@ -5112,6 +5372,39 @@ def receipt_problems(text: str, base: Path, only: str | None = None) -> list[str
 
 # PRINCIPLES.md "Readable documents": a PRODUCT.md line longer than this is a paragraph wearing a bullet.
 LONG_LINE = 300
+# N2 (2.1.3): a phase document's prose line (a paragraph) over this is refused on every fields phase (/vision, /scope,
+# /plan, /architect); the PRODUCT.md record is wrapped at LONG_LINE first (reflow) and a line still over it refused. A
+# logged /architect saved lines of 679-1,062 characters with only a warning.
+DOC_LINE = 600
+
+
+def readable_line_gaps(record: str, sec: str, doc: str, rel: str) -> list[str]:
+    """Lines the readable-documents rule refuses: a PRODUCT.md#<sec> line over LONG_LINE that reflow could not wrap,
+    a <rel> prose line over DOC_LINE. Table rows, code blocks, `evidence:` lines and receipts are kept whole."""
+    gaps = []
+    for line in record.splitlines():
+        t = line.strip()
+        if len(t) > LONG_LINE and not (t.startswith(("|", "<!--", "- **Read")) or TABLE_ROW.match(t)
+                                       or "evidence:" in t or "http" in t):
+            label = re.match(r"-\s+\*\*(.+?)\*\*", t)
+            gaps.append(f"PRODUCT.md#{sec}" + (f" · {label.group(1).rstrip(':')[:40]}" if label else "")
+                        + f": a line of {len(t)} characters with no sentence end to wrap at (limit {LONG_LINE}) - "
+                          f"split that field's text into sentences or sub-bullets (PRINCIPLES.md: Readable documents)")
+    fence, head = False, ""
+    for line in doc.splitlines():
+        t = line.strip()
+        if t.startswith("```"):
+            fence = not fence
+            continue
+        if t.startswith("#"):
+            head = t.lstrip("# ")[:50]
+            continue
+        if fence or t.startswith(("|", "<!--")) or TABLE_ROW.match(t) or len(t) <= DOC_LINE:
+            continue
+        gaps.append(f"{rel}" + (f" §{head}" if head else "") + f": a paragraph of {len(t)} characters (limit "
+                    f"{DOC_LINE}) - split it into shorter paragraphs, a list or a table in the fields file "
+                    f"(PRINCIPLES.md: Readable documents)")
+    return gaps
 
 
 TABLE_ROW = re.compile(r"^(?:[-*>]\s+|\d+[.)]\s+)*\|")
@@ -5246,7 +5539,8 @@ def rule_file(name: str) -> Path:
     here = Path(__file__).resolve().parent
     if (here / "PRINCIPLES.md").is_file():
         return here / name
-    return here.parent / (name if name == "PRINCIPLES.md" else f"references/{name.lower()}")
+    return here.parent / (name if name == "PRINCIPLES.md" else "docs/state-model.md" if name == "STATE-MODEL.md"
+                          else f"references/{name.lower()}")
 
 
 # L3 + P1: the rule sections a phase needs, printed by `next --phase`, so the skill opens no whole rule file (a
@@ -5406,11 +5700,13 @@ def close_steps_text(phase: str, saved: str | None = None) -> str:
 # plain's 6.8K). The four blocks stay; each is ONE line, and the document is linked, never restated.
 # 2.4: at most 6 lines - a document phase has nothing to test by hand, so that block is left out, not printed empty.
 # review 2.4 early-2: the line order is stated once, as printed - the guard line comes first, `Saved` second.
-SHORT_CLOSE = ("the close, 6 lines in all: the guard line, then {first}, then What just happened and What I skipped "
-               "or couldn't do, ONE line each - what was saved and the document's path (never restate its content: "
-               "it is linked) · what was skipped (or `Nothing skipped.`) - and What YOU do next as the last two "
-               "lines, copied word for word: `Change anything? If not:` and the `Open a NEW conversation` line below. Test "
-               "this yourself is left out: nothing to test by hand here")
+# CX-P2 (2.1.3): the same four blocks as every phase, each under its bolded name - a logged /plan close dropped the
+# What YOU do next name while /scope's kept it; Test this yourself is one fixed line, never left out.
+SHORT_CLOSE = ("the close, 7 lines in all: the guard line, then {first}, then the four blocks, ONE line each under its "
+               "bolded name: **What just happened:** what was saved and the document's path (never restate its "
+               "content: it is linked) · **What I skipped or couldn't do:** what was skipped (or `Nothing skipped.`) · "
+               "**Test this yourself:** `Nothing to test by hand in this phase.` · **What YOU do next:** `Change "
+               "anything? If not:` - and last the `Open a NEW conversation` line below, copied whole to its last word")
 # 2.4 (comment B): the checking phases' closes restated their record (the verdict table, every finding, the
 # release row) as the run's last and priciest message. Their blocks carry real results, so each is at most 2 lines
 # and the record is pointed at, never repeated.
@@ -5461,8 +5757,10 @@ CLOSE_STEPS["dev-check"] = (
 # follow-ups show only under the answer they belong to. A text round lost answers 2-4 on a logged /deploy.
 QUESTION_FORM = ("each question through your question tool when you have one (AskUserQuestion on Claude Code); "
                  "without one: numbered options, ONE question per line, `(Recommended)` on one option, `Other` last, "
-                 "\"reply with the numbers\" - never a question answered by typing free text. A follow-up shows only "
-                 "under the answer it belongs to")
+                 "\"reply with the numbers\" - never a question answered by typing free text. Every option, the "
+                 "Recommended one above all, is a complete answer - a number is offered as concrete values (\"8 h/week x "
+                 "5 weeks (Recommended)\"), never \"specify your hours\"; options that cannot all be true are one pick, "
+                 "never a multi-select. A follow-up shows only under the answer it belongs to")
 LAST_ROUND_SAVES = ("after the last round's answers: write and save in one call (the answers are the go-ahead - never "
                     "a separate save or \"looks good?\" question); the close shows the result and asks \"Change "
                     "anything?\"")
@@ -5592,7 +5890,7 @@ def releaseops_rules_text(st: "Status", phase: str, gate_unmet: bool) -> str:
         want["MECHANISMS.md"] = [s for s in want["MECHANISMS.md"] if s != "Re-run semantics"]
     if not gate_unmet:
         want["MECHANISMS.md"] = [s for s in want["MECHANISMS.md"] if s != "Declined runs"]
-    return (rules_text(want, f"Rules for /{phase}, word for word from the rule files (these ARE the rule files for "
+    return (rules_text(want, f"Rules for /{phase}, word for word (these ARE the rule files for "
                              f"this phase - do not open them; every section whole: status.py rules {phase}):")
             + "\n\n===== PRINCIPLES.md §Production safeguards - the bullets this phase applies =====\n"
             + safeguard_bullets(RELEASEOPS_SAFEGUARDS[phase]))
@@ -7266,6 +7564,157 @@ def plan_doc_warnings(base: Path, doc: str) -> list[str]:
     return warns
 
 
+# ---- /plan's fields, checked before anything renders (2.1.3: PA1 PA2 PA4 PL1 PL2, logged runs on four tools) -------
+# PA1: a logged plan's `Done when` cells were #Scope's table-stake LABELS pasted in ("privacy policy + terms", "a stop
+# switch that halts it", "the cost cap per use (#Vision's cost per use)") and the save passed them. A part of a
+# `Done when` cell is testable when, with every scope label taken out, an observable is left: a number, a command in
+# backticks, or a verb that names what is seen (a fixed list - no judgement word decides it).
+PLAN_SEEN = re.compile(
+    r"(?i)\d|`[^`]+`|\b(?:gets?|got|shows?|shown|returns?|displays?|arrives?|pass(?:es|ed)?|fails?|refuses?|refused|"
+    r"rejects?|rejected|sees?|opens?|loads?|runs?|completes?|completed|sends?|sent|receives?|received|blocks?|"
+    r"blocked|halts?|halted|stops?|stopped|exports?|exported|downloads?|downloaded|deletes?|deleted|reaches?|"
+    r"reached|appears?|responds?|matches|flagged|prints?|printed|saves?|saved|finds?|found|turns?|redirects?|pays?|"
+    r"paid|raises?|alerted|fires?|fired|finish(?:es|ed)?|answered|replies|is gone|disappears?|changed|creates?|"
+    r"created|adds?|added|removes?|removed|logs? in|signs? in|uploads?|uploaded|extracts?|extracted|seated|"
+    r"approves?|approved|texted|emailed)\b")
+PLAN_DEADLINE_WORD = re.compile(r"(?i)\b(?:deadline|due|demo(?: day)?|finals?|launch(?:es)?|pitch|go[- ]live|ready by|"
+                                r"by|until|no later than|hand[- ]in|submission)\b")
+PLAN_TEAM = re.compile(r"(?i)\b(\d+|" + "|".join(WORD_NUM) + r")\s+(?:people|persons|developers?|devs?|engineers?|"
+                       r"builders?|workers?|members?|agents?|seats?)\b|\bteam of\s+(\d+|" + "|".join(WORD_NUM) + r")\b")
+
+
+def text_dates(text: str, year: str) -> list[str]:
+    """Every date in the text as YYYY-MM-DD: ISO dates (plan_dates) and `21 Oct` / `October 21` / `21 October 2026`
+    (the year from the text, else `year`)."""
+    out = plan_dates(text)
+    mon = r"(" + "|".join(MONTHS) + r")[a-z]*\.?"
+    for m in re.finditer(rf"(?i)\b(\d{{1,2}})(?:st|nd|rd|th)?\s+{mon}(?:,?\s+(20\d\d))?\b|\b{mon}\s+(\d{{1,2}})"
+                         rf"(?:st|nd|rd|th)?\b(?:,?\s+(20\d\d))?", text):
+        day, mo, yr = (m.group(1), m.group(2), m.group(3)) if m.group(1) else (m.group(5), m.group(4), m.group(6))
+        if 1 <= int(day) <= 31:
+            out.append(f"{yr or year}-{MONTHS.index(mo.lower()[:3]) + 1:02d}-{int(day):02d}")
+    return out
+
+
+def plan_deadlines(texts: list[str], year: str) -> list[str]:
+    """The dates a deadline word points at (`the demo is due 2026-11-15`, `finals on 21 Oct`, `by 2027-03-31`): the
+    first date within 40 characters after the word, on the same line."""
+    out = []
+    for text in texts:
+        for m in PLAN_DEADLINE_WORD.finditer(text):
+            near = text[m.end():m.end() + 40].split("\n")[0]
+            out += text_dates(near, year)[:1]
+    return sorted(set(out))
+
+
+def team_size(text: str) -> int:
+    """People (or seats) in a capacity line: `3 engineers`, `two developers`, `team of 4`; solo or none -> 1."""
+    m = PLAN_TEAM.search(text)
+    if not m:
+        return 1
+    n = (m.group(1) or m.group(2)).lower()
+    return int(n) if n.isdigit() else WORD_NUM[n]
+
+
+def scope_labels(scope: str) -> list[str]:
+    """The labels a `Done when` part may not stand on alone: every table stake (base, AI, agent lists - the short form
+    before a bracket too) and #Scope's own table-stake names, longest first."""
+    labels = []
+    for what, _ in (*SCOPE_STAKES, *SCOPE_AI_STAKES, *SCOPE_AGENT_STAKES):
+        labels += [what, what.split(" (")[0], what.split(" - ")[0], what.split(":")[0]]
+    for k, v in scope_fields(scope).items():
+        if re.search(r"(?i)table[- ]stakes", k):
+            labels += [re.split(r"(?i):\s*\**(?:in|now|deferred|n/?a|later|out)\b", i)[0] for i in scope_items(v)]
+    labels = [re.sub(r"\s+", " ", l).strip(" .*").lower() for l in labels]
+    return sorted({l for l in labels if len(l) > 3}, key=len, reverse=True)
+
+
+def plan_field_gaps(st: "Status", base: Path, fields: dict[str, str], spec: dict) -> list[str]:
+    """`set plan filled --from-fields`: what the fields themselves show (2.1.3) - a pasted label as an exit criterion
+    (PA1), a plan ending after a deadline nobody kept (PA2), `Open items: none` beside numbers nobody gave (PA4), a
+    team with nothing in parallel (PL1), a working-out repeated on every date (PL2). Every gap in one list."""
+    prod = base / "PRODUCT.md"
+    secs = product_sections(prod.read_text(encoding="utf-8")) if prod.is_file() else {}
+    clean = {k: re.sub(r"<!--.*?-->", "", v, flags=re.S) for k, v in secs.items()}
+    rows = field_rows(fields.get("milestones", ""), spec["by"]["milestones"]["cols"])[0]
+    gaps: list[str] = []
+    ends = [d for r in rows for d in plan_dates(r[2])]
+    year = (plan_dates(fields.get("start", "")) or ends or ["2026"])[0][:4]
+    scope = clean.get("Scope", "")
+    # PA1: each `;` part of a Done when cell keeps an observable once the scope labels and #-references are taken out;
+    # a part that is mostly the core feature's own words restates the feature
+    labels = scope_labels(scope)
+    core = " ".join(v for k, v in section_fields(scope).items() if re.search(r"(?i)core feature", k))
+    core_words = set(re.findall(r"[a-z]{3,}", core.lower()))
+    for r in rows:
+        for part in (p.strip(" .") for p in r[4].split(";") if p.strip(" .")):
+            rest = re.sub(r"\(#[^)]*\)", " ", part.lower())
+            for l in labels:
+                rest = rest.replace(l, " ")
+            words = re.findall(r"[a-z]{3,}", part.lower())
+            echo = len(words) >= 6 and core_words and sum(w in core_words for w in words) >= 0.8 * len(words)
+            if echo or not PLAN_SEEN.search(rest):
+                gaps.append(f"{r[0]}'s `Done when` part {part[:90]!r} is a label, not a test - write what someone does "
+                            f"and what they see, a number, or a command (\"a guest gets a text within 1 minute of "
+                            f"ready\", \"the privacy page opens from the footer\")")
+    # PL2: the working-out is written once, in `durations`
+    derived = [r[0] for r in rows if re.search(r"(?i)\bderived\b|÷|\d\s*h(?:ours)?\s*(?:/|a|per)\s*(?:w|wk|week|day)\b",
+                                                 r[2])]
+    if derived:
+        gaps.append(f"the Dates of {', '.join(derived)} carry how they were worked out - dates only there; write the "
+                    f"working-out once in `### durations` (`M1: <hours> h ÷ <hours a week> h a week = <weeks> weeks`)")
+    # PA2: the last milestone against every deadline the answers, #Vision or #Scope set; the north-star date keeps its
+    # own field (`north star`)
+    last = max(ends) if ends else None
+    ns = north_star_date(clean.get("Vision", ""))
+    kept = set(text_dates(fields.get("deadline", ""), year))
+    for d in plan_deadlines([fields.get("answers", ""), clean.get("Vision", ""), scope, fields.get("capacity", "")],
+                            year):
+        if last and last > d and d not in kept and not (d == ns and fields.get("north star", "").strip()):
+            gaps.append(f"the plan ends {last}, after the deadline {d} the answers, the vision or the scope set - ask "
+                        f"the user (keep it and flag it · move it · cut scope) and write `### deadline` with {d} and "
+                        f"the pick")
+    # PA4: `none` only when every number is the user's (answers, #Vision, #Scope, #Validation) or worked out
+    known = set()
+    for text in (fields.get("answers", ""), fields.get("capacity", ""), clean.get("Vision", ""), scope,
+                 clean.get("Validation", "")):
+        known |= {n.replace(",", "") for n in re.findall(r"\d+(?:[.,]\d+)?", text)}
+    if re.match(r"(?i)\W*(?:none|no open items|nothing)\b", fields.get("open items", "").strip()):
+        lines = [c for r in rows for i, c in enumerate(r) if i not in (0, 2)]
+        for name in ("usability", "schedule risks", "buffer", "summary", "will prove"):
+            lines += [l for l in fields.get(name, "").splitlines() if l.strip()]
+        lines += [r[2] for r in field_rows(fields.get("areas", ""), spec["by"]["areas"]["cols"])[0]]
+        loose = []
+        for l in lines:
+            if re.search(r"(?i)\(proposed\b|\bproposed\)", l):
+                loose.append(f"(proposed) in {l.strip()[:60]!r}")
+            elif not re.search(r"(?i)\(derived\b", l):
+                new = [n for n in plan_numbers(l) if n.replace(",", "") not in known
+                       and float(n.replace(",", ".")) != 0]
+                if new:
+                    loose.append(f"{', '.join(dict.fromkeys(new))} in {l.strip()[:60]!r}")
+        if loose:
+            gaps.append(f"Open items says none, but {len(loose)} line(s) hold a number that is not in the user's "
+                        f"answers, the vision or the scope: list each under `### open items` (`1. <item> · "
+                        f"recommended: <value> · decided by: <who, when>`), or ask it - " + " · ".join(loose[:5])
+                        + (f" · and {len(loose) - 5} more" if len(loose) > 5 else ""))
+    # PL1: a team of 2+ has pieces of work running at the same time, an owner for each
+    cap = fields.get("capacity", "") or " ".join(v for k, v in section_fields(scope).items()
+                                                 if re.search(r"(?i)capacity", k))
+    people = team_size(cap)
+    if people > 1:
+        ws = field_rows(fields.get("workstreams", ""), spec["by"]["workstreams"]["cols"])[0]
+        spans = [(dd[0], dd[-1], w[1].strip().lower()) for w in ws for dd in [plan_dates(w[3])] if dd]
+        parallel = any(a[0] <= b[1] and b[0] <= a[1] and a[2] != b[2] for i, a in enumerate(spans)
+                       for b in spans[i + 1:])
+        if not parallel:
+            gaps.append(f"the team is {people} people, but nothing runs in parallel - add `### workstreams` rows "
+                        f"(`| <piece of work> | <person or seat 1, seat 2 ...> | <milestone> | <YYYY-MM-DD → "
+                        f"YYYY-MM-DD> |`): an owner for each piece, and the pieces that run at the same time with "
+                        f"overlapping dates")
+    return gaps
+
+
 def plan_start_text(st: Status) -> str:
     """`next --phase plan`: the spine facts the plan is built from, the fields, what the close refuses, and the rules
     the questions need - one call, instead of three rule files and PRODUCT.md read whole."""
@@ -7277,9 +7726,12 @@ def plan_start_text(st: Status) -> str:
     # printed as names only, since `set` checks each has a line
     pick = [f"      {k}: {v}" for k, v in vision.items() if re.search(r"north star|riskiest|first users", k, re.I)
             and v.strip()]  # the first users are carried exactly, or the change is named
-    names = [keys[0] for _, keys in vision_constraints(re.sub(r"(?m)^\*\*", "- **", secs.get("Vision", "")))]
+    # PA4 (2.1.3): one capitalised word per constraint ("Broker", "PDF") became an `areas` row of its own in a logged
+    # plan - the constraints print as the vision writes them, one `areas` row each
+    names = [part for part, _ in vision_constraints(re.sub(r"(?m)^\*\*", "- **", secs.get("Vision", "")))]
     if names:
-        pick.append(f"      constraints (each needs a line in #Plan): {', '.join(dict.fromkeys(names))}")
+        pick.append(f"      constraints (one `areas` row each, named as written here - never one word of it): "
+                    f"{' · '.join(dict.fromkeys(names))}")
     v = st.phase("validate")
     val = {"running": f"RUNNING, due {v[3]} - plan provisionally; the timeline starts after that date or #Plan says "
                       f"provisional",
@@ -7310,7 +7762,11 @@ def plan_start_text(st: Status) -> str:
            "columns · a #Scope table stake in now with no `coverage` row and no exit criterion naming it · a "
            "four-risks cell naming none of value · usability · feasibility · viability · a usability checkpoint "
            "naming no milestone · a concern area not marked now/next/later/N-A · a start with no date · a plan "
-           "ending after the north-star date with no `north star` field · a timeline before a running experiment's "
+           "ending after the north-star date with no `north star` field · a plan ending after a deadline the answers, "
+           "#Vision or #Scope set (a demo, finals, `by <date>`) with no `deadline` field · a `Done when` part that is "
+           "a scope label, not a test (no action and what is seen, no number, no command) · `Open items: none` beside "
+           "a number nobody gave or a (proposed) one · a team of 2+ with no `workstreams` running at the same time · "
+           "a working-out inside a Dates cell (it goes once in `durations`) · a timeline before a running experiment's "
            "due date, not marked provisional · four-risks citing #Vision, or an empty #Validation · value untested "
            "while #Validation is empty · LaTeX. Plain-words estimates (an unmarked number, a capacity wording, a "
            "#Vision constraint's name) only warn.\n"
@@ -7516,6 +7972,7 @@ def design_start_text(st: "Status") -> str:
     what to write and what `set design-system filled` refuses - one call (P1, P25, P37)."""
     START_HOLDS.setdefault("design-system", DESIGN_HOLDS)  # Antigravity: fit_start names what its file holds
     base = st.base if st.base is not None else Path(".")
+    design_approval_clear(base)  # AG-DS1: this run's sample waits for this run's answer
     prod = base / "PRODUCT.md"
     secs = product_sections(prod.read_text(encoding="utf-8")) if prod.is_file() else {}
     vision, scope, arch = (re.sub(r"<!--.*?-->", "", secs.get(s, ""), flags=re.S).strip()
@@ -7526,13 +7983,13 @@ def design_start_text(st: "Status") -> str:
     tool = {n: (tool_file(*p).as_posix() if tool_file(*p) else n) for n, p in
             (("theme_studio.py", ("design-system", "theme_studio.py")),
              ("render_check.py", ("frontend-audit", "render_check.py")), ("audit.py", ("frontend-audit", "audit.py")))}
-    out = ["/design-system start (never read PRODUCT.md, PRINCIPLES.md, MECHANISMS.md or a reference whole - what this "
-           "phase starts from is here; a reference is read by the section a line below names, in that step's turn):",
+    out = ["/design-system start (never read PRODUCT.md, a rule file or a reference whole - what this phase starts "
+           "from is here; a reference by the section a line below names, in that step's turn):",
            f"  - Flags: UI {ui} · AI product {st.header.get('AI product', 'unknown')} · Agent "
            f"{st.header.get('Agent', 'unknown')}",
            f"  - This skill's references: {R} (the `--step` calls below print what each turn needs from them)",
-           f"  - Project folder: {base.resolve().as_posix()} - run every command from it (a logged `set` run from a "
-           f"subfolder found no STATUS.md)"]
+           f"  - Project folder: {base.resolve().as_posix()} - run every command from it, never a "
+           f"subfolder"]
     if ui == "no":
         out.append("  - UI gate: UI no - say in one message why a design system does not apply, write NOTHING (no "
                    "#Design, no DESIGN.md, no declined record) and stop: /foundation is next")
@@ -7622,8 +8079,8 @@ def design_start_text(st: "Status") -> str:
             w + (" (Recommended)" if k == ("presenter" if demo else "main screen") else "") for k, w in DESIGN_FOR)
         + (f" - #Vision: \"{demo}\"" if demo else ""),
         f"  - Then ONE call: `python {me} next --phase design-system --step foundations --family <N>` prints the "
-        f"family's preset, the foundations, the palettes and the type, colour, depth, motion and token laws (no "
-        f"`section` call per file, no `--help`); the host's searches beside it",
+        f"family's preset, foundations, palettes and laws (no `section` call per file, no `--help`); the host's "
+        f"searches beside it",
         "  - Round 2 - ONE message: ONE of the 13 families below as the default, its why citing their answers; say "
         "there are 13 and where (archetypes.md); their own reference wins. Under it the foundations, each a decided "
         "default + a one-line why: type pairing + a real scale (the archetype's base size), colour roles in OKLCH "
@@ -7650,12 +8107,16 @@ def design_start_text(st: "Status") -> str:
         "two options: \"I tried it - looks good (Recommended)\" · \"Change something\" (bolder · quieter · denser · "
         "roomier · another font) - a looks-good is the go-ahead to write and save, never a separate save question. "
         "Change -> regenerate, the same message again. No DESIGN.md before approval",
-        f"  - After the approval, ONE message: `python {tool['theme_studio.py']} <sample> --remove` (no Theme "
-        f"Studio in the approved sample); `python {me} next --phase design-system --step write` for DESIGN.md, the "
-        f"stylesheet the app loads + its import and the #Design file; then `set design-system filled --section-from "
-        f"<file> --commit \"<one line>\"` in the foreground (~1 min: it re-renders the sample, retaking the screenshots without the "
-        f"studio) records, runs the audit, writes its counts and the front matter into DESIGN.md, adds new folders "
-        f"to STRUCTURE.md, saves and prints the rest of the close",
+        f"  - After the owner's answer, ONE message: `python {me} next --phase design-system --step write --approved "
+        f"\"<their answer, word for word>\"` (records it; refuses with no answer or a change) and `python "
+        f"{tool['theme_studio.py']} <sample> --remove --approved \"<the same answer>\"` (no Theme Studio in the "
+        f"approved sample); then DESIGN.md, the stylesheet the app loads + its "
+        f"import and the #Design file; a Step 3c clash as `status.py open` BEFORE the save (the save takes it); then "
+        f"`set design-system filled --section-from <file> --commit \"<one line>\"` "
+        f"in the foreground (~1 min: it re-renders the sample, retaking the screenshots without the studio) records, "
+        f"runs the audit, fills DESIGN.md's counts and front matter, adds new folders to STRUCTURE.md, saves and "
+        f"prints the rest of the close",
+        SCRIPT_REFUSED,
         "  - Order (each call re-sends all before it): reads and round 1 first; the sample written whole in ONE "
         "call, fixed by edits, never rewritten; DESIGN.md, the stylesheet and the #Design file are the last "
         "writes, `set` in that call or the next - no audit or render call of your own after them (`set` runs both)",
@@ -7681,7 +8142,7 @@ def design_start_text(st: "Status") -> str:
         "The 13 families (archetypes.md; read the chosen one by its heading):\n" + "\n".join(
             f"  {i}. {n}" for i, n in enumerate(design_families(), 1)),
         print_sections(loop, ["§Design principles"]) if loop else "",
-        rules_text(rules, "Rules for /design-system, word for word from the rule files (these ARE the rule files "
+        rules_text(rules, "Rules for /design-system, word for word (these ARE the rule files "
                           "for this phase - do not open them; the close's print at `set`; `status.py rules "
                           "design-system` prints them again, with §Status (" + CONTRACTS_BY_NAME["Status"] + ")):")]
         if x)
@@ -7717,26 +8178,70 @@ DESIGN_REFUSES = (
     + DESIGN_OVERRIDE)
 
 
-# Antigravity only (2026-10-11): a logged run read every step's file up front, ran the after-approval `--remove`
-# itself and saved a design the owner never confirmed; it then read status.py ~20 times for what the save checks.
-# The write step and the save wait for the owner's answer, recorded beside this script (never committed).
+# Every tool (2.1.3, AG-DS1): a logged Antigravity run never asked the sample confirm, ran the after-approval `--remove`
+# itself and saved a design the owner never saw; it then read status.py ~20 times for what the save checks. The write
+# step, theme_studio.py --remove and the save each wait for the owner's answer: `--step write --approved "<answer>"`
+# records it in the project's .git folder (never committed; this script's folder when there is no .git folder), and
+# the phase's start clears an older one, so a re-run asks again.
 AG_APPROVAL = "design-approved.txt"
-AG_CONFIRM = ("STOP before the write step: your NEXT call is ask_question with the confirm - the sample at phone, "
-              "tablet and desktop, what both checks found, \"Open <the sample's absolute path> in your browser...\" and "
-              "two options: \"I tried it - looks good (Recommended)\" · \"Change something\". Only after the owner "
-              "answers: `next --phase design-system --step write --approved \"<their answer, word for word>\"`")
+DESIGN_APPROVAL_GIT = "playbook-design-approved.txt"
+AG_CONFIRM = ("STOP before the write step: your NEXT call asks the owner the confirm with your question tool "
+              "(AskUserQuestion on Claude Code, ask_question on Antigravity, else numbered options) - the sample at "
+              "phone, tablet and desktop, what both checks found, \"Open <the sample's absolute path> in your "
+              "browser...\" and two options: \"I tried it - looks good (Recommended)\" · \"Change something\". Only "
+              "after the owner answers: `next --phase design-system --step write --approved \"<their answer, word for "
+              "word>\"`, then `theme_studio.py <sample> --remove --approved \"<the same answer>\"`")
 AG_NO_SOURCE = ("What the save checks: `set design-system filled --section-from <file> --dry-run` names every gap at "
                 "once and writes nothing - never open status.py, render_check.py, audit.py or theme_studio.py; their "
                 "output says what to fix")
+# AG-DS2: what to do when a script refuses, in the start on every tool, so no run opens a script to find out
+SCRIPT_REFUSED = ("  - A script refuses or fails: make the fix its message names and run the SAME command again. Every "
+                  "flag is printed here; what the save checks: `set design-system filled --section-from <file> "
+                  "--dry-run` (every gap, writes nothing). Never open status.py, theme_studio.py, render_check.py or "
+                  "audit.py, never their `--help`: this start is the instructions")
 
 
-def ag_approval(base: Path) -> str | None:
-    """The owner's recorded answer to the sample confirm for this project, or None (Antigravity only)."""
-    f = Path(__file__).resolve().parent / AG_APPROVAL
-    if not f.is_file():
-        return None
-    head, _, answer = f.read_text(encoding="utf-8").partition("\n")
-    return answer.strip() if head.strip() == base.resolve().as_posix() else None
+def design_approval_files(base: Path) -> list[Path]:
+    """Where the owner's answer to the sample confirm is kept: the project's .git folder first (this project's own,
+    never committed), else beside this script; the first line names the project either way."""
+    git_dir = base / ".git"
+    return ([git_dir / DESIGN_APPROVAL_GIT] if git_dir.is_dir() else []) + [Path(__file__).resolve().parent / AG_APPROVAL]
+
+
+def design_approval(base: Path) -> str | None:
+    """The owner's recorded answer to the sample confirm for this project, or None."""
+    for f in design_approval_files(base):
+        if f.is_file():
+            head, _, answer = f.read_text(encoding="utf-8").partition("\n")
+            if head.strip() == base.resolve().as_posix():
+                return answer.strip() or None
+    return None
+
+
+ag_approval = design_approval  # its 2.4 name
+
+
+def design_approval_clear(base: Path) -> None:
+    """A new /design-system start: an answer from an earlier run approves nothing in this one."""
+    for f in design_approval_files(base):
+        try:
+            if f.is_file() and f.read_text(encoding="utf-8").partition("\n")[0].strip() == base.resolve().as_posix():
+                f.unlink()
+        except OSError:
+            pass
+
+
+def design_approval_record(base: Path, today: str, approved: str) -> None:
+    """`--step write --approved`: the owner's answer, for theme_studio.py --remove's and the save's check."""
+    text = f"{base.resolve().as_posix()}\n{today}: {approved.strip()[:200]}\n"
+    for f in design_approval_files(base):
+        try:
+            f.write_text(text, encoding="utf-8")
+            return
+        except OSError:
+            continue
+    raise Refused("could not record the owner's answer (neither the project's .git folder nor the playbook's folder is "
+                  "writable) - run this same command again with write access")
 
 
 def design_step_text(phase: str, step: str, family: str | None, approved: str | None = None,
@@ -7745,14 +8250,13 @@ def design_step_text(phase: str, step: str, family: str | None, approved: str | 
     word, in one call (P1, P25)."""
     if phase.lstrip("/") != "design-system" or step not in DESIGN_STEPS:
         raise Refused(f"--step goes with --phase design-system and is one of: {', '.join(DESIGN_STEPS)}")
-    if playbook_tool() == "antigravity" and step == "write":
+    if step == "write":  # every tool (AG-DS1): the write step waits for the owner's answer to the sample confirm
         if not (approved or "").strip():
             raise Refused(AG_CONFIRM)
         if re.search(r"(?i)\bchange\b", approved):
             raise Refused("the owner asked for a change: regenerate the sample, run both checks again, and ask the same "
                           "confirm again - the write step waits for \"looks good\"")
-        (Path(__file__).resolve().parent / AG_APPROVAL).write_text(
-            f"{(base or Path.cwd()).resolve().as_posix()}\n{today}: {approved.strip()[:200]}\n", encoding="utf-8")
+        design_approval_record(base or Path.cwd(), today, approved)
     ref = {n: design_ref(n) for n in ("archetypes.md", "build-loop.md", "palettes.md", "universal-laws.md", "craft.md",
                                        "theme-studio.md", "design-md-template.md", "page-patterns.md")}
     if any(v is None for v in ref.values()):
@@ -7825,7 +8329,7 @@ def design_record_gaps(base: Path, st: "Status", write: bool = False, today: str
     # logged NOT RUN / no-screenshot records through
     override = any(re.search(r"(?i)\boverride\b", l) for l in body.splitlines())
     gaps: list[str] = []
-    if playbook_tool() == "antigravity" and ag_approval(base) is None:
+    if design_approval(base) is None:
         gaps.append("the owner has not approved the sample - " + AG_CONFIRM)
     for label, rx in (("Has user-facing UI?", r"user-facing ui"), ("Design principles", r"principles"),
                       ("Archetype", r"archetype"), ("Foundations summary", r"foundations"), ("Tokens", r"^tokens"),
@@ -7879,7 +8383,7 @@ def design_record_gaps(base: Path, st: "Status", write: bool = False, today: str
                         f"receives, in a device frame marked data-view=\"end-user\" (page-patterns.md §Presenter)")
         if STUDIO_MARK in page:
             gaps.append(f"{m.group(1)} still holds the Theme Studio - the approved sample is the page as the user sees "
-                        f"it: `python <...>/theme_studio.py {m.group(1)} --remove`")
+                        f"it: `python <...>/theme_studio.py {m.group(1)} --remove --approved \"<the owner's answer>\"`")
         scope = re.sub(r"<!--.*?-->", "", secs.get("Scope", ""), flags=re.S)
         unmarked = [(i, w) for i, w, _ in design_must(scope)
                     if not re.search(rf"data-must\s*=\s*[\"']?{i}\b", page)
@@ -7893,6 +8397,7 @@ def design_record_gaps(base: Path, st: "Status", write: bool = False, today: str
         gaps.append("who the sample is for is not recorded - a #Design line `Sample for: <main screen|presenter|both> - "
                     "<their answer>` (round 1's \"What is this sample for?\")")
     gaps += design_language_gaps(body, page, m.group(1) if m else "")
+    gaps += design_source_gaps(design, re.sub(r"<!--.*?-->", "", secs.get("Architecture", ""), flags=re.S))
     gaps += design_font_gaps(base, body, design, sample if page else None)
     gaps += design_render_gaps(base, body, override)
     if write:  # /structure's check runs next at `set`: the folders this phase made get their tree line first
@@ -7943,6 +8448,35 @@ def design_record_gaps(base: Path, st: "Status", write: bool = False, today: str
         design_p.write_text(design, encoding="utf-8", newline="\n")
         design_write_audit(base, design_p, design, m.group(1) if m and page else None, today)
     return gaps
+
+
+# DS1 (2.1.3): DESIGN.md's template named shadcn/ui + 21st.dev as THE component source, so a stack whose #Architecture
+# names plain CSS got a library it never chose and a clash open item on every run. §4's Source line follows
+# #Architecture: a library named there that #Architecture does not name is refused.
+COMPONENT_GENERIC = re.compile(r"(?i)component (?:library|source|kit)|ui (?:library|kit)|plain css|vanilla css|"
+                               r"css modules|own components")
+
+
+def design_source_gaps(design: str, arch: str) -> list[str]:
+    """DESIGN.md §4 `Source:` names only the UI component source #Architecture records."""
+    line = next((l for l in design.splitlines() if re.match(r"(?i)^\W*(?:\*\*)?source:?(?:\*\*)?:?\s", l.strip())), "")
+    if not line or not arch.strip():
+        return []
+    extra = []
+    for m in COMPONENT_SOURCE.finditer(line):
+        name = m.group(0)
+        if COMPONENT_GENERIC.fullmatch(name) or re.search(r"(?i)\b(?:no|not|without|instead of)\s+$",
+                                                         line[max(0, m.start() - 12):m.start()]):
+            continue
+        key = re.split(r"[/ ]", name.lower())[0]
+        if not re.search(rf"(?i)\b{re.escape(key)}", arch) and name not in extra:
+            extra.append(name)
+    if not extra:
+        return []
+    src = next((x.group(0) for x in COMPONENT_SOURCE.finditer(arch)), None)
+    return [f"DESIGN.md §4 Source names {', '.join(extra)}, which #Architecture does not - components come from what "
+            f"#Architecture names ({src or 'none named: plain CSS with our own components'}); write that on the Source "
+            f"line. A library you think the product needs is a Step 3c clash (`status.py open`), never added here"]
 
 
 def design_language_gaps(body: str, page: str, name: str) -> list[str]:
@@ -8235,13 +8769,23 @@ def design_front_matter(base: Path, design: str, st: "Status") -> str:
            "hand\"", "colors:"]
     out += [f"  {k}: {q(v)}" for k, v in tokens.items() if DESIGN_COLOUR.match(v)]
     typo = [(r, tokens.get(font[2:]), tokens.get(size[2:])) for r, font, size in DESIGN_FONT_ROLES]
-    typo = [(r, f.split(",")[0].strip("\"' ") if f else None, s) for r, f, s in typo if s]
+    # a fluid size is not a dimension in Google's format (its linter's one error on a logged DESIGN.md): write the
+    # largest fixed value a clamp() reaches (DM2)
+    typo = [(r, f.split(",")[0].strip("\"' ") if f else None,
+             re.sub(r"(?i)^clamp\(.*,\s*([^,()]+)\)$", r"\1", s).strip()) for r, f, s in typo if s]
     if typo:
         out.append("typography:")
         for r, f, s in typo:
             out += [f"  {r}:", *([f"    fontFamily: {q(f)}"] if f else []), f"    fontSize: {s}"]
-    if "radius" in tokens:
-        out += ["rounded:", f"  md: {tokens['radius']}"]
+    # every radius step (`--radius` is md, `--radius-sm` is sm) and the spacing scale: Google's linter reported "No
+    # 'spacing' section defined" on every logged DESIGN.md, so agents fell back to their own spacing (DM1)
+    rounded = [("md" if k == "radius" else k[len("radius-"):], v) for k, v in tokens.items()
+               if k == "radius" or k.startswith("radius-")]
+    if rounded:
+        out += ["rounded:", *(f"  {k}: {v}" for k, v in rounded)]
+    spacing = [(k, v) for k, v in tokens.items() if re.match(r"(?:space|spacing)-[\w-]+$", k)]
+    if spacing:
+        out += ["spacing:", *(f"  {k}: {v}" for k, v in spacing)]
     return "\n".join(out + ["---", ""]) + body
 
 
@@ -8264,13 +8808,13 @@ def render_recheck(base: Path, sample: str, main: str, shots: str | None = None)
 def run_habits() -> list[str]:
     """The call habits every `next` prints, with or without a STATUS.md."""
     out = ["  - fewest calls (each re-sends the whole conversation): independent reads and commands in ONE call; "
-           "a big file once, early, or by section; never open a playbook script. Conversation summarised "
-           "mid-run? run this same `next` again - it reprints where you are; never re-read files to rebuild it",
+           "a big file once, early, or by section; never open a playbook script. Summarised mid-run? run "
+           "this same `next` again (it reprints where you are), never re-read files",
            # a logged /test ran six python scripts that rewrote test files (27-61 s each, +19% time vs plain); the
            # 169 mined sessions: edit-by-script = 9.3% of all tokens
            "  - write and change code, tests and docs with the edit tool (several edits to one file in one "
-           "call) - never a python/sed script that rewrites files: each is slower, breaks on quoting, and puts "
-           "the code in the conversation twice"]
+           "call) - never a python/sed script that rewrites files (slower, breaks on quoting, the code sent "
+           "twice)"]
     if playbook_tool() == "codex":  # a logged Codex /architect checked a 2-minute file write 9 times: 1.2M tokens
         out.append("  - Codex: a command or file write still running - wait for it with ONE long wait (yield_time_ms "
                    "120000), never repeated short checks: each check re-sends the whole conversation.")
@@ -8355,16 +8899,17 @@ def fit_start(full: str, phase: str = "vision") -> str:
     name = START_FILE if phase == "vision" else f"{phase}-start.md"
     last = vision_last() if phase == "vision" else ""
     f = Path(__file__).resolve().parent / name
+    lead = run_this_line() + "\n" if tool == "antigravity" else ""  # the line its short output has no room for
     # review 2.4 early-11: Cursor's user-wide install is ~/.cursor/product-playbook/ - outside the workspace (its
     # sandbox may refuse the file, a read may ask approval) and shared by every window. The project's .git folder is
     # this project's own and never committed, as /foundation's long start; no .git folder: the tools folder.
     if cursor and (Path.cwd() / ".git").is_dir():
         f = Path.cwd() / ".git" / f"playbook-{name}"
     try:
-        f.write_text(full + "\n\n" + last + "\n", encoding="utf-8")
+        f.write_text(lead + full + "\n\n" + last + "\n", encoding="utf-8")
     except OSError:
         f = Path(__file__).resolve().parent / name
-        f.write_text(full + "\n\n" + last + "\n", encoding="utf-8")
+        f.write_text(lead + full + "\n\n" + last + "\n", encoding="utf-8")
     how = "your file-read tool, whole" if cursor else "view_file"
     return "\n".join([
         ("Your tool cuts long output" if cursor else "Your tool shows only the end of a long output")
@@ -8456,7 +9001,8 @@ def vision_start_text(new: bool = False, base: Path | None = None) -> str:
             "Commands run in the project folder already: never `cd <path> &&`.\n"
             + helper + "\n"
             "  - Questions: every one is 2-4 options built from what the user gave (Recommended first, one-line reason) "
-            "+ Other; a number question also offers `I don't know yet - work it out in <phase>`. Two rounds, three owner "
+            "+ Other, each option a complete answer (a number as concrete values, never \"specify it\"); a number "
+            "question also offers `I don't know yet - work it out in <phase>`. Two rounds, three owner "
             "turns: the drafts (3 vision sentences, 3 names, the job to be done, any proposed target) are options "
             "inside round 2, never a message of their own. A brief (more than one "
             "sentence): each round-1 question it answers is quoted under `From your brief:`, never asked; never ask a "
@@ -8500,7 +9046,7 @@ def phase_rules_text(phase: str, new: bool = False, skip: set[str] | frozenset =
         want = {k: [x for x in v if x not in NEW_PROJECT_SKIP[phase]] for k, v in want.items()}
     if skip:
         want = {k: [x for x in v if x not in skip] for k, v in want.items()}
-    parts = [f"Rules for /{phase}, word for word from the rule files (these ARE the rule files for this phase - do "
+    parts = [f"Rules for /{phase}, word for word (these ARE the rule files for this phase - do "
              f"not open them):"]
     for name, secs in want.items():
         parts.append(f"===== {name} =====\n" + print_sections(rule_file(name), secs))
@@ -8570,7 +9116,17 @@ SCOPE_STAKES = (
     ("accessibility baseline", r"accessib|a11y|wcag"), ("a way for a user to report a problem", r"report|feedback"),
     ("the rules that apply - name each: data protection, AI law, sector law (or why none)",
      r"rules? that apply|regulat|gdpr|data protection|\blaw\b|legal|complian"),
-    ("the languages its users need", r"language|locali[sz]|translat|i18n"))
+    ("the languages its users need", r"language|locali[sz]|translat|i18n"),
+    # S6: engineering must-haves nobody proposes - on a logged run plain raised all five and the playbook none. A
+    # product with no money, rights or secrets sorts them N/A with its reason, as an account-less one does a password.
+    ("decisions about payments or people's rights made by fixed, tested rules - never a model's guess",
+     r"determin|fixed,? tested rules|rules decide|rule[- ]based|model'?s guess"),
+    ("rules and prices versioned - each decision records the version it used",
+     r"versioned|rule versions?|records? the version|version of the rules"),
+    ("money stored as whole minor units (cents), never floating point", r"\bmoney\b|minor units?|\bcents\b"),
+    ("a failure hands over to a person - never a silent wrong answer",
+     r"\ba failure\b|failure hand|failures? (?:go|goes|hand)"),
+    ("secrets (keys, tokens) kept out of the code, the logs and the repository", r"secrets?\b|credentials?|api keys?"))
 SCOPE_AI_STAKES = (
     ("known-answer test cases the AI must pass before release (#Vision's accuracy bar)",
      r"test cases|known[- ]answer|\bevals?\b|golden|accuracy"),
@@ -8581,7 +9137,8 @@ SCOPE_AGENT_STAKES = (
     ("what the agent may do on its own, as a list", r"may do|allowed|permission|read[- ]only|on its own"),
     ("a stop switch that halts it", r"\bstop|kill|pause|disable|switch"),
     ("a log of every action it takes", r"\blog|audit|trail"))
-SCOPE_VISION = (("who it's for", r"^who\b"), ("value proposition", r"value prop"), ("north-star target", r"target"),
+SCOPE_VISION = (("vision", r"^vision$"), ("in plain words", r"plain words"), ("worked example", r"worked example"),
+                ("job-to-be-done", r"^job"), ("who it's for", r"^who\b"), ("value proposition", r"value prop"), ("north-star target", r"target"),
                 ("input metrics", r"input"), ("riskiest assumption", r"riskiest"),
                 ("business model", r"business model"), ("AI", r"^ai\b"),
                 ("constraints", r"constraint|regulat|rules|language"))
@@ -8790,11 +9347,19 @@ def scope_start_text(st: "Status") -> str:
     out.append("  - Table stakes for THIS product - one `table stakes` row each: `| <item> | in now |` · `| <item> | "
                "deferred - when <trigger> |` · `| <item> | N/A - <reason> |`:")
     out += [f"      {what}" for what, _ in scope_stakes(st.header)]
-    out += ["  - Every question: 2-4 options built from #Vision and the answers, Recommended first, plus Other. Round 1: "
+    out += ["  - Every question: 2-4 options built from #Vision and the answers, Recommended first, plus Other - each option "
+            "a complete answer. Round 1: "
             "the core feature · the smallest set around it · \"Which of these should stay OUT of the first version? "
-            "You decide later or never for each next.\" · capacity (who builds it, how long). Round 2: each temptation "
-            "as its own question (later + trigger / never / in now), the table stakes, Done when per item, the fit "
-            "against the capacity.",
+            "You decide later or never for each next.\" · capacity (who builds it, how long) as concrete values "
+            "(\"1 person, 8 h/week x 5 weeks (Recommended)\" · another size · Other). Round 2 asks only what round 1 left "
+            "open: each temptation round 1 kept OUT as its own question (later + trigger / never), never one round 1 "
+            "did not tick, never capacity again; the table stakes, Done when per item, the fit against the capacity "
+            "(a cut, as options).",
+            "  - THE core feature is the first `in scope` row, its Done when checks the core sentence's own capability; "
+            "no `deferred` or `never` row takes part of it back (a later extension says `beyond the core:` in its "
+            "item). `vision check`: one row per vision promise - the vision line, who it's for, the job, the worked "
+            "example's steps, the north star, the AI line - each `kept` · `deferred - <reason>` · `changed - <how, "
+            "and who picked it>`; never a bare `agrees`.",
             "  - THE core feature and each item: never decided for the user - proposed as options; each answer word for "
             "word (a picked option as `picked: <option>`) under `answers`. A number #Vision does not hold is "
             "`(proposed)` or `(owner)`; one carried from #Vision says `(from vision: owner's answer, not yet worked "
@@ -8802,7 +9367,11 @@ def scope_start_text(st: "Status") -> str:
             phase_fields_text("scope"),
             "  - `set scope filled` refuses, every problem in one list: a field missing or empty, a table row without its "
             "columns · a table stake above with no row, or a Decision that is not in now / deferred / N/A · no "
-            "```mermaid core loop · #Validation running and nothing marked `provisional`. Plain-words estimates (an "
+            "```mermaid core loop · #Validation running and nothing marked `provisional` · the core's words missing "
+            "from the in-scope rows, or a deferred / never row taking it back · a vision-check row that is not kept / "
+            "deferred / changed, or a missing promise · a `[n]` source mark (this document has no source list) · a "
+            "picked answer that asks for more, not an answer · an example with numbers not marked `(illustrative)` or "
+            "`(owner)`. Plain-words estimates (an "
             "unmarked number, a trigger word, a reason word) only warn.",
             "  - Two rounds, each ONE message or form: round 1's four questions, then round 2 with the recommendation "
             "and any #Vision clash (which wins, as options) - no save question. After the answers, the fields file in "
@@ -9339,10 +9908,11 @@ def adopt_record(path: Path, a, today: str) -> str:
     msg += [saved] if saved else []
     saved = saved if saved and saved.startswith("saved") else None
     nxt, why = adopt_next(product_sections(text))
-    card = "\n".join(l for l in handoff_card(st).splitlines() if not l.startswith(("Open a NEW", "Cost:")))
-    msg += [close_steps_text("adopt", saved), *([card] if card.strip() else []),
-            f"Open a NEW conversation and type: {skill_command(nxt)} - {why}; nothing is lost: it is all in "
-            f"PRODUCT.md, STATUS.md and git."]
+    card = "\n".join(l for l in handoff_card(st).splitlines()
+                     if not l.startswith(("Open a NEW", "Cost:", "Your close ends with")))
+    go = (f"Open a NEW conversation and type: {skill_command(nxt)} - {why}; nothing is lost: it is all in "
+          f"PRODUCT.md, STATUS.md and git.")
+    msg += [close_steps_text("adopt", saved), *([card] if card.strip() else []), whole_line_note(go), go]
     return "\n".join(msg)
 
 
@@ -10107,6 +10677,8 @@ ARCH_LABELS = {
     "agent": "(Agent) the ten AGENT.md §Architect rows (framework · action tiers · caps · untrusted input · hand-off · "
              "staged autonomy + kill switch · audit log · memory · agent evals · AI disclosure) — or N/A"}
 ARCH_NA = re.compile(r"(?i)^\W*(?:n/?a|none|not applicable)\b")
+# an optional appendix left empty says what that means (AR3: "Not applicable: none" read as "no research ran")
+ARCH_APPENDIX_EMPTY = {"options": "The options are in each decision in section 8."}
 ARCH_TOOL_ARROW = re.compile(r"(?m)(?:--?>|->>|-->>)\s*\|?[^|\n]*`[^`\n]+`|(?:--?>|->>)[^\n]*\b(?:just|make|npm run|"
                              r"uv run|python -m)\s+[a-z]")
 CURRENCY = {"eur": "€", "euro": "€", "euros": "€", "€": "€", "usd": "$", "$": "$", "dollar": "$", "dollars": "$",
@@ -10260,6 +10832,12 @@ def arch_render(base: Path, st: "Status", f: dict[str, str], today: str) -> dict
     warns: list[str] = []
     need = ARCH_REQUIRED + (("ai", "cost per use", "ai part") if ai else ()) + (("agent",) if agent else ())
     miss = [n for n in need if not f.get(n, "").strip()]
+    # AR3 (2.1.3): research always runs (`searches` is required), so Appendix D always has a verified/unverified
+    # answer; a logged document said "Not applicable: none" there after 7 searches
+    if f.get("searches", "").strip() and not re.search(r"(?i)not verified\W", f.get("sources", "")):
+        gaps.append("`### sources` (Appendix D) has no `**Not verified:**` line - research ran, so list the links the "
+                    "body relies on that Appendix B lacks (or `none beyond Appendix B`), then `**Not verified:**` and "
+                    "each fact no page you opened confirmed (or `nothing - every fact has its page in Appendix B`)")
     if miss:
         gaps.append(f"the fields file has no `### {'`, `### '.join(miss)}` - every field `status.py fields architect` "
                     f"lists, its text under the heading")
@@ -10388,6 +10966,14 @@ def arch_render(base: Path, st: "Status", f: dict[str, str], today: str) -> dict
     if mapping and lost:
         gaps.append(f"`### mapping to the plan` has no row for {', '.join(lost)} - one row per #Plan milestone")
     warns += arch_trace_warnings(clean.get("Scope", ""), "\n".join(f.values()))
+    # AR1 (2.1.3): a logged model question priced "EUR 0.03 per request"; the owner decides on the month (a warning:
+    # it reads words) - the model question's line and the 3 under it
+    asked = (f.get("answers", "") + "\n" + f.get("options", "")).splitlines()
+    model_q = "\n".join("\n".join(asked[i:i + 4]) for i, l in enumerate(asked) if re.search(r"(?i)\bmodel\b", l))
+    if ai and model_q and not re.search(
+            MONEY + r"[^\n]{0,40}?(?:/\s?mo(?:nth)?\b|\ba month\b|\bper month\b|\bmonthly\b)", model_q):
+        warns.append("the model question's options show no monthly cost (Appendix A/C) - each option says `about "
+                      "<currency><N> a month (<cost per use> × <uses a month>)`")
     for name in ("overview", "how it works"):
         text = f.get(name, "")
         if text and "```mermaid" not in text and not ARCH_NA.match(text.strip()):
@@ -10407,10 +10993,13 @@ def arch_render(base: Path, st: "Status", f: dict[str, str], today: str) -> dict
                      f"(\"when the folders are laid out\"), a reader does not know the playbook")
     if gaps:
         return {"gaps": gaps, "warns": warns}
+    record, _ = reflow(arch_render_record(f, kvs, decs, rrows, xrows, cost, ai, agent))  # the script formats (P19)
+    doc = arch_render_doc(f, kvs, decs, superseded, rrows, xrows, cost, ai, st.product or base.name, today)
+    long = readable_line_gaps(record, "Architecture", doc, ARCH_DOC)
+    if long:
+        return {"gaps": long, "warns": warns}
     return {"gaps": [], "warns": warns, "adrs": adrs, "opens": opens, "plan_changed": new_plan != plan_body,
-            "record": arch_render_record(f, kvs, decs, rrows, xrows, cost, ai, agent),
-            "doc": arch_render_doc(f, kvs, decs, superseded, rrows, xrows, cost, ai, st.product or base.name, today),
-            "product": product}
+            "record": record, "doc": doc, "product": product}
 
 
 def arch_plan_marks(plan: str) -> list[str]:
@@ -10487,14 +11076,17 @@ def arch_render_doc(f: dict, kvs: dict, decs: list, superseded: dict, rrows: lis
     defaults = [d["id"] for d in decs if d.get("provenance", "").strip("` ").lower().startswith("default")]
     out = [f"# Architecture — {product}", "",
            f"> **Status:** approved by the owner on {today} · written {today} from the vision, scope and plan. **Owner:** "
-           f"read 1 Overview, 2 What drives the design, 8 Decisions (its first line lists the defaults waiting for your "
-           f"confirmation), 11 Running it (the monthly cost) and 13 Risks and open questions. **Developers and coding "
+           f"read 1 Overview, 2 What drives the design, 8 Decisions (its first line lists the recommendations you kept "
+           f"rather than picked), 11 Running it (the monthly cost) and 13 Risks and open questions. **Developers and coding "
            f"agents:** all of it; start with 3 Rules the code must keep. A decision that changes later gets an ADR in "
            f"`docs/adr/` and a Superseded line in 8. The workings are the appendix."]
     for n, (title, field) in enumerate(ARCH_LAYOUT, 1):
         out += ["", f"## {n}. {title}", ""]
         if field == "decisions":
-            out.append(f"**Defaults waiting for the owner's confirmation:** {' · '.join(defaults) or 'none'}")
+            # AR2 (2.1.3): the save runs only on the owner's "Keep this stack", so a default is a recommendation
+            # the owner KEPT - "waiting for confirmation" under an "approved by the owner" header contradicted it
+            out.append(f"**Recommendations the owner kept (not picked) on {today}:** {' · '.join(defaults) or 'none'}"
+                       + (" - change any by re-running the architecture step" if defaults else ""))
             for k, d in enumerate(decs, 1):
                 out += ["", f"### {n}.{k} {d['id']}. {d['title']}"]
                 out += [f"- **{label}:** {d[key]}" for key, label in ARCH_DECISION_KEYS if d.get(key)]
@@ -10527,7 +11119,7 @@ def arch_render_doc(f: dict, kvs: dict, decs: list, superseded: dict, rrows: lis
     out += ["", "---"]
     for letter, title, field in ARCH_APPENDICES:
         out += ["", f"## Appendix {letter} — {title}", "",
-                arch_body_lines(f.get(field, ""), 0, letter) or "Not applicable: none."]
+                arch_body_lines(f.get(field, ""), 0, letter) or ARCH_APPENDIX_EMPTY.get(field, "None.")]
     return "\n".join(out).rstrip() + "\n"
 
 
@@ -10619,7 +11211,7 @@ def architect_rules_text(st: "Status") -> str:
                             ("Re-run semantics", "§Re-run semantics (before changing the filled section)"))
              if s in skip and (s != "Re-run semantics" or st.state("architect") in ("filled", "overridden"))]
     want = {k: [s for s in v if s not in skip] for k, v in PHASE_RULES["architect"].items()}
-    return (rules_text(want, "Rules for /architect, word for word from the rule files (these ARE the rule files for "
+    return (rules_text(want, "Rules for /architect, word for word (these ARE the rule files for "
                              "this phase - do not open them; `status.py rules architect` prints them again"
                        + (", with " + " and ".join(named) + " - run it then" if named else "")
                        + "):")
@@ -10655,10 +11247,15 @@ def arch_helper_line(today: str = "") -> str:
     return (f"  - Research, after round 1's answers: {route}, brief `{brief}`, given today's date ({today or "<today>"}), "
             f"the open decision rows and answers 1-7 word for word. It runs the searches and page opens in its own context and returns the "
             f"search list, the facts with links and (AI product) both model routes priced: paste its search lines "
-            f"into the `searches` field; never search yourself meanwhile, never open its files. No such tool in your "
-            f"list: {fallback} yourself."
+            f"into the `searches` field; never search yourself meanwhile, never open its files. A round-2 answer "
+            f"that needs new facts (Other, Change a row): the SAME helper again, given only the changed rows and the "
+            f"answer word for word - never a search or page open in this chat. No such tool in your list: "
+            f"{fallback} yourself; a changed row then gets at most 1 search + 2 page opens, in one message, and a page "
+            f"already read is never opened again (its facts are in your notes)."
             if route else f"  - Research, after round 1's answers: no helper on this tool - {fallback}, brief "
-                          f"`{brief}`.")
+                          f"`{brief}`. A round-2 answer that needs new facts (Other, Change a row): at most 1 search "
+                          f"+ 2 page opens per changed row, in one message; a page already read is never opened "
+                          f"again (its facts are in your notes).")
 
 
 def architect_start_text(st: "Status") -> str:
@@ -10734,6 +11331,10 @@ def architect_start_text(st: "Status") -> str:
             "  - Provenance on every stack, custody, runtime and identity row and every decision: `user-chosen` (the "
             "user picked that option) or `default taken, not user-chosen` (you recommended it; \"go with your "
             "recommendation\" included) - no other words. Identity is N/A only when answer 6 is `none`.",
+            *(["  - Round 2's model question (AR1): each option's label carries the MONTHLY cost - `<model> · <where "
+               "the data is processed> · about <currency><N> a month (<cost per use> × <uses a month>)`, the uses a "
+               "month from the #Vision or #Plan line that sizes it (say which); a price per item or per 1M tokens "
+               "alone is not the monthly cost. The helper returns prices; you multiply"] if ai != "no" else []),
             "  - The model row says `released YYYY-MM-DD`, from the model's page this run. A fact you could "
             "not verify is written `UNVERIFIED` with an open item - record the phase `filled` on the owner's yes, "
             "never `declined` (only the owner declines a phase).",
@@ -10798,7 +11399,7 @@ STRUCTURE_HEAD = (
     "Commands work in PowerShell and in bash: one command per call - no &&, tail, grep or export; never `cd <path> &&`. "
     "The same command fails 3 times: stop and tell the user what fails. Plain symbols (≤ →), never LaTeX.",
     "No commit during the run - not even a STATUS.md the last phase left: the one save at the close takes every "
-    "change, and leaves the playbook's install (.agents/, .claude/skills/ ...) out.",
+    "change and leaves the playbook's install out.",
     "A `Read:` line quotes each input file you opened beyond what `next` printed (an ADR, an existing file): "
     "`status.py quote <file> \"<words>\"` prints the line to paste.",
 )
@@ -11277,7 +11878,7 @@ LOCK_REAL = {"uv.lock": r"\[\[package\]\]", "poetry.lock": r"\[\[package\]\]|con
              "pnpm-lock.yaml": r"lockfileVersion", "yarn.lock": r"yarn lockfile|__metadata", "bun.lock":
              r"lockfileVersion", "Gemfile.lock": r"DEPENDENCIES", "composer.lock": r'"content-hash"', "go.sum": r"\S"}
 LOCK_PENDING = re.compile(r"(?im)^.*\block pending\b.*$")
-SMOKE_PASS = re.compile(r"(?i)\b\d+\s+passed\b|\bpass(?:ed|es)?\b|\bok\b|✓|\bsuccess")
+SMOKE_PASS = re.compile(r"(?i)\b\d+\s+passed\b|\bpass(?:ed|es)?\b|\bok\b|✓|\bsuccess|\(exit 0\)\s*(?:·|$)")
 RUN_FAIL = re.compile(r"(?i)\b[1-9]\d*\s+(?:failed|errors?|problems?)\b|(?<!\d )\bfail(?:ed|ure)?\b|\bFAIL\b|"
                       r"\btraceback\b|\berror:")
 LINTERS = r"\blint|ruff|eslint|biome|flake8|pylint|golangci|rubocop|clippy"
@@ -11775,12 +12376,55 @@ PROVE_RESULT = re.compile(rf"(?i)(?:{SMOKE_PASS.pattern.removeprefix('(?i)')})|\
                           r"\bno issues found\b")
 
 
-def evidence_line(lines: list[str]) -> str:
-    """The line that shows a command's result: the last result-like line that is not runner noise, else the last line
-    that is not noise, else the last line."""
+def evidence_line(lines: list[str], code: int | None = None) -> str:
+    """The line that shows a command's result: the last result-like line that is not runner noise; with none, a
+    command that exited 0 is shown by its exit code (ST2: `just` echoes a recipe's command line as it is, with no
+    `> ` or `$ `, so a smoke test that printed no summary read as its own echo - "shows no pass" - and a logged run
+    rewrote its justfile to get past it); else the last line that is not noise, else the last line."""
     real = [l for l in lines if not PROVE_NOISE.match(l)]
     hit = next((l for l in reversed(real) if PROVE_RESULT.search(l) and not RUN_FAIL.search(l)), None)
+    if hit is None and code == 0 and not any(RUN_FAIL.search(l) for l in real):  # a printed failure stays shown
+        return f"{real[-1][:120]} (exit 0)" if real else "exit 0"
     return hit or (real[-1] if real else (lines[-1] if lines else ""))
+
+
+def windows_program(cmd: str, win: bool = os.name == "nt") -> str:
+    """A shell=True command on Windows runs in cmd.exe, which reads `/Scripts` in `.venv/Scripts/python.exe` as an
+    option ("'.venv' is not recognized" - a logged run's dev server never booted and its close gate failed). On
+    Windows each program word - the first, and the first after `&&` `||` `|` `&` - gets backslashes; arguments,
+    quoted text and URLs stay as written. Elsewhere the command is unchanged. (One copy per script: each is run
+    standalone; tools/test_build_tools.py checks every copy.)"""
+    if not win:
+        return cmd
+    out, i, n, start = [], 0, len(cmd), True
+    while i < n:
+        c = cmd[i]
+        if start and c.isspace():
+            out.append(c)
+            i += 1
+            continue
+        if c == '"':
+            j = cmd.find('"', i + 1)
+            j = n if j < 0 else j + 1
+        elif start:
+            j = i
+            while j < n and not cmd[j].isspace() and cmd[j] not in '&|"':
+                j += 1
+        elif c in "&|":
+            j = i
+            while j < n and cmd[j] in "&|":
+                j += 1
+            out.append(cmd[i:j])
+            i, start = j, True
+            continue
+        else:
+            out.append(c)
+            i += 1
+            continue
+        tok = cmd[i:j]
+        out.append(tok.replace("/", "\\") if start and "://" not in tok else tok)
+        i, start = j, False
+    return "".join(out)
 
 
 def prove(base: Path, cmds: list[str], today: str) -> tuple[int, str]:
@@ -11791,13 +12435,13 @@ def prove(base: Path, cmds: list[str], today: str) -> tuple[int, str]:
     done: list[tuple[str, str]] = []
     for c in cmds:
         try:
-            r = subprocess.run(c, shell=True, cwd=base, capture_output=True, text=True, encoding="utf-8",
+            r = subprocess.run(windows_program(c), shell=True, cwd=base, capture_output=True, text=True, encoding="utf-8",
                                errors="replace", timeout=900)
             text, code = re.sub(r"\x1b\[[0-9;]*[A-Za-z]", "", (r.stdout or "") + "\n" + (r.stderr or "")), r.returncode
         except subprocess.TimeoutExpired:
             text, code = "timed out after 900 s", 124
         lines = [l.strip() for l in text.splitlines() if l.strip()]
-        last = evidence_line(lines) or f"exit {code}"
+        last = evidence_line(lines, code) or f"exit {code}"
         if code == 0:
             out.append(f"evidence: {c} → {last[:160]} · {today}")
             done.append((c, last[:160]))
@@ -11885,8 +12529,8 @@ def structure_rules_text(brownfield: bool, filled: bool, arch_empty: bool, spine
         ["Re-run semantics"] * filled + ["Declined runs"] * arch_empty
     root = structure_ref("root-scaffolding.md")
     return "\n\n".join(
-        ["Rules for /structure, word for word from the rule files (these ARE the rule files for this phase - do not "
-         "open them; `status.py rules structure` prints the sections whole):",
+        ["Rules for /structure, word for word (these ARE the rule files for this phase - do not open them; "
+         "`status.py rules structure` prints the sections whole):",
          "===== PRINCIPLES.md =====\n" + "\n".join(bar).rstrip() + "\n\n" + "\n".join(safe)]
         + (["===== MECHANISMS.md =====\n" + print_sections(rule_file("MECHANISMS.md"), mech)] if mech else [])
         # its `>` note is the why of the Dev tooling line above (scaffold exactly the recorded tools): not re-sent
@@ -11912,6 +12556,27 @@ def structure_blocks(base: Path) -> list[str]:
             what = cells[1].replace("`", "").split(";")[0]
             out.append(f"{cells[0]} {what if len(what) <= 70 else what[:70].rsplit(' ', 1)[0] + '…'}")
     return out
+
+
+def structure_flag_refusals(header: dict) -> list[str]:
+    """ST3: what `set structure filled` refuses for the AI-product and agent flags, printed in the start - a logged
+    run learned "tools/ inside the agent module" only from the refusal after its scaffold, and moved folders and
+    edited STRUCTURE.md by hand seven times. Built from the names the refusal checks (AGENT_DIRS)."""
+    out = []
+    if header.get("AI product") == "yes":
+        out.append("  - AI product: yes - `set` refuses without a prompts/ folder and #Structure's Prompts location "
+                   "naming it.")
+    if header.get("Agent") == "yes":
+        out.append("  - Agent: yes - `set` refuses unless ONE module folder holds "
+                   + " · ".join(f"{x}/" for x in AGENT_DIRS) + " together (never a top-level tools/).")
+    return out
+
+
+# ST4: a logged run read `status.py --help`, `scaffold --help` and `close --help` because the start named commands
+# without their flags; the rest of this phase's commands, with every flag, are in the start's other lines.
+STRUCTURE_COMMANDS = (
+    "  - Other commands, all flags (never --help): `status.py close <n> --how \"<how>\"` · `status.py waive --from "
+    "structure --check \"<refusal words>\" --reason \"<user's words>\"` (a refusal the user says does not apply).")
 
 
 def structure_start_text(st: "Status") -> str:
@@ -11981,7 +12646,7 @@ def structure_start_text(st: "Status") -> str:
         "`status.py prove` · 4. ONE call, `status.py set structure filled --section-from <file> --commit \"<one line>\"` - "
         "it saves (no save question); the close says what was laid out, any Step 3c clash, and \"Change anything?\". NEVER run: a type checker, "
         "a secret-scan sweep, a separate lint, test or check_structure.py run, a second prove after a pass, a "
-        "--dry-run before the save - prove and set run every check counted here.",
+        "--dry-run before the save - prove and set run them all.",
         f"  - STRUCTURE.md: the form is {struct_template_path()} (read in your first turn), sections in order: "
         + " · ".join(n for n, _ in STRUCT_DOC_SECTIONS) + ". Every `<...>` filled, every comment deleted, each "
         "header row kept exactly (a backticked `LLMProvider` is a name, not a path). Full sentences.",
@@ -11995,7 +12660,8 @@ def structure_start_text(st: "Status") -> str:
         "lines; no network: a `lock pending` line instead. It writes the `## Checks you run` results (a row's Command "
         "cell = the command; never type a result).",
         "  - A clash with an earlier phase: both sides on a line of their own in the close, recorded with `status.py "
-        "open` - never an edit of its record or document.",
+        "open --from structure --what \"<the clash>\" --clears \"<what clears it>\"` - never an edit of its record "
+        "or document.",
         "  - #Structure is these fields, labels as written, in a scratch file outside the repo, plus `evidence: python "
         "scripts/check_structure.py → <its last line> · STRUCTURE.md · <date>` and the lines `prove` printed:",
         *("      " + l for l in fields.splitlines() if l.startswith("- **")),
@@ -12005,6 +12671,8 @@ def structure_start_text(st: "Status") -> str:
         "lost a committed line · two loaders · a stub lockfile · a Checks-you-run result no evidence line printed · "
         "a Dockerfile copying a missing file · no `evidence:` line. What it reads in prose only WARNS. It prints the "
         "rest of the close.",
+        *structure_flag_refusals(st.header),
+        STRUCTURE_COMMANDS,
     ]
     return "\n".join(out) + "\n\n" + structure_rules_text(bool(code), filled, not arch_body, prod.is_file())
 
@@ -12117,7 +12785,7 @@ def contracts_rules_text(st: "Status") -> str:
             f"contracts declined --reason \"<what was missing>\" --gate {g}`; going on is RECORDED before "
             f"continuing - `status.py bypass --from contracts --gate {g} --reason \"<the user's own words>\"`; "
             f"before recording either, `status.py rules contracts` prints the section whole") if unmet else ""
-    return (rules_text(want, "Rules for /contracts, word for word from the rule files (these ARE the rule files for "
+    return (rules_text(want, "Rules for /contracts, word for word (these ARE the rule files for "
                              "this phase - do not open them; `status.py rules contracts` prints them again, with "
                              + " · ".join(named) + "; the close's rules come with `set contracts filled`):") + gate
             + "\n\n===== PRINCIPLES.md §Production safeguards - the bullets /contracts decides =====\n"
@@ -13091,11 +13759,10 @@ BUILD_LEAN_CLOSE = (
     "docs/features/<feature>.md --review \"<round scopes>\"` - say every line it prints; it moves the board card to "
     "In Review and reads it back. " + BUILD_LOW_RULE + "\n"
     "  (4) `status.py set build filled` - it saves the record; never a save question\n"
-    "  (5) three short blocks: What just happened (what the reviews caught, in plain words) · What I did not check · "
-    "What YOU do next, ending \"Saved (commit <hash>). Change anything?\"")
-BUILD_LEAN_NEXT = ("Next: `status.py set build filled` (it saves the record - never a save question), then three short "
-                   "blocks: What just happened · What I did not check · What YOU do next, ending \"Saved (commit "
-                   "<hash>). Change anything?\"")
+    "  (5) four short blocks: " + CLOSE_BLOCKS + " (What just happened = what the reviews caught, in plain words), "
+    "ending \"Saved (commit <hash>). Change anything?\"")
+BUILD_LEAN_NEXT = ("Next: `status.py set build filled` (it saves the record - never a save question), then four short "
+                   "blocks: " + CLOSE_BLOCKS + ", ending \"Saved (commit <hash>). Change anything?\"")
 
 
 BUILD_CLOSE_ORDER = ("The close, in this order, each once: (1) this close gate - done; (2) Step 3c's contradiction "
@@ -13103,7 +13770,7 @@ BUILD_CLOSE_ORDER = ("The close, in this order, each once: (1) this close gate -
                      "result, each changed file the ticket did not name with why; (4) commit it; (5) `status.py ticket` "
                      "(it moves the board card to In Review; LOW findings left unfixed: one grouped issue, --low); "
                      "(6) `status.py set build filled` (it saves the record unasked - the code was "
-                     "committed before review), the transition guard, the four-block close.")
+                     "committed before review), the transition guard, the four-block close (" + CLOSE_BLOCKS + ").")
 
 
 def find_ticket(base: Path, tid: str) -> Path | None:
@@ -13698,9 +14365,14 @@ def reviewer_line(base: Path, tid: str, branch: str, security: bool) -> str:
             f"you fix, commit and write ## Review from its table. Record its route: `helper agent`.")
     if tool == "claude":
         head += " Run `/code-review` yourself meanwhile."
-    fallback = (" No such tool in your list: review the diff yourself against the brief, record `self-review` - a "
-                "self-review never signs off security: `status.py ticket` prints the question that sends the security "
-                "review to another tool." if tool in ("antigravity", "cursor", "codex") else "")
+    # AG-B1: the chat that wrote the code is never its own reviewer - with no helper, a NEW chat is the fresh context
+    fallback = (" No such tool in your list: ask the user ONE question - open a NEW chat in this folder and paste "
+                f"`Review ticket {tid} on branch {branch}: read and follow "
+                f"{brief.as_posix() if brief else 'agents/build-reviewer.md'}, review `{which}`; reply with its "
+                "findings table only`, then paste its table back here (Recommended) - record its route: `new chat`. "
+                f"The user declines: review it yourself and record `--review \"{NOT_INDEPENDENT}: R1 <n> findings\"` - "
+                "a gap you say in the close, never a passed review; it never signs off security."
+                if tool in ("antigravity", "cursor", "codex") else "")
     return head + fallback
 
 
@@ -14125,6 +14797,46 @@ def env_example_keys(base: Path) -> tuple[list[str], list[str]]:
     text = read_text(f) if f.is_file() else ""
     return (re.findall(r"^\s*([A-Z][A-Z0-9_]*)\s*=\s*\S*CHANGE_ME", text, re.M),
             re.findall(r"^\s*(TEST_[A-Z0-9_]*)\s*=", text, re.M))
+
+
+def env_mode_var(base: Path) -> str:
+    """The variable .env.example names the environment with (APP_ENV, NODE_ENV, ...); APP_ENV when it names none."""
+    text = read_text(base / ".env.example") if (base / ".env.example").is_file() else ""
+    m = re.search(r"(?m)^\s*(?:export\s+)?((?:APP_|PYTHON_|NODE_|RACK_|RAILS_|FLASK_|DJANGO_)?ENV(?:IRONMENT)?)\s*=",
+                  text)
+    return m.group(1) if m else "APP_ENV"
+
+
+def env_init_cmd(base: Path) -> str:
+    """The one command that makes .env (ENV1): the playbook's env_init.py, or the project's committed copy."""
+    copy = next((p for p in (base / "scripts" / "env_init.py", base / "tools" / "env_init.py") if p.is_file()), None)
+    f = copy.relative_to(base).as_posix() if copy else (tool_file("foundation", "env_init.py") or Path("env_init.py"))
+    return f"python {Path(f).as_posix()}"
+
+
+def env_missing_note(base: Path | None) -> str:
+    """ENV1: every phase start, while .env.example exists and .env does not - a new user or an unattended run must not
+    stall on a file nobody made (a logged round: three agents made one by hand, one did not)."""
+    if base is None or not (Path(base) / ".env.example").is_file() or (Path(base) / ".env").exists():
+        return ""
+    return (f"no .env yet: run `{env_init_cmd(Path(base))}` (makes .env from .env.example: local values filled, "
+            f"outside keys CHANGE_ME, nothing printed) and show the user its list")
+
+
+def dotenv_proof_gap(base: Path) -> list[str]:
+    """CX-F1: the suite passes with a filled .env and without one, logged by `proof.py dotenv` - a logged test deleted
+    SESSION_SECRET from the environment, the loader fell back to the real .env, and it passed only where none existed."""
+    if not env_example_keys(base)[0]:
+        return []
+    ok = [e for e in proof_entries(base) if e.get("dotenv") and int(e.get("exit", 1)) == 0]
+    if ok:
+        return []
+    seen = [e for e in proof_entries(base) if e.get("dotenv")]
+    why = f" (the last one: {str(seen[-1].get('tail', '')).splitlines()[-1][:160]})" if seen else ""
+    return [f"no passing `proof.py dotenv -- <the test command>` run{why}: the tests must never read the developer's "
+            f".env - the loader takes an env_file argument and a config test passes an empty temp file "
+            f"(skeleton-steps.md §3.); it runs the suite once with a filled .env and once without, in a throwaway "
+            f"copy, and logs both"]
 
 
 def evidence_lines(body: str) -> list[str]:
@@ -14830,7 +15542,7 @@ def foundation68_gaps(base: Path, st: "Status", body: str, arch: str, evidence: 
             gaps.append("Agent: yes - the eval harness's evidence never shows it failing: run it on one scripted "
                         "WRONG case and show the miss (a harness that cannot fail proves nothing)")
     gaps += ai_adapter_gaps(base, body, arch, st) + secret_scan_gaps(base) + localhost_gaps(base)
-    gaps += proof_gaps(base, evidence) + secret_plant_gap(base, st)
+    gaps += proof_gaps(base, evidence) + secret_plant_gap(base, st) + dotenv_proof_gap(base)
     return gaps
 
 
@@ -14863,7 +15575,8 @@ def foundation_facts(st: "Status", base: Path, found: str) -> list[str]:
     out.append(f"  - CI: {', '.join(c for c in CI_FILES if (base / c).exists()) or 'none yet (step 8)'}")
     ph, tv = env_example_keys(base)
     names = (": " + ", ".join(ph[:14]) + (" ..." if len(ph) > 14 else "")) if ph else ""
-    dot_env = "exists (the user's - never print its values)" if (base / ".env").is_file() else "not created yet"
+    dot_env = "exists (the user's - never print its values; env_init.py only appends a variable it lacks)" if (
+        base / ".env").is_file() else f"not created yet - `{env_init_cmd(base)}` makes it (step 3, after .env.example)"
     out.append(f"  - .env.example: {len(ph)} CHANGE_ME variable(s){names} · test datastore variable: "
                f"{', '.join(tv) or 'none yet (step 4)'} · .env {dot_env}")
     secs = product_sections(read_text(base / "PRODUCT.md")) if (base / "PRODUCT.md").is_file() else {}
@@ -14890,7 +15603,8 @@ def foundation_facts(st: "Status", base: Path, found: str) -> list[str]:
     if dev:
         out += [f"  - boot (item 1, Step 3b): python {dev.as_posix()} check {start}",
                 f"  - the placeholder proof (Step 3b): python {dev.as_posix()} refuses {start} --env-file .env.example "
-                f"- never copy over the user's .env",
+                f"--set {env_mode_var(base)}=production - started as prod starts it (in development on the fake model "
+                f"an outside key may stay CHANGE_ME); never copy over the user's .env",
                 f"  - leave it running / stop it: devserver.py start ... · devserver.py stop --port <port> - never a "
                 f"background start of your own (a logged run spent 14 calls on a port Windows kept)"]
     if ci:
@@ -14903,7 +15617,8 @@ def foundation_facts(st: "Status", base: Path, found: str) -> list[str]:
                    f"`set` matches each evidence line to the log) · the dev-DB refusal: proof.py --env "
                    f"TEST_DATABASE_URL=@DATABASE_URL -- <test command> · a plant: proof.py plant --file <path> --text "
                    f"\"<what>\" --also \"<the CI step>\" (a throwaway copy, your folder untouched) · the secret plant is "
-                   f"`set`'s own")
+                   f"`set`'s own · the tests never read your .env: proof.py dotenv -- <the test command> (with a "
+                f"filled .env and without, in a throwaway copy)")
     out.append("  - project files (runbook, task runner, CI, hooks) name the project's own commands: devserver.py, "
                "ci_local.py and proof.py are the playbook's and a clone has none - copy one into the repo's tooling "
                "folder and commit it before a project file names it")
@@ -14991,7 +15706,7 @@ def foundation_start_text(st: "Status") -> str:
            "· hooks configured but not installed · a manifest without its lockfile · a CHANGE_ME variable with a "
            "fallback in code · tests on another engine than #Architecture's · no CI, or no remote and no open item · "
            "no project environment, or a task-runner line outside it · no evidence line booting the app on "
-           ".env.example · a money column as a float · Agent: a phrase blocklist, an AGENT.md item with no evidence "
+           ".env.example · no passing `proof.py dotenv` run (the tests read the developer's .env) · a money column as a float · Agent: a phrase blocklist, an AGENT.md item with no evidence "
            "line · UI: no token read back (or shell rendered), the audit copy not in the hook and CI · CI without a "
            "secret scan and a dependency scan · `gitleaks dir` · no dependency-update bot · no docs/runbook.md · no "
            "TEST_ datastore variable · an evidence line the proof log never saw, or a result it did not print · "
@@ -15020,7 +15735,9 @@ def foundation_start_text(st: "Status") -> str:
            "section file are the last writes, in ONE call after every proof passed, then `set` in the next call - no check of your own between (`set` checks the record and the tree).",
            "  - docs/runbook.md, written for someone who was not here, every heading numbered: `## 1. Start it` · `## 2. "
            "The .env values and how to make each` · `## 3. What each guard refuses, and how to prove it` · `## 4. "
-           "Reset and re-seed` · `## 5. Run the tests` (`### 2.1 ...` below them); one idea per sentence. A folder this "
+           "Reset and re-seed` · `## 5. Run the tests` (`### 2.1 ...` below them); one idea per sentence. `## 2.` names the "
+           "project's committed copy of env_init.py (copy it into the tooling folder, like the audit copy) as the "
+           "one command that makes .env, and lists which values it fills and which are needed only for real mode. A folder this "
            "phase adds (the audit copy's) is drawn in STRUCTURE.md by `set` - never edit the map by hand."]
     names = ["Architecture", "Structure"] + (["Design"] if ui else []) + (["Foundation"] if has_content(found) else [])
     policy = re.sub(r"<!--.*?-->", "", secs.get("Project policy", ""), flags=re.S).strip()
@@ -15090,8 +15807,8 @@ def main(argv: list[str]) -> int:
     p.add_argument("--mode", choices=["lean", "full"], help="the user's choice (`/build <id> full`); none: the tool decides")
     p.add_argument("--step", help="/design-system: what one turn needs (foundations | sample | write)")
     p.add_argument("--family", help="/design-system --step: the chosen family, its number or name")
-    p.add_argument("--approved", help="/design-system --step write on Antigravity: the owner's answer to the sample "
-                                      "confirm, word for word")
+    p.add_argument("--approved", help="/design-system --step write: the owner's answer to the sample confirm, word "
+                                      "for word")
     sub.add_parser("how")
     sub.add_parser("route")
     p = sub.add_parser("rules"); p.add_argument("phase"); p.add_argument("--close", action="store_true")
@@ -15381,8 +16098,9 @@ def main(argv: list[str]) -> int:
                 pm = postmerge_line(st)
                 if pm:
                     notes.insert(0, pm)
-            if run == "foundation":  # its start prints AGENT.md §Foundation inline: no "open now" read
-                notes = [x for x in notes if not x.startswith("Agent: yes - open now")]
+            if run == "foundation":  # its start prints AGENT.md §Foundation inline: no "open now" read; its facts
+                # and Step 2 run env_init.py, so the every-phase .env hint would say it twice
+                notes = [x for x in notes if not x.startswith(("Agent: yes - open now", "no .env yet:"))]
             if a.ticket:  # LEAN: a build start keeps what can block THIS build; earlier phases' items are a count
                 later = [x for x in notes if x.startswith(("open item", "rules changed since", "running:"))]
                 notes = [x for x in notes if x not in later]

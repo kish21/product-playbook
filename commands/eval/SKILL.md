@@ -6,7 +6,7 @@ description: Measure whether the product (or its AI) meets its bar, against a ba
 # `/eval` — Phase 4 · Evaluation · run as an **evaluator**
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the variable is the folder two levels above this SKILL.md, holding `commands/` and `PRINCIPLES.md` - never another tool's install). If `python` will not start (not found, or a sandbox refuses it): `python3`, else `py -3`, else the project's `.venv` Python - never a hunt; later commands use the start's `Run this copy as` line.
 > **`status.py next --phase eval` prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** — apply them; never open the whole files (a situational companion only when a rule points into it); the close's sections print when `set eval filled` passes. Load-bearing here: **measure-first**, **evidence-based**, **eval/benchmark
 > integrity (separate operational-failure from quality)**, **honest confidence score**, **surface gaps**.
 
@@ -45,7 +45,7 @@ description: Measure whether the product (or its AI) meets its bar, against a ba
 ## Step 1 — Apply principles (this phase)
 - **Measure first:** judge against real/representative inputs; a scary or great number alike must be reproduced, not assumed (beware display/measurement artifacts).
 - **Eval integrity:** an errored/blocked/dropped run is an *operational* failure — never score it as "low quality" or the metric lies. Count it separately.
-- **Honesty:** surface gaps and weak spots plainly; do not round up.
+- **Honesty:** surface gaps plainly; never round up.
 
 ## Step 2 — Evaluate
 1. **Define "good":** the metric(s) or rubric that reflect the goal (e.g. accuracy, groundedness, latency, task success). For AI, compose **`/enterprise-ai-audit`** *if installed*, **report only** — its audit and its report, never its fix step (it writes a Dockerfile, CI and code files unasked) — otherwise audit the same ground yourself and **say which you did** in the evidence line.
@@ -53,7 +53,7 @@ description: Measure whether the product (or its AI) meets its bar, against a ba
 3. **Separate failures:** tag operational failures distinctly; report a clean quality number + a separate failure count.
 4. **Interpret honestly:** what's solid, what's weak, what's an artifact vs a real gap.
 
-**ONE question round, before measuring:** the start's questions (inputs · baseline · a north star readable only after launch), each as options with one *(Recommended)* and *Other* (`CAPABILITIES.md` §Ask the user a question with options); a gate not passed follows the start's gate line (one printed line, or one options question - never a typed reason). **After measuring**, the record saves - no save question; the close gives the result, the confidence and any Step 3c clash, and asks *"Change anything?"*.
+**ONE question round, before measuring:** the start's questions (inputs · baseline · a north star readable only after launch), each as options with one *(Recommended)* and *Other* (`CAPABILITIES.md` §Ask the user a question with options); a gate not passed: the override line in Step 0. **After measuring**, the record saves - no save question; the close gives the result, the confidence and any Step 3c clash, and asks *"Change anything?"*.
 
 ## Step 3 — Write back to `PRODUCT.md`
 After measuring, **ONE message, both writes**: `docs/evaluation.md` (opening with `## 1. In short` — the result, what it means, what happens next, in 3-5 plain sentences; then the reasoning, the raw numbers, how to reproduce them) and every `#Evaluation` field `next` printed — the measured result + metrics, operational-failure count (separated), and a
@@ -73,5 +73,4 @@ into the quality number, STOP and fix it** — an un-measured or contaminated nu
 Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Vision`'s north star and `#Architecture`'s perf/cost budget — measuring a different metric than the one recorded, or a measured number that silently supersedes an ADR's budget. On a conflict (this replaces `MECHANISMS.md` §Step 3c items 2-3), **name both sides on a line of their own** in the close, ask nothing, and **never edit an earlier phase's record or document**: record it as an open item, `status.py open --from eval --what "Clash: <both sides>" --clears "/<that phase> decides"`. Adding detail to an earlier decision is not a contradiction.
 
 ## Step 4 — Handoff
-"Quality measured honestly, with a confidence score. Next run **`/ship`** — deep review, security
-review, reconcile the docs, open the PR, and hand off."
+"Measured, with a confidence score. Next run **`/ship`** — deep review, security review, the docs, the PR."

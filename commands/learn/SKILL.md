@@ -6,7 +6,7 @@ description: After a release - compare real results with the goal, pick what is 
 # `/learn` — Phase 6 · Learn · run as a **product analyst**
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the variable is the folder two levels above this SKILL.md, holding `commands/` and `PRINCIPLES.md` - never another tool's install). If `python` will not start (not found, or a sandbox refuses it): `python3`, else `py -3`, else the project's `.venv` Python - never a hunt; later commands use the start's `Run this copy as` line.
 > **`status.py next --phase learn` prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** — apply them; never open the whole files (a situational companion only when a rule points into it); the close's sections print at `set learn filled`. Load-bearing: **honesty**, **measure-first**, **vision-alignment re-check**,
 > **defer until a real trigger**, **decide from evidence**.
 
@@ -41,15 +41,15 @@ description: After a release - compare real results with the goal, pick what is 
 - **What this phase must NOT do:** build or change code — it decides; the next cycle builds, from `/scope`.
 
 ## Step 1 — Apply principles (this phase)
-- **Measure, then decide:** base the next move on the metric, not enthusiasm. **Re-check the vision:** does the evidence still support the direction? **Defer:** don't pull OUT-OF-SCOPE items in without a real signal.
+- **Measure, then decide** (the metric, not enthusiasm); **re-check the vision**; **defer:** no OUT-OF-SCOPE item without a real signal.
 
 ## Step 2 — Learn
 1. **Metric (instrumented, not guessed):** confirm the north-star metric is actually measured (events/analytics/dashboard); report what it did. For ongoing tracking, compose **`/loop`** or **`/schedule`** to re-measure on a cadence (other tools: the start's fallback).
 2. **User signal:** incorporate at least one real user/usage signal (support, interview, usage data) — not internal opinion.
-3. **Retro:** what worked, what to change (process + product). Keep it short and honest. A lesson worth keeping goes into this project's `docs/learnings.md`, where the next cycle reads it.
+3. **Retro:** what worked, what to change (process + product), short and honest. A lesson worth keeping goes into this project's `docs/learnings.md`, where the next cycle reads it.
    - **No metric readable yet:** the start's process retro (tickets built vs planned, docs vs code since the last merged ticket, findings still open) is the evidence; each half cites one of its numbers.
 4. **Doc drift:** confirm the docs still reflect reality — trace each capability claim to the code, not to the last release note.
-5. **Decide next from evidence:** the highest-value next move — **build / iterate / KILL** (deprecating a feature the evidence says isn't working is a valid, healthy outcome). Re-check against the vision + Non-goals; record the trigger for anything deferred.
+5. **Decide next from evidence:** the highest-value next move — **build / iterate / KILL** (a healthy outcome). Re-check against the vision + Non-goals; record the trigger for anything deferred.
    - One decision: **continue** (the plan as written) · **iterate the plan** (change named unbuilt tickets; next: `/tickets`) · **pivot** (back to `/scope`) · **KILL** or stop.
 
 **ONE question round, before drafting:** the start's three questions, each as options with one *(Recommended)* and *Other* (`CAPABILITIES.md` §Ask the user a question with options): the metric - *"Not readable until <the milestone that produces it, from #Plan> (Recommended)"* · *"Here is the number"* · *Other*; the user signal - *"None yet (Recommended)"* · *"Here is a signal"* · *Other*; next - *"Nothing yet (Recommended)"* · *"Here is what I want"* · *Other*. **Then** the retro, the evidence and the decision marked (proposed) are written and saved - no save question; the close shows them with any Step 3c clash and asks *"Change anything?"* — the decision is the owner's.
@@ -66,8 +66,7 @@ item without a trigger, STOP and reconsider** — that's how the next cycle star
 **Close the loop (`MECHANISMS.md` §Step 3b):** the checklist `set learn filled` prints: reconcile any number against `#Vision` (surface a contradiction, never write over it); the record call saved (`MECHANISMS.md` §Commit the work); **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not; **close in plain language** (`MECHANISMS.md` §Plain-language close): **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next**, ending with its `Open a NEW conversation` line word for word.
 
 ## Step 3c — Contradiction check (before the record call)
-Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Vision`'s north star against what you measured, and next-cycle proposals against `#Scope`'s non-goals — 'what we learned we should build' is the most common way a non-goal comes back unrecorded. On a conflict (this replaces `MECHANISMS.md` §Step 3c items 2-3), **name both sides on a line of their own** in the close, ask nothing, and **never edit an earlier phase's record or document**: record it as an open item, `status.py open --from learn --what "Clash: <both sides>" --clears "/<that phase> decides"`. Adding detail to an earlier decision is not a contradiction.
+Per `MECHANISMS.md` §Step 3c, check what this phase just produced against decisions **already recorded** — here: `#Vision`'s north star against what you measured, and next-cycle proposals against `#Scope`'s non-goals (the usual way a non-goal comes back unrecorded). On a conflict (this replaces `MECHANISMS.md` §Step 3c items 2-3), **name both sides on a line of their own** in the close, ask nothing, and **never edit an earlier phase's record or document**: record it as an open item, `status.py open --from learn --what "Clash: <both sides>" --clears "/<that phase> decides"`. Adding detail to an earlier decision is not a contradiction.
 
 ## Step 4 — Handoff
-"Learnings captured and the next move is evidence-based. Start the next cycle: run **`/scope`** (or
-**`/plan`**) for the next feature — and **`/drift-check`** anytime you suspect creep."
+"Next cycle: run **`/scope`** (or **`/plan`**) for the next feature — and **`/drift-check`** anytime you suspect creep."

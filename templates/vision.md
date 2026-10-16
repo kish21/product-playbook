@@ -7,18 +7,20 @@ Writing rules for the fields (a newcomer reads this document, and so does a codi
 - A field's first line is its plain takeaway.
 - One idea per sentence, about 15-18 words on average, none over 30. No em-dash or ` · ` chains in body prose.
 - Explain every rule, law or term in plain words the first time it appears ("CCD2, the EU rule on credit offers").
-- Where a fact came from is a footnote mark `[1]` listed under sources, never inside the sentence.
+- Each section opens with a plain paragraph that says why it matters; a table only for a real list of alike items.
+- A fact that came from a search or a page gets a footnote mark `[1]` listed under sources, never inside the sentence.
+  The owner's answers, our proposals and invented examples get none; an invented example says `(illustrative)`.
 - Only what the user gave or picked goes in who, the problem, why now, the riskiest assumption and the business model. -->
 # {{product}} — product vision
 _Version 0.1 · {{date}} · what we are building, for whom, and how we will know it works_
 
 ## 1. Vision in one line
-**{{vision:line}}**
+{{vision:line}}
 
 {{plain words}}
 
 ## 2. Who it is for
-**{{who:first}}**
+{{who:first}}
 
 **The job:** {{job:line}}
 ### 2.1 Main users {{?who:rest}}
@@ -31,19 +33,19 @@ _Version 0.1 · {{date}} · what we are building, for whom, and how we will know
 {{first users}}
 
 ## 3. The problem
-**{{problem:first}}**
+{{problem:first}}
 
 {{problem:rest}}
 ### 3.1 Why it happens
 {{root causes}}
 
 ## 4. Why now
-**{{why now:first}}**
+{{why now:first}}
 
 {{why now:rest}}
 
 ## 5. How it is solved today
-**{{market:first}}**
+{{market:first}}
 
 | Approach | Who does it | Where it falls short |
 |---|---|---|
@@ -52,7 +54,7 @@ _Version 0.1 · {{date}} · what we are building, for whom, and how we will know
 {{market:rest}}
 
 ## 6. The experience
-**{{worked example:line}}**
+{{worked example:line}}
 
 | When | What happens |
 |---|---|
@@ -70,38 +72,40 @@ _Version 0.1 · {{date}} · what we are building, for whom, and how we will know
 {{brief}}
 
 ## 8. Value and business model
-**{{value:first}}**
+{{value:first}}
 
 {{value:rest}}
 
 Business model: {{business model:line}}
 
 ## 9. How we will know
-**North star: {{target:line}}**
+**North star:** {{target:line}}
 
-| Type | Metric and number |
-|---|---|
-| Input | {{inputs:line}} |
-| Guardrail | {{guardrail:line}} |
+**What moves it:** {{inputs:line}}
 
-How it is measured: {{instrumentation:line}}
+**What must not get worse:** {{guardrail:line}}
+
+**How it is measured:** {{instrumentation:line}}
 
 ## 10. Riskiest assumption
-**{{riskiest:first}}**
+{{riskiest:first}}
 
 {{riskiest:rest}}
 
-## 11. Rules, languages and data
-**{{constraints:first}}**
+## 11. What failure looks like
+{{failure}}
+
+## 12. Rules, languages and data
+{{constraints:first}}
 
 {{constraints:rest}}
 
-## 12. Competitors
+## 13. Competitors
 | Product | Market | Does | Does not | Same job / nearby |
 |---|---|---|---|---|
 {{competitors}}
 
-## 13. Scope at a glance
+## 14. Scope at a glance
 The details belong to the scope.
 
 **In scope:**
@@ -110,7 +114,12 @@ The details belong to the scope.
 **Out of scope:**
 {{out of scope}}
 
-## 14. Open questions
+## 15. Decisions taken
+| Decision | Why | Who decided |
+|---|---|---|
+{{decisions}}
+
+## 16. Open questions
 {{open questions}}
 
 ## Appendix A — Workings

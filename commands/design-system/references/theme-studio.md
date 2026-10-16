@@ -91,7 +91,7 @@
   // dark-default product opens on "Dark", not a hard-coded "Light" (T5-6).
   (function(){var el=document.documentElement,m=el.classList.contains('dark')?'dark':el.classList.contains('light')?'light':'system';var sg=document.getElementById('ts_mode');[].forEach.call(sg.children,function(b){b.classList.toggle('on',b.dataset.m===m)})})();
   // every DESIGN.md §2 key (design-md-template.md §2 - check 40 holds this list to it) + the studio's type picks
-  var KEYS=['--background','--foreground','--card','--card-foreground','--popover','--popover-foreground','--primary','--primary-foreground','--secondary','--secondary-foreground','--muted','--muted-foreground','--accent','--accent-foreground','--destructive','--destructive-foreground','--success','--warning','--info','--border','--input','--ring','--radius','--font-size-base','--font-sans'];
+  var KEYS=['--background','--foreground','--card','--card-foreground','--popover','--popover-foreground','--primary','--primary-foreground','--secondary','--secondary-foreground','--muted','--muted-foreground','--accent','--accent-foreground','--destructive','--destructive-foreground','--success','--warning','--info','--border','--input','--ring','--radius','--radius-sm','--radius-lg','--space-1','--space-2','--space-3','--space-4','--space-6','--space-8','--space-12','--space-16','--font-size-base','--font-sans'];
   // read one mode with its class SET (removing .dark alone reads dark values when the OS is dark) and its own accent applied
   function rd(m){el.classList.remove('dark','light');el.classList.add(m);apply();var c=cs(),v={},miss=[];KEYS.forEach(function(k){var x=c.getPropertyValue(k).trim();if(!x&&k==='--font-size-base')x=document.querySelector('#ts_size .on').dataset.s+'px';if(!x){miss.push(k);return}x=toOk(x);if(!/^--(radius|font-)/.test(k)&&!PLAIN.test(x))x+=' /* NOT OKLCH - write it as oklch(L C H) before pasting */';v[k]=x});return {v:v,miss:miss}}
   function blk(sel,r){var f=function(x){return x==null?'NOT CHECKED (unreadable colour)':x.toFixed(2)+':1'+(x<4.5?' FAIL':'')};return sel+' {\n  /* AA: body text '+f(ct(r.v['--foreground'],r.v['--background']))+' - button text '+f(ct(r.v['--primary-foreground'],r.v['--primary']))+' */\n'+(r.miss.length?'  /* MISSING - the sample defines no '+r.miss.join(', ')+': add them to the sample, then export again */\n':'')+Object.keys(r.v).map(function(k){return '  '+k+': '+r.v[k]+';'}).join('\n')+'\n}\n'}
@@ -128,7 +128,7 @@
   shadcn `globals.css`; §3's other fonts and §6's shadows still come from Step 3. **Before pasting, act on its
   notes:** `MISSING` → add those tokens to the sample and export again · `FAIL` or `NOT CHECKED` in the AA line → fix the pair ·
   `NOT OKLCH` → convert that value · the same-`--background` `WARNING` → the sample lacks the escape hatch above.
-- Strip the entire block once the sample is approved (`theme_studio.py <sample> --remove`) and for production; the
+- Strip the entire block once the sample is approved (`theme_studio.py <sample> --remove --approved "<the owner's answer>"`) and for production; the
   chosen tokens already live in `DESIGN.md`.
 - The block is delimited by the `THEME STUDIO … /THEME STUDIO` markers; **`/frontend-audit` skips everything between
   them** (it's dev-only), so the studio's own colour-input hex literal + 🎨 emoji + panel labels don't false-positive.

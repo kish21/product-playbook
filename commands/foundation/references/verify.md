@@ -5,7 +5,7 @@
 
 ## Evidence lines
 
-`evidence: <command> → <result> · <artefact> · <date>` (`STATE-MODEL.md` §2f). **Everything a line cites must
+`evidence: <command> → <result> · <artefact> · <date>` (`STATE-MODEL.md` (`../../../docs/state-model.md`) §2f). **Everything a line cites must
 exist**: `set foundation filled` refuses a cited file that is not in the project and a cited `file::test_name` the
 file does not define (a logged run cited ten tests that were never written). A file planted only to prove a gate goes
 red, then removed, is written `planted <what> in <path>`. Cite the command you ran, never the one you meant to run.
@@ -40,11 +40,17 @@ Read a value back at runtime; evidence.
 - **Fail-loud/fail-closed:** trigger it with a missing secret and confirm it refuses to boot.
 - **Placeholder guard → replay the real failure through the real entrypoint:** never copy `.env.example` to `.env`
   **unedited** over the user's own `.env` - pass it as the env file and start the app the way prod does, in one
-  call: `devserver.py refuses --cmd "<the real start command>" ... --env-file .env.example` (exit 0 only when the
-  app stopped before answering and named a variable), or the image with `--env-file .env.example`. It must
+  call: `devserver.py refuses --cmd "<the real start command>" ... --env-file .env.example --set APP_ENV=production`
+  (the project's mode variable; exit 0 only when the app stopped before answering and named a variable), or the
+  image with `--env-file .env.example` and production set. It must
   **refuse to boot** with a message naming the variable; record that command - `set foundation filled` looks for it. A unit test of the validator alone is not this proof: a logged run's validator passed its test while
   the app booted and answered `/health` on every placeholder. If it starts, the guard is decorative and the product
   ships a public secret.
+- **Development on the fake model boots** with the outside keys still `CHANGE_ME` in the `.env` env_init.py made:
+  item 1's `devserver.py check` on that `.env` shows it.
+- **The tests never read your `.env`** → `proof.py dotenv -- <the test command>`: in a throwaway copy it makes a filled
+  `.env` and runs the suite without it (the values in the environment, as CI sets them) and with it; both must pass.
+  Your folder and your `.env` are never touched.
 - **Test-isolation guard → point it at the dev datastore on purpose** and show it refusing to run, naming both
   targets: `proof.py --env TEST_DATABASE_URL=@DATABASE_URL -- <the test command>` takes the value from `.env`, in
   PowerShell and bash alike. The runbook's recipe is the one you ran: a logged PowerShell recipe read
@@ -73,7 +79,7 @@ Read a value back at runtime; evidence.
 ## Heavy checks in a fresh conversation
 
 The image build, the image boot and the full CI replay are the longest outputs of the phase, and every later call
-re-sends the conversation. **Your tool can start a helper conversation** (CAPABILITIES.md: a sub-agent / task) →
+re-sends the conversation. **Your tool can start a helper conversation** (CAPABILITIES.md (`../../../references/capabilities.md`): a sub-agent / task) →
 hand it the exact commands (`ci_local.py`, `devserver.py check`, `docker build …`) and take back only the verdict
 lines; it starts small instead of at this conversation's size. No such capability → run them here, output to a
 scratch file, read the tail.

@@ -15,6 +15,7 @@ _Version 0.1 · {{date}} · how the first version gets built, milestone by miles
 ## 2. Planning assumptions
 - **Who builds it:** {{capacity:line}}
 - **Start:** {{start:line}}
+- **How long each milestone takes:** {{durations:line}}
 - **AI model and its cost:** {{ai note}}
 
 ## 3. Timeline
@@ -23,6 +24,13 @@ _Version 0.1 · {{date}} · how the first version gets built, milestone by miles
 {{milestones:each:| {1} {2} | {3} | {4} | {5} |}}
 
 **North star:** {{north star:line}}
+
+**Deadline:** {{deadline:line}}
+
+### 3.1 Who builds what, in parallel {{?workstreams}}
+| Workstream | Owner | Milestone | Dates |
+|---|---|---|---|
+{{workstreams}}
 
 ## 4. Milestones
 {{milestones:each:### {1} — {2}\n- **Dates:** {3}\n- **Delivers:**{4:list}\n- **Done when:** {5}\n- **Retires which risk:** {6}\n- **Needs:** {7}\n}}

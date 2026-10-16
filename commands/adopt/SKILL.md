@@ -8,7 +8,7 @@ description: Code exists but no PRODUCT.md - draft it from the repo, then confir
 > Part of **product-playbook**. This is an **entry** skill, like `/playbook` — not a phase in the
 > vision→learn chain. It **creates** the spine that `MECHANISMS.md` §Spine resolution otherwise only
 > knows how to *read*.
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the variable is the folder two levels above this SKILL.md, holding `commands/` and `PRINCIPLES.md` - never another tool's install). If `python` will not start (not found, or a sandbox refuses it): `python3`, else `py -3`, else the project's `.venv` Python - never a hunt; later commands use the start's `Run this copy as` line.
 > **`status.py next --phase adopt` prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** — apply them; never open the whole files (a situational companion only when a rule points into it). Load-bearing: **no assumptions / verify against the real code**, **honesty
 > (label what is inferred; never fabricate)**, **docs must match reality**, **plain-language
 > communication**, **one clear recommendation as options**.
@@ -88,7 +88,7 @@ reconcile any number carried in from the repo against what the owner just confir
 criterion — an inferred spine is *full* of claims nobody has re-measured, so `UNVERIFIED` will be the
 common answer here, and saying so is the point — and check the transition is legal. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next**, ending with the `Open a NEW conversation` line the record call printed, word for word.
 
-## Step 3c — Contradiction check (before the gate closes)
+## Step 3c — Contradiction check (BEFORE the save call in Step 3b: what it fixes or records goes in that save)
 Per `MECHANISMS.md` §Step 3c, check the draft against decisions **already recorded** — here: the
 project's own docs. Where `README.md` and the code disagree (a documented feature that no longer exists,
 a stack the README still names), **name both sides, ask which is true now, and record the answer** —

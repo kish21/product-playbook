@@ -77,7 +77,7 @@ A re-run brings it forward without duplicating anything:
 file holds **no front matter**: `name:`, `about:`, `title:` and `labels:` belong to the issue template in
 `.github/ISSUE_TEMPLATE/`, and the title, labels and milestone go on the command's flags. **Publish only
 committed files:** commit `docs/issues/` before the first `gh issue create`, so nothing published is
-uncommitted — `MECHANISMS.md` §Commit the work's offer, made before publishing; declined, the run publishes
+uncommitted — `MECHANISMS.md` (`../../../references/mechanisms.md`) §Commit the work's offer, made before publishing; declined, the run publishes
 nothing and says why. The regroup pre-flight and §A path rewrite reaches GitHub both decide whether someone
 edited an issue by comparing its body with the committed versions of its file, so a body made any other way, or
 from a file never committed, reads as edited from the day it is published. (case file: The paths that moved in the repo, not on GitHub)

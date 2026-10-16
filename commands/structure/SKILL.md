@@ -6,7 +6,7 @@ description: Lay out the folders and what each one is for.
 # `/structure` — Phase 2 · Development ② · run as a **senior engineer**
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution); writes `STRUCTURE.md`.
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` · AGENT.md = `${CLAUDE_PLUGIN_ROOT}/references/agent.md`, only when `Agent: yes` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` · AGENT.md = `${CLAUDE_PLUGIN_ROOT}/references/agent.md`, only when `Agent: yes` (a path still starting with `$`: the variable is the folder two levels above this SKILL.md, holding `commands/` and `PRINCIPLES.md` - never another tool's install). If `python` will not start (not found, or a sandbox refuses it): `python3`, else `py -3`, else the project's `.venv` Python - never a hunt; later commands use the start's `Run this copy as` line.
 > **This skill's OWN reference files are a DIFFERENT folder** — they live in `references/` **beside this SKILL.md** (`commands/structure/references/`), not in the plugin-root `references/` named above. Both install routes put them there. Below, `choosing-the-shape.md` · `layered-shapes.md` · `root-scaffolding.md` · `edge-cases.md` each mean that folder: open them by that path, and never look for them next to MECHANISMS.md.
 > **`status.py next --phase structure` prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** — apply them; never open the whole files (a situational companion only when a rule points into it); the rest of the close prints when `set structure filled` passes. Load-bearing here:
 > **modular/single-responsibility**, **layered sub-packages**, **intention-revealing naming**,
@@ -114,11 +114,16 @@ the start prints) goes in a scratch file outside the repo: the summary + the pro
 3. **Then make it run, in ONE call:** `status.py prove "<lock>" "<install>" "<lint>" "<smoke test>"` (printed
 by the start) — it stops at the first failure; paste the evidence lines it prints into `#Structure`; it writes
 the `## Checks you run` results.
-4. ONE call, no save question: `set structure filled --section-from <file> --commit "<line>"`; the close shows the
+4. Step 3c's check first (a clash: `status.py open`, below), then ONE call, no save question: `set structure filled
+   --section-from <file> --commit "<line>"`; the close shows the
    layout and any Step 3c clash and asks "Change anything?".
 
 **Never run** a type checker, a secret-scan sweep, a separate lint, test or `check_structure.py` run, a second
 `prove` after a pass, or a `--dry-run` before the save: `prove` and `set` run every check counted here.
+
+### Step 3c — Contradiction check, BEFORE the save call (`set`, below)
+Per `MECHANISMS.md` §Step 3c, check what this phase produced against decisions **already recorded** — here `#Architecture`, **especially its Dev tooling line**: every scaffolding file must be the tool recorded there. On a conflict (this replaces `MECHANISMS.md` §Step 3c items 2-3), **name both sides on a line of their own** in the close, ask nothing, and **never edit an earlier phase's record or
+document**: record it as an open item, `status.py open --from structure --what "Clash: <both sides>" --clears "/<that phase> decides"`. Carry any decision still OPEN forward (§Step 3c item 4). Adding detail to an earlier decision is not a contradiction. Record it before `set`, so the save takes it (`git status` clean at the end).
 
 ## Step 3b — Close (`MECHANISMS.md` §Step 3b)
 1. **`scripts/check_structure.py` is the playbook's copy** (`scaffold` puts it there) — never edit it. It is committed: the commit hook and later sessions re-run it, and `#Structure`'s
@@ -126,7 +131,7 @@ the `## Checks you run` results.
 2. **`status.py set structure filled --section-from <file>`** — it runs the structure check (map vs tree in
    **both** directions) and every countable exit criterion, and names every gap in ONE refusal; fix them all,
    then run it once more (`--commit` saves only a pass). Never check by hand what it checks.
-3. It then prints the rest of the close, in order — reconcile, **Step 3c** (below), no save question
+3. It then prints the rest of the close, in order — reconcile, **Step 3c** (done above, before this call), no save question
    (`MECHANISMS.md` §Commit the work; `--commit` saved; a save the user asks for later: ONE call, `status.py save -m
    "<one line>"`), the **transition guard**
    (`MECHANISMS.md` §Step 3b; UNVERIFIED is a normal outcome) on ONE line: `Checked by the save: <what set counted> - judged, not checked: <the
@@ -134,10 +139,6 @@ the `## Checks you run` results.
    guard line · `Saved (commit <hash>).` · one line each, `STRUCTURE.md` linked, never restated: **What
    just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** · then its
    last two lines word for word: `Change anything? If not:` and the `Open a NEW conversation` line.
-
-### Step 3c — Contradiction check (before the gate closes)
-Per `MECHANISMS.md` §Step 3c, check what this phase produced against decisions **already recorded** — here `#Architecture`, **especially its Dev tooling line**: every scaffolding file must be the tool recorded there. On a conflict (this replaces `MECHANISMS.md` §Step 3c items 2-3), **name both sides on a line of their own** in the close, ask nothing, and **never edit an earlier phase's record or
-document**: record it as an open item, `status.py open --from structure --what "Clash: <both sides>" --clears "/<that phase> decides"`. Carry any decision still OPEN forward (§Step 3c item 4). Adding detail to an earlier decision is not a contradiction.
 
 ## Step 4 — Handoff
 "Clean structure + root scaffolding in place and explained in `STRUCTURE.md`.

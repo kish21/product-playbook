@@ -1,9 +1,13 @@
+# AI AGENT: STOP - do not read this file. The phase's start (`status.py next --phase <phase>`) printed every command
+# and flag you need. A refusal names its fix: make it and run the SAME command again; `status.py set <phase> filled
+# ... --dry-run` lists every gap at once. This source is not the instructions; reading it only fills your context.
 """theme_studio.py - puts the Theme Studio (references/theme-studio.md) into the sample page, so a run never
 reads or re-types its code (L4: the block is ~15k characters a run carried on every later call).
 
 Usage: python theme_studio.py <sample.html> --preset "Name|oklch(light)|oklch(dark)" (3 to 5 --preset)
-       python theme_studio.py <sample.html> --remove   (after approval: the approved sample is the page as users see
-       it - the studio's floating button covered phone controls in 4 of 4 logged samples)
+       python theme_studio.py <sample.html> --remove --approved "<the owner's answer, word for word>"   (after the
+       owner's looks-good: the approved sample is the page as users see it - the studio's floating button covered
+       phone controls in 4 of 4 logged samples; refused with no answer or a "Change something" answer)
 
 It inserts the block before </body> with the presets given (one palettes.md Accents row each), replaces a block
 an earlier run inserted, and names every "The sample must" requirement of theme-studio.md the page misses.
@@ -31,6 +35,12 @@ NEEDS = (
                               '(theme-studio.md §Notes, T5-1)'),
 )
 
+NOT_APPROVED = ("REFUSED - --remove is the step AFTER the owner approved the sample. First ask the confirm with your "
+                "question tool: the sample at phone, tablet and desktop, what both checks found, and two options: \"I "
+                "tried it - looks good (Recommended)\" · \"Change something\". After their looks-good run this again "
+                "with --approved \"<their answer, word for word>\". Never open this script: this message is the "
+                "instructions.")
+
 
 def block(presets: list[list[str]]) -> str:
     text = REF.read_text(encoding="utf-8")
@@ -49,6 +59,8 @@ def main(argv: list[str]) -> int:
     ap.add_argument("page")
     ap.add_argument("--preset", action="append", default=[], help='"Name|oklch(light)|oklch(dark)"')
     ap.add_argument("--remove", action="store_true", help="take the Theme Studio out of the page (after approval)")
+    ap.add_argument("--approved", default="", help="with --remove: the owner's answer to the sample confirm, word for "
+                                                   "word")
     a = ap.parse_args(argv)
     for stream in (sys.stdout, sys.stderr):  # § on a cp1252 console
         try:
@@ -57,6 +69,15 @@ def main(argv: list[str]) -> int:
             pass
     page = Path(a.page)
     if a.remove:
+        # AG-DS1: a logged run removed the studio itself and saved a look the owner never saw - the after-approval step
+        # needs the owner's answer
+        if not a.approved.strip():
+            print(NOT_APPROVED, file=sys.stderr)
+            return 1
+        if re.search(r"(?i)\bchange\b", a.approved):
+            print("REFUSED - the owner asked for a change: regenerate the sample, run both checks again and ask the "
+                  "same confirm again; --remove waits for \"looks good\"", file=sys.stderr)
+            return 1
         if not page.is_file():
             print(f"REFUSED - {page.as_posix()} not found", file=sys.stderr)
             return 1

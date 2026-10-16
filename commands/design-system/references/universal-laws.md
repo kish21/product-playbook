@@ -5,7 +5,7 @@
 > but these never bend. This is where *"never look AI-generated"* lives — made **concrete and
 > checkable**, not a vibe.
 >
-> They **extend** product-playbook's `PRINCIPLES.md` (see its *Accessibility (UI)* line and the
+> They **extend** product-playbook's `PRINCIPLES.md` (`../../../PRINCIPLES.md`) (see its *Accessibility (UI)* line and the
 > 5-step spine) — they do not duplicate it. PRINCIPLES.md owns the engineering bar; this file owns
 > the **visual-design** bar. If a derived per-product principle (Step 1) ever conflicts with a law
 > here, **the law wins** — say so to the user and adjust the principle.

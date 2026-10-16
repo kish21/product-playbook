@@ -65,7 +65,8 @@ Sidebar / top-nav, breadcrumbs, tabs, command palette. Active + focus-visible st
 drawer/Sheet (Law 21) that **actually opens** (no dead hamburger).
 
 ### Interactive / overlays — modals · dialogs · toasts · dropdowns · tooltips
-Reuse shadcn/ui + 21st.dev (focus-trap, ARIA, keyboard) — never hand-roll (Law 15). Skin with tokens.
+Reuse the component source `#Architecture` names (shadcn/ui + 21st.dev when it names them; plain CSS: native
+`<dialog>`, `<details>`, `popover`) for focus-trap, ARIA, keyboard (Law 15). Skin with tokens.
 **Feedback after an action:** a success that changes what is on screen shows there (the row updates, the saved
 label); a toast is for what happens off screen, says what happened in the past tense ("Reply approved"), stays
 at least 5 s, is announced (`role="status"`), and carries the undo when one exists. An error toast never replaces
