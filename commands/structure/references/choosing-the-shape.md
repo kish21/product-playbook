@@ -21,7 +21,7 @@ missing, and worked around it instead of asking why a full-stack AI product had 
 So: **collapsing full-stack into one app is the exception and is recorded with a reason.** It used to be
 the other way round — the collapse was silent and the correct placement is what needed a note. And if
 `#Architecture`'s stack implies a shape that disagrees with the classification, **surface it rather than
-following the stack** (`MECHANISMS.md` §Step 3c).
+following the stack** (`MECHANISMS.md` (`../../../references/mechanisms.md`) §Step 3c).
 
 ## §Modules or layers — where a feature lives
 
@@ -33,7 +33,7 @@ folders it lands in. In a domain-module tree: one. In a layer tree: `domain/mone
 `db/repositories/split-repository.ts` + `schemas/api-v1.ts` + `components/features/item-assignment/` —
 four, because each folder holds a *file type* rather than a *concern*.
 
-`PRINCIPLES.md` says **one module = one concern**, and in product terms a concern is `split`, `ocr`,
+`PRINCIPLES.md` (`../../../PRINCIPLES.md`) says **one module = one concern**, and in product terms a concern is `split`, `ocr`,
 `bills`. **`schemas/` is not a concern, it is a file type.** A tree of file types satisfies the letter of
 that rule while inverting its intent: the thing a developer actually changes is the one thing that is not
 modular.

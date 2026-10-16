@@ -5,7 +5,7 @@
 
 ## Evidence lines
 
-`evidence: <command> → <result> · <artefact> · <date>` (`STATE-MODEL.md` §2f). **Everything a line cites must
+`evidence: <command> → <result> · <artefact> · <date>` (`STATE-MODEL.md` (`../../../docs/state-model.md`) §2f). **Everything a line cites must
 exist**: `set contracts filled` refuses a cited file that is not in the project and a cited `file::test_name` the file
 does not define. Cite the command you ran, never the one you meant to run. A long output goes to a scratch file; cite
 the verdict line.
@@ -43,6 +43,6 @@ tool parses: run that tool's real parser on a filled example and show what it re
 
 ## Agent
 
-`Agent: yes`: each AGENT.md §Contracts row has its path and one evidence line — a tool call with a wrong argument is
+`Agent: yes`: each AGENT.md (`../../../references/agent.md`) §Contracts row has its path and one evidence line — a tool call with a wrong argument is
 refused by its schema, an unknown policy key stops the boot, a malformed model reply is refused, one trace record and
 one hand-off payload validate against their schemas, the golden cases load against the eval-case schema.

@@ -6,15 +6,14 @@ description: Start here - shows where the project stands and runs the next phase
 # `/playbook` — guided orchestrator · run as a **calm guide**
 
 > Part of **product-playbook**. Reads where the project stands; orchestrates the phase skills.
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the variable is the folder two levels above this SKILL.md, holding `commands/` and `PRINCIPLES.md` - never another tool's install). If `python` will not start (not found, or a sandbox refuses it): `python3`, else `py -3`, else the project's `.venv` Python - never a hunt; later commands use the start's `Run this copy as` line.
 > **`status.py route` (Step 0) prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** — apply them;
 > never open the whole files (a situational companion only when a rule points into it) — load-bearing here:
 > **plain-language communication**, **options with one Recommended**, **never bypass a gate**.
 
-> **What this is (and isn't):** a single "start here" that runs the phases in order and keeps you
-> oriented. It is an **orchestrator, not an autopilot** — every phase still asks you its questions and
-> still stops at its exit gate for your confirmation. `/vision` alone does **not** build the product;
-> the chain does, one human-checked step at a time.
+> **What this is (and isn't):** a single "start here" that runs the phases in order — an **orchestrator, not an
+> autopilot**: every phase still asks its questions and stops at its exit gate for your confirmation. `/vision`
+> alone does **not** build the product; the chain does, one human-checked step at a time.
 
 ## Contract
 - **Purpose:** walk a fresher or a working engineer through the lifecycle one phase at a time.
@@ -43,8 +42,7 @@ description: Start here - shows where the project stands and runs the next phase
   - **a declined next phase** — *"`/eval` was already tried on <date> and declined because `#Tests` was empty;
     the missing phase is still `/test`"* — never propose it blind a second time;
   - **every override and bypass** — *"`#Contracts` was written on <date> with `/foundation` bypassed:
-    '<the user's reason>'"*. The project advanced on unmet criteria, and the next session must be told that
-    without having to go looking. Offer the bypassed phase again; **never re-ask for a reason already recorded**;
+    '<the user's reason>'"* (it advanced on unmet criteria). Offer the bypassed phase again; **never re-ask for a reason already recorded**;
   - **every running gate** with its due date (an overdue one is a stalled gate), and **every open item**;
   - **every inversion** (`out of order: #X is filled but #Y is empty`): **say what is at risk** — decisions
     taken without the earlier phase's input may not survive it (`/architect` traces to scope; a scope change
@@ -95,10 +93,9 @@ control. `Map: skip it` → no map; the list still routes a goal the user names 
 
 ## Step 3 — Anytime
 Remind the user they can run **`/drift-check`** whenever they suspect scope creep, and — **on a UI product
-only** — **`/frontend-audit`** after building or changing UI, or before shipping. Both are anytime tools, not
-phases in the chain: neither fills a `PRODUCT.md` section, so neither can ever be "the next phase". They can
-also run any single phase skill directly (e.g. `/test`) without `/playbook`.
+only** — **`/frontend-audit`** after building or changing UI, or before shipping. Both are anytime tools, never
+"the next phase" (neither fills a `PRODUCT.md` section). They can also run any single phase skill directly (e.g. `/test`) without `/playbook`.
 
 ## Handoff
-"You're set up to be guided. We'll do **one phase at a time**, checking each before moving on — run the
-proposed next skill, or just keep running `/playbook` in a new conversation and I'll walk you through."
+"**One phase at a time**, each checked before moving on — run the proposed next skill, or `/playbook` again in
+a new conversation."

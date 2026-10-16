@@ -16,14 +16,14 @@ description: Check a milestone's exit criteria before testing.
 6. The rest of the close: what `set` printed. **Everything below is the full path (`Mode: full`).**
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the variable is the folder two levels above this SKILL.md, holding `commands/` and `PRINCIPLES.md` - never another tool's install). If `python` will not start (not found, or a sandbox refuses it): `python3`, else `py -3`, else the project's `.venv` Python - never a hunt; later commands use the start's `Run this copy as` line.
 > **The start prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`**, `set` the close's — apply them (a situational companion only when a rule points into it). Load-bearing: **exit-criteria are testable AND verified (not assumed)**,
 > **security-in-DoD checked**, **honest gap surfacing**, **scope re-check**, **measure not assume**.
 
 ## Contract
 - **Purpose:** prove development is actually complete before Testing — a real gate, not a vibe.
 - **Reads:** what the start prints (Step 0); more by `status.py section`.
-- **Writes:** `PRODUCT.md#Dev-complete` — the checklist, each item checked **with re-runnable evidence** in the one settled form (`STATE-MODEL.md` §2f): `` `evidence: <command> → <result> · <artefact> · <YYYY-MM-DD>` ``. Transcribe what you actually ran; a criterion you judged rather than measured carries **no** evidence line and is reported `UNVERIFIED` by `/drift-check`, which is an honest state — inventing a command you did not run is not.
+- **Writes:** `PRODUCT.md#Dev-complete` — the checklist, each item checked **with re-runnable evidence** in the one settled form (`STATE-MODEL.md` §2f): `` `evidence: <command> → <result> · <artefact> · <YYYY-MM-DD>` ``. Transcribe what you actually ran; a judged criterion carries **no** evidence line (reported `UNVERIFIED`, an honest state) — never an invented command.
 - **Gate type:** `verification` — pass/fail on repo evidence; no preference involved. Batchable, and **stops on red** - the chain waits; this run still does every check once. (`STATE-MODEL.md` §2d)
 - **State model** (`STATE-MODEL.md` §2c): writes `#Dev-complete` · `declined` ✓ · `override` ✓ · `superseded` ✓
 - **Exit criteria:**
@@ -41,10 +41,10 @@ description: Check a milestone's exit criteria before testing.
 - **Unusual cases - the start prints their rule only when the case is real.** A re-run (a filled section) follows the `RE-RUN` line `next` prints: ONE options question listing what would change, never a silent overwrite; a reversed decision keeps a dated `superseded <date>: <why>` line. The user declines the run: `status.py set dev-check declined --reason "<their words>" --gate <the phase that fills it>` - and change nothing in `PRODUCT.md`.
 
 ## Step 1 — Apply principles (this phase)
-- **Verify, don't assume:** "should pass" is not "passes". **Surface gaps honestly** — a half-done feature listed as done is the "thought it was done" trap.
+- **Verify, don't assume:** "should pass" is not "passes". **Surface gaps honestly** — never list a half-done feature as done.
 
 ## Step 2 — Run the checkpoint
-1. **Coverage:** every core-scope feature present + runs (spot-run the live paths with `/run`, and check the observable result — not just that the command exited 0). **Run the start's gate once, here:** each ticket passed on its own branch; merged, it is new code.
+1. **Coverage:** every core-scope feature present + runs (spot-run the live paths with `/run`; check the observable result, not just exit 0). **Run the start's gate once, here:** each ticket passed on its own branch; merged, it is new code.
 2. **Quality bar:** no hardcoded values; prompts in `prompts/` YAML; contracts typed; schema↔code consistent; CI green.
 3. **Security DoD:** each feature's security checks are actually present (not just promised) — for AI, prompt-injection defence exists.
 4. **Scope re-check:** compare built features to OUT-OF-SCOPE; flag any creep.
@@ -55,12 +55,12 @@ description: Check a milestone's exit criteria before testing.
 Fill `#Dev-complete` in the one close call below: tick each box **only with evidence**; list any failing item explicitly.
 
 ## Step 3b — Principle-gate: phase-level verification (evidence)
-Beyond ticking the per-feature boxes, do a phase-level check: a holistic **`/security-review`** (or equivalent)
+A phase-level check: a holistic **`/security-review`** (or equivalent)
 across the auth/data surface, run **inside a subagent** so its report returns as input and cannot end the run,
-and confirm CI (the auto-layer) is green. Then **report a phase Confidence
+and confirm CI is green. Then **report a phase Confidence
 Score (0–100%)** with one line each on solid / risky-untested / to-raise-it (per `PRINCIPLES.md`).
 **If any box can't be ticked with evidence, the gate FAILS — report exactly what's missing;
-no hand-off to Testing.** A failing checkpoint is the point of this skill.
+no hand-off to Testing.**
 
 **File what the checkpoint finds, IN THIS RUN** — never handed to the user as a list to file or a decision
 to make. **MEDIUM or above: one issue each** (`/tickets "<finding>"`); **LOW and unrated: ONE issue for the
@@ -71,14 +71,14 @@ local ticket file, as `/tickets` does). Name every issue filed or reopened in th
 **A security finding on a PUBLIC repo is never filed publicly** — never into an issue or a committed file,
 `docs/dev-check.md` and `PRODUCT.md` included: put it to the user in the close.
 
-**Close the loop (`MECHANISMS.md` §Step 3b):** record it in ONE call — `status.py set dev-check filled --verdict pass|fail --section-from <file> --security-from <the helper's table>` (`MECHANISMS.md` §Status; the table is counted against the security line and kept as a receipt) — then the rest of the close it prints, in order: reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), Step 3c, **no save question** — the record call saved (`MECHANISMS.md` §Commit the work; never a separate save question; `--no-commit` only if the user said not to save; push only if the user says so), then **the transition guard** (`MECHANISMS.md` §Step 3b, item 4): a verdict for every exit criterion, citing the runs this phase made — never re-run one for its number; `UNVERIFIED` is a normal outcome, silence is not. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (its last line the `Open a NEW conversation` line `set` printed). **The close is the run's last message** — a composed skill's report is input to it, never the close itself.
+**Close the loop (`MECHANISMS.md` §Step 3b):** record it in ONE call — `status.py set dev-check filled --verdict pass|fail --section-from <file> --security-from <the helper's table>` (`MECHANISMS.md` §Status; the table is counted against the security line and kept as a receipt) — then the rest of the close it prints, in order: reconcile any number this phase introduced against `#Vision` (surface a contradiction, never write over it), Step 3c, **no save question** — the record call saved (`MECHANISMS.md` §Commit the work; `--no-commit` only if the user said not to save; push only if the user says so), then **the transition guard** (`MECHANISMS.md` §Step 3b, item 4): a verdict for every exit criterion, citing the runs this phase made — never re-run one for its number; `UNVERIFIED` is a normal outcome, silence is not. **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (its last line the `Open a NEW conversation` line `set` printed). **The close is the run's last message** — a composed skill's report is input to it, never the close itself.
 
-## Step 3c — Contradiction check (before the gate closes)
+## Step 3c — Contradiction check (BEFORE the save call in Step 3b: what it fixes or records goes in that save)
 Per `MECHANISMS.md` §Step 3c: `#Scope`'s core list against the `STATUS.md` ticket rows — a feature marked done that scope never asked for, or a scoped feature quietly dropped. On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or a dated `superseded by` line in the earlier section).
 
 ## Step 4 — Handoff
 "Development checkpoint passed (evidence recorded).
 - **Does anything ahead need the product to be REACHABLE?** A milestone criterion naming a second device,
-  a real user, or a link someone else opens needs a public URL — run **`/deploy`** first. It executes the
-  runtime target `#Architecture` already recorded; it does not re-decide the host.
+  a real user, or a link someone else opens needs a public URL — run **`/deploy`** first (it runs the host
+  `#Architecture` recorded, never re-decides it).
 - Otherwise run **`/test`** — unit, integration, regression, and adversarial/security cases on the LIVE path."

@@ -97,7 +97,8 @@ architect` prints this file; a run never opens it or templates/architecture.md. 
 - searches - Appendix B: one line per search `- <decision> · <query> · what it settled · <link to the page you opened>`
 - options [optional] - Appendix C: the options shown before each question, one line each (agent: `#### Framework
   options`, a 3-4 row table with a registry link per version)
-- sources [optional] - Appendix D: links the body relies on that Appendix B lacks, then `**Not verified:**`
+- sources - Appendix D: links the body relies on that Appendix B lacks (or `none beyond Appendix B`), then
+  `**Not verified:**` and each fact no page you opened confirmed (or `nothing - every fact has its page in Appendix B`)
 - plan notes [optional] - a choice this run that changes #Plan or #Scope (the user's answer wins - never ask which
   side wins): `- <M5 or the line's first words>: <what changes> - because <the answer>`; the script writes the dated
   `superseded` note on that line

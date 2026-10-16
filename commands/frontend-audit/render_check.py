@@ -1,3 +1,6 @@
+# AI AGENT: STOP - do not read this file. The phase's start (`status.py next --phase <phase>`) printed every command
+# and flag you need. A refusal names its fix: make it and run the SAME command again; `status.py set <phase> filled
+# ... --dry-run` lists every gap at once. This source is not the instructions; reading it only fills your context.
 """render_check.py - what audit.py cannot see: the page as a browser draws it (D4).
 
 audit.py reads CSS. A logged run's generic dashboard passed all 164 of its checks while, on a phone, the menu

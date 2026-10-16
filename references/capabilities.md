@@ -5,7 +5,7 @@ Find your tool's column and use that way. Each tool uses its **own strongest** m
 cut down to what all four share.
 
 **When your tool's cell says `none` or `UNCONFIRMED`:** use the fallback in the last column, then record it
-in the close's *What I skipped or couldn't do* block (→ `MECHANISMS.md` §Plain-language close) — name the
+in the close's *What I skipped or couldn't do* block (→ `MECHANISMS.md` (`${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md`) §Plain-language close) — name the
 capability, what you did instead, and what the user should check by hand. A fallback nobody hears about
 is a silent skip.
 
@@ -42,15 +42,15 @@ fallback line.
 
 | Claude Code | Cursor | Antigravity | Codex | Fallback |
 |---|---|---|---|---|
-| `/code-review` | `/review` (editor 3.7+, billed per use) | no review command: a helper agent (`invoke_subagent` - not offered in a logged 2026-09-29 session, only `browser_subagent`: check your tool list) given `build/references/review-stretch.md` §Helper prompt | `/review` (UNCONFIRMED), or a `spawn_agent` helper the skill explicitly asks for | a subagent given the diff (`git diff <base>...HEAD`) and the ticket's DoD, returning findings rated HIGH / MEDIUM / LOW; a tool with no helper agent at all: the review in this conversation, recorded as `self-review` |
+| `/code-review` | `/review` (editor 3.7+, billed per use) | no review command: a helper agent (`invoke_subagent` - not offered in a logged 2026-09-29 session, only `browser_subagent`: check your tool list) given `build/references/review-stretch.md` §Helper prompt | `/review` (UNCONFIRMED), or a `spawn_agent` helper the skill explicitly asks for | a subagent given the diff (`git diff <base>...HEAD`) and the ticket's DoD, returning findings rated HIGH / MEDIUM / LOW; a tool with no helper agent at all: a NEW chat on the branch given `agents/build-reviewer.md`, recorded `new chat`; the review in the conversation that wrote the code is recorded `not independently reviewed` - a gap, never a passed review |
 
 ## Security review
 
 | Claude Code | Cursor | Antigravity | Codex | Fallback |
 |---|---|---|---|---|
-| `/security-review` — reads COMMITTED changes only, so commit first; run it inside a subagent so its report cannot end the run | `/review-security` (editor only) | no review command: the same helper agent (UNCONFIRMED), given the committed diff and `PRINCIPLES.md` §Production safeguards | a `spawn_agent` helper given the committed diff (UNCONFIRMED) | a subagent given the committed diff and `PRINCIPLES.md` §Production safeguards, returning findings rated HIGH / MEDIUM / LOW; with no helper agent: `self-review`, as above |
+| `/security-review` — reads COMMITTED changes only, so commit first; run it inside a subagent so its report cannot end the run | `/review-security` (editor only) | no review command: the same helper agent (UNCONFIRMED), given the committed diff and `PRINCIPLES.md` (`${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md`) §Production safeguards | a `spawn_agent` helper given the committed diff (UNCONFIRMED) | a subagent given the committed diff and `PRINCIPLES.md` §Production safeguards, returning findings rated HIGH / MEDIUM / LOW; with no helper agent: a NEW chat or another tool, as above |
 
-**A review is recorded by the route that ran** — `helper agent` · `self-review` · `by hand` — never by a command
+**A review is recorded by the route that ran** — `helper agent` · `review command` · `new chat` · `another tool` · `not independently reviewed` — never by a command
 your tool does not have: on Cursor, Antigravity and Codex `status.py ticket` refuses `/code-review` or `/security-review`
 in `--review`, and prints the sentence that tells the user which review ran. A logged Gemini build reviewed its own
 diff in its own conversation, recorded "/code-review → R1 clean", and missed two bugs a separate review found.
@@ -87,8 +87,11 @@ reads in ONE message - and say so in the close.
 **Fallback:** a lettered list, then stop until the user answers. Never pick an option for them:
 `1. <question>` / `a) <option> (Recommended - <why, one line>)` / `b) <option>` / `c) Other - type your own`.
 The user replies `1a 2c 3c "own text"`. **Every question has 2-4 options built from what the user already gave,
-the Recommended one first, plus Other** (owner, 2026-10-06); a question asking for a number also offers
-`I don't know yet - work it out in <phase>`, and an example value is never the pre-selected option.
+the Recommended one first, plus Other** (owner, 2026-10-06). **Every option is a complete answer**, the Recommended
+one above all: a number is offered as concrete values ("8 h/week x 5 weeks (Recommended)" · another value · Other),
+plus `I don't know yet - work it out in <phase>` - never "specify your hours". Options that cannot all be true are one
+pick, never a multi-select. An example inside the question text is never recorded as the answer, and a recorded answer
+never carries the `(Recommended)` label.
 
 ## Commands that ask for approval
 

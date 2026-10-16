@@ -10,8 +10,7 @@
 
 
 Each phase runs its own principle gate at Step 3b. Five things belong to *every* one of them, defined here
-once. None is optional: three are bookkeeping the user should not have to do, the fourth is the gate itself,
-and the fifth is the only part the user reads:
+once; none is optional:
 
 1. **Record the phase's state** — `status.py set <phase> filled` (§Status; a verification phase adds
    `--verdict pass|fail`). `STATUS.md` is what `/playbook` and the next run orient from: a phase that
@@ -63,9 +62,8 @@ A phase that only *suggests* a commit message leaves its own output uncommitted,
 when there is no repository to commit to. Every phase that writes ends with these four, in order:
 
 1. **Check the repo is THIS project's — not merely that a repo exists.** Run `git rev-parse
-   --show-toplevel` and compare it to the project directory. Git resolves *upward*: an accidentally
-   `git init`-ed home directory answers for every folder beneath it, and "is there a repo?" then commits
-   `PRODUCT.md` into `~` beside dotfiles and credentials.
+   --show-toplevel` and compare it to the project directory. Git resolves *upward*: a `git init`-ed
+   home directory answers for every folder beneath it, so "is there a repo?" commits `PRODUCT.md` into `~`.
    - **Root == the project directory** → normal path, proceed.
    - **Root is a PARENT directory** → **STOP. Do not commit.** Name both paths (`this project:
      <dir>` · `git root: <root>`) and offer exactly two ways forward: `git init` here so the project owns
@@ -81,8 +79,7 @@ when there is no repository to commit to. Every phase that writes ends with thes
    Naming the root is what lets a human see a commit landing in the wrong repository.
 3. **Save without asking:** the record call commits (`--no-commit` only if the user said so); the close
    starts *"Saved (commit <hash>)."* and asks *"Change anything?"*.
-   **Never suggest-and-stop.** Suggest-and-stop is what left three phases behaving three different
-   ways and a project with zero commits after two full phases. Commit with `git add <files>`, then
+   **Never suggest-and-stop.** Commit with `git add <files>`, then
    `git commit -m "<one line>"`: every shell, never a heredoc.
 4. **Push only if a remote exists and the user says so.** No remote → state that the work is committed
    locally and stop. Never `git push` unasked, and never `--force` anything. The secrets rule still holds:
@@ -115,7 +112,7 @@ The agent's own next steps go in the handoff, never in this list.
 **The close is the run's LAST message**, after the save. A composed skill's report is evidence *for* the close, never the
 close; one that ends on its own report (`/security-review`) runs **inside a subagent** so it cannot end
 the turn. Keep going until all four blocks are printed.
-**/vision, /scope, /plan:** the short close `set` prints wins; no **Test this yourself**.
+**/vision, /scope, /plan:** the short close `set` prints wins; all four blocks, one line each (**Test this yourself:** "Nothing to test by hand in this phase.").
 
 ## §Re-run semantics — a second run must not erase the first
 
@@ -157,9 +154,8 @@ is how a phase finds a signpost where it needed a definition, and **fills the ga
   exist and were used* from *contracts exist and were ignored* — and the second is the case that happens.
 - **Every type, route or field name a phase writes must resolve to a real symbol** in the files it was
   pointed at. This is greppable, so it is a gate, not an intention.
-- **It failed exactly this way once:** the phase downstream of `/contracts` read the record, invented ten
-  types, a float money field and an event that did not exist, and **published eleven public issues**
-  before its own self-check caught it 22 minutes later.
+- **It failed this way once:** the phase after `/contracts` read the record, invented ten types and a float
+  money field, and **published eleven public issues** before its self-check caught it.
 - **Proof is a quotation, not an assertion** — a phase that opens a companion writes one `Read:`
   line per file, quoting a fragment that occurs VERBATIM in it (`MECHANISMS-ON-DEMAND.md §Read receipt`).
 
@@ -169,7 +165,9 @@ is how a phase finds a signpost where it needed a definition, and **fills the ga
 Step 0 checks the *previous* phase's gate; Step 3b checks *this* phase's own criteria. Neither asks the
 question that matters most: **does what I just produced contradict a decision that is already recorded?**
 A phase can satisfy every box on its own list and still silently overrule an ADR made one phase earlier —
-doc↔code drift *created by the playbook itself*. So before any phase that writes closes its gate:
+doc↔code drift *created by the playbook itself*. So before any phase that writes closes its gate - **before
+its save call** (`set <phase> filled`), even where the skill's `## Step 3c` is printed after its Step 3b, so the
+save takes what this check fixes or records (an open item written after the save is left uncommitted):
 
 1. **Compare** the artefacts + spine section this phase just wrote against the decisions already recorded
    in earlier sections — ADRs, **tool choices**, the stack, scope items and non-goals, budgets, contracts,

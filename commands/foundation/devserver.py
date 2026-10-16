@@ -8,6 +8,7 @@ process tree, then proves the port is free - and prints one line.
     python devserver.py start --cmd "<start command>" --port 8000 [--health URL]   (leave it running)
     python devserver.py stop --port 8000                                          (stop it, free the port)
     python devserver.py refuses --cmd "<start command>" --port 8000 --health <url> --env-file .env.example
+        --set APP_ENV=production                                             (one call, the app started as prod)
 
 check: exit 0 = it booted and answered (the line says what it answered), 1 = it did not (the log's last lines).
 refuses: the placeholder guard's proof through the real entrypoint, in one call - exit 0 = the app, started on the
@@ -15,6 +16,8 @@ file's values, stopped before answering and its output names a variable of the f
 decorative: a validator can pass its unit test while the app answers /health on every placeholder).
 --env-file: KEY=VALUE lines put into the app's environment, over the shell's - the app's own .env loader leaves an
 environment value alone in the usual loaders (python-dotenv, pydantic-settings, dotenv for Node), so .env is untouched.
+--set KEY=VALUE (repeatable): over the file's values - the placeholder proof starts the app as prod starts it
+(`--set APP_ENV=production`): in development on the fake model the guard lets an outside key stay CHANGE_ME.
 The log goes to the system temp folder, never into the project. Standard library only.
 """
 from __future__ import annotations
@@ -34,6 +37,45 @@ import urllib.request
 from pathlib import Path
 
 WIN = os.name == "nt"
+
+
+def windows_program(cmd: str, win: bool = os.name == "nt") -> str:
+    """A shell=True command on Windows runs in cmd.exe, which reads `/Scripts` in `.venv/Scripts/python.exe` as an
+    option ("'.venv' is not recognized" - a logged run's dev server never booted and its close gate failed). On
+    Windows each program word - the first, and the first after `&&` `||` `|` `&` - gets backslashes; arguments,
+    quoted text and URLs stay as written. Elsewhere the command is unchanged. (One copy per script: each is run
+    standalone; tools/test_build_tools.py checks every copy.)"""
+    if not win:
+        return cmd
+    out, i, n, start = [], 0, len(cmd), True
+    while i < n:
+        c = cmd[i]
+        if start and c.isspace():
+            out.append(c)
+            i += 1
+            continue
+        if c == '"':
+            j = cmd.find('"', i + 1)
+            j = n if j < 0 else j + 1
+        elif start:
+            j = i
+            while j < n and not cmd[j].isspace() and cmd[j] not in '&|"':
+                j += 1
+        elif c in "&|":
+            j = i
+            while j < n and cmd[j] in "&|":
+                j += 1
+            out.append(cmd[i:j])
+            i, start = j, True
+            continue
+        else:
+            out.append(c)
+            i += 1
+            continue
+        tok = cmd[i:j]
+        out.append(tok.replace("/", "\\") if start and "://" not in tok else tok)
+        i, start = j, False
+    return "".join(out)
 
 
 def state_dir() -> Path:
@@ -141,7 +183,7 @@ def start(cmd: str, port: int, extra: dict[str, str] | None = None) -> tuple[sub
                          f"`devserver.py stop --port {port}` first")
     log = state_dir() / f"{port}.log"
     flags = {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP} if WIN else {"start_new_session": True}
-    proc = subprocess.Popen(cmd, shell=True, stdout=log.open("w", encoding="utf-8"), stderr=subprocess.STDOUT,
+    proc = subprocess.Popen(windows_program(cmd), shell=True, stdout=log.open("w", encoding="utf-8"), stderr=subprocess.STDOUT,
                             stdin=subprocess.DEVNULL, env={**os.environ, **(extra or {})}, **flags)
     (state_dir() / f"{port}.pid").write_text(str(proc.pid))
     return proc, log
@@ -185,6 +227,8 @@ def main(argv: list[str]) -> int:
     ap.add_argument("--health", help="URL that answers when the app is up")
     ap.add_argument("--timeout", type=float, default=60)
     ap.add_argument("--env-file", dest="env_file", help="KEY=VALUE lines put into the app's environment")
+    ap.add_argument("--set", dest="set_vars", action="append", default=[], metavar="KEY=VALUE",
+                    help="one more environment value, over --env-file's (e.g. APP_ENV=production)")
     a = ap.parse_args(argv)
     if a.action == "stop":
         said = stop(a.port)
@@ -194,6 +238,12 @@ def main(argv: list[str]) -> int:
         print("REFUSED - check and refuses need --cmd and --health; start needs --cmd", file=sys.stderr)
         return 1
     extra = env_file(a.env_file)
+    for pair in a.set_vars:
+        k, eq, v = pair.partition("=")
+        if not k or not eq:
+            print(f"REFUSED - --set takes KEY=VALUE, not {pair!r}", file=sys.stderr)
+            return 1
+        extra[k.strip()] = v
     proc, log = start(a.cmd, a.port, extra)
     ok, said = wait_health(a.health, proc, a.timeout) if a.health else (True, "started (no health URL given)")
     if a.action == "refuses":

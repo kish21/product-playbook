@@ -6,7 +6,7 @@
 
 ## 1. Dependency manifest — its contents and provability
 
-**This phase owns its CONTENTS AND PROVABILITY** (`MECHANISMS-ON-DEMAND.md` §Seam) — `/structure` created the file and
+**This phase owns its CONTENTS AND PROVABILITY** (`MECHANISMS-ON-DEMAND.md` (`../../../references/mechanisms-on-demand.md`) §Seam) — `/structure` created the file and
 its dev/prod split; **install into the project's own environment** (`uv sync` → `.venv`, on the version `requires-python` pins; Node: `engines`), and every task-runner line that needs the packages runs through it (`uv run pytest`, never a bare `python -m pytest`, which uses whatever Python the machine finds first - `set foundation filled` checks both); pin the versions, **actually install, and commit the lockfile** (`uv.lock`, `package-lock.json`,
 `pnpm-lock.yaml`, `Cargo.lock`, `go.sum` — `set foundation filled` refuses a manifest without one), write the tool
 config files those scripts reference (`biome.json`, `tsconfig.json`, the test-runner config), and get the first real
@@ -48,6 +48,31 @@ guard is visible in one file. Match by name because `make setup` copying the exa
   A logged run's app answered `/health` with every placeholder set, because only `/login` ever called the loader.
 - **Connection URLs say `127.0.0.1`, never `localhost`** — in `.env.example`, its comments and the runbook: on Windows
   with Docker, `localhost` can resolve to IPv6 `::1` first and hang (a logged run lost a boot to it).
+- **The script makes `.env`, never the user and never the model** — `python env_init.py` (beside SKILL.md; the start
+  prints the path), run once `.env.example` exists and again after this step or step 4 adds a variable. It makes git
+  ignore `.env` first, copies `.env.example`, fills only what this machine can make (a random value for a local secret,
+  the comment's own local database URL, `development`, the fake model switched on), leaves real outside keys
+  `CHANGE_ME`, never changes a line of an existing `.env` (it only appends a variable `.env` lacks) and never prints a
+  value. Show the user its list: *filled automatically* / *needed from you only for real mode* (where to get each).
+  A logged round: three agents made `.env` by hand, one did not, and its user's first boot stopped.
+  **Write `.env.example` so the script can fill it:** a local secret's comment says to generate it; a local database
+  URL's comment carries a `for example <url>` on `127.0.0.1` or SQLite; a non-secret setting with a safe development
+  value is written as that value (`APP_ENV=development`, `USE_REAL_MODEL=false`) or gives `for example <value>`. A
+  comment `env-init: secret` · `env-init: outside` · `env-init: value <v>` decides when the name alone would not.
+  **Copy `env_init.py` into the tooling folder and commit it** (like the audit copy): `docs/runbook.md` §2 names that
+  copy, because a clone has no playbook.
+- **The guard refuses the placeholders IN USE, by mode** — always: every local value (secrets, the database URLs, the
+  mode itself); with the real provider switched on, or under production: every outside key too. So in development on
+  the fake model the app boots with the outside keys still `CHANGE_ME`, and the same `.env` refuses to boot the moment
+  real mode or production is chosen, naming each key. Production has **no override** (`PRINCIPLES.md` (`../../../PRINCIPLES.md`) §Production
+  safeguards); an unknown mode value is refused, never read as development. The proof starts the app as prod does:
+  `devserver.py refuses ... --env-file .env.example --set APP_ENV=production` (the project's mode variable).
+- **The tests never read the developer's `.env`** — the loader takes an `env_file` argument (default `.env`), and every
+  test of config or the guard passes an empty temp file (or one it writes) instead of deleting a variable from the
+  environment and trusting the default. A logged test removed `SESSION_SECRET` from the environment, the loader fell
+  back to the real `.env`, and the suite passed only on a machine with no `.env` — the user's own pre-commit test hook
+  then failed. Prove it with `proof.py dotenv -- <the test command>`: the suite once with a filled `.env` and once
+  without, in a throwaway copy; `set foundation filled` refuses without a passing run.
 
 ## 4. The test datastore + its guard
 

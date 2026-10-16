@@ -150,3 +150,8 @@ Try it with a real idea. Build something. Break it. Then open an issue and tell 
 ## 🛠️ Contributing
 
 Issues and ideas are welcome — open an issue. The tests and release checks live in the maintainer's development repository; every change reaches this repository as a checked release.
+
+## 🙏 Credits
+
+The playbook is MIT-licensed. It follows Google's open DESIGN.md format and uses shadcn/ui's token names;
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) lists each work, its licence and what it is used for.

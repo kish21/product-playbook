@@ -18,7 +18,7 @@ after it, `{{name:line}}` all of it on one line, `{{name:each:<pattern>}}` a tab
 - why now - first line: one takeaway (no search behind it: `why now: the owner's claim, not verified`); then `1. **<lead-in>.** <one line [n]>` per reason
 - market - first line: how it is solved today, naming 2-3 real comparables (from the searches); then `**Our angle.** <the sharpening insight>`
 - solved today [table: Approach | Who does it | Where it falls short] - one row per way it is solved today
-- worked example - one real-looking case start to finish, with names and numbers, one line (a number that is not the owner's: illustrative)
+- worked example - one real-looking case start to finish, with names and numbers, one line, marked `(illustrative)` when invented (`(owner)` when the owner gave it); no source mark
 - experience [table: When | What happens] - one person's days with the product: Day 0 the trigger, then what the product does, then the outcome
 - what makes it work [optional] - `- **<lead-in>.** <one line>` per point
 - how it works - first line: one takeaway; then a ```mermaid flowchart (input, steps, decision, what the user sees)
@@ -33,6 +33,8 @@ after it, `{{name:line}}` all of it on one line, `{{name:each:<pattern>}}` a tab
 - riskiest - first line: the riskiest assumption; then `- **For:** <evidence [n]>` · `- **Against:** <evidence [n]>` · `- **How we test it:** <the cheapest test>` · `- **Other risks:** <one line each>`
 - constraints - first line: the rules that apply · the languages · where the data comes from; then `- **<rule, in plain words>.** What it means for us: <one line [n]>` per rule
 - competitors [table: Product | Market | Does | Does not | Same job / nearby] - the owner's market first
+- failure - 2-4 plain sentences: what we would see if it does not work (the number that shows it, by when) and what we would do then
+- decisions [table: Decision | Why | Who decided] - one row per decision this vision took (the main user, the job, the business model, the north star...); Who decided = owner · picked from our options · proposed
 - in scope - `- <item>` per line: what the first version includes
 - out of scope - `- <item>` per line: what it leaves out
 - open questions - `1. <a question still open, and who answers it>` per question

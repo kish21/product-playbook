@@ -6,7 +6,7 @@ description: Split milestones into small tickets with files and done criteria.
 # `/tickets` — Phase 2 · Development ④b · run as a **tech lead / project engineer**
 
 > Part of **product-playbook**. Reads the project spine (`PRODUCT.md`, `STRUCTURE.md`, `#Contracts` — resolve per MECHANISMS.md §Spine resolution).
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the variable is the folder two levels above this SKILL.md, holding `commands/` and `PRINCIPLES.md` - never another tool's install). If `python` will not start (not found, or a sandbox refuses it): `python3`, else `py -3`, else the project's `.venv` Python - never a hunt; later commands use the start's `Run this copy as` line.
 > **This skill's OWN reference files are a DIFFERENT folder:** `references/` beside this SKILL.md (`commands/tickets/references/`: `adhoc-capture.md` · `publishing.md` · `slicing.md` · `tickets-md.md` · `verification.md`), never the plugin-root `references/`.
 > **`status.py rules tickets` prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** — apply them; never open the whole files (a situational companion only when a rule points into it). Load-bearing:
 > **modular / single-responsibility** (one ticket = one concern), **layered & decoupled** (a ticket respects
@@ -18,8 +18,8 @@ description: Split milestones into small tickets with files and done criteria.
 ## Contract
 - **Purpose:** turn milestones into granular, independently assignable and independently mergeable tickets — grouped by module lane so the backlog **never assumes one builder** — and capture ad-hoc issues without derailing the backlog.
 - **Reads:** `PRODUCT.md#Plan`, `#Contracts`, `#Architecture`, `STRUCTURE.md`, `DESIGN.md` (UI products
-  only) — **and the files `#Contracts` names** (schemas, route table, db schema): `#Contracts` is a *record
-  that* the types were frozen and *where*; it never contains them, so the start prints the names those files define.
+  only) — **and the files `#Contracts` names** (schemas, route table, db schema): `#Contracts` records only
+  *where* the types are, so the start prints the names those files define.
 - **Writes:**
   - `docs/issues/*.md` — one file per ticket; root **`TICKETS.md`** — the plan, never status. Both **rendered by `set` from one fields file**.
   - `.github/ISSUE_TEMPLATE/feature_ticket.md` and `.github/PULL_REQUEST_TEMPLATE.md` (copied from bundled `templates/` by `set` if missing).
@@ -29,7 +29,7 @@ description: Split milestones into small tickets with files and done criteria.
 - **Gate type:** `derivation` — computable from `#Plan` + `#Contracts`. Batchable - a `derivation` run may chain with its neighbours and end in ONE review. (`STATE-MODEL.md` §2d)
 - **State model** (`STATE-MODEL.md` §2c): writes no spine section · `declined` ✓ · `override` ✓ · `superseded` n/a — writes `TICKETS.md` + `docs/issues/*`; a re-run skips tickets that already exist, so there is nothing in the spine to erase
 - **Exit criteria:**
-  - [ ] **Mode A:** every milestone is decomposed **milestone → epic → ticket** (`references/slicing.md` §Epics), into **as many tickets as it has visible behaviours — no count cap** — under a **stated slice strategy** (vertical or horizontal), recommended with a reason and answered in the one question round; the close **shows the written backlog in full** (every epic and ticket: ID · title · lane · owner; a title with "and" flagged); a change is rewritten and shown again. **Every milestone, now** (owner, 2026-10-08: the full lane and seat plan for the whole product is the point).
+  - [ ] **Mode A:** every milestone is decomposed **milestone → epic → ticket** (`references/slicing.md` §Epics), into **as many tickets as it has visible behaviours — no count cap** — under a **stated slice strategy** (vertical or horizontal), recommended with a reason and answered in the one question round; the close **shows the written backlog in full** (every epic and ticket: ID · title · lane · owner; a title with "and" flagged); a change is rewritten and shown again. **Every milestone, now** (the full lane and seat plan for the whole product is the point).
   - [ ] **Every ticket names the `#Plan` exit criterion it serves** (`M1.2`, numbered by the start); every criterion of a ticketed milestone is served by a ticket or `TICKETS.md` says why not.
   - [ ] **Lanes are modules** (`references/slicing.md`): every ticket carries `Lane` = a `STRUCTURE.md` module and an `Owner`; ordered inside a lane, parallel across; root `TICKETS.md` (`references/tickets-md.md`) carries the plan — epics, the parallel table, coordination points, hub files, a Mermaid lane flow graph (one box per lane; solid arrow = wait for the merge, dotted = build against the contract) and the day-1 table — and **never a status**; no `docs/issues/README.md` remains.
   - [ ] **Epics are parent issues** (`references/publishing.md` §Epics are parent issues): each epic is published as a GitHub parent issue with its tickets as sub-issues, **read back**; a re-run creates **no duplicate epic or link**.
@@ -112,8 +112,7 @@ GitHub gives** — milestones → labels → **epic parent issues** → tickets 
 
 **Publish with the engine, never by hand.** From the project folder run ONE command:
 `python "${CLAUDE_PLUGIN_ROOT}/commands/tickets/publish.py"` (`--no-board` only when the
-user chose no board) - its plan is read from the committed files; a re-run is the same command. It publishes in that order, reads every part back, watches each
-read-back go red once, and plans a second run that must create nothing. **Its printed `OK`/`FAIL` lines are
+user chose no board) - its plan is read from the committed files; a re-run is the same command. It publishes in that order and reads every part back. **Its printed `OK`/`FAIL` lines are
 §After publishing's evidence — quote them in the close, and every `note:` line word for word under "What YOU do next".** Exit 1 → name the failed line and stop, never
 publish again to make it pass (`no issue found` alone: re-run once); exit 2 → it refused before writing anything, say why.
 
@@ -133,11 +132,10 @@ engine runs once the issues exist (a local-only run skips them and says so).
 
 **Close the loop (`MECHANISMS.md` §Step 3b):** `set tickets filled --commit` records the state (`MECHANISMS.md` §Status) and saves unasked — no git call of your own (`MECHANISMS.md` §Commit the work; no save question; `--no-commit` only when the user said not to save) — then prints the rest of the close in order; follow it as printed: reconcile its numbers with `#Plan` (surface a contradiction, never write over it), Step 3c, **the transition guard** (`MECHANISMS.md` §Step 3b, item 4: a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not). **Close in plain language** (`MECHANISMS.md` §Plain-language close): four blocks in order, each under its bolded name: **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next** (ends with the handoff `set` printed).
 
-## Step 3c — Contradiction check (before the gate closes)
+## Step 3c — Contradiction check (BEFORE the save call in Step 3b: what it fixes or records goes in that save)
 Per `MECHANISMS.md` §Step 3c, against decisions **already recorded** — `#Plan` milestones, `#Scope` non-goals, `#Contracts` types (`set` names them). On a conflict, **name both sides, ask which wins, and update the loser** (fix the artefact, or a dated `superseded by` line in the earlier section) — never both standing. Added detail is not a contradiction.
 
 ## Step 4 — Handoff
-"Backlog grouped into epics and lanes, planned in `TICKETS.md` and on the board — each ticket mergeable on
-its own; inside a lane in order, lanes side by side. Alone? Every seat is yours — run **`/build`** on the
+"Backlog in epics and lanes, planned in `TICKETS.md` and on the board. Alone? Every seat is yours — run **`/build`** on the
 first ticket, one ticket per session. With help, each seat starts its day-1 row, then the next startable
 card (*Blocked by #n* waits for #n)."

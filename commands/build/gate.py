@@ -12,7 +12,8 @@ checkout), named on the last line, for the rare case that needs more.
 
     python gate.py --ticket M1-X-01            (the project's check recipe + the ticket's Verification Command)
     python gate.py --fresh "<cmd>"             (run again even when these exact files already passed)
-    python gate.py --ticket M1-X-01 --close    (the close gate: the same, then - on a pass - the close's order + rules)
+    python gate.py --ticket M1-X-01 --close    (the close gate: the same, then - on a pass - the close's order + rules;
+                                               it fails when the full suite or CI never runs the ticket's test files)
 
 Every command runs even after a failure, so one call shows the whole picture; --stop stops at the first failure.
 A run records the exact files it checked (a git tree of the working tree, committed or not), so a pass still counts
@@ -35,6 +36,45 @@ RESULT = re.compile(r"(\d+ (?:passed|failed|errors?)\b.*?\bin [\d.]+s|Found \d+ 
                     r"|Tests?:?\s+\d+ (?:passed|failed).*|^OK\b.*|^FAIL\b.*)", re.M)
 FAILED = re.compile(r"^(FAILED|ERROR|E\s{2,}|.*\berror\b:|.*Error:|.*\bFAIL\b|\s*File \".*\", line \d+|.*assert )", re.I)
 EXCERPT = 25
+
+
+def windows_program(cmd: str, win: bool = os.name == "nt") -> str:
+    """A shell=True command on Windows runs in cmd.exe, which reads `/Scripts` in `.venv/Scripts/python.exe` as an
+    option ("'.venv' is not recognized" - a logged run's dev server never booted and its close gate failed). On
+    Windows each program word - the first, and the first after `&&` `||` `|` `&` - gets backslashes; arguments,
+    quoted text and URLs stay as written. Elsewhere the command is unchanged. (One copy per script: each is run
+    standalone; tools/test_build_tools.py checks every copy.)"""
+    if not win:
+        return cmd
+    out, i, n, start = [], 0, len(cmd), True
+    while i < n:
+        c = cmd[i]
+        if start and c.isspace():
+            out.append(c)
+            i += 1
+            continue
+        if c == '"':
+            j = cmd.find('"', i + 1)
+            j = n if j < 0 else j + 1
+        elif start:
+            j = i
+            while j < n and not cmd[j].isspace() and cmd[j] not in '&|"':
+                j += 1
+        elif c in "&|":
+            j = i
+            while j < n and cmd[j] in "&|":
+                j += 1
+            out.append(cmd[i:j])
+            i, start = j, True
+            continue
+        else:
+            out.append(c)
+            i += 1
+            continue
+        tok = cmd[i:j]
+        out.append(tok.replace("/", "\\") if start and "://" not in tok else tok)
+        i, start = j, False
+    return "".join(out)
 
 
 def log_dir() -> Path:
@@ -95,9 +135,12 @@ def main(argv: list[str]) -> int:
             print(f"gate: REUSED the passing run at {prior['head'][:9]} ({prior.get('date', '?')}) - the same "
                   f"commands, and only docs/status changed since: {' · '.join(cmds)}\nGATE PASS (reused; --fresh "
                   f"runs it again)")
-            record(folder, cmds, True, ticket, ticket_cmds, reused=prior["head"], tree=tree)
+            misses = suite_misses() if close else None
+            record(folder, cmds, True, ticket, ticket_cmds, reused=prior["head"], tree=tree, misses=misses)
             if close:
-                if not feature_docs_plain():
+                if not feature_docs_plain():  # both said in one run: the doc's gaps, and (above) the suite's misses
+                    return 1
+                if misses:
                     return 1
                 print_close_rules()
             return 0
@@ -105,7 +148,7 @@ def main(argv: list[str]) -> int:
     failed = 0
     for n, cmd in enumerate(cmds, 1):
         t0 = time.time()
-        r = subprocess.run(cmd, shell=True, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        r = subprocess.run(windows_program(cmd), shell=True, capture_output=True, text=True, encoding="utf-8", errors="replace")
         secs = time.time() - t0
         out = (r.stdout or "") + (r.stderr or "")
         log = folder / f"{stamp}-{n}.log"
@@ -122,9 +165,12 @@ def main(argv: list[str]) -> int:
             if stop:
                 break
     print(f"{'GATE PASS' if not failed else f'GATE FAIL - {failed} of {len(cmds)} failed'} · full output: {folder}/{stamp}-*.log")
-    record(folder, cmds, not failed, ticket, ticket_cmds, tree=tree)
+    misses = suite_misses() if close and not failed else None
+    record(folder, cmds, not failed, ticket, ticket_cmds, tree=tree, misses=misses)
     if close and not failed:  # the close starts here: its order and rules arrive now, not at the start of the run
-        if not feature_docs_plain():
+        if not feature_docs_plain():  # both said in one run: the doc's gaps, and (above) the suite's misses
+            return 1
+        if misses:
             return 1
         print_close_rules()
     return 1 if failed else 0
@@ -155,6 +201,166 @@ def feature_docs_plain() -> bool:
         print("GATE FAIL - the feature doc's top half is for people (templates/feature-doc.md): fix it and run the "
               "close gate again - the checks' passing run is reused")
     return not bad
+
+
+# AG-B2: a logged project put each module's tests in app/<module>/tests while pytest's testpaths, the Makefile's
+# `check` and CI ran tests/ only - the ticket's own tests passed by path, never ran in the full suite or in CI, and
+# nothing noticed. The close gate asks each full-suite command which test files it would run.
+TEST_FILE = re.compile(r"(?:^|/)(?:test_[^/]*\.py|[^/]*_test\.py|[^/]+\.(?:test|spec)\.[cm]?[jt]sx?)$")
+UNRESOLVED = re.compile(r"\$\(|\$\{|\{\{|%\w+%")  # a make / just / CI variable: the command cannot run as written
+# the runner as the PROGRAM of a command (never `pip install pytest`): pytest, a path to it, python -m pytest, or a
+# project runner's `run pytest`; vitest / jest, bare or through npx / pnpm exec / yarn / bunx
+PYTEST = re.compile(r"^(?:\w+=\S*\s+)*(?:(?:\S*[/\\])?python[\d.]*(?:\.exe)?\s+-m\s+|(?:uv|poetry|pdm|pipenv|rye)\s+run"
+                    r"(?:\s+-\S+)*\s+|\S*[/\\])?py\.?test(?:\.exe)?(?=\s|$)")
+JS_RUNNER = re.compile(r"^(?:\w+=\S*\s+)*(?:npx\s+|pnpm\s+(?:exec\s+)?|yarn\s+|bunx\s+|\S*[/\\])?(vitest|jest)(?=\s|$)")
+
+
+def branch_files() -> list[str]:
+    """The files this branch changed - committed since the default branch, uncommitted, or new."""
+    base = next((b for b in (git_out("merge-base", "HEAD", ref) for ref in ("origin/HEAD", "main", "master")) if b), "")
+    return sorted(set((git_out("diff", "--name-only", base, "HEAD").splitlines() if base else [])
+                      + git_out("diff", "--name-only", "HEAD").splitlines()
+                      + git_out("ls-files", "--others", "--exclude-standard").splitlines()) - {""})
+
+
+def recipe_lines(recipe: str) -> list[tuple[str, str]]:
+    """(where, command) for every command the full-suite recipe runs - its body, the targets it depends on and the
+    targets / scripts it calls - plus every test command in the CI workflows. Read only, never run here."""
+    out: list[tuple[str, str]] = []
+    if recipe in ("just check", "make check"):
+        f = (next((Path(n) for n in ("justfile", "Justfile", ".justfile") if Path(n).is_file()), None)
+             if recipe == "just check" else Path("Makefile"))
+        text = f.read_text(encoding="utf-8", errors="replace") if f else ""
+        targets: dict[str, tuple[list[str], list[str]]] = {}
+        cur = None
+        for ln in text.splitlines():
+            m = re.match(r"^([A-Za-z0-9_.-]+)(?:\s+[^:=\n]*)?:(?![=:])\s*(.*)$", ln)
+            if m:
+                cur = m.group(1)
+                targets[cur] = ([w for w in m.group(2).split("#")[0].split()], [])
+            elif cur and ln[:1] in ("\t", " ") and ln.strip():
+                targets[cur][1].append(ln.strip().lstrip("@-").strip())
+            elif ln.strip() and not ln.startswith("#"):
+                cur = None
+        seen: set[str] = set()
+
+        def walk(name: str) -> None:
+            if name in seen or name not in targets:
+                return
+            seen.add(name)
+            deps, body = targets[name]
+            for dep in deps:
+                walk(dep)
+            for ln in body:
+                out.append((f"{f.name} `{name}`", ln))
+                for m in re.finditer(r"(?:\$\(MAKE\)|\bmake|\bjust)\s+([A-Za-z0-9_.-]+)", ln):
+                    walk(m.group(1))
+        walk("check")
+    elif recipe == "npm run check":
+        try:
+            scripts = json.loads(Path("package.json").read_text(encoding="utf-8")).get("scripts") or {}
+        except ValueError:
+            scripts = {}
+        seen_js: set[str] = set()
+
+        def walk_js(name: str) -> None:
+            if name in seen_js or name not in scripts:
+                return
+            seen_js.add(name)
+            out.append((f"package.json `{name}`", str(scripts[name])))
+            for m in re.finditer(r"\b(?:npm|pnpm|yarn|bun)\s+(?:run\s+)?([\w:.-]+)", str(scripts[name])):
+                walk_js(m.group(1))
+        walk_js("check")
+    wfs = Path(".github") / "workflows"
+    for wf in sorted(wfs.glob("*.y*ml")) if wfs.is_dir() else []:
+        for ln in wf.read_text(encoding="utf-8", errors="replace").splitlines():
+            ln = re.sub(r"^\s*(?:-\s*)?(?:run:\s*)?", "", ln).strip()
+            if not re.match(r"[\w-]+:(?:\s|$)|#", ln) and list_command(ln):
+                out.append((f"CI {wf.as_posix()}", ln))
+    return out
+
+
+def list_command(cmd: str) -> str | None:
+    """The command's test-runner part in the runner's own "list what you would run" form; None for a command that
+    runs no test runner this knows (pytest, vitest, jest)."""
+    for seg in re.split(r"&&|\|\||;", cmd):
+        seg = seg.strip()
+        if PYTEST.search(seg):
+            return seg + " --collect-only -q"
+        m = JS_RUNNER.search(seg)
+        if m:
+            if seg.startswith(m.group(1)):
+                seg = "npx " + seg
+            if m.group(1) == "vitest":
+                return re.sub(r"\bvitest(?:\s+(?:run|watch))?(?=\s|$)", "vitest list --filesOnly", seg, count=1)
+            return seg + " --listTests"
+    return None
+
+
+def collected(path: str, out: str) -> bool:
+    """`path` (relative to the project folder) is in a runner's listing: a pytest node id (`path::test`), a
+    collection ERROR line, or a listed file, relative or absolute."""
+    out = out.replace("\\", "/")
+    here = re.escape(Path.cwd().resolve().as_posix())
+    return bool(re.search(rf"(?im)(?:^|\s|{here}/){re.escape(path)}(?:::|\s|$)", out))
+
+
+def suite_misses() -> list[str] | None:
+    """The ticket's test files that a full-suite command never runs ([] = every command runs them all); None when it
+    cannot tell - it says why, and never fails the gate on a guess."""
+    top = Path(git_out("rev-parse", "--show-toplevel") or ".").resolve()
+    here = Path.cwd().resolve()
+    mine = []
+    for f in branch_files():
+        p = (top / f).resolve()
+        if TEST_FILE.search(f) and p.is_file():
+            try:
+                mine.append(p.relative_to(here).as_posix())
+            except ValueError:
+                continue
+    if not mine:
+        return []
+    recipe = (ticket_commands("")[0] or [""])[0]
+    runs = [(where, cmd, lc) for where, cmd in recipe_lines(recipe) for lc in (list_command(cmd),) if lc]
+    if not runs:
+        print(f"! suite check: cannot tell whether the full suite runs {', '.join(mine[:4])} - "
+              + (f"`{recipe}` calls no pytest / vitest / jest line I can read" if recipe else
+                 "no check recipe (justfile / Makefile / package.json `check`)")
+              + ": check by hand that the full suite and CI run them")
+        return None
+    misses: dict[str, list[str]] = {}
+    unknown = []
+    for where, cmd, listing in runs:
+        if UNRESOLVED.search(cmd):
+            unknown.append(f"{where}: `{cmd[:80]}` (it uses a variable)")
+            continue
+        try:
+            r = subprocess.run(windows_program(listing), shell=True, capture_output=True, text=True, encoding="utf-8",
+                               errors="replace", timeout=600)
+        except subprocess.TimeoutExpired:
+            unknown.append(f"{where}: `{listing[:80]}` timed out")
+            continue
+        out = (r.stdout or "") + (r.stderr or "")
+        py = bool(PYTEST.search(listing))
+        # pytest: 0 listed, 2 collection errors (files still named), 5 none collected; a runner that did not start
+        # (not installed, a usage error) proves nothing either way
+        if (py and r.returncode not in (0, 2, 5)) or (not py and r.returncode != 0):
+            unknown.append(f"{where}: `{listing[:80]}` exit {r.returncode}")
+            continue
+        for f in mine:
+            if f.endswith(".py") == py and not collected(f, out):
+                misses.setdefault(f, []).append(f"{where}: `{cmd[:70]}`")
+    for u in unknown:
+        print(f"! suite check: could not list the tests of {u} - check by hand that it runs this ticket's tests")
+    if not misses:
+        return None if len(unknown) == len(runs) else []
+    for f, where in misses.items():
+        print(f"SUITE MISSES {f} - not run by {' · '.join(where)}")
+    print("GATE FAIL - the full suite never runs this ticket's tests (they pass only when run by path): add their "
+          "folder to each command named above (the Makefile / justfile / package.json recipe, CI's test step), or to "
+          "pytest's `testpaths` (pyproject.toml [tool.pytest.ini_options]) when the command names no folder - or "
+          "move the tests under the folder it runs; then run the close gate again")
+    return sorted(misses)
 
 
 def print_close_rules() -> None:
@@ -279,7 +485,7 @@ def worktree_tree(folder: Path) -> str:
 
 
 def record(folder: Path, cmds: list[str], passed: bool, ticket: str = "", ticket_cmds: list[str] | None = None,
-           reused: str = "", tree: str = "") -> None:
+           reused: str = "", tree: str = "", misses: list[str] | None = None) -> None:
     """The run `status.py ticket` reads: which commands passed on which commit. A logged build's DoD said
     "`just check` green" while its gate ran three of the recipe's six checks; a row now needs a passing run of the
     project's own check recipe on the final code (R3-5)."""
@@ -288,7 +494,8 @@ def record(folder: Path, cmds: list[str], passed: bool, ticket: str = "", ticket
         f.write(json.dumps({"branch": git_out("rev-parse", "--abbrev-ref", "HEAD"), "head": git_out("rev-parse", "HEAD"),
                             "dirty": dirty, "commands": cmds, "passed": passed, "ticket": ticket,
                             "ticket_cmds": ticket_cmds or [], "reused": reused, "tree": tree,
-                            "date": time.strftime("%Y-%m-%d")}) + "\n")
+                            "date": time.strftime("%Y-%m-%d"),
+                            **({} if misses is None else {"suite_misses": misses})}) + "\n")
 
 
 if __name__ == "__main__":

@@ -18,9 +18,10 @@
 > visible. **Replace every `<…>`; ship no placeholders.**
 >
 > **Readable by Google's open DESIGN.md format too:** `set design-system filled` writes a YAML front matter block
-> (`name`, `colors`, `typography`, `rounded`) above the title, rendered from the token stylesheet, so a tool that
-> reads that format (`npx @google/design.md lint DESIGN.md`) gets the same values. Never type or edit it: `set`
-> rewrites it on every close, so the front matter and the stylesheet cannot disagree.
+> (`name`, `colors`, `typography`, `rounded`, `spacing`) above the title, rendered from the token stylesheet, so a
+> tool that reads that format (`npx @google/design.md lint DESIGN.md`) gets the same values. Never type or edit it:
+> `set` rewrites it on every close, so the front matter and the stylesheet cannot disagree. Credit and licence:
+> `THIRD-PARTY-NOTICES.md`.
 
 ---
 
@@ -62,7 +63,10 @@ interface languages, self-hosted fonts).>
   --destructive: <oklch>;       --destructive-foreground: <oklch>;
   --success: <oklch>;  --warning: <oklch>;  --info: <oklch>;   /* semantic status */
   --border: <oklch>;   --input: <oklch>;    --ring: <oklch>;
-  --radius: <rem>;
+  --radius: <rem>;     --radius-sm: <rem>;  --radius-lg: <rem>;
+  /* the spacing scale (§5 Layout uses only these): 4px steps, density from the archetype */
+  --space-1: 0.25rem;  --space-2: 0.5rem;   --space-3: 0.75rem;  --space-4: 1rem;
+  --space-6: 1.5rem;   --space-8: 2rem;     --space-12: 3rem;    --space-16: 4rem;
 }
 .dark { /* REQUIRED (Law 22) — same keys, dark values; re-check every pair at AA */ }
 /* Follow the OS, but let a manual toggle BEAT it (T5-6): system-dark applies UNLESS the user chose light.
@@ -89,7 +93,8 @@ interface languages, self-hosted fonts).>
 - **Hierarchy rule:** heading vs body differ by ≥200 weight or a clear size step (Law 4).
 
 ## 4. Components  (reuse — never hand-roll, Law 15)
-- **Source:** shadcn/ui + 21st.dev primitives, re-skinned with the tokens above.
+- **Source:** <the UI component source `#Architecture` names, in its words - e.g. shadcn/ui + 21st.dev, or plain CSS
+  with our own components>, re-skinned with the tokens above. Never a library `#Architecture` does not name (`set` refuses it).
 - **Key components + their look:** Button (variants <primary/secondary/ghost>, radius, padding) ·
   Input · Card · Table/DataGrid · Nav/Sidebar · Dialog · Toast · Badge/Status.
 - **Table/DataGrid (Law 20):** header alignment matches cells; **numbers right-aligned + tabular-nums**;
@@ -133,7 +138,7 @@ interface languages, self-hosted fonts).>
 - **Mobile content priority:** <the user's #1 mobile job leads; what is demoted / hidden / tap-to-reveal>. Tap targets >=44px; no hover-only controls.
 - **Per-component collapse (fill in):** nav/sidebar <persistent -> drawer/Sheet> · data table <full -> stacked cards> · detail panel <side -> bottom Sheet> · KPI grid <N-col -> 1-col>.
 - **Agent guide (how a build step/LLM uses this file):** always reference tokens (never raw hex/font);
-  pull components from shadcn/ui + 21st.dev and skin with these tokens; keep body ≥ <min>px; run the
+  pull components from the §4 Source and skin with these tokens; keep body ≥ <min>px; run the
   contrast check on any new colour; **honour the declared motion tier (§7) — never escalate past it
   (e.g. reach for GSAP/Three.js) without re-confirming, and gate any Tier ≥ 1 motion behind
   `prefers-reduced-motion`**; obey the universal laws. `/new-component` builds against this;
@@ -202,5 +207,5 @@ interface languages, self-hosted fonts).>
 ### Notes
 - **Two layers:** the tokens above are derived per product (the *look*); the **universal laws** in
   `universal-laws.md` are the floor every `DESIGN.md` must also satisfy. Both are non-negotiable.
-- **shadcn install:** these variables map 1:1 onto shadcn/ui's `globals.css` `:root`/`.dark` blocks —
-  paste them in and the whole component library re-skins. 21st.dev components consume the same tokens.
+- **shadcn install (only when §4's Source is shadcn/ui):** these variables map 1:1 onto shadcn/ui's `globals.css`
+  `:root`/`.dark` blocks — paste them in and the whole component library re-skins. Plain CSS reads the same variables.

@@ -6,7 +6,7 @@ description: Define who it is for, the problem, why now and how success is measu
 # `/vision` — Phase 1 · Product · run as a **product developer**
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's existing docs — resolve per MECHANISMS.md §Spine resolution).
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the variable is the folder two levels above this SKILL.md, holding `commands/` and `PRINCIPLES.md` - never another tool's install). If `python` will not start (not found, or a sandbox refuses it): `python3`, else `py -3`, else the project's `.venv` Python - never a hunt; later commands use the start's `Run this copy as` line.
 > **`status.py next --phase vision` prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** — apply them; never open the whole files (a situational companion only when a rule points into it); the rest of the close prints when `set vision filled` passes. Load-bearing here: **vision-alignment**, **verify-don't-assume**,
 > **benchmark-to-current-year**, **plain-language communication**.
 
@@ -38,30 +38,30 @@ description: Define who it is for, the problem, why now and how success is measu
     in `docs/vision.md`. Size is reported, never trimmed to. → `Detail:`
 
 ## Step 0 — Context + prior-gate check
-- **First turn, ONE command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase vision`** — it prints the start and this phase's rules; never the rule files, the template or `PRODUCT.md` whole. Show its first line; close by its checklist. Load your web-search tool in the same turn. `next` says **fresh start** → ask question 1; nothing to probe.
+- **First turn, ONE command: `python ${CLAUDE_PLUGIN_ROOT}/tools/status.py next --phase vision`** — it prints the start and this phase's rules; never the rule files, the template or `PRODUCT.md` whole. Show its first line; close by its checklist. Load your web-search tool in the same turn. `next` says **fresh start** → ask question 1.
 - `PRODUCT.md` exists → `next` prints `#Vision`; you are refining it.
-- Code exists, no `PRODUCT.md` → offer `/adopt` first (it drafts the whole spine from the code); the user wants
+- Code exists, no `PRODUCT.md` → offer `/adopt` first (it drafts the spine from the code); the user wants
   only the vision → skim it, say what you infer is being built, and confirm it with the user.
-- Neither → `set vision filled --from-fields` makes `PRODUCT.md` (its title, the project policy and `#Vision` — a later phase's section appears when that phase finishes) and `--product` makes `STATUS.md` — never read or copy a template yourself.
+- Neither → `set vision filled --from-fields` makes `PRODUCT.md` (its title, the project policy and `#Vision`) and `--product` makes `STATUS.md` — never read or copy a template yourself.
 - **Anything unusual** (a re-run of a filled `#Vision`, a run that stops with the gate unmet): `next` prints the rule and the command for it only when it is true - follow it as printed.
 
 ## Step 1 — Apply principles (this phase)
-- **Verify, don't assume:** the user's intent comes from the user — ask. **Benchmark to the current year:** judge the idea against how the market solves this *now*.
+- **Verify, don't assume:** the user's intent comes from the user — ask. **Benchmark to the current year:** judge the idea against the market *now*.
 - **Plain language.** **Every question: 2–4 options + Recommended (first, one-line reason) + Other** (`CAPABILITIES.md` §Ask the user a question with options), built from the brief, the answers and the research. The one open question: "what's your idea?" when the user gave nothing.
 
 ## Step 2 — Guided discovery (ask, then sharpen)
 Tell the user what to expect: two rounds of questions (the first verdict opens round 2; the drafts are options
-inside round 2), then the save - three owner turns. **Ask each round in ONE message or form** and wait (7 single-question turns re-sent the whole conversation
-each time). Keep each answer word for word in the conversation:
+inside round 2), then the save - three owner turns. **Ask each round in ONE message or form** and wait. Keep each answer word for word in the conversation:
 the fields file is written **once, in one call, at Step 3** — never edited after each answer.
 **A brief (the idea is longer than one sentence: a challenge, a pasted doc): for each round-1 question, if the input
 contains an answer, quote it under `From your brief:` instead of asking**; ask only the gaps. **Never ask for a
 researchable fact** (how it is solved today, competitors, prices, rules): the market check finds it.
 **Never decide who it's for, the problem, why now, the riskiest assumption or the business model** — **propose**
-additions and alternatives as options (extra segments, the people inside the business who use it, the scale, root
+additions and alternatives as options (extra segments, the business's own users, the scale, root
 causes, other risks), built from the brief, the answers and the research; only what the user picks goes in, and a
 picked option is recorded under `## Owner's answers` as `picked: <option text>`. Nothing changes silently.
-A number question also offers `I don't know yet - work it out in <phase>`; an example is never pre-selected.
+**Every option is a complete answer:** a number as concrete values, plus `I don't know yet - work it out in <phase>`;
+never "specify your X"; alternatives are one pick.
 
 **Round 1 — quick: questions 1–2, then a first verdict.**
 **Your first tool call, before you write round 1, starts the research helper in the background** (Claude: the Agent tool · Cursor: a Task sub-agent ·
@@ -89,7 +89,7 @@ Then **benchmark to the current year** with a web search, never from memory: (th
   `local ·`, `same job ·`, `nearby ·`, `rules ·`. **No count on searches:** a search for what users complain about is where a sharpening
   insight comes from. A comparable named without a search gets its own line, no link needed:
   `<name> · no search — <where the name came from>` (or `Not searched · <gap>`). (case file: The search list nobody could check)
-  The links are the market read's evidence — never an `evidence:` line that greps a file for the names.
+  The links are the market read's evidence, never an `evidence:` line grepping a file.
 - Surface **one sharpening insight** the user had not stated: an angle, segment or differentiator.
 - **First verdict:** what the searches found, the insight, and one call — **go** or **reconsider**, with one
   reason — **at the top of the round 2 message**, never a turn of its own: *"Reply stop to end here, or
@@ -124,9 +124,9 @@ as options. No save question: round 2's answers are the go-ahead to write and sa
 
 ## Step 3 — Write ONE fields file; the script renders both documents
 **Write the fields `next` printed — `### <field>` and its text — in ONE call, in a scratch file outside the repo**
-(never `docs/vision.md` or `PRODUCT.md` yourself, never a template). A field's first line is its plain takeaway; the
-script lays out `docs/vision.md` (numbered headings, the tables, the
-appendix) and `PRODUCT.md#Vision` from the same fields. Leave `UI` alone: `/architect` decides it. Then ONE call: `set vision filled --from-fields <file> --ai yes|no --agent yes|no --commit "<one line>"` (+ `--product "<name>"` on a new project; `--no-commit` only when the user said not to save) renders both, records the AI flag, fills the `Read:` line from `README.md` and saves. A refusal lists every missing field at once.
+(never `docs/vision.md` or `PRODUCT.md` yourself, never a template). `[n]` only on a sourced claim, never on the
+owner's answers or an invented example (`(illustrative)`). A field's first line is its plain takeaway; the
+script lays out `docs/vision.md` and `PRODUCT.md#Vision` from the same fields. Leave `UI` alone: `/architect` decides it. Then ONE call: `set vision filled --from-fields <file> --ai yes|no --agent yes|no --commit "<one line>"` (+ `--product "<name>"` on a new project; `--no-commit` only when the user said not to save) renders both, records the AI flag, fills the `Read:` line from `README.md` and saves. A refusal lists every missing field at once.
 
 ## Step 3b — Principle-gate: verify it's sharp, not fuzzy
 Walk the exit criteria. Check every named comparable **against your `searches` field**: a search
@@ -143,12 +143,11 @@ the check. **STOP and fill it with the user** when a field is empty, or when:
 
 **Receipts and size** (`MECHANISMS-ON-DEMAND.md §Section is a record`, `MECHANISMS-ON-DEMAND.md §Read receipt`): `set` prints the size and writes the `README.md` line; another companion you opened gets a quote in the `read` field; never trim to a number; a warning after a passing `set` (a plain-words estimate) needs no re-run.
 
-**Close the loop (`MECHANISMS.md` §Step 3b):** the checklist `set vision filled` prints: the save was the yes (`MECHANISMS.md` §Commit the work); **run the transition guard** (§Step 3b, item 4) in one line: what the save checked, what is judged (`UNVERIFIED` is normal, silence is not); **close in plain language** (`MECHANISMS.md` §Plain-language close), 6 lines in all, as `set` prints them: the guard line, then `Saved (commit ...).`, **What just happened** and **What I skipped or couldn't do** (one line each, the document linked, never restated), and **What YOU do next** as the last two lines word for word; **Test this yourself** is left out (nothing to test by hand here).
+**Close the loop (`MECHANISMS.md` §Step 3b):** the checklist `set vision filled` prints: the save was the yes (`MECHANISMS.md` §Commit the work); **run the transition guard** (§Step 3b, item 4) in one line: what the save checked, what is judged (`UNVERIFIED` is normal, silence is not); **close in plain language** (`MECHANISMS.md` §Plain-language close), 7 lines in all, as `set` prints them: the guard line, then `Saved (commit ...).`, then the four blocks, one line each under its bolded name: **What just happened** and **What I skipped or couldn't do** (the document linked, never restated), **Test this yourself**: `Nothing to test by hand in this phase.`, **What YOU do next**: `Change anything? If not:` - and last the `Open a NEW conversation` line, copied whole to its last word.
 
 ## Step 3c — Contradiction check (in round 2 with the drafts, before the yes; the close's step 3 confirms it)
 Per `MECHANISMS.md` §Step 3c, compare against what is **already recorded**: the `README.md`/`CLAUDE.md` purpose and any prior `#Vision` (`set` prints the README's). A change to the customer, the north star or the business model is a conflict → **name both sides, ask which wins, and update the loser** (fix the artefact, or add a dated `superseded by` line). Added detail is not a contradiction.
 
 ## Step 4 — Handoff
-"Vision captured in `PRODUCT.md`. Next run **`/scope`** to lock the ONE core feature and what stays out.
-Want real-world evidence for the riskiest assumption first? **`/validate`** is optional: the cheapest
-experiment — days of evidence before months of code."
+"Vision saved. Next run **`/scope`** to lock the ONE core feature and what stays out.
+Untested riskiest assumption? **`/validate`** (optional) tests it cheaply first."

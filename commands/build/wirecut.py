@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -35,6 +36,45 @@ import time
 from pathlib import Path
 
 FAILED_LINE = re.compile(r"^(FAILED \S+|ERROR \S+|\d+ failed.*)", re.M)
+
+
+def windows_program(cmd: str, win: bool = os.name == "nt") -> str:
+    """A shell=True command on Windows runs in cmd.exe, which reads `/Scripts` in `.venv/Scripts/python.exe` as an
+    option ("'.venv' is not recognized" - a logged run's dev server never booted and its close gate failed). On
+    Windows each program word - the first, and the first after `&&` `||` `|` `&` - gets backslashes; arguments,
+    quoted text and URLs stay as written. Elsewhere the command is unchanged. (One copy per script: each is run
+    standalone; tools/test_build_tools.py checks every copy.)"""
+    if not win:
+        return cmd
+    out, i, n, start = [], 0, len(cmd), True
+    while i < n:
+        c = cmd[i]
+        if start and c.isspace():
+            out.append(c)
+            i += 1
+            continue
+        if c == '"':
+            j = cmd.find('"', i + 1)
+            j = n if j < 0 else j + 1
+        elif start:
+            j = i
+            while j < n and not cmd[j].isspace() and cmd[j] not in '&|"':
+                j += 1
+        elif c in "&|":
+            j = i
+            while j < n and cmd[j] in "&|":
+                j += 1
+            out.append(cmd[i:j])
+            i, start = j, True
+            continue
+        else:
+            out.append(c)
+            i += 1
+            continue
+        tok = cmd[i:j]
+        out.append(tok.replace("/", "\\") if start and "://" not in tok else tok)
+        i, start = j, False
+    return "".join(out)
 
 
 def backup_dir() -> Path:
@@ -107,7 +147,7 @@ def main(argv: list[str]) -> int:
         t0 = time.time()
         try:
             path.write_bytes(text.replace(c["find"], c["replace"]).encode("utf-8"))
-            r = subprocess.run(c["test"], shell=True, capture_output=True, text=True, encoding="utf-8",
+            r = subprocess.run(windows_program(c["test"]), shell=True, capture_output=True, text=True, encoding="utf-8",
                                errors="replace")
         finally:
             path.write_bytes(original)

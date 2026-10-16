@@ -3,6 +3,7 @@
     python proof.py [--env KEY=VALUE | --env KEY=@NAME]... -- <command ...>
     python proof.py plant --file <path> --text "<content>" [--also "<command>"]
     python proof.py plant-secret
+    python proof.py dotenv -- <test command ...>
 
 run (the default): runs the command through the shell, prints its last lines and `proof: exit N - logged`.
   --env KEY=@NAME puts the value of NAME from .env into KEY (never printed): one form for PowerShell and bash, e.g.
@@ -12,14 +13,18 @@ plant: in a throwaway git worktree holding this folder's current state (your fol
   --also there with the plant in place (e.g. the CI step that must fail too). Then the worktree is removed.
 plant-secret: the same with a freshly generated fake token in a new file; only the secret-scan hooks run (pre-commit:
   the others are skipped). Exit 0 = the hook refused the commit, 1 = the commit went through.
+dotenv: the tests never read the developer's .env - in a throwaway worktree, env_init.py makes a filled .env and the
+  test command runs without it (its values in the environment, as CI sets them) and with it; exit 0 = both passed.
 Every run is appended to playbook-proofs.jsonl in the git folder (never committed): the command, its exit code and
 the last lines of its output. A record's `evidence:` line cites what this printed. Standard library only.
 """
 from __future__ import annotations
 
 import argparse
+import contextlib
 import datetime as dt
 import hashlib
+import io
 import json
 import os
 import random
@@ -36,6 +41,45 @@ TAIL_LINES = 80
 SECRET_SCANNERS = r"gitleaks|trufflehog|detect-secrets|detect_secrets|ggshield|secretlint"
 INSTALL_DIRS = (".agents", ".claude", ".cursor", ".codex", ".gemini")
 LINKED = (".venv", "venv", "node_modules")  # the project's installed environments, linked into the worktree
+
+
+def windows_program(cmd: str, win: bool = os.name == "nt") -> str:
+    """A shell=True command on Windows runs in cmd.exe, which reads `/Scripts` in `.venv/Scripts/python.exe` as an
+    option ("'.venv' is not recognized" - a logged run's dev server never booted and its close gate failed). On
+    Windows each program word - the first, and the first after `&&` `||` `|` `&` - gets backslashes; arguments,
+    quoted text and URLs stay as written. Elsewhere the command is unchanged. (One copy per script: each is run
+    standalone; tools/test_build_tools.py checks every copy.)"""
+    if not win:
+        return cmd
+    out, i, n, start = [], 0, len(cmd), True
+    while i < n:
+        c = cmd[i]
+        if start and c.isspace():
+            out.append(c)
+            i += 1
+            continue
+        if c == '"':
+            j = cmd.find('"', i + 1)
+            j = n if j < 0 else j + 1
+        elif start:
+            j = i
+            while j < n and not cmd[j].isspace() and cmd[j] not in '&|"':
+                j += 1
+        elif c in "&|":
+            j = i
+            while j < n and cmd[j] in "&|":
+                j += 1
+            out.append(cmd[i:j])
+            i, start = j, True
+            continue
+        else:
+            out.append(c)
+            i += 1
+            continue
+        tok = cmd[i:j]
+        out.append(tok.replace("/", "\\") if start and "://" not in tok else tok)
+        i, start = j, False
+    return "".join(out)
 
 
 def run_git(cwd: Path, *args: str, env: dict | None = None) -> subprocess.CompletedProcess:
@@ -106,7 +150,7 @@ def cmd_run(base: Path, a) -> int:
     if not command:
         raise SystemExit("proof.py: name the command after --")
     env, shown = env_for(base, a.env or [])
-    p = subprocess.run(command, shell=True, cwd=base, env=env, capture_output=True, text=True, encoding="utf-8",
+    p = subprocess.run(windows_program(command), shell=True, cwd=base, env=env, capture_output=True, text=True, encoding="utf-8",
                        errors="replace")
     out = (p.stdout or "") + ("\n" + p.stderr if p.stderr else "")
     tail = "\n".join(out.rstrip().splitlines()[-25:])
@@ -127,7 +171,10 @@ def snapshot(base: Path) -> str:
         head = run_git(base, "rev-parse", "--verify", "-q", "HEAD").stdout.strip()
         if head:
             run_git(base, "read-tree", head, env=env)
-        add = run_git(base, "add", "-A", "--", ".", *(f":(exclude){d}" for d in INSTALL_DIRS), env=env)
+        # an install folder the project already ignores is left out by .gitignore; naming it in an exclude
+        # pathspec as well makes git refuse the whole add ("paths are ignored"), so exclude only the others
+        excluded = [d for d in INSTALL_DIRS if run_git(base, "check-ignore", "-q", d).returncode != 0]
+        add = run_git(base, "add", "-A", "--", ".", *(f":(exclude){d}" for d in excluded), env=env)
         if add.returncode != 0:
             raise SystemExit(f"proof.py: could not snapshot the folder - {add.stderr.strip()[:200]}")
         tree = run_git(base, "write-tree", env=env).stdout.strip()
@@ -184,9 +231,11 @@ def hook_skips(tree: Path, keep: str) -> str:
     return ",".join(dict.fromkeys(skip))
 
 
-def plant(base: Path, rel: str, text: str, also: str = "", secret_only: bool = False) -> dict:
-    """Commit a plant through the hooks in a throwaway worktree of the current state; the result as a log entry."""
-    tmp = Path(tempfile.mkdtemp(prefix="proof-plant-"))
+@contextlib.contextmanager
+def throwaway(base: Path, prefix: str):
+    """(the worktree, its snapshot commit): a throwaway git worktree holding this folder's current state (gitignored
+    files such as .env left out), the project's installed environments linked in; removed afterwards."""
+    tmp = Path(tempfile.mkdtemp(prefix=prefix))
     tree = tmp / "w"
     commit = snapshot(base)
     add = run_git(base, "worktree", "add", "--detach", str(tree), commit)
@@ -195,6 +244,21 @@ def plant(base: Path, rel: str, text: str, also: str = "", secret_only: bool = F
         raise SystemExit(f"proof.py: could not make the throwaway worktree - {add.stderr.strip()[:200]}")
     linked = [tree / n for n in LINKED if (base / n).is_dir() and not (tree / n).exists() and link(base / n, tree / n)]
     try:
+        yield tree, commit
+    finally:
+        ok = all(unlink_dir_link(p) for p in linked)
+        if ok:
+            run_git(base, "worktree", "remove", "--force", str(tree))
+            shutil.rmtree(tmp, ignore_errors=True)
+        run_git(base, "worktree", "prune")
+        if not ok:
+            print(f"proof.py: left {tree} in place - a link to the project's environment could not be removed "
+                  f"safely; delete the links in it first", file=sys.stderr)
+
+
+def plant(base: Path, rel: str, text: str, also: str = "", secret_only: bool = False) -> dict:
+    """Commit a plant through the hooks in a throwaway worktree of the current state; the result as a log entry."""
+    with throwaway(base, "proof-plant-") as (tree, commit):
         target = tree / rel
         target.parent.mkdir(parents=True, exist_ok=True)
         before = target.read_text(encoding="utf-8", errors="replace") if target.is_file() else ""
@@ -213,20 +277,52 @@ def plant(base: Path, rel: str, text: str, also: str = "", secret_only: bool = F
         entry = {"kind": "plant", "file": rel, "text": text, "cmd": f"plant {rel}", "exit": 0 if moved else 1,
                  "refused": not moved, "tail": out}
         if also:
-            a = subprocess.run(also, shell=True, cwd=tree, capture_output=True, text=True, encoding="utf-8",
+            a = subprocess.run(windows_program(also), shell=True, cwd=tree, capture_output=True, text=True, encoding="utf-8",
                                errors="replace", env=env)
             entry.update({"also": also, "also_exit": a.returncode,
                           "also_tail": "\n".join(((a.stdout or "") + "\n" + (a.stderr or "")).splitlines()[-40:])})
         return entry
-    finally:
-        ok = all(unlink_dir_link(p) for p in linked)
-        if ok:
-            run_git(base, "worktree", "remove", "--force", str(tree))
-            shutil.rmtree(tmp, ignore_errors=True)
-        run_git(base, "worktree", "prune")
-        if not ok:
-            print(f"proof.py: left {tree} in place - a link to the project's environment could not be removed "
-                  f"safely; delete the links in it first", file=sys.stderr)
+
+
+def dotenv_proof(base: Path, command: str) -> dict:
+    """The tests never read the developer's .env: in a throwaway worktree (your .env is never copied), env_init.py
+    makes a filled .env; the suite runs once WITHOUT it (its values in the environment, as CI sets them) and once WITH
+    it (the developer's state). A logged test deleted SESSION_SECRET from the environment, the loader fell back to the
+    real .env, and the suite passed only on a machine with no .env - the user's pre-commit test hook then failed."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import env_init
+    with throwaway(base, "proof-dotenv-") as (tree, _):
+        made = io.StringIO()
+        with contextlib.redirect_stdout(made):
+            env_init.main(["--root", str(tree)])
+        if not (tree / ".env").is_file():
+            return {"kind": "run", "cmd": f"dotenv -- {command}", "exit": 2, "dotenv": True,
+                    "tail": f"no .env could be made: {made.getvalue().strip()[:300]}"}
+        env = {**os.environ, **dotenv(tree)}
+        runs = {}
+        hidden = tree.parent / "env.hidden"
+        for label in ("without", "with"):
+            if label == "without":
+                (tree / ".env").replace(hidden)
+            else:
+                hidden.replace(tree / ".env")
+            r = subprocess.run(windows_program(command), shell=True, cwd=tree, env=env, capture_output=True, text=True,
+                               encoding="utf-8", errors="replace")
+            runs[label] = (r.returncode, ANSI.sub("", (r.stdout or "") + "\n" + (r.stderr or "")))
+    (wo, wo_out), (wi, wi_out) = runs["without"], runs["with"]
+    if wo == 0 and wi == 0:
+        verdict = "passes without a .env and with a filled one - the tests never read the developer's .env"
+    elif wo == 0:
+        verdict = ("FAILS only WITH a filled .env - a test reads the developer's .env (pass the loader an empty "
+                   "env file in that test: skeleton-steps.md §3.)")
+    elif wi == 0:
+        verdict = "FAILS only WITHOUT a .env - the suite needs a developer's .env, so CI and a fresh clone fail"
+    else:
+        verdict = "FAILS both without and with a .env - the suite is red before any .env question"
+    tail = "\n".join([f"without .env: exit {wo}", *wo_out.rstrip().splitlines()[-12:],
+                      f"with a filled .env: exit {wi}", *wi_out.rstrip().splitlines()[-12:], verdict])
+    return {"kind": "run", "cmd": f"dotenv -- {command}", "exit": 0 if wo == wi == 0 else 1, "dotenv": True,
+            "without_exit": wo, "with_exit": wi, "tail": tail}
 
 
 def fake_token() -> str:
@@ -258,6 +354,23 @@ def main(argv: list[str]) -> int:
         except (AttributeError, ValueError):
             pass
     base = Path.cwd()
+    if argv and argv[0] == "dotenv":
+        rest = argv[1:]
+        if rest and rest[0] == "--":
+            rest = rest[1:]
+        if not rest:
+            raise SystemExit("proof.py dotenv: name the test command after --")
+        if run_git(base, "rev-parse", "--show-toplevel").returncode != 0:
+            raise SystemExit("proof.py dotenv: needs a git repository (it runs in a throwaway worktree)")
+        import shlex
+        command = rest[0].strip() if len(rest) == 1 else (
+            subprocess.list2cmdline(rest) if os.name == "nt" else shlex.join(rest))
+        entry = dotenv_proof(base, command)
+        log(base, entry)
+        print(entry["tail"])
+        print(f"proof: exit {entry['exit']} - logged (dotenv -- {command}); your folder and your .env were not "
+              f"touched")
+        return entry["exit"]
     if argv and argv[0] in ("plant", "plant-secret"):
         ap = argparse.ArgumentParser(prog=f"proof.py {argv[0]}")
         if argv[0] == "plant":

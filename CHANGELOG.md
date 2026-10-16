@@ -5,6 +5,63 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [2.1.3] - 2026-10-16
+
+### Fixed — 42 fixes from an end-to-end run on Claude Code, Codex, Cursor and Antigravity
+
+**In short.** Every phase from /vision to /build was run on the same product idea in all four coding agents. Each
+problem that would hit any user went into this release; nothing here changes what a phase is for. The biggest:
+Codex now gets its own rules, a ticket's tests can no longer sit outside the project's test run unnoticed, a review
+by the same chat that wrote the code no longer counts as a review, and `/foundation` makes your local `.env` for you.
+
+**Each agent gets its own rules**
+- A plugin install now knows which agent runs it from where it is installed. Before, Codex was treated as Claude
+  Code and never got its own waiting rule, so it checked on running commands over and over.
+- Every agent runs its own copy of the scripts and reference files; none reaches into another agent's install.
+- When `python` will not start in an agent's sandbox, the skills try `python3`, `py -3` and the project's own Python,
+  and the start prints the exact command for the copy that is running.
+
+**/build**
+- The final check fails when the ticket's test files are not run by the project's full test command, its check
+  recipe or CI, and says which one to fix.
+- A review must be independent: a helper agent, a review command, a new chat or another tool. A review by the chat
+  that wrote the code is recorded as "not independently reviewed" and shown as a gap.
+- Commits run every pre-commit check: never `SKIP=`, never `--no-verify`. A failing check is fixed, not skipped.
+- On Windows, commands such as `.venv/Scripts/python.exe ...` now run in the check scripts (cmd.exe read the slash as
+  an option).
+
+**/foundation**
+- `env_init.py` creates `.env` from `.env.example`: it makes sure git ignores it, never overwrites yours, fills local
+  secrets, database paths and development mode, switches on the stand-in model, and lists the outside keys you only
+  need for real mode. The app boots in development without them; placeholders are still refused in production or
+  with the real model.
+- A new proof runs the tests with and without a filled `.env`: tests must never read your personal `.env`.
+- The generated `scripts/check_structure.py` passes ruff and ruff format, so projects no longer exclude it.
+
+**/vision, /scope, /plan**
+- Every option, the recommended one above all, is a complete answer; a number is offered as a concrete value.
+- /scope's vision check lists each vision promise as kept, deferred (with the reason) or changed; the core sentence
+  must match the in-scope items; round 2 asks only what round 1 left open; engineering must-haves (fixed rules for
+  money or rights, money in whole units, hand-over to a person on failure, secrets) are in the table stakes.
+- Source markers only on claims that came from a source; examples with numbers are labelled.
+- /plan refuses exit criteria that cannot be tested, a plan that ends after the deadline, "Open items: none" while
+  numbers are still proposals, and a team plan where nothing runs in parallel; the working-out of dates is shown once.
+- The human documents open each section with a plain paragraph on why it matters, and add "What failure looks like"
+  and "Decisions taken".
+
+**/architect, /design-system, /structure**
+- The look is only written after you approved the sample: the script refuses the next step without your answer.
+- /architect decides the UI component source (including plain CSS); /design-system follows it instead of assuming one.
+- The model question shows the monthly cost; re-research after a changed answer goes to the research helper.
+- The contradiction check runs before the save in every phase, so the save takes every file.
+- Very long lines in documents are refused with how to split them; the /structure start prints every rule and flag
+  the save checks, and a passing command is no longer misread from its last output line.
+
+**Every phase**
+- Every close has the same four parts, and the line that starts the next phase comes out whole on every agent.
+- DESIGN.md front matter writes spacing and every radius step, and fixed font sizes instead of `clamp()`; the
+  installer no longer stops on a template subfolder; third-party notices are included.
+
 ## [2.1.2] - 2026-10-12
 
 ### Changed — this repository holds what you install, plus a security scan

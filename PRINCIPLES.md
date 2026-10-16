@@ -19,7 +19,7 @@
 1. **Architect first** — think how it *should* be built and where it fits, before writing code.
 2. **Verify** — confirm assumptions/root cause against the real code + running system. Never act on a stale note or a guess.
 3. **No hardcoding** — every value (weights, thresholds, endpoints, model names, prompts, credentials) lives in **config / `.env` / a prompt file**, never baked into source.
-4. **Benchmark to the current year, then optimise for the project's constraints — not for an ideology** — ask "is this how leading product companies do it *now*?", then judge the candidates on **fit**: reliability, operational burden, team size, cost, compatibility, maturity, and **lock-in — portability and exit cost stay explicit criteria**. Record *why the winner won*. A managed service that saves a two-person team twenty hours a month can beat self-hosting; so can the boring, stable option. "Open source by default" pre-decides a trade-off the project's constraints should decide.
+4. **Benchmark to the current year, then optimise for the project's constraints — not for an ideology** — ask "is this how leading product companies do it *now*?", then judge the candidates on **fit**: reliability, operational burden, team size, cost, compatibility, maturity, and **lock-in — portability and exit cost stay explicit criteria**. Record *why the winner won*. "Open source by default" pre-decides a trade-off the project's constraints should decide.
 5. **Self-review** — run the project's review (`/code-review`, `/security-review` on auth/data) and check quality/perf/tests before calling it done.
 
 ## Per-feature contract (agree BEFORE building a feature)
@@ -42,17 +42,12 @@
 
 - **Security baseline** — no secrets in source (secret-scan clean); check authorization / tenant-isolation on **every** data path; validate inputs; **fail-CLOSED** on security/auth.
 - **Secrets never get pushed** — tests/imports use **obviously-fake placeholder keys** (`sk-fake-...`); the secret-scan config allowlists *only those documented fakes by name* (a real key still fails CI); CI generates throwaway creds at runtime; real secrets live only in gitignored `.env` (and its backups — `.env.bak`, `*.env.local` — never `.env.example`).
-- **Placeholders must FAIL the boot, never pass a check** — every value in `.env.example` is written in an
-  unmistakable form (`CHANGE_ME__<VAR>__CHANGE_ME`) and **rejected by name** at startup, not merely length- or
-  format-checked. A 48-character `replace-me-with-32-plus-random-characters` placeholder passes `min(32)` and boots
-  the app on a session-signing key that is public in git. The boot failure names the variable and how to generate a
-  real value; under production (`NODE_ENV`/`APP_ENV`) there is **no override**.
+- **Placeholders must FAIL the boot, never pass a check** — every `.env.example` value is unmistakable
+  (`CHANGE_ME__<VAR>__CHANGE_ME`) and **rejected by name** at startup, never only length- or format-checked; the
+  boot failure names the variable and how to make a real value; under production (`NODE_ENV`/`APP_ENV`) **no override**.
 - **Tests never touch the developer's or production data** — an integration suite runs against an
-  **isolated, disposable datastore** (a separate URL, or per-test transaction rollback); sharing the dev
-  one is ruled out: "real boundaries" plus a teardown hook is a truncate away from real data.
-  The isolation is enforced by a **fail-closed bootstrap**, not a convention: if the target it was handed
-  is the dev or production one, the suite **refuses to run**, names both, and exits non-zero. A destructive
-  hook must never be one copied `.env` away from the real thing.
+  **isolated, disposable datastore** (a separate URL, or per-test transaction rollback), never the dev one. A **fail-closed bootstrap** enforces it, not a convention: handed
+  the dev or production target, the suite **refuses to run**, names both, and exits non-zero.
 - **AI-specific security (when the product uses LLMs)** — defend against **prompt injection**, jailbreaks, data exfiltration via outputs, secret/PII leakage, tool/over-agency abuse. Benchmark to the **OWASP LLM Top 10**.
 - **Observability & audit** — structured logging; trace every external/LLM/agent step; an audit record for state changes.
 - **Fail-safe errors** — graceful fallbacks; never silently swallow errors; retry only *transient* failures.
@@ -72,8 +67,7 @@
   stays; a required field answered tightly stays whatever it weighs. Size is *reported*, never
   *enforced*: a cap trims answers instead of relocating reasoning.
 - **Then the pointer is binding** (`MECHANISMS.md` §Follow the pointer): every companion added is a new
-  place a phase can find a signpost where it needed a definition. Splitting without that rule is worse
-  than not splitting.
+  place a phase can find a signpost where it needed a definition.
 
 ## Communication
 
@@ -81,6 +75,9 @@
 - **Every question is options:** 2–4, one **(Recommended)** first, plus **Other** - never a bare yes/no;
   more than 4 questions: several question-tool calls in one message, 4 each
   - except /vision's one open question, "What's your idea?", when the user gave none.
+- **Every option is a complete answer**, the Recommended one above all: a number is offered as concrete values
+  ("8 h/week x 5 weeks (Recommended)" · another value · Other), never "specify your hours"; options that cannot all be
+  true are one pick, never a multi-select; a recorded answer never carries the `(Recommended)` label.
 - **Honesty always** — surface gaps, failures, uncertainty plainly.
 - **Readable documents** — Markdown structure: a heading per topic, paragraphs of 4 sentences at most, sub-bullets
   for a field over 2 lines, a table for 3+ alike items. Labels, `evidence:`, `Read:` stay verbatim; no raw HTML, no LaTeX
@@ -158,7 +155,5 @@ Exit criteria:
   **warn, name the missing phase and offer it first** — standalone/jump-in is first-class, so a gate is a
   gate and never a wall. Proceeding anyway is an **override, and an override is recorded, never verbal**:
   it names the gate being bypassed, captures **the reason as options (Other = the user's own words)**, and is recorded with
-  `status.py bypass` (`MECHANISMS.md` §Status). A *warning* is
-  informational and needs no ceremony; an *override* advances the project on unmet criteria — the more
-  consequential of the two — so it is the one that must leave a trace. **One rule, one home:** the form and
-  the reading of it are defined in §Declined runs; this is the pointer, not a second copy.
+  `status.py bypass` (`MECHANISMS.md` §Status). A *warning* needs no ceremony; an *override*
+  advances the project on unmet criteria, so it must leave a trace. The form: `MECHANISMS.md` §Declined runs.

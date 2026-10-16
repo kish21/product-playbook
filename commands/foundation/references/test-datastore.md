@@ -3,7 +3,7 @@
 > Opened by /foundation at Step 2, when wiring the test datastore and its guard. Which recipe applies is
 > decided by the **data custody `#Architecture` already recorded** — this file never picks a vendor for
 > the project, and the vendors named are dated examples, not a supported list. The playbook does not
-> pre-decide a trade-off the project's own constraints should decide (`PRINCIPLES.md`).
+> pre-decide a trade-off the project's own constraints should decide (`PRINCIPLES.md` (`../../../PRINCIPLES.md`)).
 
 ## §Why this needed writing down
 

@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# AI AGENT: STOP - do not read this file. The phase's start (`status.py next --phase <phase>`) printed every command
+# and flag you need. A refusal names its fix: make it and run the SAME command again; `status.py set <phase> filled
+# ... --dry-run` lists every gap at once. This source is not the instructions; reading it only fills your context.
 """frontend-audit — mechanical enforcement of the /design-system universal laws.
 
 The heart is a REAL WCAG contrast engine (OKLCH or hex -> relative luminance ->
@@ -21,7 +24,7 @@ from collections import Counter
 
 # The playbook release this engine shipped in. tools/check.py (check 5) holds it equal to the release,
 # so a project copy can say which checks it carries.
-ENGINE_VERSION = "2.1.2"
+ENGINE_VERSION = "2.1.3"
 
 # ---------- colour math ----------------------------------------------------
 

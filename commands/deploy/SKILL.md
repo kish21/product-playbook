@@ -7,7 +7,7 @@ description: Put the app on its host and document how.
 
 > Part of **product-playbook**. Reads + updates the project spine (`PRODUCT.md`, or the project's
 > existing docs — resolve per `MECHANISMS.md` §Spine resolution); writes `docs/deployment.md`.
-> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the same names in `.claude/product-playbook/`, else `~/.claude/product-playbook/`).
+> **Rule files — open by path, never search:** `${CLAUDE_PLUGIN_ROOT}/PRINCIPLES.md` · MECHANISMS.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms.md` · MECHANISMS-ON-DEMAND.md = `${CLAUDE_PLUGIN_ROOT}/references/mechanisms-on-demand.md` · STATE-MODEL.md = `${CLAUDE_PLUGIN_ROOT}/docs/state-model.md` (a path still starting with `$`: the variable is the folder two levels above this SKILL.md, holding `commands/` and `PRINCIPLES.md` - never another tool's install). If `python` will not start (not found, or a sandbox refuses it): `python3`, else `py -3`, else the project's `.venv` Python - never a hunt; later commands use the start's `Run this copy as` line.
 > **`status.py next --phase deploy` prints this phase's sections of `PRINCIPLES.md` and `MECHANISMS.md`** — apply them; never open the whole files (a situational companion only when a rule points into it). Load-bearing: **secrets are the user's to paste, never yours to write**,
 > **no-hardcoding**, **fail-closed**, **docs match reality**, **honest gap surfacing**.
 
@@ -202,7 +202,7 @@ path passes the user-path half; the transition guard reports it `UNVERIFIED — 
 
 **Close the loop (`MECHANISMS.md` §Step 3b):** `status.py set deploy filled --section-from <file> --commit "<one line>"` (`--dry-run` lists every gap) checks the record and the files, saves (`MECHANISMS.md` §Commit the work; `--no-commit` instead of `--commit` only when the user said not to save) and prints the rest of the close: reconcile any number against `#Vision` (surface a contradiction, never write over it); **run the transition guard** (`MECHANISMS.md` §Step 3b, item 4): re-run this phase's own `evidence:` lines, a verdict for every exit criterion — `UNVERIFIED` is a normal outcome, silence is not; **close in plain language** (`MECHANISMS.md` §Plain-language close): **What just happened** · **What I skipped or couldn't do** · **Test this yourself** · **What YOU do next**, ending with its `Open a NEW conversation` line word for word.
 
-## Step 3c — Contradiction check (before the gate closes)
+## Step 3c — Contradiction check (BEFORE the save call in Step 3b: what it fixes or records goes in that save)
 Per `MECHANISMS.md` §Step 3c, check what this phase produced against decisions **already recorded** —
 here `#Architecture`'s runtime target, data custody and migrations approach, and `STRUCTURE.md`'s tree
 (a `Dockerfile` written here contradicts a recorded decision not to have one). **Carry any decision still OPEN forward** (§Step 3c item 4). On a conflict, **name both sides, ask

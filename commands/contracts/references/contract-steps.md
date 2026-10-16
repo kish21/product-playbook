@@ -37,7 +37,7 @@ field, narrowing a type or **changing a unit** is a `/v2`).
   `N/A — <reason>` instead.
 - **Routes declared now return 501** until `/build` fills them: a declared route that returns 200 and nothing is a
   wrong answer wearing a success code.
-- **`Agent: yes`:** open AGENT.md §Contracts and record every row.
+- **`Agent: yes`:** open AGENT.md (`../../../references/agent.md`) §Contracts and record every row.
 
 ## 4. Boundary audit
 

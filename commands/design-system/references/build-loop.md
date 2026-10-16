@@ -38,8 +38,8 @@ Generate **a single, representative screen of THIS product** using the §Concret
 - **In the project's stack** if one exists (a real page/route); otherwise a **standalone preview HTML**
   the user can open in a browser.
 - **Interactive primitives must meet the accessibility floor** (Law 15 — focus management, ARIA, keyboard
-  nav, all states). On a React stack the recommended means is **reuse a shadcn/ui + 21st.dev primitive or
-  two**, re-skinned with the tokens — never re-author what the registry already solved.
+  nav, all states). The means is **the component source `#Architecture` names** (shadcn/ui + 21st.dev
+  primitives, re-skinned; none named: native elements in plain CSS) — never a library it does not name.
 - **Real content from the product's domain — never lorem** (Law 18).
 - **Its states, not only its happy path:** the same screen also shows itself empty, loading and with an error (an
   inline form error counts), each marked `data-state="empty"` · `"loading"` · `"error"`. Buttons say Verb + Noun
@@ -88,7 +88,7 @@ Generate **a single, representative screen of THIS product** using the §Concret
   (beside `SKILL.md`) writes the block and names what the page misses; never type it out. The user then tweaks colour,
   theme, text size and width LIVE, AA-guarded. For the studio to work: content in `<div id="ts_stage">`, rem text,
   every §2 token in both modes, `@container` queries, the `.light`/`.dark` escape hatch, a self-hosted font
-  (`theme-studio.md` §Notes T5-1, T5-6, T5-7). Approved → `theme_studio.py <sample> --remove`: the approved sample is
+  (`theme-studio.md` §Notes T5-1, T5-6, T5-7). Approved → `theme_studio.py <sample> --remove --approved "<the owner's answer>"`: the approved sample is
   the page as its users see it.
 
 ## §Design principles
@@ -131,7 +131,7 @@ to 94 tokens against the spec's 16 — most of the design system was invented by
    `/frontend-audit` can resolve tokens against the app instead of against the spec.
 4. **Check both directions before the gate closes.** Every spec token exists in the stylesheet, and every
    stylesheet token exists in the spec. A token in one and not the other is a contradiction
-   (`MECHANISMS.md` §Step 3c) — name both sides, do not quietly add it to the loser.
+   (`MECHANISMS.md` (`../../../references/mechanisms.md`) §Step 3c) — name both sides, do not quietly add it to the loser.
 5. **The sample page is not this file.** A preview that defines its own tokens inline demonstrates the
    design twice and ships it zero times. If the sample carries inline `<style>` tokens, say so, and point
    at the stylesheet as the one that counts.
@@ -172,7 +172,7 @@ another font · *"make it like <site>"* — and generate another. Loop until the
 The **Theme Studio** lets the user finalize colour, type size, theme and roundness *themselves*, and
 **Export** the tokens. Only *structural* changes — layout, content — need a regenerate from you.
 
-**The screenshots show the approved page:** `theme_studio.py <sample> --remove` runs first after approval; `set design-system
+**The screenshots show the approved page:** `theme_studio.py <sample> --remove --approved "<the owner's answer>"` runs first after approval; `set design-system
 filled` re-runs `render_check.py` with the evidence line's `--shots` folder, so the 3 screenshots are retaken without
 the studio button (a logged run kept screenshots with the button over the phone controls).
 
@@ -181,7 +181,7 @@ the studio button (a logged run kept screenshots with the button over the phone 
 **Trigger:** Step 0 found no `PRODUCT.md` — this skill is running on its own.
 
 - **Docs but no `PRODUCT.md`** → resolve the spine from the project's own docs in order: `CLAUDE.md` →
-  `README.md` → `docs/`. **State which file you resolved as the spine** (`MECHANISMS-ON-DEMAND.md`
+  `README.md` → `docs/`. **State which file you resolved as the spine** (`MECHANISMS-ON-DEMAND.md` (`../../../references/mechanisms-on-demand.md`)
   §Spine resolution (full)).
 - **Nothing at all** → ask these three, plainly, and wait: *"What is it? · Who is it for? · What's the ONE
   job it does for them?"* Design cannot be derived from less, so do not proceed on a guess. What they
@@ -197,8 +197,8 @@ under colour). Every one is filled with the concrete approved values — a place
 never decided. `## 0. In short` shows the phone and desktop screenshots as images; §5 holds the core flow
 (`page-patterns.md` §Flows across screens).
 
-- Tokens are **shadcn/ui-compatible CSS variables in OKLCH** (rebrand = change values; plugs into
-  shadcn/21st.dev with no theme provider/build step).
+- Tokens are **CSS variables in OKLCH, in shadcn/ui's names** (rebrand = change values; plain CSS reads them, and
+  they plug into shadcn/21st.dev with no theme provider/build step when `#Architecture` names it).
 - **Emit light AND dark token sets + system switch** (`:root` + `.dark` + `prefers-color-scheme`) — Law 22.
   *(If the user used the Theme Studio **Export**, its two blocks ARE §2 — every §2 token, both modes, OKLCH, plus
   `--font-size-base` and `--font-sans`; paste them whole. First act on any `MISSING` / `FAIL` / `NOT CHECKED` /
