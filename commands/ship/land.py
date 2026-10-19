@@ -10,12 +10,15 @@ Usage:  python land.py merge  --pr <n> [--method merge|squash|rebase]   CI green
         python land.py after  --pr <n>                                  a merged PR: issue CLOSED, card Done, the local
                                                                         folder on the updated base branch, its area
                                                                         rule files rewritten when the merge moved them
+        python land.py local  --branch <ticket branch> [--base <main>]  no remote: merge the recorded ticket branch
+                                                                        into the base branch here, read back, and
+                                                                        leave this folder on the base branch
 Exit:   0 every step read back OK · 1 a step or a read-back failed · 2 refused before changing anything
 `--method merge` is the default: it keeps the branch's commits, which the ticket rows cite, in the base branch's
 history (a squash gives them new ids). Portable: stdlib + the `gh` and `git` CLIs. Never merges unless asked to by
 `merge` - the user's answer to the question is that word.
 """
-import importlib.util, json, subprocess, sys
+import importlib.util, json, subprocess, sys, tempfile
 from pathlib import Path
 
 FAILED = {"FAILURE", "CANCELLED", "TIMED_OUT", "ACTION_REQUIRED", "STARTUP_FAILURE", "ERROR"}
@@ -216,6 +219,77 @@ class Land:
         self.ok("area rules", f"{len(stale)} file(s) rewritten to match the merged STRUCTURE.md and records on {base} "
                               f"({', '.join(stale[:4])}) - uncommitted: the next ticket's first save carries them")
 
+    def land_local(self, branch, base=""):
+        """LM1 (2.1.4): with no remote nothing merged a ticket branch - the only merge step was a PR - so a logged
+        milestone sat on unmerged branches and the next ticket started on top of the last one (or without it). On the
+        user's word (the default with no remote) the recorded ticket branch merges into the base branch here, with a
+        merge commit (the ticket rows cite the branch's commits). STATUS.md's phase table is the one file two ticket
+        branches both edit: it merges as a union, and status.py reads the duplicate rows back as one. Any other
+        conflict: the merge is aborted and the files named - nothing changed."""
+        _, head, _ = self.git("rev-parse", "--abbrev-ref", "HEAD")
+        branch = branch or head
+        if not base:
+            base = next((b for b in ("main", "master") if self.git("rev-parse", "--verify", "--quiet",
+                                                                   f"refs/heads/{b}")[0] == 0), "")
+        if not base:
+            raise Refused("no main or master branch here - name the base: --base <branch>")
+        if branch == base:
+            raise Refused(f"{branch} is the base branch - name the ticket branch: --branch <ticket branch>")
+        if self.git("rev-parse", "--verify", "--quiet", f"refs/heads/{branch}")[0] != 0:
+            raise Refused(f"no local branch {branch}")
+        _, dirty, _ = self.git("status", "--porcelain", "--untracked-files=no")
+        if dirty:
+            raise Refused(f"uncommitted changes on {head} - commit them (the ticket's record included), then run "
+                          f"this again")
+        if self.git("merge-base", "--is-ancestor", branch, base)[0] == 0:
+            self.ok("merge", f"{branch} is already in {base} - nothing to merge")
+        else:
+            code, out, err = self.git("switch", base)
+            if code != 0:
+                raise Refused(f"git switch {base} failed: {(err or out)[:200]}")
+            code, out, err = self.git("merge", "--no-ff", "--no-edit", "-m",
+                                      f"Merge ticket branch {branch} into {base} (local, no remote)", branch)
+            if code != 0 and not self.union_status(branch):
+                _, files, _ = self.git("diff", "--name-only", "--diff-filter=U")
+                self.git("merge", "--abort")
+                self.git("switch", head)
+                why = ", ".join(files.split()) or (err or out)[:200]
+                self.fail("merge", f"{branch} does not merge cleanly into {base} ({why}) - aborted, nothing changed, "
+                                   f"back on {head}; resolve it with the user")
+                return self.bad
+            self.ok("merge", f"{branch} merged into {base}")
+        if self.git("rev-parse", "--abbrev-ref", "HEAD")[1] != base:
+            self.git("switch", base)
+        _, now, _ = self.git("rev-parse", "--abbrev-ref", "HEAD")
+        _, sha, _ = self.git("rev-parse", "--short", "HEAD")
+        if now == base and self.git("merge-base", "--is-ancestor", branch, "HEAD")[0] == 0:
+            self.ok("local folder", f"on {base} @ {sha}, with {branch} in it - the next /build starts here")
+        else:
+            self.fail("local folder", f"HEAD is {now} @ {sha}, not {base} with {branch} in it")
+        return self.bad
+
+    def union_status(self, branch):
+        """A merge stopped on conflicts: when STATUS.md is the only one, keep both sides' lines (git merge-file
+        --union) and commit the merge. False: another file conflicts, nothing resolved."""
+        _, files, _ = self.git("diff", "--name-only", "--diff-filter=U")
+        if files.split() != ["STATUS.md"]:
+            return False
+        with tempfile.TemporaryDirectory() as t:
+            paths = []
+            for stage in ("2", "1", "3"):  # ours, the common base, theirs - the order merge-file takes
+                f = Path(t) / f"s{stage}"
+                f.write_text(self.git("show", f":{stage}:STATUS.md")[1] + "\n", encoding="utf-8", newline="\n")
+                paths.append(str(f))
+            code, out, _ = self.run(["git", "merge-file", "-p", "--union", *paths])
+        if code < 0 or not out.strip():
+            return False
+        Path("STATUS.md").write_text(out, encoding="utf-8", newline="\n")
+        if self.git("add", "STATUS.md")[0] != 0 or self.git("commit", "--no-edit")[0] != 0:
+            return False
+        self.log(f"NOTE STATUS.md conflicted ({branch} and the base both changed its phase table): kept both sides' "
+                 f"lines - status.py reads them back as one row per phase")
+        return True
+
     def local(self, base, sha):
         _, dirty, _ = self.git("status", "--porcelain", "--untracked-files=no")
         if dirty:
@@ -239,6 +313,15 @@ class Land:
 def main(argv, run=real_run, log=print):
     cmd = argv[0] if argv else ""
     opts = dict(zip(argv[1::2], argv[2::2]))
+    if cmd == "local":  # LM1: no PR, no gh - the merge happens in this folder
+        land = Land(run, log)
+        try:
+            bad = land.land_local(opts.get("--branch", ""), opts.get("--base", ""))
+        except Refused as e:
+            log(f"REFUSED - nothing changed: {e}")
+            return 2
+        log("all read back OK" if not bad else f"{bad} step(s) failed - say each to the user in the close")
+        return 1 if bad else 0
     n = opts.get("--pr", "").lstrip("#")
     if cmd not in ("merge", "review", "after") or not n.isdigit() or (cmd == "review" and not opts.get("--seat")):
         log(__doc__)

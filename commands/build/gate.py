@@ -8,12 +8,16 @@ structure check), each call re-sending a 200k-token conversation to read one exi
 For each command, in order: PASS or FAIL with its exit code and seconds, the result line a record quotes
 (`86 passed in 24.2s`), and for a FAIL the lines that say what failed (FAILED / ERROR / error: / the end of a
 traceback) - never the whole output. The whole output goes to a log file inside .git (never committed, one per
-checkout), named on the last line, for the rare case that needs more.
+checkout; .playbook-state/ when .git cannot be written), named on the last line, for the rare case that needs more.
+The ticket's own commands run in the project's environment: a bare `pytest` / `python` / `ruff` / `mypy` goes through
+the project's runner (`uv run`, `poetry run` ...), and a .venv's programs come first on PATH.
 
     python gate.py --ticket M1-X-01            (the project's check recipe + the ticket's Verification Command)
     python gate.py --fresh "<cmd>"             (run again even when these exact files already passed)
     python gate.py --ticket M1-X-01 --close    (the close gate: the same, then - on a pass - the close's order + rules;
                                                it fails when the full suite or CI never runs the ticket's test files)
+    python gate.py --ticket M1-X-01 --close --suite "<cmd>"   (the project's full-suite command, when the gate cannot
+                                               read one - remembered for this checkout)
 
 Every command runs even after a failure, so one call shows the whole picture; --stop stops at the first failure.
 A run records the exact files it checked (a git tree of the working tree, committed or not), so a pass still counts
@@ -77,12 +81,64 @@ def windows_program(cmd: str, win: bool = os.name == "nt") -> str:
     return "".join(out)
 
 
+STATE_FALLBACK = ".playbook-state"
+
+
+def state_dir(base: Path | None = None, common: bool = False) -> Path:
+    """Where the playbook's never-committed records live: the git folder, or - when it cannot be written (Codex's
+    sandbox write-protects .git: a PermissionError and an approval retry on every start of a logged run) -
+    .playbook-state/ at the project root, which ignores itself, so the repo stays clean. Once that folder exists every
+    script uses it. (One copy per script: each is run standalone; tools/test_build_tools.py checks every copy.)"""
+    base = Path(base) if base is not None else Path(".")
+    r = subprocess.run(["git", "rev-parse", "--git-common-dir" if common else "--git-dir", "--show-toplevel"],
+                       cwd=base, capture_output=True, text=True)
+    lines = r.stdout.strip().splitlines() if r.returncode == 0 else []
+    if len(lines) < 2:
+        return base / lines[0] if lines else base
+    gd = Path(lines[0]) if Path(lines[0]).is_absolute() else base / lines[0]
+    fb = Path(lines[1]) / STATE_FALLBACK
+    if not fb.is_dir():
+        try:
+            probe = gd / f".playbook-probe-{os.getpid()}"
+            probe.write_text("", encoding="utf-8")
+            probe.unlink()
+            return gd
+        except OSError:
+            fb.mkdir(parents=True, exist_ok=True)
+    if not (fb / ".gitignore").is_file():
+        (fb / ".gitignore").write_text("*\n", encoding="utf-8")
+    return fb
+
+
 def log_dir() -> Path:
-    r = subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, text=True)
-    base = Path(r.stdout.strip()) if r.returncode == 0 else Path(".")
-    d = base / "playbook-gate"
+    d = state_dir() / "playbook-gate"
     d.mkdir(parents=True, exist_ok=True)
     return d
+
+
+# GT2: a ticket's bare `pytest ...` ran outside the project's environment - it failed, a logged agent edited PATH,
+# then it passed. The ticket's commands run the way the project's own recipe runs its tools.
+RUNNER_LOCKS = (("uv.lock", "uv run"), ("poetry.lock", "poetry run"), ("pdm.lock", "pdm run"),
+                ("Pipfile.lock", "pipenv run"))
+PY_TOOL = re.compile(r"^(?:py\.?test|python[\d.]*|ruff|mypy|pyright|coverage|alembic)(?=\s|$)")
+
+
+def in_runner(cmd: str) -> str:
+    """`cmd` through the project's runner when its program is a bare Python tool and the project locks its
+    environment with uv / poetry / pdm / pipenv; otherwise unchanged."""
+    prefix = next((p for f, p in RUNNER_LOCKS if Path(f).is_file()), "")
+    return f"{prefix} {cmd.strip()}" if prefix and PY_TOOL.match(cmd.strip()) else cmd
+
+
+def project_env() -> dict:
+    """The environment every command runs in: the project's .venv programs first on PATH (bash and Windows)."""
+    env = dict(os.environ)
+    for sub in ("Scripts", "bin"):
+        d = Path(".venv") / sub
+        if d.is_dir():
+            env["PATH"] = str(d.resolve()) + os.pathsep + env.get("PATH", "")
+            break
+    return env
 
 
 def excerpt(out: str) -> list[str]:
@@ -99,13 +155,22 @@ def main(argv: list[str]) -> int:
         pass
     stop, close, only, fresh = "--stop" in argv, "--close" in argv, "--only" in argv, "--fresh" in argv
     ticket = argv[argv.index("--ticket") + 1] if "--ticket" in argv and argv.index("--ticket") + 1 < len(argv) else ""
-    cmds = [a for i, a in enumerate(argv) if a not in ("--stop", "--close", "--ticket", "--only", "--fresh")
-            and not (i and argv[i - 1] == "--ticket")]
+    suite = argv[argv.index("--suite") + 1] if "--suite" in argv and argv.index("--suite") + 1 < len(argv) else ""
+    cmds = [a for i, a in enumerate(argv) if a not in ("--stop", "--close", "--ticket", "--only", "--fresh", "--suite")
+            and not (i and argv[i - 1] in ("--ticket", "--suite"))]
+    if suite:  # GS2: the project's full-suite command, said once and remembered for this checkout
+        (log_dir() / "suite.json").write_text(json.dumps({"command": suite}), encoding="utf-8")
+        print(f"gate: the full-suite command for this checkout is now `{suite}` (remembered)")
     ticket_cmds: list[str] = []
     if ticket and not only:  # the project's recipe + the ticket's own verification, THEN any named extra commands -
         # named commands add to the automatic checks, never replace them (an extra secret scan once dropped the
         # recipe and the ticket's tests silently); `--only` replaces, and says so
         recipe, ticket_cmds = ticket_commands(ticket)
+        for c in ticket_cmds:
+            if in_runner(c) != c:
+                print(f"gate: `{c}` runs as `{in_runner(c)}` - the project's runner, as its recipe runs it (never "
+                      f"edit PATH)")
+        ticket_cmds = [in_runner(c) for c in ticket_cmds]
         cmds = recipe + ticket_cmds + [c for c in cmds if c not in recipe + ticket_cmds]
         if not cmds:
             print(f"gate: no check recipe (justfile / Makefile / package.json `check`) and no Verification Command "
@@ -138,9 +203,8 @@ def main(argv: list[str]) -> int:
             misses = suite_misses() if close else None
             record(folder, cmds, True, ticket, ticket_cmds, reused=prior["head"], tree=tree, misses=misses)
             if close:
-                if not feature_docs_plain():  # both said in one run: the doc's gaps, and (above) the suite's misses
-                    return 1
-                if misses:
+                if not feature_docs_plain() or misses:  # both said in one run: the doc's gaps, the suite's misses
+                    print_fail_hint(ticket)
                     return 1
                 print_close_rules()
             return 0
@@ -148,7 +212,8 @@ def main(argv: list[str]) -> int:
     failed = 0
     for n, cmd in enumerate(cmds, 1):
         t0 = time.time()
-        r = subprocess.run(windows_program(cmd), shell=True, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        r = subprocess.run(windows_program(cmd), shell=True, capture_output=True, text=True, encoding="utf-8",
+                           errors="replace", env=project_env())
         secs = time.time() - t0
         out = (r.stdout or "") + (r.stderr or "")
         log = folder / f"{stamp}-{n}.log"
@@ -168,12 +233,27 @@ def main(argv: list[str]) -> int:
     misses = suite_misses() if close and not failed else None
     record(folder, cmds, not failed, ticket, ticket_cmds, tree=tree, misses=misses)
     if close and not failed:  # the close starts here: its order and rules arrive now, not at the start of the run
-        if not feature_docs_plain():  # both said in one run: the doc's gaps, and (above) the suite's misses
-            return 1
-        if misses:
+        if not feature_docs_plain() or misses:  # both said in one run: the doc's gaps, and (above) the suite's misses
+            print_fail_hint(ticket)
             return 1
         print_close_rules()
+    if failed:
+        print_fail_hint(ticket)
     return 1 if failed else 0
+
+
+def print_fail_hint(ticket: str) -> None:
+    """GT1: a logged agent offered "record it as partial" after a failing gate in two sessions - the record refuses
+    every --dod (yes, partial, no) without a passing gate, and nothing carried that to the next session."""
+    if not ticket:
+        return
+    st = status_script()
+    exe = Path(sys.executable).as_posix()  # the interpreter that ran this gate, never a bare `python` (CX-B3)
+    run = f'{exe if " " not in exe else chr(34) + exe + chr(34)} "{st.as_posix()}"' if st else "status.py"
+    print(f"The record (`status.py ticket {ticket}`) refuses EVERY --dod - yes, partial and no - until this gate "
+          f"passes: never offer \"record as partial\". Fix what failed and run the gate again; stopping here instead: "
+          f"file it in one call - {run} open --from build --what \"{ticket}: the gate fails - <what failed>\" "
+          f"--clears \"gate.py --ticket {ticket} --close passes\"")
 
 
 def feature_docs_plain() -> bool:
@@ -275,9 +355,29 @@ def recipe_lines(recipe: str) -> list[tuple[str, str]]:
     for wf in sorted(wfs.glob("*.y*ml")) if wfs.is_dir() else []:
         for ln in wf.read_text(encoding="utf-8", errors="replace").splitlines():
             ln = re.sub(r"^\s*(?:-\s*)?(?:run:\s*)?", "", ln).strip()
-            if not re.match(r"[\w-]+:(?:\s|$)|#", ln) and list_command(ln):
+            if not re.match(r"[\w-]+:(?:\s|$)|#", ln) and (list_command(ln) or script_pytest(ln)):
                 out.append((f"CI {wf.as_posix()}", ln))
-    return out
+    # GS2: a step that runs a Python script which itself calls pytest (`uv run python scripts/tasks.py test`) - a
+    # logged project ran its whole suite that way, the check read nothing and passed on 13 ticket tests. The script's
+    # pytest call is read as the project's default pytest run (its own testpaths), through the project's runner.
+    return [(w, c) for w, line in out
+            for c in ((line,) if list_command(line) or not script_pytest(line) else (line, in_runner("pytest")))]
+
+
+SCRIPT_CALL = re.compile(r"(?:^|\s)(?:\S*[/\\])?python[\d.]*(?:\.exe)?\s+((?:[\w.-]+[/\\])*[\w.-]+\.py)\b")
+CALLS_PYTEST = re.compile(r"""["']py\.?test["']|\bpytest\.main\(|-m\s+pytest\b""")
+
+
+def script_pytest(cmd: str) -> str:
+    """The first Python script `cmd` runs whose source calls pytest; "" for none."""
+    for m in SCRIPT_CALL.finditer(cmd):
+        f = Path(m.group(1))
+        try:
+            if f.is_file() and CALLS_PYTEST.search(f.read_text(encoding="utf-8", errors="replace")):
+                return f.as_posix()
+        except OSError:
+            continue
+    return ""
 
 
 def list_command(cmd: str) -> str | None:
@@ -321,14 +421,22 @@ def suite_misses() -> list[str] | None:
     if not mine:
         return []
     recipe = (ticket_commands("")[0] or [""])[0]
-    runs = [(where, cmd, lc) for where, cmd in recipe_lines(recipe) for lc in (list_command(cmd),) if lc]
+    lines = recipe_lines(recipe)
+    told = remembered_suite()
+    if told:  # GS2: the full-suite command the project named (`--suite`), read like a recipe line
+        lines.append(("the recorded full-suite command", told))
+        if not list_command(told) and script_pytest(told):
+            lines.append((f"the recorded full-suite command (via {script_pytest(told)})", in_runner("pytest")))
+    runs = [(where, cmd, lc) for where, cmd in lines for lc in (list_command(cmd),) if lc]
     if not runs:
-        print(f"! suite check: cannot tell whether the full suite runs {', '.join(mine[:4])} - "
-              + (f"`{recipe}` calls no pytest / vitest / jest line I can read" if recipe else
-                 "no check recipe (justfile / Makefile / package.json `check`)")
-              + ": check by hand that the full suite and CI run them")
-        return None
+        return suite_unverified(mine, (f"`{recipe}` calls no pytest / vitest / jest line I can read" if recipe else
+                                       "no check recipe (justfile / Makefile / package.json `check`) and no CI test "
+                                       "step I can read") + (f", nor does `{told}`" if told else ""))
     misses: dict[str, list[str]] = {}
+    # GS1: a ticket test is covered when ANY command of the same runner in the same place - the local recipe, or
+    # one CI workflow file - runs it: a CI step that runs one eval file on purpose made a logged close refuse a
+    # correct ticket that the full-suite step beside it ran
+    cover: dict[tuple[str, bool], dict[str, list[str] | None]] = {}
     unknown = []
     for where, cmd, listing in runs:
         if UNRESOLVED.search(cmd):
@@ -336,7 +444,7 @@ def suite_misses() -> list[str] | None:
             continue
         try:
             r = subprocess.run(windows_program(listing), shell=True, capture_output=True, text=True, encoding="utf-8",
-                               errors="replace", timeout=600)
+                               errors="replace", timeout=600, env=project_env())
         except subprocess.TimeoutExpired:
             unknown.append(f"{where}: `{listing[:80]}` timed out")
             continue
@@ -347,13 +455,23 @@ def suite_misses() -> list[str] | None:
         if (py and r.returncode not in (0, 2, 5)) or (not py and r.returncode != 0):
             unknown.append(f"{where}: `{listing[:80]}` exit {r.returncode}")
             continue
+        seen = cover.setdefault((where if where.startswith("CI ") else "recipe", py), {})
         for f in mine:
-            if f.endswith(".py") == py and not collected(f, out):
-                misses.setdefault(f, []).append(f"{where}: `{cmd[:70]}`")
+            if f.endswith(".py") != py:
+                continue
+            if collected(f, out):
+                seen[f] = None
+            elif seen.get(f, []) is not None:
+                seen.setdefault(f, []).append(f"{where}: `{cmd[:70]}`")
+    for seen in cover.values():
+        for f, where_list in seen.items():
+            if where_list:
+                misses.setdefault(f, []).extend(where_list)
     for u in unknown:
         print(f"! suite check: could not list the tests of {u} - check by hand that it runs this ticket's tests")
     if not misses:
-        return None if len(unknown) == len(runs) else []
+        return suite_unverified(mine, "no full-suite command could list its tests") if len(unknown) == len(runs) \
+            else []
     for f, where in misses.items():
         print(f"SUITE MISSES {f} - not run by {' · '.join(where)}")
     print("GATE FAIL - the full suite never runs this ticket's tests (they pass only when run by path): add their "
@@ -361,6 +479,24 @@ def suite_misses() -> list[str] | None:
           "pytest's `testpaths` (pyproject.toml [tool.pytest.ini_options]) when the command names no folder - or "
           "move the tests under the folder it runs; then run the close gate again")
     return sorted(misses)
+
+
+def remembered_suite() -> str:
+    f = log_dir() / "suite.json"
+    try:
+        return str(json.loads(f.read_text(encoding="utf-8")).get("command") or "") if f.is_file() else ""
+    except ValueError:
+        return ""
+
+
+def suite_unverified(mine: list[str], why: str) -> list[str]:
+    """GS2: the check cannot tell whether the full suite runs the ticket's tests - fail closed (a pass here once
+    meant only the 13 ticket tests ran) and ask for the project's full-suite command ONCE: it is remembered."""
+    print(f"SUITE UNVERIFIED - cannot tell whether the full suite runs {', '.join(mine[:4])}: {why}.\n"
+          "GATE FAIL - name the command that runs the project's WHOLE test suite once (ask the user when the project "
+          "does not say), and run the close gate again with it: gate.py --ticket <id> --close --suite \"<command>\" "
+          "(remembered for this checkout; a command that runs a Python script calling pytest is followed)")
+    return ["(full suite unverified)"]
 
 
 def print_close_rules() -> None:

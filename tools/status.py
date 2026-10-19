@@ -180,16 +180,22 @@ def atomic_write(path: Path, text: str) -> None:
 
 class Lock:
     """One status.py command at a time per project folder: parallel agents wait a moment instead of each reading
-    the file, adding a row and writing over the other's row."""
+    the file, adding a row and writing over the other's row. REC2: the holder names itself in the file and keeps it
+    fresh while it runs - a save through the project's commit hooks took over 3 minutes in a logged run, the lock
+    looked crashed after 120 s, and a second writer started beside the first."""
     def __init__(self, base: Path, wait: float | None = None) -> None:
         # STATUS_LOCK_WAIT: a test (or a slow CI box) running many status.py at once waits longer; 30 s otherwise
         self.path, self.wait = base / LOCK, wait if wait is not None else float(os.environ.get("STATUS_LOCK_WAIT", 30))
+        self.beat: "threading.Event | None" = None
 
     def __enter__(self) -> "Lock":
         end = time.monotonic() + self.wait
         while True:
             try:
-                os.close(os.open(self.path, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+                fd = os.open(self.path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+                os.write(fd, f"pid {os.getpid()}: status.py {' '.join(sys.argv[1:3])}".encode("utf-8"))
+                os.close(fd)
+                self.keep_fresh()
                 return self
             except FileExistsError:
                 try:
@@ -199,11 +205,29 @@ class Lock:
                 except FileNotFoundError:
                     continue
                 if time.monotonic() > end:
-                    raise Refused(f"{self.path.name} has been held for {self.wait:.0f}s by another status.py run; if "
-                                  f"none is running, delete {self.path}")
+                    who = read_text(self.path).strip()[:80] or "another status.py run"
+                    raise Refused(f"another writer is running - {self.path.name} is held by {who} (for {self.wait:.0f}s "
+                                  f"now): a save runs the project's commit hooks, which can take minutes. Wait for "
+                                  f"that command to exit, then run this one again - never a second writer beside it. "
+                                  f"Nothing running at all: delete {self.path}")
                 time.sleep(0.02 + random.random() * 0.05)
 
+    def keep_fresh(self) -> None:
+        """Touch the lock every 20 s while this run holds it, so a long save never reads as a crashed run."""
+        import threading
+        self.beat = threading.Event()
+
+        def run(stop: "threading.Event" = self.beat) -> None:
+            while not stop.wait(20):
+                try:
+                    os.utime(self.path, None)
+                except OSError:
+                    return
+        threading.Thread(target=run, daemon=True).start()
+
     def __exit__(self, *exc) -> None:
+        if self.beat is not None:
+            self.beat.set()
         try:
             self.path.unlink()
         except FileNotFoundError:
@@ -259,6 +283,8 @@ class Status:
                     atomic_write(f, text)
                     written.append(f"{FRAG_DIR}/{sub}/{name}")
         atomic_write(path, self.render())
+        if self.rows["Tickets"]:  # DC2: ticket branches exist from here on
+            union_attributes(path.resolve().parent)
         return written
 
     # -- read ----------------------------------------------------------------------------------------------
@@ -288,6 +314,7 @@ class Status:
                 if section == "Phases" and len(cells) == len(COLUMNS["Phases"]) - 1:
                     cells.append("")  # written before the Rules column: filled under an unrecorded version
                 st.rows[section].append(cells)
+        st.rows["Phases"] = one_row_per_phase(st.rows["Phases"])
         return st
 
     def phase(self, name: str) -> list[str]:
@@ -338,6 +365,43 @@ class Status:
         return st
 
 
+# DC2 (2.1.4): two ticket branches each edit STATUS.md's phase table (the build row, a checkpoint's verdict) and a
+# logged merge stopped in a conflict there. STATUS.md merges as a union (templates/gitattributes, and the clone's own
+# .git/info/attributes written by `save`), which keeps both sides' lines; the reader keeps one row per phase - the
+# latest Since date, then the furthest state - and the next write drops the rest.
+UNION_LINE = "STATUS.md merge=union"
+STATE_RANK = {"empty": 0, "declined": 1, "running": 2, "overridden": 3, "filled": 4}
+
+
+def phase_rank(r: list[str]) -> tuple[str, int]:
+    return (r[2] if len(r) > 2 else "", STATE_RANK.get(r[1] if len(r) > 1 else "", 0))
+
+
+def one_row_per_phase(rows: list[list[str]]) -> list[list[str]]:
+    keep: dict[str, list[str]] = {}
+    for r in rows:
+        if r[0] not in keep or phase_rank(r) >= phase_rank(keep[r[0]]):
+            keep[r[0]] = r
+    return list(keep.values())
+
+
+def union_attributes(base: Path) -> None:
+    """Best effort, never a failure: this clone merges STATUS.md as a union even when the project's .gitattributes
+    predates the line (a sandbox that write-protects .git simply keeps the old behaviour)."""
+    common = git(base, "rev-parse", "--git-common-dir")
+    if not common:
+        return
+    attrs, info = base / ".gitattributes", (base / common) / "info" / "attributes"
+    try:
+        if any(f.is_file() and UNION_LINE in f.read_text(encoding="utf-8", errors="replace") for f in (attrs, info)):
+            return
+        info.parent.mkdir(parents=True, exist_ok=True)
+        with info.open("a", encoding="utf-8", newline="\n") as fh:
+            fh.write(f"{UNION_LINE}\n")
+    except OSError:
+        pass
+
+
 def fragment_text(sec: str, row: list[str]) -> str:
     kind = {"Open items": "open item", "Tickets": "ticket", "Releases": "release", "Drift": "drift finding"}[sec]
     lines = [f"<!-- One {kind}, written by status.py. Never edit by hand. -->"]
@@ -385,8 +449,23 @@ MSYS_REWRITE = re.compile(r"[A-Za-z]:/(?:[^/|`\n]+/)*?Git/(?=(?:" + "|".join(map
 
 def playbook_version() -> str:
     """The version of the playbook this script ships with: VERSION beside it (a copy install writes it), else the
-    plugin manifest one folder up (the plugin and a clone)."""
+    plugin manifest one folder up (the plugin and a clone) - plus `+<mark>` when a maintainer hot-patched this copy
+    (EV1: a LOCAL_PATCH file beside this script or one folder up; a patched 2.1.3 printed 2.1.3, so its runs could
+    not be told from the released ones)."""
     here = Path(__file__).resolve().parent
+    return base_version(here) + local_patch(here)
+
+
+def local_patch(here: Path) -> str:
+    """`+<mark>` from the first line of a LOCAL_PATCH file (letters, digits, dots, dashes), else ''."""
+    for f in (here / "LOCAL_PATCH", here.parent / "LOCAL_PATCH"):
+        if f.is_file():
+            first = (f.read_text(encoding="utf-8", errors="replace").strip().splitlines() or [""])[0]
+            return "+" + (re.sub(r"[^\w.-]", "", first)[:24] or "patched")
+    return ""
+
+
+def base_version(here: Path) -> str:
     beside = here / "VERSION"
     if beside.is_file():
         return beside.read_text(encoding="utf-8").strip()
@@ -406,7 +485,18 @@ def playbook_line() -> str:
     # Claude Code fills its plugin's path into the skills itself; Antigravity's start goes to a file (fit_start),
     # which carries this line - its short output has no room
     run = "" if playbook_tool() in ("claude", "antigravity") else "\n" + run_this_line()
-    return f"Playbook {playbook_version()} · rule files in {rules.as_posix()}{run}"
+    return f"Playbook {playbook_version()} · rule files in {rules.as_posix()}{run}{missing_rules_line(rules)}"
+
+
+def missing_rules_line(rules: Path) -> str:
+    """CC1: a tool's cleanup can empty the install under a running copy (Claude Code's plugin sweep emptied
+    ~/.claude/plugins/cache while installed_plugins.json still said installed) - say so, with the way back."""
+    if (rules / "PRINCIPLES.md").is_file():
+        return ""
+    again = ("claude plugin install product-playbook@product-playbook" if playbook_tool() == "claude" else
+             f"./install.sh --project <project> --tool {playbook_tool()} (from your clone of the playbook)")
+    return (f"\n! this copy's rule files are missing (no PRINCIPLES.md in {rules.as_posix()}): the install was "
+            f"emptied - tell the user to reinstall: `{again}`, then restart the tool")
 
 
 def python_command() -> str:
@@ -431,12 +521,16 @@ def run_this_line() -> str:
     Claude Code's plugin folder, not its own copy; a logged Codex run's first bare `python` could not start in its
     sandbox."""
     me = Path(__file__).resolve()
-    line = (f"Run this copy as `{python_command()} {me.as_posix()}` - `status.py` below = this command; files "
+    line = (f"Python: {python_command()} - for EVERY playbook command (never a bare python / python3 / py)\n"
+            f"Run this copy as `{python_command()} {me.as_posix()}` - `status.py` below = this command; files "
             f"named below = this copy's, never another install's.")
     if playbook_tool() == "codex" and "/appdata/" in Path(sys.executable).as_posix().lower():
         line += (" Codex: that Python is outside your sandbox - run each such command with sandbox_permissions "
                  "\"require_escalated\" and prefix_rule = its first two words, so the user approves once.")
     return line
+
+
+CURSOR_SKILL_NAMES = {"build": "build-ticket"}  # CU1: Cursor never lists a skill folder named build (install.sh)
 
 
 def skill_command(phase: str) -> str:
@@ -445,7 +539,7 @@ def skill_command(phase: str) -> str:
     here = Path(__file__).resolve().parent
     manifest = here.parent / ".claude-plugin" / "plugin.json"
     if (here / "PRINCIPLES.md").is_file() or not manifest.is_file():
-        return f"/{phase}"
+        return f"/{CURSOR_SKILL_NAMES.get(phase, phase) if playbook_tool() == 'cursor' else phase}"
     m = re.search(r'"name"\s*:\s*"([^"]+)"', manifest.read_text(encoding="utf-8"))
     return f"/{m.group(1)}:{phase}" if m else f"/{phase}"
 
@@ -739,8 +833,8 @@ SKIP_DIRS = {".git", ".agents", ".claude", ".cursor", ".codex", ".gemini", "node
              ".nox", ".next"}
 # The playbook's own install inside a project (install.sh --project; each tool's agents folder). The save never
 # stages it: a logged Codex /structure replaced .gitignore and its save committed 88 install files (2026-10-03).
-INSTALL_PATHS = (".agents", ".claude/skills", ".claude/product-playbook", ".claude/agents", ".cursor/agents", ".codex",
-                 ".gemini")
+INSTALL_PATHS = (".agents", ".claude/skills", ".claude/product-playbook", ".claude/agents", ".cursor/agents",
+                 ".cursor/skills", ".codex", ".gemini")
 
 
 def install_root(rel: str) -> str | None:
@@ -1406,6 +1500,9 @@ def tickets_gaps(base: Path) -> list[str]:
         for dep in re.findall(r"\bM\d+-[A-Z0-9]+-\d+\b", secs.get("Depends On", "")):
             if dep not in tickets:
                 bad.setdefault("depends on a ticket that does not exist", []).append(f"{tid}->{dep}")
+            elif int(dep.split("-")[0][1:]) > int(tid.split("-")[0][1:]):  # TK2: its milestone would wait on a later one
+                bad.setdefault("depends on a ticket of a LATER milestone (move that ticket into this milestone, or "
+                               "this one later)", []).append(f"{tid}->{dep}")
         # T5 every name it CONSUMES exists in the code (a name the ticket creates is marked "(new)")
         consumes = re.search(r"(?is)\*\*Consumes:?\*\*:?(.*?)(?=\n- \*\*|\Z)", secs.get("Contract", ""))
         for line in (consumes.group(1) if consumes else "").splitlines():
@@ -1445,8 +1542,10 @@ def tickets_gaps(base: Path) -> list[str]:
                         f"start numbers them): {', '.join(none[:6])}{' ...' if len(none) > 6 else ''}")
         if wrong := sorted({f"{t}:{c}" for t, cs in served.items() for c in cs if c not in known}):
             gaps.append(f"{len(wrong)} exit criterion number(s) #Plan does not have: {', '.join(wrong[:6])}")
-        named = set().union(*served.values())
         for ms in sorted({t.split("-")[0] for t in tickets} & set(crit), key=lambda x: int(x[1:])):
+            # TK2: a later milestone's ticket does not finish this one - a logged M1 needed one-click approval and
+            # its endpoint was an M2 ticket's
+            named = set().union(set(), *(v for t, v in served.items() if int(t.split("-")[0][1:]) <= int(ms[1:])))
             open_ = [c for c, _ in crit[ms] if c not in named and not re.search(
                 rf"(?im)^.*\b{re.escape(c)}\b.*\b(no tickets?|not ticketed|why|handed|skipped)\b", plan_md)]
             if open_:
@@ -1480,6 +1579,7 @@ def tickets_gaps(base: Path) -> list[str]:
 
 
 ADHOC_FILE = re.compile(r"^ADHOC-\d+[_.]")
+ADHOC_ID = re.compile(r"^ADHOC-(\d+)[_.]")
 
 
 def ticket_shape_gaps(base: Path, files: list[Path], tickets: dict[str, Path], plan_md: str,
@@ -1690,12 +1790,82 @@ def milestone_plan(base: Path) -> dict[str, list[str]] | None:
     return plan
 
 
+def branch_records(base: Path) -> dict[str, dict]:
+    """BR1 (2.1.4): every ticket record committed on any local branch - id -> {"row", "branches"}. A logged run read
+    records from the checked-out branch only: one agent rebuilt a ticket recorded on another branch (~23 min), another
+    built one twice, a third counted 1, 5 and 6 of 7 by branch. Reads each branch's status/tickets/ with one ls-tree
+    per branch and one `git cat-file --batch` for all record files. {} outside a git checkout."""
+    heads = git(base, "for-each-ref", "refs/heads", "--format=%(refname:short)").splitlines() if base else []
+    blobs: dict[str, set[str]] = {}
+    for b in heads:
+        for ln in git(base, "ls-tree", "-r", b, "--", f"{FRAG_DIR}/{FRAG['Tickets']}").splitlines():
+            meta, _, path = ln.partition("\t")
+            parts = meta.split()
+            if len(parts) == 3 and parts[1] == "blob" and path.endswith(".md"):
+                blobs.setdefault(parts[2], set()).add(b)
+    if not blobs:
+        return {}
+    shas = list(blobs)
+    p = subprocess.run(["git", "cat-file", "--batch"], cwd=base, input=("\n".join(shas) + "\n").encode(),
+                       capture_output=True)
+    out, data, i = {}, p.stdout, 0
+    for sha in shas:
+        nl = data.find(b"\n", i)
+        head = data[i:nl].split() if nl >= 0 else []
+        if len(head) != 3 or not head[2].isdigit():
+            break
+        size = int(head[2])
+        text = data[nl + 1:nl + 1 + size].decode("utf-8", errors="replace")
+        i = nl + 1 + size + 1
+        row = parse_fragment(text, "Tickets")
+        if not row[0]:
+            continue
+        rec = out.setdefault(row[0], {"row": row, "branches": set()})
+        rec["branches"] |= blobs[sha]
+    for rec in out.values():
+        rec["branches"] = sorted(rec["branches"])
+    return out
+
+
+def ticket_records(st: Status) -> dict[str, dict]:
+    """BR1: each recorded ticket, wherever it is recorded - id -> {"row", "here" (in this checkout's status/tickets/),
+    "branches" (local branches whose commits hold its record), "on_base" (main/master holds it, or there is no git
+    to merge into)}. The branch part is read once per Status."""
+    base = getattr(st, "base", None)
+    if base is None:
+        return {}
+    if not hasattr(st, "_branch_recs"):
+        st._branch_recs = branch_records(base) if git_dir(base) else {}
+    gitless = not st._branch_recs and not git_dir(base)
+    trunk = default_branch(base) if not gitless else ""
+    head = git(base, "rev-parse", "--abbrev-ref", "HEAD") if not gitless else ""
+    out = {}
+    for tid, rec in st._branch_recs.items():
+        out[tid] = {"row": rec["row"], "here": False, "branches": rec["branches"], "on_base": trunk in rec["branches"]}
+    for r in st.rows["Tickets"]:
+        rec = out.setdefault(r[0], {"row": r, "here": True, "branches": [], "on_base": False})
+        rec["row"], rec["here"] = r, True
+        rec["on_base"] = rec["on_base"] or gitless or head == trunk
+    return out
+
+
+def ticket_branch(tid: str, rec: dict) -> str:
+    """The branch to land for a ticket recorded off the base: the one named after it, else the first holding it."""
+    named = [b for b in rec["branches"] if tid.lower() in b.lower()]
+    return (named or rec["branches"] or ["<its ticket branch>"])[0]
+
+
+def land_command(branch: str) -> str:
+    land = tool_file("ship", "land.py")
+    return f"python \"{(land or Path('commands/ship/land.py')).as_posix()}\" local --branch {branch}"
+
+
 def ticket_progress(st: Status) -> dict | None:
-    """The first milestone in TICKETS.md with a ticket that has no row in ## Tickets. None: no TICKETS.md."""
+    """The first milestone in TICKETS.md with a ticket recorded on no branch. None: no TICKETS.md."""
     plan = milestone_plan(st.base)
     if plan is None:
         return None
-    done_ids = {r[0] for r in st.rows["Tickets"]}
+    done_ids = set(ticket_records(st))
     for ms, ids in plan.items():
         missing = [t for t in ids if t not in done_ids]
         if missing:
@@ -1715,32 +1885,36 @@ def ticket_shipped(st: Status, tid: str, rows: dict) -> bool:
 
 
 def ticket_flow(st: Status) -> dict | None:
-    """2.1: the step after a built ticket. Built, not shipped -> /ship <ticket>; shipped -> merge its PR, then
-    /build the seat's next ticket; every ticket of the milestone built and shipped -> /dev-check (unless it passed).
-    A logged run printed "Next: /dev-check" after the first of 14 tickets. None: nothing to say (no ticket row)."""
-    if getattr(st, "base", None) is None or not st.rows["Tickets"]:
+    """The step after a built ticket. SH3 (2.1.4): the next unbuilt ticket of the milestone, then /dev-check once
+    every ticket is built and landed - never `/ship <ticket>` mid-milestone (a logged run printed "Next: /ship" after
+    every /build: one agent shipped a single ticket before /dev-check and /test, another named a ticket long on main).
+    Landed = its record is on the base branch (no remote: merged locally by `land.py local`), or a release row names
+    it (a remote: its PR, merged by /ship). Records on every branch count (BR1). None: no ticket recorded."""
+    recs = ticket_records(st)
+    if not recs:
         return None
-    rows = {r[0]: r for r in st.rows["Tickets"]}
+    rows = {t: r["row"] for t, r in recs.items()}
     plan = milestone_plan(st.base) or {"": list(rows)}
     dc = st.phase("dev-check")
+    remote = bool(git(st.base, "remote", "get-url", "origin")) if git_dir(st.base) else False
     for ms, ids in plan.items():
         built = [t for t in ids if t in rows]
-        unshipped = [t for t in built if not ticket_shipped(st, t, rows)]
         missing = [t for t in ids if t not in rows]
+        loose = [t for t in built if not recs[t]["on_base"] and not ticket_shipped(st, t, rows)]
         where = f" ({ms}: {len(built)} of {len(ids)} tickets built)" if ms else ""
-        if unshipped:
-            return {"phase": "ship", "arg": unshipped[0], "line": f"/ship {unshipped[0]} - built, not shipped yet: "
-                                                                  f"its PR is the next step{where}"}
+        land = ("; land first, recorded but not merged into " + default_branch(st.base) + ": " + " · ".join(
+            f"{t} (`{land_command(ticket_branch(t, recs[t]))}`)" if not remote else f"{t} (/ship {t} opens its PR)"
+            for t in loose[:4]) + (" ..." if len(loose) > 4 else "")) if loose else ""
         if missing:
-            last = next((x for x in reversed(st.rows["Releases"]) if x[-1]), None)
-            pr = f" ({last[-1][:80]})" if last else ""
-            return {"phase": "build", "arg": missing[0],
-                    "line": f"/build {missing[0]} - merge the shipped PR first{pr}, then the seat's next ticket{where}; "
-                            f"not yet: {', '.join(missing[:8])}{' ...' if len(missing) > 8 else ''} (pick by "
-                            f"TICKETS.md: its Day 1 table and coordination points)"}
+            return {"phase": "build", "arg": "",
+                    "line": f"/build - the next ticket{where}{land}; not yet: {', '.join(missing[:8])}"
+                            f"{' ...' if len(missing) > 8 else ''} (the start picks the next startable one)"}
+        if loose and remote:
+            return {"phase": "ship", "arg": loose[0], "line": f"/ship {loose[0]} - every {ms or 'planned'} ticket is "
+                                                             f"built; {len(loose)} not merged yet: its PR first"}
         if not (dc[1] == "filled" and dc[4] == "pass"):
-            return {"phase": "dev-check", "arg": "", "line": f"/dev-check - every {ms or 'built'} ticket is built and "
-                                                              f"shipped: merge any open PR, then check the milestone"}
+            return {"phase": "dev-check", "arg": "", "line": f"/dev-check - every {ms or 'built'} ticket is built"
+                                                              f"{land or ' and merged'}, then check the milestone"}
     return None
 
 
@@ -1756,19 +1930,64 @@ def in_checkout(base: Path, row: list[str]) -> bool:
     return row[0].lower() in tracked
 
 
-def dev_check_state(st: Status) -> dict | None:
-    """The milestone a checkpoint checks - the first with a ticket not recorded, not done, or not in this checkout,
-    else the last - and each of its tickets' state. None: no TICKETS.md."""
+# DC6: `/dev-check M1` -> `--milestone M1` on the start and on `set`: the milestone the user names is the one judged
+DEV_CHECK_MILESTONE: str | None = None
+
+
+def dev_check_state(st: Status, milestone: str | None = None) -> dict | None:
+    """The milestone a checkpoint checks and each of its tickets' state. The one named (`--milestone M1`); else the
+    first with a ticket not recorded, not done, or not in this checkout - unless that one has not started (no ticket
+    recorded) and the one before it is finished: then the one just finished, the milestone a checkpoint exists for
+    (DC6: a logged checkpoint judged M2, 0 of 5 built, once every M1 ticket was done - M1 was never checked); else the
+    last. None: no TICKETS.md, or a named milestone it does not have."""
     plan = milestone_plan(st.base)
     if not plan:
         return None
-    rows = {r[0]: r for r in st.rows["Tickets"]}
+    recs = ticket_records(st)
+
+    def state(ids: list[str]) -> list[tuple[str, str]]:
+        return [(t, "not recorded" if t not in recs else f"DoD {recs[t]['row'][2]}" if recs[t]["row"][2] != "yes"
+                 else (f"recorded on branch {ticket_branch(t, recs[t])}, not merged - land it"
+                       if not recs[t]["here"] and not recs[t]["on_base"] else "not in this checkout"
+                       if not recs[t]["here"] else "done" if in_checkout(st.base, recs[t]["row"])
+                       else "not in this checkout")) for t in ids]
+
+    want = (milestone or DEV_CHECK_MILESTONE or "").upper()
+    if want:
+        return {"milestone": want, "tickets": state(plan[want])} if want in plan else None
+    prev = None
     for ms, ids in plan.items():
-        state = [(t, "not recorded" if t not in rows else f"DoD {rows[t][2]}" if rows[t][2] != "yes"
-                  else "done" if in_checkout(st.base, rows[t]) else "not in this checkout") for t in ids]
-        if any(s != "done" for _, s in state) or ms == list(plan)[-1]:
-            return {"milestone": ms, "tickets": state}
+        now = state(ids)
+        if any(v != "done" for _, v in now) or ms == list(plan)[-1]:
+            if prev is not None and ids and not any(t in recs for t in ids):
+                return prev
+            return {"milestone": ms, "tickets": now}
+        prev = {"milestone": ms, "tickets": now}
     return None
+
+
+def unmerged_branches(base: Path, names: list[str], into: str = "HEAD") -> list[str]:
+    """DC7 (2.1.4): the branches with a change `into` lacks. Commit ids first (`rev-list into..b`), then patch
+    identity (`git cherry`): a branch whose every change reached the base another way (a cherry-pick, a rebuilt
+    branch) is merged. A logged checkpoint FAILed on such a duplicate branch, all of whose patches were on main."""
+    out = []
+    for b in names:
+        if git(base, "rev-list", "--count", f"{into}..{b}") in ("", "0"):
+            continue
+        if any(ln.startswith("+") for ln in git(base, "cherry", into, b).splitlines()):
+            out.append(b)
+    return out
+
+
+def loose_ticket_branches(st: Status, ids: list[str], into: str = "HEAD") -> list[str]:
+    """The local ticket branches - named after one of `ids`, or holding one of their records - not merged `into`."""
+    lower = [t.lower() for t in ids]
+    recs = ticket_records(st)
+    holding = {b for t in ids if t in recs for b in recs[t]["branches"]}
+    heads = git(st.base, "for-each-ref", "refs/heads", "--format=%(refname:short)").splitlines()
+    trunk = default_branch(st.base)
+    cand = [b for b in heads if b != trunk and (b in holding or any(t in b.lower() for t in lower))]
+    return unmerged_branches(st.base, cand, into)
 
 
 # ---- /dev-check 2.2: a logged checkpoint judged the whole product ("M6", "1 of 48") while M1 was in progress,
@@ -1779,11 +1998,26 @@ PLAN_DATE = r"(?:\d{4}-)?\d{2}-\d{2}"
 WORD_NUM = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10}
 
 
+def unfold(text: str) -> str:
+    """reflow()'s continuation lines joined back onto their bullet: a line deeper than the bullet above it, with no
+    list marker, table pipe or heading. DC8: `set` wraps a long #Plan exit-criteria bullet over three lines, and the
+    readers took only the first - a logged checkpoint judged 3 of 12 clauses, /tickets numbered 3 of 12."""
+    out: list[str] = []
+    for ln in text.splitlines():
+        s_ = ln.strip()
+        if out and s_ and re.match(r"^\s*[-*+]\s", out[-1]) and not re.match(r"[-*+]\s|\d+[.)]\s|[|#]|<!--", s_) \
+                and len(ln) - len(ln.lstrip()) > len(out[-1]) - len(out[-1].lstrip()):
+            out[-1] = out[-1].rstrip() + " " + s_
+        else:
+            out.append(ln)
+    return "\n".join(out)
+
+
 def plan_exit_criteria(plan: str, ms: str) -> tuple[list[str], list[str]]:
     """#Plan's exit criterion for milestone `ms` split into its clauses, and the dated notes under it (a superseded
     line changes how a clause is met). ([], []) when #Plan names none."""
     field, clauses, notes, inside = "", [], [], False
-    for ln in plan.splitlines():
+    for ln in unfold(plan).splitlines():
         if ln.startswith("- **"):
             field, inside = ln.lower(), False
             continue
@@ -1966,11 +2200,15 @@ def dev_check_gaps(st: Status) -> list[str]:
     s = dev_check_state(st)
     if s is None:
         return ["no TICKETS.md: nothing says which tickets make the milestone - run /tickets"]
-    for want in ("not recorded", "DoD", "not in this checkout"):
+    for want in ("not recorded", "DoD", "recorded on branch", "not in this checkout"):
         ids = [t for t, v in s["tickets"] if v.startswith(want)]
         if ids:
             gaps.append(f"{len(ids)} of {len(s['tickets'])} {s['milestone']} tickets {want}: "
                         f"{', '.join(ids[:8])}{' ...' if len(ids) > 8 else ''}")
+    owned = [x for x in contract_stubs(base, s["tickets"]) if x["owner"]]
+    if owned:
+        gaps.append(f"{len(owned)} contract endpoint(s) of done {s['milestone']} tickets still answer the /contracts 501: "
+                    + ", ".join(f"{x['method']} {x['path']} ({x['owner']})" for x in owned[:6]))
     d = git_dir(base)
     branch = git(base, "rev-parse", "--abbrev-ref", "HEAD")
     gate_gap = final_gate_gap(base, d, branch)[0] if d else "not a git checkout"
@@ -2053,7 +2291,10 @@ def milestone_unfinished(st: Status) -> dict | None:
     s = dev_check_state(st)
     if s is None:
         return None
-    done = sum(1 for _, v in s["tickets"] if v == "done")
+    # SH3: built = recorded with DoD met on ANY branch - a logged /ship wrote "1 of 7" read from one branch while all
+    # 7 were built; once every ticket is built the milestone is finished, and the gate is a plain "not passed"
+    recs = ticket_records(st)
+    done = sum(1 for t, _ in s["tickets"] if t in recs and recs[t]["row"][2] == "yes")
     if done == len(s["tickets"]):
         return None
     return {"milestone": s["milestone"], "done": done, "total": len(s["tickets"])}
@@ -2106,7 +2347,23 @@ def dev_check_close_gaps(st: Status, verdict: str, security_from: str | None = N
             gaps += skipped_checks(product_sections(prod.read_text(encoding="utf-8")).get("Dev-complete", ""),
                                    DEV_CHECKS)
     body = product_sections(prod.read_text(encoding="utf-8")).get("Dev-complete", "") if prod.exists() else ""
-    return gaps + dev_check_plan_gaps(st) + security_receipt_gaps(st.base, body, security_from)[0]
+    branch = dev_check_branch_gap(st)  # DC1: pass or fail, a checkpoint off the merged base judged something else
+    return (gaps + [branch] * bool(branch) + dev_check_plan_gaps(st)
+            + security_receipt_gaps(st.base, body, security_from)[0] + issue_name_gaps(st.base))
+
+
+def issue_name_gaps(base: Path) -> list[str]:
+    """DC5: a ticket file the checkpoint filed under a name /tickets' check refuses. A logged /dev-check wrote
+    ADHOC-SEC-01_... and ADHOC-LOW-01_...; every later /build record was refused over them."""
+    folder = base / "docs" / "issues"
+    bad = [f.name for f in (sorted(folder.glob("*.md")) if folder.is_dir() else [])
+           if f.name != "README.md" and not TICKET_FILE.match(f.name) and not ADHOC_FILE.match(f.name)]
+    if not bad:
+        return []
+    n = int(next_adhoc(base).split("-")[1])
+    renames = [f"{b} -> ADHOC-{n + i:02d}_{b.split('_', 1)[-1]}" for i, b in enumerate(bad[:6])]
+    return [f"docs/issues/ has {len(bad)} file(s) /tickets' check refuses (a ticket file is M<n>-<EPIC>-<nn>_<slug>.md "
+            f"or ADHOC-<nn>_<slug>.md): rename {'; '.join(renames)} (git mv), and the [ID] in each title"]
 
 
 # ---- 2.4 (parked in 2.0 for 2.x): proof the security helper ran. A checkpoint's `Security:` line could claim
@@ -2280,13 +2537,105 @@ def dev_check_plan_gaps(st: Status) -> list[str]:
     body = re.sub(r"<!--.*?-->", "", secs.get("Dev-complete", ""), flags=re.S)
     plan, gaps = secs.get("Plan", ""), []
     clauses, _ = plan_exit_criteria(plan, s["milestone"])
-    if clauses and not VERDICT_WORD.search(body):
+    verdicts = [ln for ln in body.splitlines() if VERDICT_WORD.search(ln)]
+    if clauses and not verdicts:
         gaps.append(f"#Dev-complete maps none of {s['milestone']}'s {len(clauses)} #Plan exit criteria - one line each "
                     f"(the start printed them): `<criterion>: met · partly · not met - <evidence>`")
+    elif clauses and len(verdicts) < len(clauses):  # DC8: was a warning; a logged checkpoint judged 3 of 12
+        gaps.append(f"#Dev-complete gives {len(verdicts)} met/partly/not-met line(s) for {len(clauses)} #Plan exit "
+                    f"criteria of {s['milestone']} - one line per criterion, as the start numbered them")
+    gaps += user_action_gaps(clauses, verdicts, s["milestone"])
+    stubs = [x for x in contract_stubs(st.base, s["tickets"]) if x["owner"]]
+    if unnamed := [x for x in stubs if x["path"] not in body]:
+        gaps.append(f"{len(unnamed)} endpoint(s) a done {s['milestone']} ticket owns still answer the /contracts 501 "
+                    f"stub - name each in #Dev-complete as a FAIL gap: " + " · ".join(
+                        f"{x['method']} {x['path']} ({x['file']}, {x['owner']})" for x in unnamed[:6]))
     if milestone_dates(plan, s["milestone"], st.today) and not re.search(r"(?i)\bschedule\b", body):
         gaps.append(f"#Dev-complete has no `Schedule:` line - {s['milestone']}'s end date against the tickets left, "
                     f"in plain words (the start computed it)")
     return gaps
+
+
+# DC9: a criterion a user performs ("open a flagged claim and approve it in one click", "upload a 3-page PDF ... within
+# 15 seconds") was rated met from unit tests whose client was faked, while the screen's endpoints answered 501 - the
+# live path had hit /healthz only. Its "met" needs the running app: an HTTP call with its response, or a browser step.
+USER_ACTION = re.compile(
+    r"(?i)^(?:the\s+|a\s+|an\s+)?(?:\w+\s+){0,2}?(?:opens?|uploads?|clicks?|taps?|approves?|rejects?|signs? (?:in|up)|"
+    r"logs? ?in|submits?|downloads?|views?|sees?|enters?|types?|selects?|picks?|pays?|books?|sends?|shares?|searches|"
+    r"search|edits?|creates?|deletes?|drags?|fills?)\b|\bin one click\b|\bon (?:the )?screen\b")
+LIVE_EVIDENCE = re.compile(
+    r"(?i)(?:\bcurl\b|https?://|\b(?:GET|POST|PUT|PATCH|DELETE)\s+/|Invoke-WebRequest|\bhttpie\b)[^\n]*?(?<![\w.])[1-5]\d\d"
+    r"(?![\w.])|\bbrowser\b|\bplaywright\b|\bscreenshot\b|\bclicked\b")
+
+
+def clause_line(clause: str, n: int, lines: list[str]) -> str | None:
+    """The #Dev-complete verdict line for criterion `n` (`criterion 3`, `M1.3`, `3.`), else the line sharing the most
+    of the clause's words (at least three)."""
+    for ln in lines:
+        if re.search(rf"(?i)(?:criterion\s*#?|\bM\d+\.){n}\b|^\W*{n}[.):]\s", ln):
+            return ln
+    words = {w for w in re.findall(r"[a-z0-9]{4,}", clause.lower())}
+    best = max(lines, key=lambda ln: len(words & set(re.findall(r"[a-z0-9]{4,}", ln.lower()))), default=None)
+    return best if best and len(words & set(re.findall(r"[a-z0-9]{4,}", best.lower()))) >= min(3, len(words)) else None
+
+
+def user_action_gaps(clauses: list[str], lines: list[str], ms: str) -> list[str]:
+    out = []
+    for n, c in enumerate(clauses, 1):
+        if not USER_ACTION.search(c):
+            continue
+        ln = clause_line(c, n, lines)
+        verdict = VERDICT_WORD.search(ln.split(":", 1)[-1] if ln and ":" in ln else ln or "")
+        if ln and verdict and verdict.group(0).lower() == "met" and not LIVE_EVIDENCE.search(ln):
+            out.append(f"{ms} exit criterion {n} is something a user does ({c[:70]!r}) and its `met` cites no step on "
+                       f"the running app - a unit test is not that proof: hit it live (an HTTP call with its response "
+                       f"code, or a browser step) and cite it on the line, or record `partly` / `not met`")
+    return out
+
+
+# CT1: the /contracts stub a ticket should have filled. A logged milestone's tickets added parallel /api/v1/* routes and
+# left the declared ones answering 501; the screen called the declared ones. A route whose body still raises or returns
+# 501, in a file a done ticket lists as its target, is that ticket's unfilled contract.
+STUB_501 = re.compile(r"HTTP_501_NOT_IMPLEMENTED|\bstatus(?:_code)?\s*[=:(]\s*501\b|"
+                      r"\b(?:raise|return|throw)\b[^\n]{0,120}\b501\b|\braise NotImplementedError\b")
+
+
+def contract_stubs(base: Path, tickets: list[tuple[str, str]]) -> list[dict]:
+    """Every declared route still answering the 501 stub: method, path, file, and the done ticket that lists the file
+    as a target ("" when none of the milestone's done tickets does)."""
+    owners: dict[str, str] = {}
+    folder = base / "docs" / "issues"
+    done = {t for t, v in tickets if v == "done"}
+    for tf in sorted(folder.glob("*.md")) if folder.is_dir() else []:
+        m = TICKET_FILE.match(tf.name)
+        if m and m.group(1) in done:
+            for p in TARGET.findall(ticket_sections(tf.read_text(encoding="utf-8", errors="replace"))
+                                    .get("Target Files", "")):
+                owners.setdefault(p.strip("`").removeprefix("./"), m.group(1))
+    out = []
+    for f in git(base, "ls-files").splitlines():
+        if Path(f).suffix.lower() not in {".py", ".ts", ".js", ".mjs", ".cjs"} or is_test(f):
+            continue
+        text = read_text(base / f)
+        pre = re.search(r"""APIRouter\([^)]*prefix\s*=\s*["']([^"']+)["']""", text)
+        hits = list(ROUTE.finditer(text))
+        for i, m in enumerate(hits):
+            body = text[m.start(): hits[i + 1].start() if i + 1 < len(hits) else len(text)]
+            if STUB_501.search(body):
+                meth, path = (m.group(1) or m.group(3)).upper(), m.group(2) if m.group(1) else m.group(4)
+                out.append({"method": meth, "path": (pre.group(1) if pre else "") + path, "file": f,
+                            "line": text.count("\n", 0, m.start()) + 1, "owner": owners.get(f, "")})
+    return out
+
+
+def ticket_stub_notes(base: Path | None, ticket: str) -> list[str]:
+    """CT1 at /build (decision 5): a route in THIS ticket's target files still raising or returning the /contracts 501
+    stub, named at the ticket's record - a note, never a refusal; /dev-check refuses a PASS while it stands."""
+    if base is None or git_dir(base) is None:
+        return []
+    return [f"NOTE (CT1): {x['method']} {x['path']} · {x['file']}:{x['line']} still answers the /contracts 501 stub - "
+            f"/dev-check will refuse a PASS while it stands: fill it in this ticket, or say which later ticket does"
+            for x in contract_stubs(base, [(ticket, "done")]) if x["owner"] == ticket]
 
 
 def dev_check_warnings(base: Path) -> list[str]:
@@ -2300,11 +2649,9 @@ def dev_check_warnings(base: Path) -> list[str]:
     secs = product_sections(prod.read_text(encoding="utf-8"))
     body = re.sub(r"<!--.*?-->", "", secs.get("Dev-complete", ""), flags=re.S)
     out = []
-    clauses = plan_exit_criteria(secs.get("Plan", ""), s["milestone"])[0] if s else []
-    found = len(VERDICT_WORD.findall(body))
-    if clauses and 0 < found < len(clauses):
-        out.append(f"#Dev-complete gives {found} met/partly/not-met verdict(s) for {len(clauses)} #Plan exit criteria "
-                   f"of {s['milestone']} - one line per criterion")
+    if any(SELF_REVIEW.search(ln) for ln in security_lines(body)):  # DC4: said in the close, with the way to fix it
+        out.append(f"security was NOT independently reviewed (self-review) - say it in the close under What I skipped "
+                   f"or couldn't do, and how to get it: {DEV_CHECK_INDEPENDENT}")
     bare = [ln.strip()[:90] for ln in body.splitlines() if UNVERIFIED_BARE.search(ln)]
     if bare:
         out.append(f"#Dev-complete says UNVERIFIED without why on {len(bare)} line(s) (first: {bare[0]!r}) - run it, "
@@ -3489,12 +3836,60 @@ def test_start_text(st: Status) -> str:
 # --security-from table that says it is one).
 DEV_CHECK_SECURITY_ROUTE = {
     "claude": "the Agent tool (run_in_background: true)",
-    "cursor": "a Task sub-agent",
-    "antigravity": "`invoke_subagent` - ONLY if it is in your tool list",
+    "cursor": "a Task sub-agent: `build-reviewer` from .cursor/agents/, review `security`",
+    "antigravity": "`invoke_subagent` - ONLY if it is in your tool list: the subagent `build-reviewer` from "
+                   ".agents/agents/, review `security`",
     "codex": "spawn_agent - this skill explicitly asks you to spawn ONE agent; then ONE `wait_agent` call",
 }
+# DC4: a logged Antigravity checkpoint reviewed security itself while Claude and Codex used a helper; /build names the
+# same independent routes for every tool (a helper, a NEW chat, another tool) and records a self-review as a gap
+DEV_CHECK_INDEPENDENT = ("a NEW chat (or another tool) on this checkout, given agents/build-reviewer.md, review "
+                         "`security` and the start's file list; its table saved outside the repo goes to a re-run's "
+                         "`set dev-check ... --security-from <file>`")
 DEV_CHECK_NO_HELPER = ("No helper tool: review the files yourself and write `Security: UNVERIFIED - self-review only, "
-                       "<n> findings`, with no --security-from")
+                       "<n> findings`, with no --security-from; the close says how to get an independent pass - "
+                       + DEV_CHECK_INDEPENDENT)
+
+
+def dev_check_stop(st: Status, s: dict, loose: list[str]) -> str:
+    """DC1 + DC3 (2.1.4): what stops the checkpoint before its first check. A logged checkpoint ran on a ticket branch
+    and judged a milestone spread over unmerged branches; four ran with 4 of 14 tickets built - a known FAIL bought
+    with a full check. Off the base or with a ticket branch unmerged: STOP, land them. Tickets unbuilt: ONE question."""
+    if not git_dir(st.base):
+        return ""
+    trunk, head = default_branch(st.base), git(st.base, "rev-parse", "--abbrev-ref", "HEAD")
+    if head != trunk or loose:
+        steps = ([f"`git switch {trunk}`"] if head != trunk else []) + [f"`{land_command(b)}`" for b in loose[:8]]
+        return (f"STOP - no check yet: /dev-check judges {trunk} with every ticket merged; "
+                + (f"this checkout is {head}" if head != trunk else "")
+                + (" and " if head != trunk and loose else "")
+                + (f"{len(loose)} ticket branch(es) are not merged: {', '.join(loose[:8])}" if loose else "")
+                + f". End the run here and tell the user the steps (this phase merges nothing): {' · '.join(steps)}"
+                  f" - then /dev-check again in a NEW conversation (`set dev-check filled` refuses until then).")
+    recs = ticket_records(st)
+    built = sum(1 for t, _ in s["tickets"] if t in recs)
+    if built < len(s["tickets"]):
+        return (f"! {s['milestone']} is {built} of {len(s['tickets'])} built - /dev-check is for a finished "
+                f"milestone. Before any check, ask ONE options question: \"Stop - build the rest first (Recommended)\" "
+                f"· \"Run anyway (the verdict is FAIL: it names what is missing)\" · \"Other\". Stop records nothing.")
+    return ""
+
+
+def dev_check_branch_gap(st: Status) -> str:
+    """DC1: the record's side of the STOP - a checkpoint is recorded on the base branch with every ticket merged."""
+    if getattr(st, "base", None) is None or not git_dir(st.base):
+        return ""
+    trunk, head = default_branch(st.base), git(st.base, "rev-parse", "--abbrev-ref", "HEAD")
+    s = dev_check_state(st) if git(st.base, "rev-parse", "--verify", "--quiet", trunk) else None
+    if s is None:
+        return ""
+    loose = loose_ticket_branches(st, [t for t, _ in s["tickets"]])
+    if head == trunk and not loose:
+        return ""
+    return (f"/dev-check judges {trunk} with every ticket merged" + (f" - this checkout is {head}" if head != trunk
+                                                                      else "")
+            + (f" - not merged: {', '.join(loose[:8])} (`{land_command(loose[0])}`, one per branch)" if loose else "")
+            + f": land them, `git switch {trunk}`, then run the checkpoint again")
 
 
 def dev_check_start_text(st: Status) -> str:
@@ -3510,8 +3905,11 @@ def dev_check_start_text(st: Status) -> str:
         parts.append(pre)
     # judge the CURRENT milestone (the first with a ticket not done here); later ones get one line
     rows = {r[0]: r for r in st.rows["Tickets"]}
-    parts.append(f"Tickets of {s['milestone']} - the milestone this checkpoint judges (a PASS needs every one done AND "
-                 f"in this checkout; anything else is a FAIL with this list):\n"
+    pick = f" --milestone {s['milestone']}" if DEV_CHECK_MILESTONE else ""
+    parts.append(f"Tickets of {s['milestone']} - the milestone this checkpoint judges{' (named by the user)' if pick else ''}"
+                 f" (a PASS needs every one done AND in this checkout; anything else is a FAIL with this list). Another "
+                 f"milestone: the user names it (`/dev-check M2`) -> add `--milestone M2` to this start and to `set`"
+                 f"{'; this run: add' + pick + ' to `set` too' if pick else ''}:\n"
                  + "\n".join(f"  {t}: {v}" + (f" · {rows[t][1]} · verified: {rows[t][3][:140]} · review: "
                                               f"{rows[t][5][:120]}" if t in rows else "") for t, v in s["tickets"]))
     plan_ms = milestone_plan(st.base) or {}
@@ -3519,13 +3917,15 @@ def dev_check_start_text(st: Status) -> str:
     if later:
         parts.append("Later milestones - not judged now, one line in #Dev-complete: " + " · ".join(
             f"{m} {sum(1 for t in plan_ms[m] if t in rows)} of {len(plan_ms[m])} built" for m in later))
-    # work on a branch nobody merged: a logged plain run found two ticket branches the checkpoint's list never showed
-    ids = [t.lower() for t, _ in s["tickets"]]
-    loose = [b.strip() for b in git(st.base, "branch", "-a", "--no-merged", "HEAD", "--format=%(refname:short)")
-             .splitlines() if any(t in b.lower() for t in ids)]
+    # work on a branch nobody merged: a logged plain run found two ticket branches the checkpoint's list never showed;
+    # DC7: by patch identity, so a branch whose changes reached main another way is not listed
+    loose = loose_ticket_branches(st, [t for t, _ in s["tickets"]])
     if loose:
         parts.append("Ticket branches NOT merged into this checkout (their work is not checked here - name them in "
                      "the FAIL):\n" + "\n".join(f"  {b}" for b in loose[:12]))
+    stop = dev_check_stop(st, s, loose)
+    if stop:
+        parts.insert(1, stop)
     parts.append("Every check runs once, whatever an earlier one found - a red one decides the verdict, never how "
                  "much is checked: the gate, the secret scan, the dependency scan, the live path (/run, the observable "
                  "result), security (the files listed below), scope creep against the list below, each #Plan exit "
@@ -3555,6 +3955,13 @@ def dev_check_start_text(st: Status) -> str:
     if routes:
         parts.append("Routes the code declares (method path · file) - the live path hits the built tickets' ones:\n"
                      + "\n".join(f"  {r}" for r in routes))
+    stubs = contract_stubs(st.base, s["tickets"])  # CT1
+    if stubs:
+        parts.append("Contract endpoints still answering the /contracts 501 stub - one owned by a done ticket of this "
+                     "milestone is a FAIL gap, named in #Dev-complete; the others say which later ticket fills them:\n"
+                     + "\n".join(f"  {x['method']} {x['path']} · {x['file']} · "
+                                 f"{'owned by ' + x['owner'] if x['owner'] else 'no done ticket of ' + s['milestone'] + ' lists this file'}"
+                                 for x in stubs[:20]))
     todo, covered = security_scope(st, s["tickets"])  # narrow the review, never drop it
     route = DEV_CHECK_SECURITY_ROUTE.get(playbook_tool(), DEV_CHECK_SECURITY_ROUTE["claude"])
     parts.append(f"Security review - ONE helper ({route}) reviews exactly these {len(todo)} code files and returns "
@@ -3568,11 +3975,15 @@ def dev_check_start_text(st: Status) -> str:
     plan = spine.get("Plan", "")
     clauses, notes = plan_exit_criteria(plan, s["milestone"])
     if clauses:  # each criterion mapped, as plain Claude did
+        acts = [str(i) for i, c in enumerate(clauses, 1) if USER_ACTION.search(c)]
         parts.append(f"#Plan exit criteria for {s['milestone']} - #Dev-complete maps each, one line: `<criterion>: met "
                      f"· partly · not met - <evidence>`:\n" + "\n".join(f"  {i}. {c}" for i, c in enumerate(clauses, 1))
-                     + "".join(f"\n     (note: {n[:200]})" for n in notes))
+                     + "".join(f"\n     (note: {n[:200]})" for n in notes)
+                     + (f"\n  Criteria {', '.join(acts)} are something a user does: `met` needs a step on the running app "
+                        f"on the line (an HTTP call with its response code, or a browser step) - a unit test is not it"
+                        if acts else ""))
     else:
-        plan_lines = [ln for ln in plan.splitlines() if re.search(rf"\b{s['milestone']}\b", ln)]
+        plan_lines = [ln for ln in unfold(plan).splitlines() if re.search(rf"\b{s['milestone']}\b", ln)]
         if plan_lines:
             parts.append(f"#Plan lines for {s['milestone']} (its exit criteria):\n" + "\n".join(plan_lines[:12]))
     parts.append(schedule_line(st, s["milestone"], s["tickets"], plan))  # 
@@ -3581,6 +3992,9 @@ def dev_check_start_text(st: Status) -> str:
     if out:  # the template's "Deferred" + "Non-goals" lists, to the end of the section
         parts.append("#Scope - what must NOT be built (check the code against it):\n" + scope[out.start():].strip()[:2500])
     parts.append(remote_line(st.base))
+    parts.append(f"Findings filed as ticket files (no GitHub remote, or a security finding): "
+                 f"docs/issues/ADHOC-<nn>_<slug>.md, numbered from {next_adhoc(st.base)} - never another name "
+                 f"(ADHOC-SEC-01 and ADHOC-LOW-01 fail /tickets' check and block every later /build record)")
     return "\n\n".join(parts)
 
 
@@ -4092,10 +4506,17 @@ def playbook_commit(base: Path, staged: list[str]) -> str:
     return f"saved the playbook update first, on its own: commit {git(base, 'rev-parse', '--short', 'HEAD')} \"{msg}\""
 
 
+SAVING_NOTE = ("saving: `git commit` runs the project's commit hooks on {n} file(s) - this can take minutes with no "
+               "output. Wait for THIS command to exit; never start a second status.py, git commit or git add meanwhile "
+               "(the hooks stay on: never --no-verify)")
+
+
 def commit_through_hooks(base: Path, message: str, staged: list[str],
                          only: tuple[str, ...] = ()) -> subprocess.CompletedProcess:
     """git commit (of `only` alone, when given); when a hook (a formatter) rewrote staged files and refused, add them
     and commit once more - the same two calls a person makes, done here so the run does not spend them."""
+    if hooks_state(base)[1]:
+        print(SAVING_NOTE.format(n=len(staged)), flush=True)
     run = lambda: subprocess.run(["git", "commit", "-q", "-m", message, *(("--", *only) if only else ())],  # noqa: E731
                                  cwd=base, capture_output=True, text=True, encoding="utf-8", errors="replace")
     c = run()
@@ -4104,6 +4525,16 @@ def commit_through_hooks(base: Path, message: str, staged: list[str],
         subprocess.run(["git", "add", "--", *rewritten], cwd=base, capture_output=True)
         c = run()
     return c
+
+
+# what `set build filled` may save: the ticket's record and its feature doc - never a code file the gate did not see
+BUILD_RECORD_PATHS = ("STATUS.md", FRAG_DIR, "docs/features", "CHANGELOG.md")
+
+
+def dirty_names(base: Path) -> list[str]:
+    r = subprocess.run(["git", "status", "--porcelain", "--untracked-files=all"], cwd=base, capture_output=True,
+                       text=True, encoding="utf-8", errors="replace")
+    return [ln[3:].split(" -> ")[-1].strip().strip('"') for ln in r.stdout.splitlines() if len(ln) > 3]
 
 
 def hook_failure(c: subprocess.CompletedProcess) -> str:
@@ -4206,6 +4637,7 @@ def cmd_set(st: Status, a, today: str) -> str:
     elif new == "overridden":
         if not (a.reason and a.gate):
             raise Refused("overridden needs --reason (the user's words) and --gate (the gate bypassed)")
+        offered_reason(a.reason)
         note = f"Override: {capped('reason', a.reason)} — bypassed /{a.gate.lstrip('/')}"
     elif new == "running":
         if not (a.due and a.reason):
@@ -4337,6 +4769,9 @@ def cmd_set(st: Status, a, today: str) -> str:
             if st.state(p) != "filled" or earlier_override(st, p) or p in getattr(a, "checked", ()):
                 continue
             failed = phase_check(p, base)
+            if failed and a.phase == "build":  # decision 8: the record is per ticket - warn here, /dev-check refuses
+                a.earlier_warns = [*getattr(a, "earlier_warns", []), (p, failed)]
+                continue
             if failed:
                 raise Refused(f"#{a.phase}: #{p}'s check fails now, so this phase cannot close on it - {failed}. Fix "
                               f"it, or record the user's reason: status.py open --from {a.phase} --what \"Override: "
@@ -4344,6 +4779,11 @@ def cmd_set(st: Status, a, today: str) -> str:
         failed = None if a.phase in getattr(a, "checked", ()) else phase_check(a.phase, base)
         if failed:
             raise Refused(f"#{a.phase}: its own check fails, so it is not done - {failed}")
+        a.earlier_note = "".join(
+            f"\n  ! #{p}'s check fails now (owned by /{p}, a warning here: /dev-check's save refuses it) - {why}. Fix "
+            f"it, or record the user's reason: status.py open --from {a.phase} --what \"Override: #{p}'s check fails - "
+            f"<the user's own words>\" --clears \"#{p}'s check passes\"" for p, why in getattr(a, "earlier_warns", []))
+        a.dry_note = getattr(a, "dry_note", "") + a.earlier_note
     if getattr(a, "dry_run", False):
         raise DryRun(f"no gap: `set {a.phase} {new}` without --dry-run records it" + getattr(a, "dry_note", ""))
     r[1:6] = [new, today, due, verdict, note]
@@ -4359,6 +4799,9 @@ def cmd_set(st: Status, a, today: str) -> str:
     msg = f"#{a.phase}: {old} -> {new}" + (f"; closed {closed} bypass item(s)" if closed else "")
     msg += getattr(a, "waived_note", "")
     msg += getattr(a, "drawn_note", "")
+    if getattr(a, "earlier_note", ""):
+        msg += a.earlier_note + ("\n  (a warning, not a refusal: the record is saved as written - never re-run `set` "
+                                 "for it; mention it in the close)")
     msg += tickets_note + ("\n  (a warning, not a refusal: the record is saved as written - never re-run `set` for "
                            "it; mention it in the close)" if t_warns else "")
     if new in ("filled", "running"):
@@ -4488,10 +4931,20 @@ def carried_bypass(st: Status, gate: str) -> list[str] | None:
                  if not o[5] and o[3].startswith(f"Override: bypassed /{gate} ")), None)
 
 
+def offered_reason(reason: str) -> None:
+    """OV1: an override's reason is the user's own words or the skill's fixed text - never an option the agent wrote
+    and marked (Recommended) (a logged run recorded the reason its own question recommended, as the user's)."""
+    if re.search(r"(?i)\(recommended\)", reason or ""):
+        raise Refused(f"--reason {reason[:80]!r} is an option the agent offered, marked (Recommended) - an "
+                      f"override's reason is the skill's fixed text or what the user TYPES: ask with no options, "
+                      f"record it as typed")
+
+
 def cmd_bypass(st: Status, a, today: str) -> str:
     """Proceeding in THIS phase while an earlier gate is unmet (STATE-MODEL.md §2h). The earlier phase stays
     owed and `next` keeps routing to it; the bypass is surfaced on every run until that phase is filled."""
     frm, gate = a.frm.lstrip("/"), a.gate.lstrip("/")
+    offered_reason(a.reason)
     st.phase(frm)
     g = st.phase(gate)
     if g[1] == "overridden" or (g[1] == "filled" and (gate not in VERIFY or g[4] == "pass")):
@@ -4585,16 +5038,55 @@ REVIEW_HEADING = re.compile(r"^#{2,3} [^\n]*\breview", re.I | re.M)
 REVIEWED_SOURCE = SOURCE | {".html", ".sql", ".vue", ".svelte", ".go", ".rs", ".rb", ".java", ".kt"}
 
 
+STATE_FALLBACK = ".playbook-state"
+
+
+def state_dir(base: Path | None = None, common: bool = False) -> Path:
+    """Where the playbook's never-committed records live: the git folder, or - when it cannot be written (Codex's
+    sandbox write-protects .git: a PermissionError and an approval retry on every start of a logged run) -
+    .playbook-state/ at the project root, which ignores itself, so the repo stays clean. Once that folder exists every
+    script uses it. (One copy per script: each is run standalone; tools/test_build_tools.py checks every copy.)"""
+    base = Path(base) if base is not None else Path(".")
+    r = subprocess.run(["git", "rev-parse", "--git-common-dir" if common else "--git-dir", "--show-toplevel"],
+                       cwd=base, capture_output=True, text=True)
+    lines = r.stdout.strip().splitlines() if r.returncode == 0 else []
+    if len(lines) < 2:
+        return base / lines[0] if lines else base
+    gd = Path(lines[0]) if Path(lines[0]).is_absolute() else base / lines[0]
+    fb = Path(lines[1]) / STATE_FALLBACK
+    if not fb.is_dir():
+        try:
+            probe = gd / f".playbook-probe-{os.getpid()}"
+            probe.write_text("", encoding="utf-8")
+            probe.unlink()
+            return gd
+        except OSError:
+            fb.mkdir(parents=True, exist_ok=True)
+    if not (fb / ".gitignore").is_file():
+        (fb / ".gitignore").write_text("*\n", encoding="utf-8")
+    return fb
+
+
+_STATE: dict[str, Path] = {}
+
+
 def git_dir(base: Path) -> Path | None:
-    d = git(base, "rev-parse", "--git-dir")
-    return (base / d) if d else None
+    """The folder for the playbook's never-committed records (state_dir): the git folder when it can be written; None
+    outside a git checkout. The real git folder's own files (its index) come from `git rev-parse --git-path`."""
+    key = str(Path(base).resolve())
+    if key not in _STATE or not _STATE[key].is_dir():  # a project removed and made again at the same path
+        if not git(base, "rev-parse", "--git-dir"):
+            _STATE.pop(key, None)
+            return None
+        _STATE[key] = state_dir(base)
+    return _STATE[key]
 
 
 def mark_rules_read(base: Path, phase: str, today: str) -> None:
     """`rules <phase>` leaves a dated mark inside .git (never committed): a logged Gemini build never ran it."""
     d = git_dir(base)
     if d:
-        (d / RULES_MARK).mkdir(exist_ok=True)
+        (d / RULES_MARK).mkdir(parents=True, exist_ok=True)
         (d / RULES_MARK / phase).write_text(today, encoding="utf-8")
 
 
@@ -4605,6 +5097,8 @@ REVIEW_ROUTES = ("helper agent", "review command", "new chat", "another tool", "
 # chat ("self-review: R1 0 findings") on an upload + tenant-check ticket and it recorded as a passed review; the same
 # kind of ticket reviewed apart found 19. The same chat's review is recorded as `not independently reviewed`, a gap.
 INDEPENDENT_REVIEW = re.compile(r"(?i)helper agent|review command|new chat|another tool")
+OTHER_TOOL = re.compile(r"(?i)another tool\b[^·;|]{0,40}?\b(claude|codex|cursor|antigravity|gemini|copilot|windsurf|"
+                        r"aider|cline|kiro|jules|devin|opencode|amp|qwen|chatgpt|gpt)")
 NOT_INDEPENDENT = "not independently reviewed"
 SAME_CHAT_REVIEW = re.compile(r"(?i)\bself[- ]review|\bsame (?:chat|conversation)\b|\bby hand\b|\breviewed "
                               r"(?:it |them |the code )?myself\b")
@@ -4616,7 +5110,10 @@ SELF_REVIEW_QUESTION = (
     "(1) Run an independent security review first (Recommended): open a different AI coding tool you have (a "
     "different model catches more), or a NEW chat in this tool, on branch "
     "{branch} and run its security review over `git merge-base HEAD main`..HEAD. "
-    "(2) Accept my self-review anyway: type why, in your own words.")
+    "(2) Accept my self-review anyway: you type why, in your own words.")
+# OV1: the reason is the user's own words, asked as free text. A logged Antigravity build offered its own reasons as
+# options, one "(Recommended)", the user clicked it, and the row read as the user's reason.
+SELF_REVIEW_REASON = "Why is my self-review enough here? Type it in your own words."
 OPTION_LABEL = re.compile(r"(?i)\(recommended\)|approve self-review|^\s*(?:approve|approved|yes|ok|option\s*\d|\(?\d\)?)\b")
 NEW_PUBLIC = re.compile(r"^\+(?:async\s+def|def|class)\s+([A-Za-z]\w*)"
                         r"|^\+([A-Za-z]\w*)\s*=\s*[A-Za-z_][\w.]*\("
@@ -4722,13 +5219,27 @@ def unwired(base: Path, mb: str, code: list[str]) -> list[str]:
 DOC_ONLY = re.compile(r"(?i)^docs/features/[^/]+\.md$|^STATUS\.md$|^status/|^CHANGELOG|^\.status\.lock$")  # the lock: status.py's own
 # a finding row: severity as a whole cell in ANY column (a logged lean build's reviewer put it second, and a real
 # review was refused as "no findings table")
-SEVERITY_ROW = re.compile(r"^\|(?:[^|\n]*\|)*?[ \t]*\**(?:HIGH|MEDIUM|LOW|CRITICAL|INFO|NIT|UNRATED)\**[ \t]*\|", re.I | re.M)
+# CL-B1: a severity cell may say which review found it (`LOW (security)`) - a logged build merged its two tables and
+# renamed the cell, two extra commits, because the record counted neither
+SEVERITY_ROW = re.compile(r"^\|(?:[^|\n]*\|)*?[ \t]*\**(?:HIGH|MEDIUM|LOW|CRITICAL|INFO|NIT|UNRATED)\**"
+                          r"(?:[ \t]*\([^)|\n]*\))?[ \t]*\|", re.I | re.M)
 REVIEW_COUNT = re.compile(r"(?i)\bR1\b[^·|]*?\b(\d+)\s+findings?\b|\bR1\b[^·|]*?\b(clean)\b")
 DEMO_ENTRY = re.compile(r"(?:GET|POST|PUT|PATCH|DELETE)\s+(/[\w/{}:.-]+)|`(/(?:api|v\d)[\w/{}:.-]*)`"
                         r"|python\s+-m\s+([\w.]+)")
-SECURITY_TICKET = re.compile(r"(?i)\b(auth\w*|session token|tenant|permission|refund|payment|money|secret|"
-                             r"encrypt\w*|password|oauth|access token|offline token|pii|personal data|"
-                             r"webhook|upload|credential\w*|signature|csrf|cors)\b")
+# SEC1: word stems, not whole words - a logged ticket "refuse the pay tool" (and `permissions`, `payments`, `uploads`)
+# read as "Security review: not required"; `payload` is not money, `in charge` is not a charge
+SECURITY_TICKET = re.compile(r"(?i)\b(auth\w*|session token|tenant\w*|permission\w*|privilege\w*|access control|"
+                             r"refund\w*|pay(?!load)\w*|money|(?<!\bin )charg(?:e|es|ed|ing)\b|invoice\w*|"
+                             r"transfer\w*|billing|iban|bank account\w*|settlement\w*|secret\w*|encrypt\w*|"
+                             r"password\w*|oauth|access token|offline token|pii|personal data|webhook\w*|upload\w*|"
+                             r"credential\w*|signature\w*|csrf|cors)\b")
+
+
+def security_words(text: str) -> list[str]:
+    """SEC1: the security words in prose AND in names - a file, a tool or a function is `pay_tool`, `refundOrder`,
+    `app/payments/` - so snake_case, camelCase and path parts are split into words first."""
+    text = re.sub(r"[_/\\.-]", " ", re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", text))
+    return sorted({w.lower() for w in SECURITY_TICKET.findall(text)})
 VERIFICATION = re.compile(r"(?im)^#{2,3} .*verification command.*$\s*```[^\n]*\n(.*?)```", re.S)
 
 
@@ -4749,7 +5260,7 @@ def ticket_security_words(spec: str) -> list[str]:
     "fail closed on anything auth-related") are on every ticket: a logged lean build marked a demo-data seeder
     "Security review: REQUIRED" on those two lines alone."""
     own = "\n".join(l for l in spec.splitlines() if _tpl_norm(l) not in TICKET_TEMPLATE_LINES)
-    return sorted({w.lower() for w in SECURITY_TICKET.findall(own)})
+    return security_words(own)
 
 
 def ticket_verification(spec: str) -> list[str]:
@@ -4781,10 +5292,12 @@ def worktree_tree(base: Path, d: Path) -> str:
     """The working tree as a git tree id (tracked + untracked, ignored left out), built in a scratch index inside
     .git - the same id gate.py records for the files it checked. "" when git can't."""
     idx = d / "playbook-gate" / "tree.index"
+    real = Path(git(base, "rev-parse", "--git-path", "index") or ".git/index")
+    real = real if real.is_absolute() else base / real
     try:
         idx.parent.mkdir(parents=True, exist_ok=True)
-        if (d / "index").is_file():
-            shutil.copyfile(d / "index", idx)
+        if real.is_file():
+            shutil.copyfile(real, idx)
         elif idx.exists():
             idx.unlink()
     except OSError:
@@ -4874,10 +5387,15 @@ def review_count_gap(doc: str, review_text: str, claim: str) -> str | None:
         return (f"{doc} §Review has no findings table and no CLEAN: a review that returned nothing did not run - run "
                 f"it again (a review that dies twice: STOP and tell the user)")
     if m:
-        said = 0 if m.group(2) else int(m.group(1))
-        if said != rows:
-            return (f"--review says R1 found {said}, the {doc} §Review table has {rows} finding row(s) - the record "
-                    f"and the table must agree")
+        # CL-B1: `code review R1 8 findings · security review R1 1 finding` is one table of 9 rows; a table that also
+        # lists round 2's findings counts them too - either way agrees, nothing to rewrite after the record
+        r1 = sum(0 if x.group(2) else int(x.group(1)) for x in REVIEW_COUNT.finditer(claim))
+        every = r1 + sum(int(n) for n in re.findall(r"(?i)\bR2\b[^·|]*?\b(\d+)\s+findings?\b", claim))
+        if rows not in (r1, every):
+            return (f"--review says R1 found {r1}{f' (R1 + R2: {every})' if every != r1 else ''}, the {doc} §Review "
+                    f"table has {rows} finding row(s) - the record and the table must agree: one table holds every "
+                    f"round's findings, one row each "
+                    f"(severity `LOW` or `LOW (security)`); fix the table or the count, then record once")
     return None
 
 
@@ -4892,14 +5410,30 @@ def build_ticket_gaps(base: Path, a, today: str, st: "Status | None" = None) -> 
     gaps, notes = [], []
     tool = playbook_tool()
     review = a.review or ""
+    # RV5: the route is checked on EVERY tool - a logged Cursor run called the Claude Code plugin's copy of this script,
+    # so `tool` read "claude" and "code review R1 0 findings" (no route) recorded. Claude Code's own command counts.
+    claimed = CLAUDE_ONLY_REVIEW.search(review)
+    if claimed and tool != "claude":
+        gaps.append(f"--review names {claimed.group(0)}, a Claude Code command {tool} does not have: name the "
+                    f"route that ran - {' · '.join(REVIEW_ROUTES)} (CAPABILITIES.md §Code review)")
+    elif not claimed and not any(r in review.lower() for r in REVIEW_ROUTES):
+        gaps.append(f"--review does not say which review ran: start it with the route - {' · '.join(REVIEW_ROUTES)} "
+                    f"(CAPABILITIES.md §Code review)")
+    # RV6: `another tool` names the tool - a logged run recorded "another tool: independent review" and nothing showed
+    # which tool, or whether one ran
+    if "another tool" in review.lower() and not OTHER_TOOL.search(review):
+        gaps.append("--review says `another tool` but not which one - name it: `another tool: <Claude Code | Codex | "
+                    "Cursor | Antigravity | ...>: code + security review R1 <n> findings`")
+    # LOW (b): the row names the commit the review READ - a logged record stamped HEAD at record time, after the
+    # review's fixes, and /ship re-reviews only what came after that commit
+    shas = [s for s in re.findall(r"\b[0-9a-f]{7,40}\b", review)
+            if git(base, "rev-parse", "--verify", "--quiet", f"{s}^{{commit}}")]
+    if not shas:
+        gaps.append("--review names no commit the review read - end it with `reviewed @ <sha>`: the commit you gave "
+                    "the reviewer (`git rev-parse --short HEAD` when it started); /ship re-reviews what came after it")
+    elif not any(git(base, "merge-base", s, "HEAD") == git(base, "rev-parse", f"{s}^{{commit}}") for s in shas):
+        gaps.append(f"--review's commit {shas[0]} is not on this branch - name the commit the review read")
     if tool != "claude":  # RV3 + RV4: the record and the user hear which review really ran on this tool
-        claimed = CLAUDE_ONLY_REVIEW.search(review)
-        if claimed:
-            gaps.append(f"--review names {claimed.group(0)}, a Claude Code command {tool} does not have: name the "
-                        f"route that ran - {' · '.join(REVIEW_ROUTES)} (CAPABILITIES.md §Code review)")
-        elif not any(r in review.lower() for r in REVIEW_ROUTES):
-            gaps.append(f"--review does not say which review ran on {tool}: {' · '.join(REVIEW_ROUTES)} "
-                        f"(CAPABILITIES.md §Code review)")
         notes.append(f"Tell the user in the close, under What I skipped or couldn't do, in plain words which review "
                      f"ran on {tool} - e.g. 'this tool has no review command, so a second agent reviewed the code' or "
                      f"'no second agent was available, so I reviewed my own code; a separate review would be "
@@ -4951,6 +5485,8 @@ def build_ticket_gaps(base: Path, a, today: str, st: "Status | None" = None) -> 
     if loose and not a.not_wired and not lean:
         gaps.append(f"nothing outside its own module uses what this branch adds ({', '.join(loose[:5])}): wire it "
                     f"into the path the ticket's demo runs, or --not-wired \"<why, and which ticket wires it>\"")
+    if a.not_wired:
+        gaps += not_wired_gaps(base, st, a.id, a.not_wired)
     # DB1: the suite ran on the engine #Architecture chose, or the user chose otherwise and hears the risk
     mismatch = test_engine_mismatch(base)
     if mismatch:
@@ -4992,10 +5528,11 @@ def build_ticket_gaps(base: Path, a, today: str, st: "Status | None" = None) -> 
     closes = [r for r in good if r.get("ticket") == a.id and "suite_misses" in r]
     if closes and not any(r["suite_misses"] == [] for r in closes):
         gaps.append(f"the close gate found tests of {a.id} the full suite never runs ({', '.join(closes[-1]['suite_misses'][:4])}) "
-                    f"- add their folder to the full-suite command, CI's test step or pytest's testpaths, then run "
+                    f"- add their folder to the full-suite command, CI's test step or pytest's testpaths (or, when "
+                    f"it could not read the suite: name it once with `--suite \"<command>\"`), then run "
                     f"`gate.py --ticket {a.id} --close` again")
     gaps += feature_doc_gaps(doc, text)
-    low_gap, low_note = low_findings(review, getattr(a, "low", None), a.id)
+    low_gap, low_note = low_findings(review, getattr(a, "low", None), a.id, base)
     gaps += [low_gap] if low_gap else []
     notes += [low_note] if low_note else []
     tf = find_ticket(base, a.id)
@@ -5016,7 +5553,13 @@ def build_ticket_gaps(base: Path, a, today: str, st: "Status | None" = None) -> 
     # (a token, a password, personal data) still needs its security review (audit 6)
     diff = git(base, "diff", "-U0", f"{mb}...HEAD", "--", *changed) if mb and changed else ""
     added = "\n".join(ln[1:] for ln in diff.splitlines() if ln.startswith("+") and not ln.startswith("+++"))
-    in_code = sorted({w.lower() for w in SECURITY_TICKET.findall(added)})
+    # SEC1: the structure counts too - the names of the files, tools and contracts the branch touches (a pay tool in
+    # app/agent/tools/pay.py, a /payouts path in the OpenAPI file), whatever the ticket's words say
+    paths = names.splitlines() if mb else []
+    contracts = [n for n in paths if re.search(r"(?i)(^|/)contracts?/|openapi|\.proto$|\.graphql$", n)]
+    cdiff = git(base, "diff", "-U0", f"{mb}...HEAD", "--", *contracts) if contracts else ""
+    added += "\n" + "\n".join(ln[1:] for ln in cdiff.splitlines() if ln.startswith("+") and not ln.startswith("+++"))
+    in_code = security_words(added + "\n" + "\n".join(paths))
     sensitive = bool(ticket_security_words(spec)) or bool(in_code)
     # R3-2: the demo's entry point (a route, a `python -m` command) is called by a test - a logged Gemini build was
     # "wired" to a module whose only way in answered 501; nothing outside the tests could reach it
@@ -5079,11 +5622,9 @@ def build_ticket_gaps(base: Path, a, today: str, st: "Status | None" = None) -> 
         gaps.append(f"{len(extra)} changed file(s) the ticket does not name, and {doc} does not explain: "
                     f"{', '.join(extra[:6])} - say in the feature doc why each changed, or undo it")
     # a ticket the start marked "security review: REQUIRED" records that one ran (the helper, or its equivalent)
-    if sensitive and not re.search(r"(?i)security", a.review or ""):
-        where = ("the ticket touches auth / tenant / money / secrets / personal data" if ticket_security_words(spec)
-                 else f"the code this branch added touches {', '.join(in_code[:5])} (the ticket did not say so)")
-        gaps.append(f"{where}, and --review names no security review - run it (round 1's helper) and name it in "
-                    f"--review")
+    where = ("the ticket touches auth / tenant / money / secrets / personal data" if ticket_security_words(spec)
+             else f"the code this branch added touches {', '.join(in_code[:5])} (the ticket did not say so)")
+    gaps += security_result_gaps(a.review or "", sensitive, a.dod, where)
     # R3-3: a review of your own code cannot sign off security work - a logged self-review found 0 of 3 HIGH
     same_chat = NOT_INDEPENDENT in (a.review or "").lower() or SAME_CHAT_REVIEW.search(a.review or "")
     if same_chat and sensitive and not independent:
@@ -5092,12 +5633,73 @@ def build_ticket_gaps(base: Path, a, today: str, st: "Status | None" = None) -> 
             gaps.append("this ticket touches auth / tenant / money / secrets and only a self-review ran. Ask the user "
                         f"EXACTLY this, word for word - add nothing, recommend nothing else: \"{question}\" "
                         "Option 1: record that review as --review \"new chat: ...\" or \"another tool: <name> ...\". "
-                        "Option 2: "
-                        "their typed reason goes in --self-review-ok")
+                        f"Option 2: ask EXACTLY \"{SELF_REVIEW_REASON}\" as a free-text question - NO options, never a "
+                        "reason of yours to pick, never one marked (Recommended) - and pass what they type, unchanged, "
+                        "in --self-review-ok")
         elif OPTION_LABEL.search(a.self_review_ok) or len(a.self_review_ok.split()) < 4:
             gaps.append(f"--self-review-ok {a.self_review_ok!r} is an option label or too short, not the user's reason - "
-                        f"ask EXACTLY: \"{question}\" and record the reason they type")
+                        f"ask EXACTLY: \"{question}\"; on (2) ask \"{SELF_REVIEW_REASON}\" with NO options and record "
+                        f"what they type")
     return gaps, notes
+
+
+SEC_RESULT = re.compile(r"(?i)\b\d+\s+findings?\b|\bclean\b")
+SEC_FAILED = re.compile(r"(?i)\bfail\w*|\berror\w*|\btimed?[- ]?out\b|\bcrash\w*|\bdied\b|\bno result\b|"
+                        r"\bunavailable\b|\bdid not (?:run|return|finish)\b")
+SEC_NOT_RUN = re.compile(r"(?i)\bnot run\b")
+
+
+def security_result_gaps(review: str, sensitive: bool, dod: str, where: str) -> list[str]:
+    """RV1 + SEC1: every security part of --review carries its result. A logged Cursor record said "security diff
+    failed (retried)" - no result - and recorded; a ticket the words or the diff mark sensitive never records
+    "security not required"; `security: not run - <why>` is honest, and on a sensitive ticket it is not done."""
+    parts = [p.strip() for p in re.split(r"[·;|]", review) if re.search(r"(?i)\bsec(?:urity)?\b", p)]
+    failed = [p for p in parts if not SEC_RESULT.search(p) and not SEC_NOT_RUN.search(p) and SEC_FAILED.search(p)]
+    not_run = [p for p in parts if SEC_NOT_RUN.search(p) and not SEC_RESULT.search(p)]
+    gaps = []
+    if failed:
+        gaps.append(f"--review says the security review did not finish ({failed[0][:60]!r}) and records no result - a "
+                    f"review that died has found nothing: run it once more over the same scope (dies twice: STOP and "
+                    f"tell the user) and record its result, or record `security: not run - <why>` with --dod partial")
+    if not_run and sensitive and dod == "yes":
+        gaps.append(f"{where}, and --review records the security review as not run ({not_run[0][:60]!r}) - --dod yes "
+                    f"needs its result: run it and record it, or --dod partial (a gap said in the close)")
+    elif sensitive and not failed and not not_run and not any(SEC_RESULT.search(p) for p in parts):
+        gaps.append(f"{where}, so the security review is required - --review says {parts[0][:60]!r} with no result: "
+                    f"run it (round 1's helper) and record `security review R1 <n> findings`" if parts else
+                    f"{where}, and --review names no security review - run it (round 1's helper) and name it in "
+                    f"--review")
+    return gaps
+
+
+def backlog_ids(base: Path) -> list[str]:
+    """Every ticket id the backlog knows, in order: TICKETS.md's rows, then docs/issues/<ID>_*.md files."""
+    ids = [t for ts in (milestone_plan(base) or {}).values() for t in ts]
+    folder = base / "docs" / "issues"
+    files = sorted(folder.glob("*.md")) if folder.is_dir() else []
+    return list(dict.fromkeys(ids + [m.group(1) for f in files if (m := TICKET_FILE.match(f.name))]))
+
+
+def not_wired_gaps(base: Path, st: "Status | None", tid: str, note: str) -> list[str]:
+    """NW1: `--not-wired` names the ticket that wires it, and that ticket exists, is not built yet and is in this
+    milestone or a later one. A logged build recorded "router in M1-DASH-02" - no such ticket - and its screen,
+    which nothing called, passed /build. A project with no backlog (a build from the user's words) is not checked."""
+    known = backlog_ids(base)
+    if not known:
+        return []
+    fix = (f" - wire it now, or name the ticket that wires it: --not-wired \"<why> - <ticket id from TICKETS.md or "
+           f"docs/issues/> wires it\"; no ticket does: file one first (/tickets \"<what wires it>\")")
+    named = [t for t in dict.fromkeys(PLAIN_ID.findall(note)) if t != tid]
+    if not named:
+        return [f"--not-wired {note[:80]!r} names no ticket{fix}"]
+    milestone = lambda t: int(m.group(1)) if (m := re.match(r"M(\d+)-", t)) else 0  # noqa: E731
+    built = {r[0] for r in (st.rows["Tickets"] if st else []) if r[2] == "yes"}
+    good = [t for t in named if t in known and t not in built and milestone(t) >= milestone(tid)]
+    if good:
+        return []
+    why = "; ".join(f"{t} is " + ("not a ticket in this backlog" if t not in known else "already built" if t in built
+                                  else "in an earlier milestone") for t in named)
+    return [f"--not-wired names {why}{fix}"]
 
 
 def feature_doc_gaps(doc: str, text: str) -> list[str]:
@@ -5119,24 +5721,42 @@ def feature_doc_gaps(doc: str, text: str) -> list[str]:
 LOW_SEVERITY = {"LOW", "NIT", "INFO", "UNRATED"}
 
 
-def low_findings(review: str, low: str | None, tid: str) -> tuple[str, str]:
+def next_adhoc(base: Path) -> str:
+    """The next free ADHOC-<nn> id in docs/issues/ - the only ad-hoc name /tickets' check accepts (DC5)."""
+    folder = base / "docs" / "issues"
+    nums = [int(m.group(1)) for f in (folder.glob("*.md") if folder.is_dir() else []) if (m := ADHOC_ID.match(f.name))]
+    return f"ADHOC-{max(nums, default=0) + 1:02d}"
+
+
+def low_findings(review: str, low: str | None, tid: str, base: Path | None = None) -> tuple[str, str]:
     """the review's LOW findings that were not fixed are filed as ONE grouped issue at the close, or the
     row says why not. A logged lean build told the user to run /tickets for them - so nobody filed them.
-    A row counts as fixed when it names a commit or says "fixed" (not "not fixed"). (gap, note)."""
+    A row counts as fixed when it names a commit or says "fixed" (not "not fixed"). (gap, note).
+    LOW (c): no GitHub remote is no reason to drop them - they go in ONE local ticket file instead."""
     open_ = []
     for line in review.splitlines():
         cells = [c.strip().strip("*").strip() for c in line.strip().strip("|").split("|")] if "|" in line else []
-        if any(c.upper() in LOW_SEVERITY for c in cells):
-            rest = " ".join(c for c in cells if c.upper() not in LOW_SEVERITY)
+        sev = [c for c in cells if re.sub(r"\s*\(.*\)$", "", c).upper() in LOW_SEVERITY]
+        if sev:
+            rest = " ".join(c for c in cells if c not in sev)
             if not re.search(r"(?i)(?<!not )\bfixed\b|\b[0-9a-f]{7,40}\b", rest):
                 open_.append(rest[:60])
     if not open_:
         return "", ""
+    local = base is not None and not git(base, "remote", "get-url", "origin")
+    where = (f"file them as ONE local ticket: docs/issues/{next_adhoc(base)}_{tid.lower()}-low-findings.md (one line "
+             f"each: file:line - what goes wrong), then pass --low \"docs/issues/{next_adhoc(base)}_...md\"" if local
+             else f"file them as ONE grouped issue: gh issue create --title \"{tid}: low findings from the review\" "
+                  f"--body \"<one line each: file:line - what goes wrong>\", then pass --low \"#<its number>\"")
     if not low:
-        return (f"{len(open_)} LOW finding(s) in the Review table are not fixed ({'; '.join(open_[:3])}) - file them "
-                f"as ONE grouped issue: gh issue create --title \"{tid}: low findings from the review\" --body "
-                f"\"<one line each: file:line - what goes wrong>\", then pass --low \"#<its number>\"; or --low \"not "
-                f"filed: <why>\" (no GitHub remote, the user said not to)"), ""
+        return (f"{len(open_)} LOW finding(s) in the Review table are not fixed ({'; '.join(open_[:3])}) - {where}; "
+                f"or --low \"not filed: <why>\" (the user said not to)"), ""
+    if local and re.search(r"(?i)\bremote\b|\bgithub\b|\bgh\b", low) and re.search(r"(?i)not filed", low):
+        return f"--low {low[:60]!r}: no remote is no reason to leave them unfiled - {where}", ""
+    named = re.findall(r"docs/issues/[\w.-]+\.md", low)
+    if base is not None and named and not all((base / n).is_file() for n in named):
+        return (f"--low names {', '.join(n for n in named if not (base / n).is_file())}, which does not exist - "
+                f"{where}"), ""
     return "", f"Tell the user in the close: {len(open_)} LOW finding(s) not fixed - {low}"
 
 
@@ -5144,14 +5764,17 @@ def cmd_ticket(st: Status, a, today: str) -> str:
     if a.dod not in ("yes", "no", "partial"):
         raise Refused("--dod is yes, no or partial")
     gaps, notes = build_ticket_gaps(st.base, a, today, st)
+    stubs = ticket_stub_notes(st.base, a.id)  # CT1: a note only - the record is never refused for it
+    notes = notes + stubs
     if getattr(a, "dry_run", False):  # every gap the row would be refused for, nothing written (P20)
-        raise DryRun(f"{len(gaps)} gap(s) the ticket row would be refused for:\n  - " + "\n  - ".join(gaps) if gaps
-                     else f"no gap: `ticket {a.id}` without --dry-run records it")
+        raise DryRun((f"{len(gaps)} gap(s) the ticket row would be refused for:\n  - " + "\n  - ".join(gaps) if gaps
+                      else f"no gap: `ticket {a.id}` without --dry-run records it")
+                     + "".join(f"\n  {n}" for n in stubs))
     if gaps:
         raise Refused("ticket not recorded:\n  - " + "\n  - ".join(gaps))
-    verified = a.verified + "".join(f" · {k}: {v}" for k, v in (("no cuts", a.no_cuts), ("not wired", a.not_wired),
-                                                                ("self-review ok", a.self_review_ok),
-                                                                ("uncut", "; ".join(a.uncut or []))) if v)
+    verified = a.verified + "".join(f" · {k}: {v}" for k, v in (
+        ("no cuts", a.no_cuts), ("not wired", a.not_wired),
+        ("self-review ok, reason typed by the user", a.self_review_ok), ("uncut", "; ".join(a.uncut or []))) if v)
     review = capped("review", a.review or "none recorded", a.doc)
     #  pre-check row 1: the commit the review covered, so /ship reviews only what came after it. Only when nothing
     # but the record is uncommitted - otherwise the commit that saves this row is that point (ticket_reviewed_at).
@@ -5162,7 +5785,23 @@ def cmd_ticket(st: Status, a, today: str) -> str:
         review += f" · reviewed @ {head}"
     row = [capped("cell", a.id), today, a.dod, capped("verified", verified, a.doc),
            str(a.runs) if a.runs is not None else "not counted", review, capped("cell", a.doc)]
-    st.rows["Tickets"].append(row)  # #build counts as filled once a ticket file exists (DERIVED), never written here
+    # a logged run re-recorded a ticket a minute later and kept both (`<date>-<id>.md` and `<date>-<id>-2.md`): one
+    # ticket, one record - a second record replaces the first in its own file
+    old = [r for r in st.rows["Tickets"] if r[0] == row[0]]
+    for r in old[1:]:
+        st.rows["Tickets"].remove(r)
+        gone = st.base / FRAG_DIR / FRAG["Tickets"] / st.files.pop(id(r), "")
+        if gone.is_file():
+            gone.unlink()
+            notes.append(f"removed the duplicate record {FRAG_DIR}/{FRAG['Tickets']}/{gone.name}")
+    if old:
+        st.files[id(row)] = st.files.pop(id(old[0]), "") or new_fragment_name(
+            st.base / FRAG_DIR / FRAG["Tickets"], "Tickets", row)
+        st.rows["Tickets"][st.rows["Tickets"].index(old[0])] = row
+        notes.insert(0, f"replaces its earlier record ({old[0][1]}) in {FRAG_DIR}/{FRAG['Tickets']}/"
+                        f"{st.files[id(row)]} - one record per ticket")
+    else:
+        st.rows["Tickets"].append(row)  # #build counts as filled once a ticket file exists (DERIVED), never written
     return f"ticket {a.id} recorded" + "".join(f"\n  {n}" for n in notes)
 
 
@@ -6503,7 +7142,7 @@ def ship_diff(base: Path) -> tuple[str, list[str], list[str], list[str]]:
     changed = git(base, "diff", "--name-only", mb).splitlines() if mb else git(base, "ls-files").splitlines()
     commits = git(base, "log", "--oneline", f"{mb}..HEAD").splitlines() if mb else []
     text = " ".join(changed) + (git(base, "diff", mb)[:200_000] if mb else "")
-    return mb, changed, commits, sorted({w.lower() for w in SECURITY_TICKET.findall(text)})
+    return mb, changed, commits, security_words(text)
 
 
 # 2.2 (pre-check rows 1 and 10): a logged /ship read one small file per call 7 times (the
@@ -6622,6 +7261,101 @@ def ship_bump_gaps(st: "Status", a, base: Path) -> list[str]:
     return out
 
 
+# SH2: /ship's reviews and doc check are proven by what they produced, never by the words in --reviews / --docs. A
+# logged run's dry-run printed the phrase that would pass ("`sec R1 clean`"); 15 s later the agent typed it, no
+# review ran - and "claims checked against code" the same way.
+def ticket_security_evidence(row: list[str]) -> bool:
+    """A ticket row that recorded a security result from an independent review (or a self-review the user accepted
+    in their own words)."""
+    review = row[5] if len(row) > 5 else ""
+    parts = [p for p in re.split(r"[·;|]", review) if re.search(r"(?i)\bsec(?:urity)?\b", p)]
+    if not any(SEC_RESULT.search(p) for p in parts):
+        return False
+    own = NOT_INDEPENDENT in review.lower() or SAME_CHAT_REVIEW.search(review)
+    return bool(INDEPENDENT_REVIEW.search(review)) and not own or bool(own and "self-review ok" in row[3])
+
+
+def ship_security_gaps(st: "Status", a, base: Path, sec: list[str]) -> list[str]:
+    """A security result in --reviews stands on the review table it came from (--security-from, a file outside the
+    repo), or on the shipped tickets' rows that recorded one, with no code changed since their review."""
+    sf = getattr(a, "security_from", None)
+    produce = (f"run the security review over the diff now (the start's `The order:` line), save the findings table "
+               f"it returns to a file OUTSIDE the repo, and pass --security-from <that file>; --reviews then says what "
+               f"the table says")
+    if sf:
+        f = Path(sf) if Path(sf).is_absolute() else Path.cwd() / sf
+        if in_work_tree(base, f):
+            return [f"--security-from {sf} is inside the project - it would be committed with its findings: save the "
+                    f"table OUTSIDE the repo and pass that"]
+        table = read_text(f) if f.is_file() else ""
+        if not table.strip():
+            return [f"--security-from {sf}: no such file, or it is empty - {produce}"]
+        if SELF_REVIEW.search(table):
+            return [f"--security-from {sf} says it is a self-review - a self-review never signs off security: "
+                    f"{produce}"]
+        counts = table_counts(table)
+        total = sum(counts.values())
+        if not total and not SEC_NONE.search(table):
+            return [f"--security-from {sf} holds no findings row (severity in a cell) and does not say CLEAN - pass "
+                    f"the table the review returned"]
+        said = re.search(r"(?i)\bsec(?:urity)?\b[^·;|]*?(?:\b(\d+)\s+findings?\b|\b(clean)\b)", a.reviews)
+        if not said:
+            return [f"--reviews does not say the security review's result - its table has {total} finding(s)"]
+        n = 0 if said.group(2) else int(said.group(1))
+        return [] if n == total else [f"--reviews says the security review found {n}, its table (--security-from) "
+                                      f"has {total} - say what the table says"]
+    rows = {r[0]: r for r in st.rows["Tickets"]}
+    ids = [t for t in dict.fromkeys(PLAIN_ID.findall(a.what))]
+    have = [t for t in ids if t in rows and ticket_security_evidence(rows[t])]
+    if ids and len(have) == len(ids):
+        moved = sorted({n for t in have if (at := ticket_reviewed_at(base, rows[t]))
+                        for n in git(base, "diff", "--name-only", at, "HEAD").splitlines()
+                        if Path(n).suffix in REVIEWED_SOURCE and not is_test(n)})
+        if not moved:
+            return []
+        return [f"the diff touches {', '.join(sec[:5])} and code changed after the tickets' security review "
+                f"({', '.join(moved[:4])}) - {produce}"]
+    why = "; ".join(f"{t}'s row records no security result from an independent review" if t in rows
+                    else f"{t} has no ticket row" for t in ids if t not in have)
+    return [f"the diff touches {', '.join(sec[:5])} and nothing shows a security review of it"
+            f"{' (' + why + ')' if why else ''} - {produce}"]
+
+
+CODE_REF = re.compile(r"([\w./-]+\.(?!md\b)[A-Za-z]{1,6}):(\d+)")
+
+
+def ship_docs_gaps(st: "Status", a, base: Path) -> list[str]:
+    """--docs stands on a claims file (--docs-from): one line per claim checked - the doc and its line, and the code
+    file:line that backs it (or REMOVED / FIXED). Every code place it names exists; it covers README.md and each
+    shipped ticket's feature doc."""
+    df = getattr(a, "docs_from", None)
+    rows = {r[0]: r for r in st.rows["Tickets"]}
+    docs = (["README.md"] if (base / "README.md").is_file() else []) + [
+        rows[t][-1].strip("` ") for t in dict.fromkeys(PLAIN_ID.findall(a.what)) if t in rows and rows[t][-1].strip()]
+    produce = ("write the claims you checked to a file, one line each: `<doc>:<line> | <the claim> | "
+               "<code file>:<line> that backs it` (or `| REMOVED` / `| FIXED: <how>`), covering " + (", ".join(docs) or "the README, "
+               "PRODUCT.md and docs/features/*") + " - and pass --docs-from <that file>")
+    if not df:
+        return [f"--docs has no evidence - {produce}"]
+    f = Path(df) if Path(df).is_absolute() else Path.cwd() / df
+    text = read_text(f) if f.is_file() else ""
+    if not text.strip():
+        return [f"--docs-from {df}: no such file, or it is empty - {produce}"]
+    gaps = []
+    refs = CODE_REF.findall(text)
+    gone = [f"{p}:{n}" for p, n in refs if not (base / p).is_file()
+            or int(n) > len(read_text(base / p).splitlines())]
+    if not refs:
+        gaps.append(f"--docs-from {df} names no code place (file:line) backing any claim - {produce}")
+    if gone:
+        gaps.append(f"--docs-from names code that is not there: {', '.join(gone[:5])} - point each claim at the "
+                    f"code that backs it, or mark it REMOVED / FIXED")
+    missing = [d for d in docs if d not in text]
+    if missing:
+        gaps.append(f"--docs-from does not cover {', '.join(missing)} - check their claims too")
+    return gaps
+
+
 def ship_release_gaps(st: "Status", a, base: Path) -> list[str]:
     """What `status.py release` refuses: round 1 named with its count (or the ticket row it cites), round 2 run or
     its skip recorded, the gate run once, security on an auth/data diff, the dependency scan, every unpassed phase in
@@ -6644,9 +7378,8 @@ def ship_release_gaps(st: "Status", a, base: Path) -> list[str]:
         gaps.append("--reviews has no gate count - `gate ×1 <sha>` (the full gate once, after the last fix), or `gate "
                     "cited <ticket>` when nothing changed since /build's")
     sec = ship_diff(base)[3] if git_dir(base) else []
-    if sec and not re.search(r"(?i)\bsec(?:urity)?\b", rv):
-        gaps.append(f"--reviews has no security review and the diff touches {', '.join(sec[:5])} - `sec R1 clean` "
-                    f"(/security-review or the equivalent pass), or the ticket row that already ran it")
+    if sec:
+        gaps += ship_security_gaps(st, a, base, sec)
     if not re.search(r"(?i)\bdeps?\b|\baudit\b|\bvuln", rv):
         gaps.append("--reviews has no dependency scan - `deps: <scanner> <count>` (the start names the command), or "
                     "`deps: not run - <why>`")
@@ -6672,6 +7405,7 @@ def ship_release_gaps(st: "Status", a, base: Path) -> list[str]:
     if not re.search(r"(?i)readme|product\.md|docs/|claims?|features?|spine", a.docs):
         gaps.append("--docs does not say what was reconciled - the README, PRODUCT.md and docs/features/* claims, "
                     "each checked against the code")
+    gaps += ship_docs_gaps(st, a, base)
     if not git(base, "remote", "get-url", "origin"):
         if not re.search(r"(?i)local", a.pr):
             gaps.append("--pr: no git remote - a local-only release records `local-only: <branch> @ <sha>` (no PR, "
@@ -6755,8 +7489,10 @@ def ship_start_text(st: "Status") -> str:
     # this PR's ticket(s): named by the branch or a commit; else the built ticket not shipped yet
     ids = set(PLAIN_ID.findall(branch.upper() + " " + " ".join(commits)))
     flow = ticket_flow(st) if st.base is not None else None
+    by_id, early = {r[0]: r for r in st.rows["Tickets"]}, milestone_unfinished(st)
     mine = [r for r in st.rows["Tickets"] if r[0] in ids] or [r for r in st.rows["Tickets"] if flow and
-                                                               flow["phase"] == "ship" and r[0] == flow["arg"]]
+                                                               flow["phase"] == "ship" and r[0] == flow["arg"]] \
+        or [r for r in st.rows["Tickets"] if not ticket_shipped(st, r[0], by_id)][:1]
     reviewed = ticket_reviewed_at(base, mine[-1]) if mine and git_dir(base) else ""
     noise = (":(exclude)STATUS.md", f":(exclude){FRAG_DIR}")
     since = [f for f in git(base, "diff", "--name-only", reviewed, "--", ".", *noise).splitlines()] if reviewed else []
@@ -6788,11 +7524,18 @@ def ship_start_text(st: "Status") -> str:
            *([f"  - The diff since {shown_from[:9]} ({len(body)} characters; the first 6,000 here - the rest: `git "
               f"diff {shown_from[:9]} -- <file>`):\n```diff\n{body[:6000]}\n```"] if body.strip() else []),
            "  - Security surface in the diff: " + (", ".join(sec[:8]) + " - /security-review inside a subagent (or the "
-                                                   "equivalent pass), unless a ticket row already ran it on this "
+                                                   "equivalent pass), its table saved outside the repo for "
+                                                   "--security-from, unless a ticket row already ran it on this "
                                                    "unchanged surface" if sec else "none named"),
            "  - Gates: " + " · ".join(f"#{p}: {s}{' ' + v if v else ''}" for p, s, v in gates)
-           + (f" - {gate_note(st, 'ship', 'dev-check')} --skipped: `{', '.join('/' + g[0] for g in unmet)}: "
-              f"{MILESTONE_REASON}`" if unmet and milestone_unfinished(st) else
+           # AS1 (2.1.4): with no remote a ticket lands locally; a logged run shipped one ticket before /dev-check
+           + (f" - ! {early['milestone']} is {early['done']} of {early['total']} built and there is no remote: a ticket "
+              f"lands by `land.py local` after its /build, never by /ship - /ship releases the finished milestone, "
+              f"after /dev-check and /test. Ask ONE options question first: \"Stop - finish the milestone "
+              f"(Recommended)\" · \"Ship anyway (--skipped: `{', '.join('/' + g[0] for g in unmet)}: "
+              f"{MILESTONE_REASON}`)\" · \"Other\"" if unmet and early and not git(base, "remote", "get-url", "origin")
+              else f" - {gate_note(st, 'ship', 'dev-check')} --skipped: `{', '.join('/' + g[0] for g in unmet)}: "
+              f"{MILESTONE_REASON}`" if unmet and early else
               f" - not passed: {', '.join('/' + g[0] for g in unmet)}. Name each, recommend it; shipping anyway puts it "
               f"in --skipped with the reason (a change to what the product does needs its tests)" if unmet else
               " - all passed"),
@@ -6851,7 +7594,8 @@ def ship_start_text(st: "Status") -> str:
            "<branch> @ <sha>\"`. Stopping at an unmet gate: `status.py set ship declined --reason \"<what was "
            "missing>\" --gate <phase>`.",
            "  - `status.py release` refuses, every problem in one list: no round 1 (count or cited ticket) · round 1 "
-           "found something and round 2 not recorded · no `gate ×1` · an auth/data diff with no security review · no "
+           "found something and round 2 not recorded · no `gate ×1` · an auth/data diff with no security table "
+           "(--security-from) or ticket row behind it · docs with no claims file (--docs-from) · no "
            "dependency scan · --skipped none while a gate is not passed · n/a without where releases are recorded · a "
            "retired or missing CHANGELOG named · a rollback not from docs/deployment.md when /deploy ran · --docs "
            "naming nothing · no PR link (or local-only without a remote) · a cell over 200 characters · a per-ticket PR "
@@ -8204,8 +8948,8 @@ SCRIPT_REFUSED = ("  - A script refuses or fails: make the fix its message names
 def design_approval_files(base: Path) -> list[Path]:
     """Where the owner's answer to the sample confirm is kept: the project's .git folder first (this project's own,
     never committed), else beside this script; the first line names the project either way."""
-    git_dir = base / ".git"
-    return ([git_dir / DESIGN_APPROVAL_GIT] if git_dir.is_dir() else []) + [Path(__file__).resolve().parent / AG_APPROVAL]
+    d = git_dir(base) if (base / ".git").is_dir() else None
+    return ([d / DESIGN_APPROVAL_GIT] if d else []) + [Path(__file__).resolve().parent / AG_APPROVAL]
 
 
 def design_approval(base: Path) -> str | None:
@@ -8805,6 +9549,10 @@ def render_recheck(base: Path, sample: str, main: str, shots: str | None = None)
     return r.returncode, r.stdout + r.stderr
 
 
+CODEX_LONG_CALL = ("a long command (the gate, a test suite, a commit with hooks) is ONE `exec_command` with "
+                   "yield_time_ms 600000 - it returns when the command exits, with its output")
+
+
 def run_habits() -> list[str]:
     """The call habits every `next` prints, with or without a STATUS.md."""
     out = ["  - fewest calls (each re-sends the whole conversation): independent reads and commands in ONE call; "
@@ -8816,8 +9564,11 @@ def run_habits() -> list[str]:
            "call) - never a python/sed script that rewrites files (slower, breaks on quoting, the code sent "
            "twice)"]
     if playbook_tool() == "codex":  # a logged Codex /architect checked a 2-minute file write 9 times: 1.2M tokens
-        out.append("  - Codex: a command or file write still running - wait for it with ONE long wait (yield_time_ms "
-                   "120000), never repeated short checks: each check re-sends the whole conversation.")
+        # CX-B5: told "ONE long wait", a logged Codex /build still polled at yield_time_ms 1000, then sent long
+        # commands to data/*.log and read them back (8-20 calls a session): name the exact call instead
+        out.append(f"  - Codex: {CODEX_LONG_CALL}; still running when it returns: ONE `write_stdin` (chars \"\", "
+                   "yield_time_ms 600000). Never `> data/*.log` and a read-back, never 1000 ms checks: each call "
+                   "re-sends the whole conversation.")
     if playbook_tool() == "antigravity":  # a logged Antigravity /test spent 89 of its 183 calls polling
         out.append("  - Antigravity: give every command WaitMsBeforeAsync 10000 (the longest it takes); a command "
                    "that still goes to the background (the gate and a suite take 1-2 min) gets ONE schedule timer "
@@ -8904,7 +9655,7 @@ def fit_start(full: str, phase: str = "vision") -> str:
     # sandbox may refuse the file, a read may ask approval) and shared by every window. The project's .git folder is
     # this project's own and never committed, as /foundation's long start; no .git folder: the tools folder.
     if cursor and (Path.cwd() / ".git").is_dir():
-        f = Path.cwd() / ".git" / f"playbook-{name}"
+        f = (git_dir(Path.cwd()) or Path.cwd() / ".git") / f"playbook-{name}"
     try:
         f.write_text(lead + full + "\n\n" + last + "\n", encoding="utf-8")
     except OSError:
@@ -9708,8 +10459,11 @@ def save_paths(base: Path, paths: list[str], msg: str, again: str) -> str:
     if Path(root).resolve().as_posix().lower() != base.resolve().as_posix().lower():  # as save_commit: never the parent
         return (f"not saved: the git root is a PARENT folder ({root}) - the record is written; offer `git init` here "
                 f"(MECHANISMS.md §Commit)")
+    paths = [p for p in dict.fromkeys(paths) if (base / p).exists() or git(base, "ls-files", "--", p)]
     add = subprocess.run(["git", "add", "--", *paths], cwd=base, capture_output=True, text=True, encoding="utf-8",
                          errors="replace")
+    if add.returncode == 0 and hooks_state(base)[1]:
+        print(SAVING_NOTE.format(n=len(paths)), flush=True)
     c = subprocess.run(["git", "commit", "-q", "-m", msg, "--", *paths], cwd=base, capture_output=True, text=True,
                        encoding="utf-8", errors="replace") if add.returncode == 0 else add
     if c.returncode != 0:
@@ -13175,11 +13929,11 @@ def tickets_start_text(st: "Status", lead: int = 0) -> str:
         "  - `set tickets filled` refuses, every problem in one list (most cannot happen in rendered files): a "
         "target that is a folder, or a spine file / TICKETS.md · no docs/features/<feature>.md, or no test file in a "
         "code ticket · a lane that is no STRUCTURE.md module · no security line · a vertical slice with no demo · a "
-        "depends that does not exist, or a cycle · a consumed name the code does not have (mark a created one "
-        "`(new)`) · two tickets of one milestone writing one file with neither depending on the other (order them, or "
-        "list the file under hubs) · a milestone with no ticket and no skip · a criterion of a ticketed milestone "
-        "neither served nor uncovered, a ticket serving none, a number #Plan lacks · a day-1 ticket with a depends · "
-        "docs/issues/README.md that remains.",
+        "depends that does not exist, is a later milestone's, or a cycle · a consumed name the code does not have "
+        "(mark a created one `(new)`) · two tickets of one milestone writing one file with neither depending on the "
+        "other (order them, or list the file under hubs) · a milestone with no ticket and no skip · a criterion of a "
+        "ticketed milestone neither served (by its milestone or an earlier one) nor uncovered, a ticket serving none, "
+        "a number #Plan lacks · a day-1 ticket with a depends · docs/issues/README.md that remains.",
         "  - Publish (round 1 chose it) after the save - run from the project folder `python "
         + (tool_file("tickets", "publish.py") or Path("commands/tickets/publish.py")).as_posix()
         + "` (no plan file: it reads the plan from the committed TICKETS.md and docs/issues/; `--no-board` = issues "
@@ -13213,7 +13967,7 @@ def exit_criteria(plan: str) -> dict[str, list[tuple[str, str]]]:
     """#Plan's exit criteria, numbered per milestone: `M2.3` is milestone 2's third clause (split at `;` and at a
     sentence end). A ticket names the number it serves; `set` refuses a criterion of a ticketed milestone no ticket
     serves - matched by number, never by wording."""
-    block = re.search(r"(?ims)^- \*\*exit criteria[^\n]*$(.*?)(?=^- \*\*|\Z)", plan)
+    block = re.search(r"(?ims)^- \*\*exit criteria[^\n]*$(.*?)(?=^- \*\*|\Z)", unfold(plan))
     out: dict[str, list[tuple[str, str]]] = {}
     for m in re.finditer(r"(?m)^\s+-\s*\**(M\d+)\**\s*:\s*(.+)$", block.group(1) if block else ""):
         parts = [p.strip().rstrip(".").strip() for p in EXIT_SPLIT.split(m.group(2).strip())]
@@ -13224,7 +13978,7 @@ def exit_criteria(plan: str) -> dict[str, list[tuple[str, str]]]:
 def milestone_titles(plan: str) -> dict[str, str]:
     """`M1 — Core slice: one fake employee ...` -> {"M1": "Core slice"} (the text before the first colon)."""
     out: dict[str, str] = {}
-    for m in re.finditer(r"(?m)^\s*-\s*\**(M\d+)\**\s*[—–:-]+\s*([^:\n]+)", plan):
+    for m in re.finditer(r"(?m)^\s*-\s*\**(M\d+)\**\s*[—–:-]+\s*([^:\n]+)", unfold(plan)):
         out.setdefault(m.group(1), m.group(2).strip().rstrip(".*").strip())
     return out
 
@@ -13756,9 +14510,10 @@ BUILD_LEAN_CLOSE = (
     "  (1) this close gate - done; never re-run it to be safe (`ticket --dry-run` names a file changed since)\n"
     "  (2) commit the feature doc\n"
     "  (3) `status.py ticket <id> --dod yes|partial --verified \"<command> -> <result>\" --doc "
-    "docs/features/<feature>.md --review \"<round scopes>\"` - say every line it prints; it moves the board card to "
-    "In Review and reads it back. " + BUILD_LOW_RULE + "\n"
-    "  (4) `status.py set build filled` - it saves the record; never a save question\n"
+    "docs/features/<feature>.md --review \"<route>: <round scopes> · reviewed @ <sha it read>\"` - say every line "
+    "it prints; it moves the board card to In Review and reads it back. " + BUILD_LOW_RULE + "\n"
+    "  (4) `status.py set build filled` - it saves the record; never a save question; no remote: run the land step "
+    "it prints (`land.py local`)\n"
     "  (5) four short blocks: " + CLOSE_BLOCKS + " (What just happened = what the reviews caught, in plain words), "
     "ending \"Saved (commit <hash>). Change anything?\"")
 BUILD_LEAN_NEXT = ("Next: `status.py set build filled` (it saves the record - never a save question), then four short "
@@ -13770,7 +14525,8 @@ BUILD_CLOSE_ORDER = ("The close, in this order, each once: (1) this close gate -
                      "result, each changed file the ticket did not name with why; (4) commit it; (5) `status.py ticket` "
                      "(it moves the board card to In Review; LOW findings left unfixed: one grouped issue, --low); "
                      "(6) `status.py set build filled` (it saves the record unasked - the code was "
-                     "committed before review), the transition guard, the four-block close (" + CLOSE_BLOCKS + ").")
+                     "committed before review; no remote: run the land step it prints), the transition guard, "
+                     "the four-block close (" + CLOSE_BLOCKS + ").")
 
 
 def find_ticket(base: Path, tid: str) -> Path | None:
@@ -14277,7 +15033,8 @@ def pick_build_ticket(st: Status, seat: str | None = None) -> tuple[str | None, 
     plan = milestone_plan(base) if base else None
     if not plan:
         return None, "no TICKETS.md - name the ticket: /build <ticket id>"
-    rows = {r[0]: r for r in st.rows["Tickets"]}
+    recs = ticket_records(st)  # BR1: a ticket recorded on ANY branch is built - never picked again
+    rows = {t: r["row"] for t, r in recs.items()}
     lanes = ticket_lanes(base)
     mine = {r.get("lane", "").strip("` ") for r in tickets_md_table(base, "Lanes")
             if seat and r.get("seat", "").strip("` ") == seat}
@@ -14307,7 +15064,10 @@ def pick_build_ticket(st: Status, seat: str | None = None) -> tuple[str | None, 
                 skipped.append(f"{t} (no ticket file)")
                 continue
             if waiting:
-                skipped.append(f"{t} (waits for {', '.join(waiting)} to merge)")
+                skipped.append(f"{t} (waits for {', '.join(waiting)} to merge" + "".join(
+                    f"; {x} is recorded on branch {ticket_branch(x, recs[x])}, not merged - land it: "
+                    f"`{land_command(ticket_branch(x, recs[x]))}`" for x in waiting[:2]
+                    if x in recs and not recs[x]["here"] and not recs[x]["on_base"]) + ")")
                 continue
             if repo and asked < 5:  # the board says who has it: a card past Todo is someone else's
                 asked += 1
@@ -14330,7 +15090,8 @@ def pick_build_ticket(st: Status, seat: str | None = None) -> tuple[str | None, 
                       f"in {ms}: {'; '.join(skipped[:8]) or 'every ticket is taken'}"
                       + (f". Other lanes' tickets ({', '.join(free[:5])}) are another seat's - ask the user"
                          if free else "") + ". Name one: /build <ticket id>")
-    return None, "every planned ticket is built - run /ship for an unshipped one, or /dev-check"
+    return None, ("every planned ticket is built (on some branch) - land any ticket branch not merged yet, then "
+                  "/dev-check")
 
 
 #  (owner 2026-10-09: in this batch, cheap): an independent reviewer for /build - a helper with a fresh
@@ -14359,10 +15120,11 @@ def reviewer_line(base: Path, tid: str, branch: str, security: bool) -> str:
              f"{rules.as_posix() if rules else 'commands/build/references/review-stretch.md'} §In the helper")
     if tool == "claude" and not security:
         return ("Reviewer: `/code-review` (it starts its own reviewer with a fresh context) - no helper needed; record "
-                "`--review \"code review R1 <n> findings ...\"`")
+                "`--review \"review command: code review R1 <n> findings ... · reviewed @ <sha it read>\"`")
     head = (f"Reviewer (a fresh context that did not write the code; step 4, once): start {REVIEWER_ROUTE[tool]}, "
             f"brief `{brief.as_posix() if brief else 'agents/build-reviewer.md'}`, {given}. It reports and never edits; "
-            f"you fix, commit and write ## Review from its table. Record its route: `helper agent`.")
+            f"you fix, commit and write ## Review from its table. Record its route: `helper agent`, and the commit "
+            f"it read: `reviewed @ <sha>`.")
     if tool == "claude":
         head += " Run `/code-review` yourself meanwhile."
     # AG-B1: the chat that wrote the code is never its own reviewer - with no helper, a NEW chat is the fresh context
@@ -14374,6 +15136,54 @@ def reviewer_line(base: Path, tid: str, branch: str, security: bool) -> str:
                 "a gap you say in the close, never a passed review; it never signs off security."
                 if tool in ("antigravity", "cursor", "codex") else "")
     return head + fallback
+
+
+def build_branch_lines(st: Status, tid: str, branch: str, new_branch: str) -> list[str]:
+    """LM1 + BR1 (2.1.4): where the ticket starts. A logged run stacked each ticket on the last unmerged ticket branch
+    (or forked from the dependency, missing 15 tests of two others), and rebuilt tickets recorded on other branches.
+    A ticket starts from the base branch with every recorded ticket landed, and a recorded ticket is never rebuilt."""
+    base, out = st.base, []
+    if not git_dir(base):
+        return out
+    trunk = default_branch(base)
+    recs = ticket_records(st)
+    if tid in recs:
+        rec = recs[tid]
+        where = (f"on {trunk}" if rec["on_base"] else f"on branch {ticket_branch(tid, rec)}, not merged into {trunk}"
+                 if rec["branches"] else "in this checkout")
+        out.append(f"! STOP - {tid} is already recorded ({rec['row'][1]}, {where}): never build it twice. Tell the "
+                   f"user; " + (f"land it: `{land_command(ticket_branch(tid, rec))}`; " if not rec["on_base"] and
+                                rec["branches"] else "") + "rebuild it only on their explicit yes (`ticket` then "
+                   "replaces its record).")
+    loose = [t for t, r in recs.items() if not r["on_base"] and r["branches"] and t != tid
+             and not any(tid.lower() in b.lower() for b in r["branches"])]
+    mine = tid.lower() in branch.lower()
+    if loose and not mine:
+        out.append(f"! recorded, not merged into {trunk}: " + " · ".join(
+            f"{t} (`{land_command(ticket_branch(t, recs[t]))}`)" for t in sorted(loose)[:6])
+            + f" - land each on the user's word before this ticket starts, so it starts from the merged {trunk}")
+    if branch == trunk:
+        out.append(f"! on {branch}: create the ticket branch before the first write - {new_branch}")
+    elif not mine:
+        out.append(f"! on {branch}, not {trunk}: a ticket starts from {trunk}, never stacked on another ticket's "
+                   f"branch - land that branch first (above), then `git switch {trunk}` and {new_branch}")
+    return out
+
+
+def build_land_line(st: Status) -> str:
+    """LM1 (2.1.4): after the record is saved, with no remote, the ticket branch merges into the base branch locally.
+    A logged run's tickets each stayed on their own branch - the only merge step needed a PR - so the milestone never
+    reached main and the checkpoint could not see it. With a remote the PR path stays (/ship, land.py merge)."""
+    base = st.base
+    if base is None or not git_dir(base) or git(base, "remote", "get-url", "origin"):
+        return ""
+    trunk, head = default_branch(base), git(base, "rev-parse", "--abbrev-ref", "HEAD")
+    if head in (trunk, "HEAD", ""):
+        return ""
+    return (f"Land it - no remote, so nothing else merges this ticket into {trunk}: run `{land_command(head)}` now, "
+            f"the default with no remote (the user said keep it on its branch: skip it and say so in the close). It "
+            f"merges into {trunk}, reads it back and leaves this folder on {trunk}, where the next /build starts. "
+            f"Quote its OK/FAIL lines in the close.")
 
 
 def build_start_text(st: Status, tid: str, today: str, lean: bool = False, seat: str | None = None) -> str:
@@ -14447,10 +15257,9 @@ def build_start_text(st: Status, tid: str, today: str, lean: bool = False, seat:
         parts.append("===== PRODUCT.md #Project policy (this project's own rules for every ticket) =====\n"
                      + policy.strip())
     branch = git(base, "rev-parse", "--abbrev-ref", "HEAD")
-    if branch in ("main", "master"):
-        title = next((re.sub(r"^#\s*(\[[^\]]*\])?\s*", "", l) for l in text.splitlines() if l.startswith("# ")), "")
-        parts.append(f"! on {branch}: create the ticket branch before the first write - "
-                     f"git switch -c {tid.lower()}-{slug(title, 24) if title else 'work'}")
+    title = next((re.sub(r"^#\s*(\[[^\]]*\])?\s*", "", l) for l in text.splitlines() if l.startswith("# ")), "")
+    new_branch = f"git switch -c {tid.lower()}-{slug(title, 24) if title else 'work'}"
+    parts += build_branch_lines(st, tid, branch, new_branch)
     # ready-to-run commands, never placeholders the run must fill: the gate picks the recipe + the ticket's tests
     # itself; the dev server's command, port and health URL come from the project (its dev recipe, #Foundation)
     dev, port, health = dev_server(base, spine.get("Foundation", ""))
@@ -14466,7 +15275,8 @@ def build_start_text(st: Status, tid: str, today: str, lean: bool = False, seat:
     if lean:  # the lean path proves wiring by the reviews and the gate, not by cuts
         tools = [t for t in tools if t[0] != "wire cuts"]
     parts.append("Commands (one call each; every path is absolute):\n" + "\n".join(
-        f"  {name}: python \"{p.as_posix()}\" {args}" for name, p, args in tools if p))
+        f"  {name}: python \"{p.as_posix()}\" {args}" for name, p, args in tools if p)
+        + (f"\n  Codex: each is {CODEX_LONG_CALL[CODEX_LONG_CALL.index('ONE'):]}" if playbook_tool() == "codex" else ""))
     parts.append(per_edit_commands(base, TARGET.findall(secs.get("Target Files", ""))))
     claims = [] if lean else demo_claims(text)
     if claims:  # DP1-DP3: what `status.py ticket` checks, told before the first line of code
@@ -14483,7 +15293,9 @@ def build_start_text(st: Status, tid: str, today: str, lean: bool = False, seat:
                      "`Real-world reach: <what> - guarded by test_<name>` (or `- not guarded: <why>`, said to the user).")
     parts.append(remote_line(base))
     # P44: the ticket's boundary, printed (a logged lean build fixed a project-level check on its ticket branch)
-    parts.append("This ticket must NOT: merge (the branch waits for /ship) · write PRODUCT.md · change another ticket's "
+    parts.append("This ticket must NOT: merge before its record (" + ("after it: `land.py local`, the close says "
+                 "when" if not git(base, "remote", "get-url", "origin") else "the branch waits for /ship's PR")
+                 + ") · write PRODUCT.md · change another ticket's "
                  "file without the user's yes · fix a project-level problem on this branch · re-run a check to get its "
                  "number (the close gate's record counts on the exact files it checked; `status.py ticket` names any "
                  "file changed since - `--dry-run` lists every gap and writes nothing) · run a check the gate does not "
@@ -15384,7 +16196,7 @@ def proof_entries(base: Path) -> list[dict]:
     g = git(base, "rev-parse", "--git-common-dir")
     if not g:
         return []
-    f = (Path(g) if Path(g).is_absolute() else base / g) / PROOF_LOG
+    f = state_dir(base, common=True) / PROOF_LOG
     out = []
     for line in read_text(f).splitlines() if f.is_file() else []:
         try:
@@ -15675,7 +16487,7 @@ def foundation_start_out(st: "Status") -> str:
     import tempfile
     inline, rest = full.split(FOUNDATION_SPLIT, 1)
     base = st.base if st.base is not None else Path(".")
-    folder = base / ".git" if (base / ".git").is_dir() else Path(tempfile.gettempdir()) / (
+    folder = git_dir(base) if (base / ".git").exists() and git_dir(base) else Path(tempfile.gettempdir()) / (
         "playbook-" + hashlib.sha1(str(base.resolve()).encode()).hexdigest()[:10])
     folder.mkdir(parents=True, exist_ok=True)
     f = folder / "foundation-start.md"
@@ -15803,6 +16615,7 @@ def main(argv: list[str]) -> int:
     p.add_argument("--cost", action="store_true", help="also the cost per milestone, from this folder's Claude Code "
                                                        "conversation logs")
     p = sub.add_parser("next"); p.add_argument("--phase"); p.add_argument("--ticket")
+    p.add_argument("--milestone", help="/dev-check: the milestone to judge (M1); none: the one just finished")
     p.add_argument("--seat", help="/build: the seat this session works (SR1): picks its ticket, fills the card's Seat")
     p.add_argument("--mode", choices=["lean", "full"], help="the user's choice (`/build <id> full`); none: the tool decides")
     p.add_argument("--step", help="/design-system: what one turn needs (foundations | sample | write)")
@@ -15827,6 +16640,7 @@ def main(argv: list[str]) -> int:
     for o in ("--reason", "--gate", "--due", "--note"):
         p.add_argument(o)
     p.add_argument("--verdict", choices=["pass", "fail"])
+    p.add_argument("--milestone", help="/dev-check: the milestone judged, as its start was given")
     p.add_argument("--section-from", dest="section_from", help="a file holding the section's body: written into "
                    "PRODUCT.md, then checked; refused -> PRODUCT.md is put back")
     # /vision's bookkeeping in its one close call: STATUS.md made, the AI answer recorded (P6)
@@ -15864,6 +16678,10 @@ def main(argv: list[str]) -> int:
     for o in ("--what", "--reviews", "--skipped", "--docs", "--record", "--rollback", "--pr"):
         p.add_argument(o, required=True)
     p.add_argument("--dry-run", action="store_true"); p.add_argument("--commit")  # /ship's close (v2 alignment)
+    p.add_argument("--security-from", dest="security_from", help="the security review's findings table, saved to a "
+                   "file outside the repo (SH2: the evidence for --reviews' security result)")
+    p.add_argument("--docs-from", dest="docs_from", help="the claims checked: one line each, <doc>:<line> | claim | "
+                   "<code file>:<line> (SH2: the evidence for --docs)")
     p.add_argument("--no-commit", dest="no_commit", action="store_true", help="record without saving (the release "
                    "row saves by default; only when the user said not to save)")
     p = sub.add_parser("drift"); p.add_argument("--found", required=True, action="append")
@@ -15894,6 +16712,14 @@ def main(argv: list[str]) -> int:
             a.file = str(Path(top) / "STATUS.md")
             print(f"(STATUS.md is at the project root {Path(top).as_posix()} - used from there; run status.py from it)")
     path, today = Path(a.file), a.today
+    global DEV_CHECK_MILESTONE
+    DEV_CHECK_MILESTONE = (getattr(a, "milestone", None) or "").strip().upper() or None
+    if DEV_CHECK_MILESTONE:
+        known = milestone_plan(path.resolve().parent) or {}
+        if DEV_CHECK_MILESTONE not in known:
+            print(f"REFUSED: --milestone {DEV_CHECK_MILESTONE}: TICKETS.md has "
+                  f"{', '.join(known) if known else 'no milestones'} - name one of them")
+            return 2
     lock = None
     try:
         need_date(today, "--today")
@@ -16268,6 +17094,11 @@ def main(argv: list[str]) -> int:
             print(handoff_card(st))
         if a.cmd == "ticket":  # the close's rules came with the close gate (gate.py --close); only the rest remains
             print(board_line(st.base, a.id, "In Review"))  # the record written, the card in review
+            if st.base is not None and git_dir(st.base):
+                # REC1: the record saves itself, alone - a logged run's record rode `set build filled`, which an
+                # unrelated phase-wide check refused, and the record file sat untracked until the agent committed it
+                print(save_paths(st.base, ["STATUS.md", *written], f"build: {a.id} recorded",
+                                 f"never run `ticket {a.id}` again (it would record it twice)"))
             print(BUILD_LEAN_NEXT if playbook_mode("build", st.base) == "lean" else
                   "Next, the close's step (6): `status.py set build filled` (it saves the record - never a save "
                   "question), the transition guard, the four-block close - by the rules the close gate printed "
@@ -16295,8 +17126,14 @@ def main(argv: list[str]) -> int:
         if a.cmd == "set" and a.commit and st.base is not None:
             if a.state == "filled":  # 2.3: the phase's own security review, for /dev-check
                 a.commit += own_review_trailer(st.base, a.phase)
-            done = save_commit(st.base, a.commit)
+            build_only = BUILD_RECORD_PATHS if a.phase == "build" else ()
+            done = save_commit(st.base, a.commit, only=build_only)
             print(done)
+            left = [n for n in dirty_names(st.base) if not DOC_ONLY.search(n) and n != LOCK] if build_only else []
+            if left:  # a logged close committed package-lock.json after the passing gate, beside the record
+                print(f"  NOT saved with the record - changed after the passing gate: {', '.join(left[:8])}. A code or "
+                      f"config change after the gate is not part of this ticket's record: run the gate again, then "
+                      f"commit it as its own change")
             saved = done if done.startswith(("saved", "nothing to save")) else None  # a failed save is not a save
         if a.cmd == "set" and (a.state == "filled" or (a.phase == "validate" and a.state in ("running", "overridden")
                                                          and a.section_from)):  # /validate's close, any outcome
@@ -16309,6 +17146,9 @@ def main(argv: list[str]) -> int:
                     print(facts)
             if a.phase in PHASE_CLOSE_RULES and not saved:
                 print("For the close's last line:")
+            land = build_land_line(st) if a.phase == "build" and saved else ""
+            if land:  # LM1: the record is committed on the ticket branch - with no remote, it lands here
+                print(land)
             print(handoff_card(st, a.phase))
         return 0
     except DryRun as e:

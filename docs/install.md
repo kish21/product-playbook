@@ -52,20 +52,26 @@ All three read skills as `<name>/SKILL.md` folders. The installer puts them wher
 
 | Scope | Command | Lands in |
 |---|---|---|
-| **Project** (recommended) | `./install.sh --project /path/to/project --tool codex` (or `cursor` · `antigravity`) | `<project>/.agents/skills/` + `<project>/.agents/product-playbook/` (Cursor: also `.cursor/agents/`) — never committed: each teammate runs the installer |
+| **Project** (recommended) | `./install.sh --project /path/to/project --tool codex` (or `cursor` · `antigravity`) | `<project>/.agents/skills/` + `<project>/.agents/product-playbook/` (Cursor: also `.cursor/agents/` and `.cursor/skills/build-ticket/`) — never committed: each teammate runs the installer |
 | **Global, Codex** | `./install.sh --tool codex` | `~/.codex/skills/` |
 | **Global, Cursor** | `./install.sh --tool cursor` | `~/.cursor/skills/` |
 | **Global, Antigravity** | `./install.sh --tool antigravity` | `~/.gemini/config/skills/` |
 
-`--only` works the same way. On Windows run it from **Git Bash**. Call a skill as `/vision`, `/build`, … (Codex: `$vision`, `$build`, …); each tool's way to review code, check security and run the app is in `CAPABILITIES.md` — and where a tool has no native way, the skill uses the fallback named there and tells you.
+`--only` works the same way. On Windows run it from **Git Bash**. Call a skill as `/vision`, `/build`, … (Codex: `$vision`, `$build`, …; Cursor: `/build-ticket` for `/build` - Cursor never lists a skill folder named `build`, so the installer adds that copy); each tool's way to review code, check security and run the app is in `CAPABILITIES.md` — and where a tool has no native way, the skill uses the fallback named there and tells you.
 
 ### Did it work?
 
 Open a new Claude Code session and type `/playbook` (route A: `/product-playbook:playbook`). It should be offered as a command and greet you with the journey. Route A users can also run `/plugin list` and expect `product-playbook@product-playbook · Version: <the Latest version on the Releases page> · enabled`.
 
+**The skills vanished, or a start prints `! this copy's rule files are missing`?** A tool's own cleanup can empty
+the installed copy while still listing the plugin as installed (Claude Code's plugin cache was once found empty).
+Reinstall: `claude plugin install product-playbook@product-playbook` from a shell (inside Claude Code:
+`/plugin install product-playbook@product-playbook`, then `/reload-plugins`); Codex, Cursor, Antigravity: run
+`./install.sh` again with the same flags. Then restart the tool.
+
 ### Uninstall
 
 - **A:** `/plugin uninstall product-playbook@product-playbook`, then `/plugin marketplace remove product-playbook`.
 - **B:** delete the 22 skill folders from `~/.claude/skills/` (or the project's) and the `product-playbook/` companions folder beside it. An install made before the skills became folders also left them in `~/.claude/commands/` — re-running the installer removes those.
-- **D:** delete the 22 skill folders and the `product-playbook/` folder from the folder the installer named (`.agents/` in a project; `~/.cursor/` or `~/.gemini/config/` globally).
+- **D:** delete the 22 skill folders and the `product-playbook/` folder from the folder the installer named (`.agents/` in a project; `~/.cursor/` or `~/.gemini/config/` globally); Cursor: also `build-ticket/` from `.cursor/skills/` (or `~/.cursor/skills/`).
 

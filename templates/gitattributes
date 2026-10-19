@@ -15,3 +15,6 @@
 *.woff2 binary
 *.pdf binary
 *.zip binary
+# STATUS.md's phase table is edited on every ticket branch: keep both sides' lines on a merge (status.py reads
+# them back as one row per phase) - a logged merge of two ticket branches stopped in a conflict there.
+STATUS.md merge=union
