@@ -88,11 +88,39 @@ def run_git(cwd: Path, *args: str, env: dict | None = None) -> subprocess.Comple
                           encoding="utf-8", errors="replace", env=env)
 
 
+STATE_FALLBACK = ".playbook-state"
+
+
+def state_dir(base: Path | None = None, common: bool = False) -> Path:
+    """Where the playbook's never-committed records live: the git folder, or - when it cannot be written (Codex's
+    sandbox write-protects .git: a PermissionError and an approval retry on every start of a logged run) -
+    .playbook-state/ at the project root, which ignores itself, so the repo stays clean. Once that folder exists every
+    script uses it. (One copy per script: each is run standalone; tools/test_build_tools.py checks every copy.)"""
+    base = Path(base) if base is not None else Path(".")
+    r = subprocess.run(["git", "rev-parse", "--git-common-dir" if common else "--git-dir", "--show-toplevel"],
+                       cwd=base, capture_output=True, text=True)
+    lines = r.stdout.strip().splitlines() if r.returncode == 0 else []
+    if len(lines) < 2:
+        return base / lines[0] if lines else base
+    gd = Path(lines[0]) if Path(lines[0]).is_absolute() else base / lines[0]
+    fb = Path(lines[1]) / STATE_FALLBACK
+    if not fb.is_dir():
+        try:
+            probe = gd / f".playbook-probe-{os.getpid()}"
+            probe.write_text("", encoding="utf-8")
+            probe.unlink()
+            return gd
+        except OSError:
+            fb.mkdir(parents=True, exist_ok=True)
+    if not (fb / ".gitignore").is_file():
+        (fb / ".gitignore").write_text("*\n", encoding="utf-8")
+    return fb
+
+
 def log_file(base: Path) -> Path:
     g = run_git(base, "rev-parse", "--git-common-dir")
     if g.returncode == 0 and g.stdout.strip():
-        d = Path(g.stdout.strip())
-        return (d if d.is_absolute() else base / d) / LOG_NAME
+        return state_dir(base, common=True) / LOG_NAME
     return Path(tempfile.gettempdir()) / f"proofs-{hashlib.sha1(str(base.resolve()).encode()).hexdigest()[:10]}" \
         / LOG_NAME
 

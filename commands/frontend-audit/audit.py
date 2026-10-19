@@ -24,7 +24,7 @@ from collections import Counter
 
 # The playbook release this engine shipped in. tools/check.py (check 5) holds it equal to the release,
 # so a project copy can say which checks it carries.
-ENGINE_VERSION = "2.1.3"
+ENGINE_VERSION = "2.1.4"
 
 # ---------- colour math ----------------------------------------------------
 

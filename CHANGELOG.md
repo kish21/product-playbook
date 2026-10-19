@@ -5,6 +5,65 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [2.1.4] - 2026-10-19
+
+### Fixed — a milestone built on four agents: tickets land on main, checks need evidence, /dev-check checks the milestone you finished
+
+**In short.** A whole first milestone was built ticket by ticket on Claude Code, Codex, Cursor and Antigravity. Agents
+rebuilt finished tickets, shipped one ticket before the milestone was checked, passed a security check by typing the
+words it asked for, and a milestone whose screen could not load or approve anything was nearly recorded as done.
+Every one of those is closed here.
+
+**Tickets land on main, and finished work is never built again**
+- With no git remote, the record now ends with a local land step (`land.py local`) that merges the ticket branch
+  into main; the next ticket starts from main. Before, every ticket stayed on its own branch.
+- Ticket records are read from every local branch: the next ticket, the milestone count and the "Next" line no longer
+  depend on which branch is checked out, and a recorded ticket is never picked again ("recorded on branch X, land it").
+- After a ticket the next step is the next unbuilt ticket, then /dev-check - no longer "/ship this ticket".
+- STATUS.md merges without conflicts; recording a ticket twice replaces the record instead of adding a copy; a branch
+  whose changes already reached main another way no longer counts as unmerged.
+
+**/build's final check**
+- A ticket's tests count as covered when at least one full test step runs them. A CI step that runs one eval file on
+  purpose no longer refuses a correct ticket.
+- When the check cannot see the project's test command (tests run through a script), it follows the script, and if
+  it still cannot tell it says UNVERIFIED and asks once for the command. It never passes on a guess.
+- Ticket commands run in the project's environment (`uv run`, `poetry run`, the project's `.venv`), not the shell's PATH.
+- A failing check says plainly that the record refuses every outcome, partial included, and prints the command that
+  files the open item.
+- The record commits itself straight away; a slow commit says to wait, and a second save at the same time is refused.
+- Agents whose sandbox protects `.git` get a writable state folder instead of a permission error on every start.
+- The cut list for `wirecut.py` can be a file, one cut per line - no shell quoting.
+
+**Reviews and releases need evidence, not words**
+- /ship accepts a security result only from the review's findings table, or from security reviews the shipped tickets
+  already recorded; doc claims need a list naming the code behind each claim. A refusal never prints a phrase that
+  would pass.
+- "pay", "payout", "invoice", "settlement" and similar words, and the files a change touches, now call for a security
+  review. A security review that failed or never ran blocks "done" on such a ticket.
+- Every record names its review route and the commit the review read, on every agent. "Not wired yet" must name a real
+  ticket still to build. A bypass reason is typed by you; the agent offers no recommended reason.
+- No second review round is offered after a first round with nothing to fix. With no remote, small findings go into a
+  local issue file.
+
+**/dev-check checks the milestone you finished**
+- It judges the milestone just finished (before: the next one, so a finished milestone was never checked); you can
+  also name one: `/dev-check M1`.
+- Every exit criterion is read - long ones wrapped over several lines were cut to their first line - and each needs
+  its own verdict.
+- A criterion that is something a user does ("open", "upload", "approve in one click") is met only with a step on the
+  running app as evidence, not a unit test.
+- Endpoints still returning the placeholder 501 from /contracts are named as a failure.
+- The security review runs as an independent helper on every agent.
+- /tickets refuses a plan in which a milestone's exit criterion is served only by a later milestone's ticket.
+
+**Agents**
+- Cursor skips skill folders named `build`, so it never saw the playbook's /build (it used Claude Code's copy when that
+  was installed). Cursor now gets it as `/build-ticket`; the other agents keep `/build`.
+- Codex gets the exact call shape for long commands; every skill tries the project's own Python before other names;
+  the start prints the interpreter to use for every playbook command.
+- The start warns when its own rule files are missing, and docs/install.md has the reinstall command.
+
 ## [2.1.3] - 2026-10-16
 
 ### Fixed — 42 fixes from an end-to-end run on Claude Code, Codex, Cursor and Antigravity

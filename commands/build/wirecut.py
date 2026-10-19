@@ -9,7 +9,11 @@ time, each call re-sending a 200k-token conversation. List the cuts in a JSON fi
       "test": "uv run pytest app/shops/tests/test_install.py -q"}]
 
     python wirecut.py cuts.json
-    python wirecut.py --cut "app/x.py::verify_signature=True::verify_signature=False::uv run pytest -q" [--cut ...]
+    python wirecut.py --cut 'app/x.py::verify_signature=True::verify_signature=False::uv run pytest -q' [--cut ...]
+    python wirecut.py --cut cuts.txt      (one `file::find::replace::test` cut per line - no shell quoting at all)
+
+PowerShell and bash both keep a single-quoted cut whole; a cut whose text holds a quote goes in a cuts.txt file
+(PowerShell 5.1 drops inner double quotes on the way to a program - a logged run spent ~12 calls on that).
 
 A cut that proves one claim of the ticket's Demo carries its number, as the start printed it: `--cut "D3=app/x.py::..."`
 or `"claim": "D3"` in the JSON. `status.py ticket` needs every Demo claim proven by a RED cut (a logged Gemini build
@@ -77,9 +81,37 @@ def windows_program(cmd: str, win: bool = os.name == "nt") -> str:
     return "".join(out)
 
 
+STATE_FALLBACK = ".playbook-state"
+
+
+def state_dir(base: Path | None = None, common: bool = False) -> Path:
+    """Where the playbook's never-committed records live: the git folder, or - when it cannot be written (Codex's
+    sandbox write-protects .git: a PermissionError and an approval retry on every start of a logged run) -
+    .playbook-state/ at the project root, which ignores itself, so the repo stays clean. Once that folder exists every
+    script uses it. (One copy per script: each is run standalone; tools/test_build_tools.py checks every copy.)"""
+    base = Path(base) if base is not None else Path(".")
+    r = subprocess.run(["git", "rev-parse", "--git-common-dir" if common else "--git-dir", "--show-toplevel"],
+                       cwd=base, capture_output=True, text=True)
+    lines = r.stdout.strip().splitlines() if r.returncode == 0 else []
+    if len(lines) < 2:
+        return base / lines[0] if lines else base
+    gd = Path(lines[0]) if Path(lines[0]).is_absolute() else base / lines[0]
+    fb = Path(lines[1]) / STATE_FALLBACK
+    if not fb.is_dir():
+        try:
+            probe = gd / f".playbook-probe-{os.getpid()}"
+            probe.write_text("", encoding="utf-8")
+            probe.unlink()
+            return gd
+        except OSError:
+            fb.mkdir(parents=True, exist_ok=True)
+    if not (fb / ".gitignore").is_file():
+        (fb / ".gitignore").write_text("*\n", encoding="utf-8")
+    return fb
+
+
 def backup_dir() -> Path:
-    r = subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True, text=True)
-    d = (Path(r.stdout.strip()) if r.returncode == 0 else Path(".")) / "playbook-wirecut"
+    d = state_dir() / "playbook-wirecut"
     d.mkdir(parents=True, exist_ok=True)
     return d
 
@@ -93,30 +125,63 @@ def restore_leftovers(folder: Path) -> None:
         meta.unlink()
 
 
+USAGE = ('usage: python wirecut.py --cut "[D<n>=]<file>::<text to break>::<replacement>::<test command>" [--cut ...]\n'
+         '       python wirecut.py --cut cuts.txt   (one such cut per line; # lines skipped)\n'
+         '       python wirecut.py <cuts.json>     (a list of {"name","file","find","replace","test"})\n'
+         "copy-paste, the same in PowerShell and bash - the cut in SINGLE quotes:\n"
+         "  python wirecut.py --cut 'app/x.py::verify=True::verify=False::uv run pytest app/tests -q'\n"
+         "a cut whose text holds a quote: write the line into cuts.txt (your file tool), then\n"
+         "  python wirecut.py --cut cuts.txt")
+
+
+def parse_cut(text: str) -> dict | None:
+    """One `[D<n>=]file::find::replace::test` cut; None when it is not four parts with a file, a find and a test."""
+    parts = text.split("::")
+    if len(parts) != 4 or not all(p.strip() for p in (parts[0], parts[1], parts[3])):
+        return None
+    claim = re.match(r"\s*(D\d+)=", parts[0])
+    file = (parts[0][claim.end():] if claim else parts[0]).strip()
+    return {"name": f"{file}: {parts[1][:50]}", "file": file, "find": parts[1], "replace": parts[2],
+            "test": parts[3].strip(), "claim": claim.group(1) if claim else ""}
+
+
+def cut_lines(text: str) -> list[str]:
+    return [ln for ln in text.splitlines() if ln.strip() and not ln.lstrip().startswith("#")]
+
+
 def main(argv: list[str]) -> int:
     try:
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     except AttributeError:
         pass
-    usage = ('usage: python wirecut.py --cut "[D<n>=]<file>::<text to break>::<replacement>::<test command>" [--cut ...]\n'
-             '       python wirecut.py <cuts.json>   (a list of {"name","file","find","replace","test"})')
+    usage = USAGE + (f"\n  (`python` = {Path(sys.executable).as_posix()}, wirecut.py = "
+                     f"{Path(__file__).resolve().as_posix()})")
     if argv and argv[0] == "--cut":  # LEAN: cuts on the command line - a logged build spent 9 calls making a JSON file
         cuts = []
         for i in range(0, len(argv), 2):
-            parts = argv[i + 1].split("::") if argv[i] == "--cut" and i + 1 < len(argv) else []
-            if len(parts) != 4 or not all(p.strip() for p in (parts[0], parts[1], parts[3])):
-                print(f"wirecut: bad --cut {argv[i + 1] if i + 1 < len(argv) else ''!r}: four parts joined by ::\n{usage}")
-                return 2
-            claim = re.match(r"(D\d+)=", parts[0])
-            file = parts[0][claim.end():] if claim else parts[0]
-            cuts.append({"name": f"{file}: {parts[1][:50]}", "file": file, "find": parts[1],
-                         "replace": parts[2], "test": parts[3], "claim": claim.group(1) if claim else ""})
+            arg = argv[i + 1] if argv[i] == "--cut" and i + 1 < len(argv) else ""
+            # WC1: a file of cut lines - no shell quoting (PowerShell cost a logged run ~12 calls on one quoted cut)
+            lines = cut_lines(Path(arg).read_text(encoding="utf-8")) if "::" not in arg and arg and Path(arg).is_file() \
+                else [arg]
+            for ln in lines or [arg]:
+                cut = parse_cut(ln)
+                if cut is None:
+                    print(f"wirecut: bad --cut {ln!r}: four parts joined by :: (got {len(ln.split('::'))})\n{usage}")
+                    return 2
+                cuts.append(cut)
         argv = []
     elif len(argv) != 1:
         print(usage)
         return 2
     try:
-        cuts = cuts if not argv else json.loads(Path(argv[0]).read_text(encoding="utf-8"))
+        if argv:
+            text = Path(argv[0]).read_text(encoding="utf-8")
+            try:
+                cuts = json.loads(text)
+            except ValueError:  # a cuts.txt named without --cut: its lines, when every one is a cut
+                cuts = [parse_cut(ln) for ln in cut_lines(text)]
+                if not cuts or None in cuts:
+                    raise
         assert isinstance(cuts, list) and cuts
         for c in cuts:
             assert all(isinstance(c.get(k), str) for k in ("name", "file", "find", "replace", "test")), c

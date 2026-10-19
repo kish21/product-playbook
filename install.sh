@@ -372,6 +372,19 @@ if [[ "${TOOL}" != "claude" ]]; then
       { print }' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
   done
   echo "  ✓ each skill's description starts ${LABEL}"
+  # 5b) Cursor's skill scan skips every folder named build, dist, node_modules or __pycache__ (its walker's skip list,
+  #     read in Cursor 3.25's agent code), and a Cursor skill is named by its folder: .agents/skills/build never
+  #     listed, every logged Cursor /build ran Claude Code's plugin copy, and with that gone /build vanished. Cursor
+  #     gets it as build-ticket in .cursor/skills/ (only Cursor reads that folder); its engines stay in build/.
+  if [[ "${TOOL}" == "cursor" ]] && printf '%s\n' "${SELECTED[@]}" | grep -qx build; then
+    CURSOR_SKILLS="${TARGET}"; [[ "${SCOPE}" == "project" ]] && CURSOR_SKILLS="${PROJECT_DIR}/.cursor/skills"
+    ALIAS="${CURSOR_SKILLS}/build-ticket"
+    rm -rf "${ALIAS:?}"; mkdir -p "${ALIAS}"
+    cp -R "${TARGET}/build/references" "${ALIAS}/references"
+    awk '/^---[[:space:]]*$/ { fm++ } fm == 1 && /^name:[[:space:]]*build[[:space:]]*$/ { print "name: build-ticket"; next }
+         { print }' "${TARGET}/build/SKILL.md" > "${ALIAS}/SKILL.md"
+    echo "  ✓ Cursor: /build is /build-ticket (${ALIAS}) - Cursor never lists a skill folder named build"
+  fi
   if grep -qs '"product-playbook@[^"]*"[[:space:]]*:[[:space:]]*true' "${HOME}/.claude/settings.json"; then
     echo "  ⚠  Claude Code also has product-playbook switched on, and Cursor lists Claude Code's skills too: you may"
     echo "     see each skill twice. Pick the one whose description starts ${LABEL}."

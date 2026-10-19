@@ -17,7 +17,7 @@ first logged test run in that tool, then this file is updated.
 
 | Claude Code | Cursor | Antigravity | Codex |
 |---|---|---|---|
-| the plugin, or `.claude/skills/<name>/SKILL.md` | `.agents/skills/<name>/SKILL.md` (also reads `.cursor/skills/`, `.claude/skills/`) | `.agents/skills/<name>/SKILL.md`; user-wide `~/.gemini/config/skills/` | `.agents/skills/<name>/SKILL.md`, started as `$<name>`; user-wide `~/.codex/skills/` (UNCONFIRMED) |
+| the plugin, or `.claude/skills/<name>/SKILL.md` | `.agents/skills/<name>/SKILL.md` (also reads `.cursor/skills/`, `.claude/skills/`); its scan skips a folder named `build`, so /build is `.cursor/skills/build-ticket/` = `/build-ticket` | `.agents/skills/<name>/SKILL.md`; user-wide `~/.gemini/config/skills/` | `.agents/skills/<name>/SKILL.md`, started as `$<name>`; user-wide `~/.codex/skills/` (UNCONFIRMED) |
 
 ## Paths to the playbook's own files
 
