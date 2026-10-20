@@ -830,7 +830,7 @@ def model_age_problems(body: str, today: str) -> list[str]:
 # walk entered .git, .venv and the installed playbook - its own check_structure.py was taken as the project's).
 SKIP_DIRS = {".git", ".agents", ".claude", ".cursor", ".codex", ".gemini", "node_modules", ".venv", "venv",
              "__pycache__", "dist", "build", "site-packages", ".mypy_cache", ".pytest_cache", ".ruff_cache", ".tox",
-             ".nox", ".next"}
+             ".nox", ".next", ".uv-cache", ".cache"}  # PF1: a sandboxed agent's package cache in the project
 # The playbook's own install inside a project (install.sh --project; each tool's agents folder). The save never
 # stages it: a logged Codex /structure replaced .gitignore and its save committed 88 install files (2026-10-03).
 INSTALL_PATHS = (".agents", ".claude/skills", ".claude/product-playbook", ".claude/agents", ".cursor/agents",
@@ -2211,7 +2211,8 @@ def dev_check_gaps(st: Status) -> list[str]:
                     + ", ".join(f"{x['method']} {x['path']} ({x['owner']})" for x in owned[:6]))
     d = git_dir(base)
     branch = git(base, "rev-parse", "--abbrev-ref", "HEAD")
-    gate_gap = final_gate_gap(base, d, branch)[0] if d else "not a git checkout"
+    # DC11: the close writes #Dev-complete after the gate - the phase's own section, as /test's #Tests
+    gate_gap = final_gate_gap(base, d, branch, own="Dev-complete")[0] if d else "not a git checkout"
     if gate_gap:
         gaps.append(gate_gap.replace("commit the last code change, then run the gate once more",
                                      "run the start's gate command on this checkout"))
@@ -5269,6 +5270,15 @@ def ticket_verification(spec: str) -> list[str]:
     return [l.strip() for l in m.group(1).splitlines() if l.strip() and not l.strip().startswith("#")] if m else []
 
 
+# gate.py runs a bare Python tool through the project's runner and logs that text (gate.py RUNNER_LOCKS)
+GATE_RUNNERS = ("uv run", "poetry run", "pdm run", "pipenv run")
+
+
+def gate_ran(cmd: str, ran: list[str]) -> bool:
+    """`cmd` is among the gate's commands as written, or as the gate ran it through the project's runner (DR1)."""
+    return any(c == cmd or c in (f"{p} {cmd}" for p in GATE_RUNNERS) for c in ran)
+
+
 def check_recipe(base: Path) -> tuple[str, re.Pattern] | None:
     """The project's own full check command, when it has one: the DoD says it is green (R3-5)."""
     for name in ("justfile", "Justfile", ".justfile"):
@@ -5543,7 +5553,7 @@ def build_ticket_gaps(base: Path, a, today: str, st: "Status | None" = None) -> 
     # a gate run counts for THIS ticket only: its ticket is this one (a run naming none is no one's - audit 6) and the
     # commands it ran include this ticket's own Verification Command lines - never another ticket's run
     if tf and a.dod == "yes" and good and not any(
-            r.get("ticket") == a.id and mine and all(v in r.get("commands", []) for v in mine)
+            r.get("ticket") == a.id and mine and all(gate_ran(v, r.get("commands", [])) for v in mine)
             for r in good):
         gaps.append(f"--dod yes needs the ticket's own Verification Command passing in the close gate ("
                     f"{' · '.join(mine) if mine else tf.name + ' names none'}) - run `gate.py --ticket {a.id} --close`, "
@@ -16821,7 +16831,11 @@ def main(argv: list[str]) -> int:
                                                 f"nothing to read; go on")
             return 0
         if a.cmd == "section":
-            print(print_sections(Path(a.path), a.names, a.own, a.headings))
+            # DC12: `section Dev-complete` (no file) - agents leave PRODUCT.md out; a first word that is no file reads it
+            src_, names_ = Path(a.path), a.names
+            if not src_.is_file() and (path.resolve().parent / "PRODUCT.md").is_file():
+                src_, names_ = path.resolve().parent / "PRODUCT.md", [a.path, *a.names]
+            print(print_sections(src_, names_, a.own, a.headings))
             return 0
         if a.cmd == "scaffold":  # /structure's boilerplate in one call (S6/S11): 74 one-file calls on a logged run
             base_ = path.resolve().parent

@@ -5,6 +5,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/); this project use
 
 ## [Unreleased]
 
+## [2.1.5] - 2026-10-20
+
+### Fixed — /dev-check M1 run on four agents: four refusals and one slow start that had no way out
+
+**In short.** Checking a finished milestone on Claude Code, Codex, Cursor and Antigravity hit four places where the
+playbook stopped a correct run, and one start so slow an agent gave up on it. Each one needed someone who could read
+the playbook's scripts. All five are fixed.
+
+- **A ticket can be recorded done when its tests ran through `uv run`.** Since 2.1.4 the final check runs a bare
+  Python command (`python -m pytest ...`, `pytest ...`) through the project's runner and logs it that way; the ticket
+  record looked for the command word for word and refused "done" over a passing check. It now accepts the command as
+  written or with one runner prefix (`uv run`, `poetry run`, `pdm run`, `pipenv run`).
+- **A /dev-check PASS can be saved.** The save writes the #Dev-complete section, then checks that the final check
+  still covers the files. That section counted as a change, so every PASS was refused, and re-running the check only
+  reused the old pass. The phase's own section no longer counts; any other change still does.
+- **Phase starts are fast again in agents that keep their package cache in the project** (`.uv-cache`, `.cache`).
+  A start read thousands of cache files - over a minute, with nothing printed - and an agent stopped it as stalled.
+- **`status.py section Dev-complete` works** without naming PRODUCT.md first; a wrong name lists the sections there.
+- The development-server test no longer writes a small launcher script into the temp folder, which an antivirus
+  blocked as suspicious; it uses a real virtual environment.
+
 ## [2.1.4] - 2026-10-19
 
 ### Fixed — a milestone built on four agents: tickets land on main, checks need evidence, /dev-check checks the milestone you finished
